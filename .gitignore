@@ -31,4 +31,9 @@
 *.out
 *.app
 bin/*
+
+# Example files
 ex/*
+
+# vscode specific
+*.code-workspace
