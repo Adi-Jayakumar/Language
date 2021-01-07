@@ -2,9 +2,31 @@
 
 Expr::~Expr(){}
 
-Literal::Literal(double _val)
+Literal::Literal(Token val)
 {
-    val = _val;
+    switch(TypeMap.at(val.type))
+    {
+        case 1:
+        {
+            typeID = 1;
+            as.i = std::stoi(val.literal);
+            break;
+        }
+        case 2:
+        {
+            typeID = 2;
+            as.d = std::stod(val.literal);
+            break;
+        }
+        case 3:
+        {
+            typeID = 3;
+            if(val.literal == "true")
+                as.b = true;
+            else
+                as.b = false;
+        }
+    }
 }
 
 Unary::Unary(Token _op, Expr* _right)

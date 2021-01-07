@@ -1,5 +1,12 @@
 #pragma once
 #include "token.h"
+#include <cstdint>
+#include <unordered_map>
+
+static const std::unordered_map<TokenID, uint8_t> TypeMap{
+    {TokenID::INT_L, 1},
+    {TokenID::DOUBLE_L, 2},
+    {TokenID::BOOL_L, 3}};
 
 struct Expr
 {
@@ -9,11 +16,23 @@ struct Expr
 
 std::ostream &operator<<(std::ostream &out, Expr *e);
 
+
+/*
+    TypeIDs are represented as uint8_t with
+    1 ---> int
+    2 ---> double
+    3 ---> bool
+*/
 struct Literal : Expr
 {
-    // will change when more types are added
-    double val;
-    Literal(double _val);
+    uint8_t typeID;
+    union combo
+    {
+        int i;
+        double d;
+        bool b;
+    } as;
+    Literal(Token val);
 
     void Print(std::ostream &out) override;
 };
