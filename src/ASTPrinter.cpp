@@ -13,7 +13,11 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
 {
-    out << u->op << "(";
+    if(u->op.type == TokenID::MINUS)
+        out << " -";
+    else
+        out << u->op;
+    out << "(";
     u->right->Print(out);
     out << ")";
 }
