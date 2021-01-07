@@ -35,5 +35,8 @@ bin/*
 # Example files
 ex/*
 
+# main cpp file
+src/main.cpp
+
 # vscode specific
 *.code-workspace
