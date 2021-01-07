@@ -14,18 +14,35 @@ Lexer::Lexer(const std::string &fPath)
     src = IO::GetSrcString(fPath);
 }
 
-
-
 Token Lexer::NextToken()
 {
-    
-    if(index == src.length())
+    if (index == src.length())
         return {TokenID::END, "", line};
 
     SkipWhiteSpace();
 
     if (isdigit(src[index]))
-        return LexDouble();
+        return LexNumber();
+
+    if (isalpha(src[index]))
+    {
+        Token t;
+        if (CheckKeyword(t))
+        {
+            index += t.literal.length();
+            return t;
+        }
+        else
+        {
+            std::string name;
+            while (isalpha(src[index]))
+            {
+                name += src[index];
+                index++;
+            }
+            return {TokenID::IDEN, name, line};
+        }
+    }
 
     Token res;
 
@@ -51,6 +68,55 @@ Token Lexer::NextToken()
         res = {TokenID::SLASH, "/", line};
         break;
     }
+    case '>':
+    {
+        if (src[index + 1] == '=')
+        {
+            res = {TokenID::GEQ, ">=", line};
+            index++;
+        }
+        else
+            res = {TokenID::GT, ">", line};
+        break;
+    }
+    case '<':
+    {
+        if (src[index + 1] == '=')
+        {
+            res = {TokenID::LEQ, "<=", line};
+            index++;
+        }
+        else
+            res = {TokenID::LT, "<", line};
+        break;
+    }
+    case '=':
+    {
+        if(src[index + 1] == '=')
+        {
+            res = {TokenID::EQ_EQ, "==", line};
+            index++;
+        }
+        else
+            res = {TokenID::EQ, "=", line};
+        break;
+    }
+    case '!':
+    {
+        if (src[index + 1] == '=')
+        {
+            res = {TokenID::BANG_EQ, "!=", line};
+            index++;
+        }
+        else
+            res = {TokenID::BANG, "!", line};
+        break;
+    }
+    case ';':
+    {
+        res = {TokenID::SEMI, ";", line};
+        break;
+    }
     case '(':
     {
         res = {TokenID::OPEN_PAR, "(", line};
@@ -62,7 +128,7 @@ Token Lexer::NextToken()
         break;
     }
     }
-    
+
     index++;
     return res;
 }
@@ -77,16 +143,48 @@ void Lexer::SkipWhiteSpace()
     }
 }
 
-Token Lexer::LexDouble()
+Token Lexer::LexNumber()
 {
     int start = index;
     int length = 0;
 
+    bool hadDot = false;
+
     while (isdigit(src[index]) || src[index] == '.')
     {
+        if (src[index] == '.')
+            hadDot = true;
         index++;
         length++;
     }
 
-    return {TokenID::DOUBLE_L, src.substr(start, length), line};
+    return {hadDot ? TokenID::DOUBLE_L : TokenID::INT_L, src.substr(start, length), line};
+}
+
+bool Lexer::CheckKeyword(Token &tok)
+{
+    switch (src[index])
+    {
+    case 't':
+    {
+        return MatchKeyWord("rue", TokenID::BOOL_L, tok);
+    }
+    case 'f':
+    {
+        return MatchKeyWord("alse", TokenID::BOOL_L, tok);
+    }
+    }
+    return false;
+}
+
+bool Lexer::MatchKeyWord(std::string kw, TokenID t, Token &tok)
+{
+    std::string candidate = src.substr(index + 1, kw.length());
+    if (candidate == kw)
+    {
+        tok = {t, src[index] + candidate, line};
+        return true;
+    }
+    else
+        return false;
 }

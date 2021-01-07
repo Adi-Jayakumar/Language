@@ -22,5 +22,9 @@ struct Lexer
     Token NextToken();
 
     void SkipWhiteSpace();
-    Token LexDouble();
+    Token LexLiteral();
+    
+    Token LexNumber();
+    bool CheckKeyword(Token &tok);
+    bool MatchKeyWord(std::string kw, TokenID t, Token &tok);
 };
