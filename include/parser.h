@@ -1,6 +1,7 @@
 #pragma once
-#include "exprnode.h"
 #include "lexer.h"
+#include "stmtnode.h"
+#include <vector>
 
 struct Parser
 {
@@ -12,7 +13,18 @@ struct Parser
 
     // updates the previous and current tokens
     void Advance();
-
+    // parses a file into a list of statements
+    std::vector<Stmt *> Parse();
+    // parses any statement
+    Stmt *Statement();
+    // parses an expression statement
+    Stmt *ExpressionStatement();
+    // parses any expression
+    Expr *Expression();
+    // parses a series of == or != operations
+    Expr *EqualityCheck();
+    // parses a series of >, <, >=, <= operations
+    Expr *Comparison();
     // parses a series of + or - operations
     Expr *Sum();
     // parses a series of * or / operations

@@ -13,6 +13,65 @@ void Parser::Advance()
     cur = lex.NextToken();
 }
 
+std::vector<Stmt *> Parser::Parse()
+{
+    std::vector<Stmt*> result;
+    while(cur.type != TokenID::END)
+    {
+        result.push_back(Statement());
+    }
+    return result;
+}
+
+Stmt* Parser::Statement()
+{
+    return ExpressionStatement();
+}
+
+Stmt *Parser::ExpressionStatement()
+{
+    Expr* exp = Expression();
+    Advance();
+    return new ExprStmt(exp);
+}
+
+Expr *Parser::Expression()
+{
+    return EqualityCheck();
+}
+
+Expr *Parser::EqualityCheck()
+{
+    Expr *left = Comparison();
+    Token op = cur;
+    
+    while (cur.type == TokenID::EQ_EQ || cur.type == TokenID::BANG_EQ)
+    {
+        Advance();
+        Expr *right = Comparison();
+        left = new Binary(left, op, right);
+        op = cur;
+    }
+
+    return left;
+}
+
+Expr *Parser::Comparison()
+{
+    Expr *left = Sum();
+    Token op = cur;
+
+    while (cur.type == TokenID::GT || cur.type == TokenID::LT || cur.type == TokenID::GEQ || cur.type == TokenID::LEQ)
+    {
+        Advance();
+        Expr *right = Sum();
+        left = new Binary(left, op, right);
+        op = cur;
+    }
+
+    return left;
+}
+
 Expr *Parser::Sum()
 {
     Expr *left = Product();
@@ -47,30 +106,29 @@ Expr *Parser::Product()
 
 Expr *Parser::UnaryOp()
 {
-    Expr *right = LiteralNode();
-    Token op = cur;
-
-    if (op.type == TokenID::MINUS)
+    
+    if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
-        right = new Unary(op, UnaryOp());
-        op = cur;
+        Advance();
+        Expr *right = new Unary(prev, UnaryOp());
+        return right;
     }
 
-    return right;
+    return LiteralNode();
 }
 
 Expr *Parser::LiteralNode()
 {
     Expr *res = nullptr;
-    if (cur.type == TokenID::DOUBLE_L)
-        res = new Literal(stod(cur.literal));
+    if (IsLiteral(cur))
+        res = new Literal(cur);
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
-        res = Sum();
-        
+        res = Expression();
+
         // just in place of actual error handling
-        if(cur.type != TokenID::CLOSE_PAR)
+        if (cur.type != TokenID::CLOSE_PAR)
             std::cout << "NEED TO CLOSE THE PARENS" << std::endl;
     }
     Advance();
