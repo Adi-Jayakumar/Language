@@ -13,7 +13,8 @@ enum class TokenID
 
     OPEN_PAR,
     CLOSE_PAR,
-
+    
+    BEG,
     END
 };
 

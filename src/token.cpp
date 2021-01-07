@@ -5,6 +5,11 @@ std::ostream &operator<<(std::ostream &out, const TokenID &t)
 {
     switch (t)
     {
+    case TokenID::BEG:
+    {
+        out << "BEG";
+        break;
+    }
     case TokenID::DOUBLE_L:
     {
         out << "DOUBLE_L";
