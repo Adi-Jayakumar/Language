@@ -6,15 +6,43 @@ std::ostream &operator<<(std::ostream &out, Expr *e)
     return out;
 }
 
+std::ostream &operator<<(std::ostream &out, Stmt *s)
+{
+    s->Print(out);
+    return out;
+}
+
 void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 {
-    out << std::to_string(l->val);
+    switch (l->typeID)
+    {
+    case 1:
+    {
+        out << l->as.i;
+        break;
+    }
+    case 2:
+    {
+        out << l->as.d;
+        break;
+    }
+    case 3:
+    {
+        if (l->as.b)
+            out << "true";
+        else
+            out << "false";
+        break;
+    }
+    }
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
 {
-    if(u->op.type == TokenID::MINUS)
+    if (u->op.type == TokenID::MINUS)
         out << " -";
+    else if (u->op.type == TokenID::BANG)
+        out << " !";
     else
         out << u->op;
     out << "(";
@@ -31,21 +59,39 @@ void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
 {
     out << "(";
     b->left->Print(out);
-    
-    if(b->op.type == TokenID::PLUS)
+
+    if (b->op.type == TokenID::PLUS)
         out << " + ";
-    else if(b->op.type == TokenID::MINUS)
+    else if (b->op.type == TokenID::MINUS)
         out << " - ";
-    else if(b->op.type == TokenID::STAR)
+    else if (b->op.type == TokenID::STAR)
         out << " * ";
-    else if(b->op.type == TokenID::SLASH)
+    else if (b->op.type == TokenID::SLASH)
         out << " / ";
+    else if (b->op.type == TokenID::GT)
+        out << " > ";
+    else if (b->op.type == TokenID::LT)
+        out << " < ";
+    else if (b->op.type == TokenID::GEQ)
+        out << " >= ";
+    else if (b->op.type == TokenID::LEQ)
+        out << " <= ";
+    else if (b->op.type == TokenID::EQ_EQ)
+        out << " == ";
+    else if (b->op.type == TokenID::BANG_EQ)
+        out << " != ";
     else
         out << b->op;
-    
+
     b->right->Print(out);
-    
+
     out << ")";
+}
+
+void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
+{
+    es->exp->Print(out);
+    out << ";";
 }
 
 void Literal::Print(std::ostream &out)
@@ -66,4 +112,9 @@ void Grouping::Print(std::ostream &out)
 void Binary::Print(std::ostream &out)
 {
     ASTPrinter::PrintBinary(this, out);
+}
+
+void ExprStmt::Print(std::ostream &out)
+{
+    ASTPrinter::PrintExprStmt(this, out);
 }
