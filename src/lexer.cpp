@@ -12,14 +12,9 @@ Lexer::Lexer(const std::string &fPath)
     index = 0;
     line = 1;
     src = IO::GetSrcString(fPath);
-    cur = {TokenID::BEG, "", 0};
 }
 
-void Lexer::Advance()
-{
-    prev = cur;
-    cur = NextToken();
-}
+
 
 Token Lexer::NextToken()
 {
