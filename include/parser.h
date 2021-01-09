@@ -13,6 +13,8 @@ struct Parser
 
     // updates the previous and current tokens
     void Advance();
+    // consumes the token, if not there, gives an error
+    void Consume(TokenID t, std::string err);
     // parses a file into a list of statements
     std::vector<Stmt *> Parse();
     // parses any statement

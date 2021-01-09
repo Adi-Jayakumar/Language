@@ -3,6 +3,7 @@
 #include <fstream>
 #include <streambuf>
 #include <string>
+#include "perror.h"
 
 namespace IO
 {
@@ -17,6 +18,8 @@ struct Lexer
 
     Lexer(){};
     Lexer(const std::string &fPath);
+
+    size_t LineSize();
 
     // lexes the token starting from where the current character is
     Token NextToken();

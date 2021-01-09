@@ -14,6 +14,18 @@ Lexer::Lexer(const std::string &fPath)
     src = IO::GetSrcString(fPath);
 }
 
+size_t Lexer::LineSize()
+{
+    size_t l = 0;
+    size_t i = index;
+    while(i != src.length() && src[i] != '\n')
+    {
+        l++;
+        i++;
+    }
+    return l;
+}
+
 Token Lexer::NextToken()
 {
     if (index == src.length())
@@ -125,6 +137,13 @@ Token Lexer::NextToken()
     case ')':
     {
         res = {TokenID::CLOSE_PAR, ")", line};
+        break;
+    }
+    default:
+    {
+        size_t lineSize = LineSize();
+        Error e = Error( "[LEX ERROR]: Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
+        e.Dump();
         break;
     }
     }

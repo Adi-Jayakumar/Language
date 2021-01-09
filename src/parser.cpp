@@ -7,6 +7,15 @@ Parser::Parser(const std::string &fPath)
     cur = lex.NextToken();
 }
 
+void Parser::Consume(TokenID t, std::string err)
+{
+    if (t != cur.type)
+    {
+        Error e = Error("[PARSE ERROR] On line " + std::to_string(cur.line) + "\n" + err);
+        e.Dump();
+    }
+}
+
 void Parser::Advance()
 {
     prev = cur;
@@ -15,22 +24,23 @@ void Parser::Advance()
 
 std::vector<Stmt *> Parser::Parse()
 {
-    std::vector<Stmt*> result;
-    while(cur.type != TokenID::END)
+    std::vector<Stmt *> result;
+    while (cur.type != TokenID::END)
     {
         result.push_back(Statement());
     }
     return result;
 }
 
-Stmt* Parser::Statement()
+Stmt *Parser::Statement()
 {
     return ExpressionStatement();
 }
 
 Stmt *Parser::ExpressionStatement()
 {
-    Expr* exp = Expression();
+    Expr *exp = Expression();
+    Consume(TokenID::SEMI, "Missing ';'");
     Advance();
     return new ExprStmt(exp);
 }
@@ -44,7 +54,7 @@ Expr *Parser::EqualityCheck()
 {
     Expr *left = Comparison();
     Token op = cur;
-    
+
     while (cur.type == TokenID::EQ_EQ || cur.type == TokenID::BANG_EQ)
     {
         Advance();
@@ -106,7 +116,7 @@ Expr *Parser::Product()
 
 Expr *Parser::UnaryOp()
 {
-    
+
     if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
         Advance();
@@ -130,6 +140,11 @@ Expr *Parser::LiteralNode()
         // just in place of actual error handling
         if (cur.type != TokenID::CLOSE_PAR)
             std::cout << "NEED TO CLOSE THE PARENS" << std::endl;
+    }
+    else
+    {
+        Error e = Error("[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
+        e.Dump();
     }
     Advance();
     return res;
