@@ -5,26 +5,36 @@
 
 enum class TokenID : uint8_t
 {
+    // literal values
     INT_L,
     DOUBLE_L,
     BOOL_L,
 
+    // identifier
     IDEN,
+    // type name
+    TYPENAME,
 
+    // arithmetic operators
     PLUS,
     MINUS,
     STAR,
     SLASH,
 
+    // comparison operators
     GT,
     LT,
     GEQ,
     LEQ,
 
+    // equality opreators
     EQ_EQ,
     BANG_EQ,
 
+    // assignment operator
     EQ,
+
+    // unary not opertion
     BANG,
 
     SEMI,

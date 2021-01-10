@@ -52,3 +52,19 @@ Binary::~Binary()
     delete left;
     delete right;
 }
+
+Assign::Assign(std::string _name, Expr* _val)
+{
+    name = _name;
+    val = _val;
+}
+
+Assign::~Assign()
+{
+    delete val;
+}
+
+VarReference::VarReference(std::string _name)
+{
+    name = _name;
+}

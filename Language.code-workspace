@@ -50,7 +50,10 @@
 			"stdexcept": "cpp",
 			"streambuf": "cpp",
 			"typeinfo": "cpp",
-			"bit": "cpp"
+			"bit": "cpp",
+			"map": "cpp",
+			"set": "cpp",
+			"unordered_set": "cpp"
 		}
 	}
 }

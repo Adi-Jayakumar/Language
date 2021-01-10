@@ -2,92 +2,155 @@
 
 std::ostream &operator<<(std::ostream &out, Expr *e)
 {
-    e->Print(out);
+    if (e == nullptr)
+        out << "null";
+    else
+        e->Print(out);
     return out;
 }
 
 std::ostream &operator<<(std::ostream &out, Stmt *s)
 {
-    s->Print(out);
+    if (s == nullptr)
+        out << "null";
+    else
+        s->Print(out);
     return out;
 }
 
+//-----------------EXPRESSIONS---------------------//
+
 void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 {
-    switch (l->typeID)
+    if (l == nullptr)
+        out << "null";
+    else
     {
-    case 1:
-    {
-        out << l->as.i;
-        break;
-    }
-    case 2:
-    {
-        out << l->as.d;
-        break;
-    }
-    case 3:
-    {
-        if (l->as.b)
-            out << "true";
-        else
-            out << "false";
-        break;
-    }
+        switch (l->typeID)
+        {
+        case 1:
+        {
+            out << l->as.i;
+            break;
+        }
+        case 2:
+        {
+            out << l->as.d;
+            break;
+        }
+        case 3:
+        {
+            if (l->as.b)
+                out << "true";
+            else
+                out << "false";
+            break;
+        }
+        }
     }
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
 {
-    if (u->op.type == TokenID::MINUS)
-        out << " -";
-    else if (u->op.type == TokenID::BANG)
-        out << " !";
+    if (u == nullptr)
+        out << "null";
     else
-        out << u->op;
-    out << "(";
-    u->right->Print(out);
-    out << ")";
+    {
+        if (u->op.type == TokenID::MINUS)
+            out << " -";
+        else if (u->op.type == TokenID::BANG)
+            out << " !";
+        else
+            out << u->op;
+        out << "(";
+        u->right->Print(out);
+        out << ")";
+    }
 }
 
 void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
 {
-    out << "(";
-    b->left->Print(out);
-
-    if (b->op.type == TokenID::PLUS)
-        out << " + ";
-    else if (b->op.type == TokenID::MINUS)
-        out << " - ";
-    else if (b->op.type == TokenID::STAR)
-        out << " * ";
-    else if (b->op.type == TokenID::SLASH)
-        out << " / ";
-    else if (b->op.type == TokenID::GT)
-        out << " > ";
-    else if (b->op.type == TokenID::LT)
-        out << " < ";
-    else if (b->op.type == TokenID::GEQ)
-        out << " >= ";
-    else if (b->op.type == TokenID::LEQ)
-        out << " <= ";
-    else if (b->op.type == TokenID::EQ_EQ)
-        out << " == ";
-    else if (b->op.type == TokenID::BANG_EQ)
-        out << " != ";
+    if (b == nullptr)
+        out << "null";
     else
-        out << b->op;
+    {
+        out << "(";
+        b->left->Print(out);
 
-    b->right->Print(out);
+        if (b->op.type == TokenID::PLUS)
+            out << " + ";
+        else if (b->op.type == TokenID::MINUS)
+            out << " - ";
+        else if (b->op.type == TokenID::STAR)
+            out << " * ";
+        else if (b->op.type == TokenID::SLASH)
+            out << " / ";
+        else if (b->op.type == TokenID::GT)
+            out << " > ";
+        else if (b->op.type == TokenID::LT)
+            out << " < ";
+        else if (b->op.type == TokenID::GEQ)
+            out << " >= ";
+        else if (b->op.type == TokenID::LEQ)
+            out << " <= ";
+        else if (b->op.type == TokenID::EQ_EQ)
+            out << " == ";
+        else if (b->op.type == TokenID::BANG_EQ)
+            out << " != ";
+        else
+            out << b->op;
 
-    out << ")";
+        b->right->Print(out);
+
+        out << ")";
+    }
 }
+
+void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
+{
+    if (a == nullptr)
+        out << "null";
+    else
+    {
+        out << "Assign: ";
+        if (a->val == nullptr)
+            out << "null to" << a->name;
+        else
+            out << a->val << " to " << a->name;
+    }
+}
+
+void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
+{
+    if(vr == nullptr)
+        out << "null";
+    else
+        out << vr->name;
+}
+
+//------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
 {
-    es->exp->Print(out);
+    if (es == nullptr)
+        out << "null";
+    else
+    {
+        es->exp->Print(out);
+        out << ";";
+    }
+}
+
+void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
+{
+    if (v == nullptr)
+        out << "null";
+    else
+        out << "Variable: " << v->name << " declared with value: '" << v->value << "' has type: " << +v->tId;
     out << ";";
 }
+
+//-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)
 {
@@ -104,7 +167,24 @@ void Binary::Print(std::ostream &out)
     ASTPrinter::PrintBinary(this, out);
 }
 
+void Assign::Print(std::ostream &out)
+{
+    ASTPrinter::PrintAssign(this, out);
+}
+
+void VarReference::Print(std::ostream &out)
+{
+    ASTPrinter::PrintVarReference(this, out);
+}
+
+//------------------STATEMENTS---------------------//
+
 void ExprStmt::Print(std::ostream &out)
 {
     ASTPrinter::PrintExprStmt(this, out);
+}
+
+void DeclaredVar::Print(std::ostream &out)
+{
+    ASTPrinter::PrintDeclaredVar(this, out);
 }

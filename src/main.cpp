@@ -1,4 +1,4 @@
-#include "ASTPrinter.h"
+// #include "ASTPrinter.h"
 #include "parser.h"
 #include "typechecker.h"
 
@@ -23,6 +23,12 @@ int main()
     for (Stmt *s : res)
     {
         std::cout << s << std::endl;
+        if (dynamic_cast<ExprStmt *>(s) != nullptr)
+        {
+            ExprStmt *es = dynamic_cast<ExprStmt *>(s);
+            if(dynamic_cast<Assign*>(es) != nullptr)
+                std::cout << "I AM HERE" << std::endl;
+        }
         std::cout << "Resulting type: " << +s->Type() << std::endl;
     }
 
@@ -30,4 +36,8 @@ int main()
     {
         delete s;
     }
+
+    // Expr *e = p.Assignment();
+    // std::cout << e << std::endl;
+    // Expr * e = new Assign("x", new Literal({TokenID::INT_L, "2", 12}));
 }

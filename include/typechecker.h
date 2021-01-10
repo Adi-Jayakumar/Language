@@ -1,7 +1,7 @@
 #pragma once
 #include "stmtnode.h"
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 struct TypeInfo
 {
@@ -19,52 +19,23 @@ struct TypeInfoHasher
         size_t l = static_cast<size_t>(t.left);
         size_t r = static_cast<size_t>(t.right);
         size_t tok = static_cast<size_t>(t.t);
-        return (tok << 16) | (r << 8) | (l);
+        return (l << 16) | (r << 8) | (tok);
     }
 };
 
-static const std::unordered_set<TypeInfo, TypeInfoHasher> Operators
-    {{1, TokenID::PLUS, 1},
-     {1, TokenID::PLUS, 2},
-     {2, TokenID::PLUS, 1},
-     {2, TokenID::PLUS, 2},
-     {1, TokenID::MINUS, 1},
-     {1, TokenID::MINUS, 2},
-     {2, TokenID::MINUS, 1},
-     {2, TokenID::MINUS, 2},
-     {1, TokenID::STAR, 1},
-     {1, TokenID::STAR, 2},
-     {2, TokenID::STAR, 1},
-     {2, TokenID::STAR, 2},
-     {1, TokenID::SLASH, 1},
-     {1, TokenID::SLASH, 2},
-     {2, TokenID::SLASH, 1},
-     {2, TokenID::SLASH, 2},
-     {1, TokenID::GT, 1},
-     {1, TokenID::GT, 2},
-     {2, TokenID::GT, 1},
-     {2, TokenID::GT, 2},
-     {1, TokenID::LT, 1},
-     {1, TokenID::LT, 2},
-     {2, TokenID::LT, 1},
-     {2, TokenID::LT, 2},
-     {1, TokenID::GEQ, 1},
-     {1, TokenID::GEQ, 2},
-     {2, TokenID::GEQ, 1},
-     {2, TokenID::GEQ, 2},
-     {1, TokenID::LEQ, 1},
-     {1, TokenID::LEQ, 2},
-     {2, TokenID::LEQ, 1},
-     {2, TokenID::LEQ, 2},
-     {1, TokenID::EQ_EQ, 1},
-     {1, TokenID::EQ_EQ, 2},
-     {2, TokenID::EQ_EQ, 1},
-     {2, TokenID::EQ_EQ, 2},
-     {1, TokenID::BANG_EQ, 1},
-     {1, TokenID::BANG_EQ, 2},
-     {2, TokenID::BANG_EQ, 1},
-     {2, TokenID::BANG_EQ, 2},
-     {0, TokenID::BANG, 3}};
+namespace TypeChecker
+{
+    // expression typechecking
+    uint8_t TypeOfLiteral(Literal *l);
+    uint8_t TypeOfUnary(Unary *u);
+    uint8_t TypeOfBinary(Binary *b);
+    uint8_t TypeOfAssign(Assign *a);
+    uint8_t TypeOfVarReference(VarReference *vr);
+
+    // statment typechecking
+    uint8_t TypeOfExprStmt(ExprStmt *es);
+    uint8_t TypeOfVar(DeclaredVar *v);
+} // namespace TypeChecker
 
 static const std::unordered_map<TypeInfo, uint8_t, TypeInfoHasher>
     OperatorMap{
@@ -108,16 +79,6 @@ static const std::unordered_map<TypeInfo, uint8_t, TypeInfoHasher>
         {{1, TokenID::BANG_EQ, 2}, 3},
         {{2, TokenID::BANG_EQ, 1}, 3},
         {{2, TokenID::BANG_EQ, 2}, 3},
+        {{3, TokenID::BANG_EQ, 3}, 3},
         {{0, TokenID::BANG, 3}, 3},
     };
-
-namespace TypeChecker
-{
-    // expression typechecking
-    uint8_t TypeOfLiteral(Literal *l);
-    uint8_t TypeOfUnary(Unary *u);
-    uint8_t TypeOfBinary(Binary *b);
-
-    // statment typechecking
-    uint8_t TypeOfExprStmt(ExprStmt *es);
-} // namespace TypeChecker

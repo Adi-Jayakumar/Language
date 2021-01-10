@@ -13,16 +13,22 @@ struct Parser
 
     // updates the previous and current tokens
     void Advance();
-    // consumes the token, if not there, gives an error
-    void Consume(TokenID t, std::string err);
+    // checks t has same type as cur.type, gives an error
+    void Check(TokenID t, std::string err);
     // parses a file into a list of statements
     std::vector<Stmt *> Parse();
+    // parses any declaration
+    Stmt *Declaration();
+    // parses a variable declaraion
+    Stmt *VarDeclaration();
     // parses any statement
     Stmt *Statement();
     // parses an expression statement
     Stmt *ExpressionStatement();
     // parses any expression
     Expr *Expression();
+    // parses any assignment
+    Expr *Assignment();
     // parses a series of == or != operations
     Expr *EqualityCheck();
     // parses a series of >, <, >=, <= operations

@@ -7,7 +7,7 @@ Parser::Parser(const std::string &fPath)
     cur = lex.NextToken();
 }
 
-void Parser::Consume(TokenID t, std::string err)
+void Parser::Check(TokenID t, std::string err)
 {
     if (t != cur.type)
     {
@@ -27,10 +27,45 @@ std::vector<Stmt *> Parser::Parse()
     std::vector<Stmt *> result;
     while (cur.type != TokenID::END)
     {
-        result.push_back(Statement());
+        result.push_back(Declaration());
     }
     return result;
 }
+
+// ----------------------DECLARATIONS----------------------- //
+
+Stmt *Parser::Declaration()
+{
+    if (cur.type == TokenID::TYPENAME)
+        return VarDeclaration();
+    else
+        return Statement();
+}
+
+Stmt *Parser::VarDeclaration()
+{
+    Check(TokenID::TYPENAME, "Expect type name at the beginning of a declaration");
+    uint8_t type = TypeNameMap[cur.literal];
+
+    Advance();
+    std::string name = cur.literal;
+
+    Advance();
+    Expr *init = nullptr;
+
+    if (cur.type == TokenID::EQ)
+    {
+        Advance();
+        init = Expression();
+    }
+
+    Check(TokenID::SEMI, "Expect ';' after variable declaration");
+    Advance();
+
+    return new DeclaredVar(type, name, init);
+}
+
+// ----------------------DECLARATIONS----------------------- //
 
 Stmt *Parser::Statement()
 {
@@ -40,14 +75,32 @@ Stmt *Parser::Statement()
 Stmt *Parser::ExpressionStatement()
 {
     Expr *exp = Expression();
-    Consume(TokenID::SEMI, "Missing ';'");
+    Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return new ExprStmt(exp);
 }
 
 Expr *Parser::Expression()
 {
-    return EqualityCheck();
+    return Assignment();
+}
+
+Expr *Parser::Assignment()
+{
+    Expr *exp = EqualityCheck();
+
+    if (cur.type == TokenID::EQ)
+    {
+        Advance();
+        Expr *val = Assignment();
+
+        VarReference *v = dynamic_cast<VarReference *>(exp);
+        if (v != nullptr)
+        {
+            return new Assign(v->name, val);
+        }
+    }
+    return exp;
 }
 
 Expr *Parser::EqualityCheck()
@@ -140,6 +193,12 @@ Expr *Parser::LiteralNode()
         // just in place of actual error handling
         if (cur.type != TokenID::CLOSE_PAR)
             std::cout << "NEED TO CLOSE THE PARENS" << std::endl;
+    }
+    else if (cur.type == TokenID::IDEN)
+    {
+        std::string name = cur.literal;
+        Advance();
+        return new VarReference(name);
     }
     else
     {

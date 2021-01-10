@@ -18,7 +18,7 @@ size_t Lexer::LineSize()
 {
     size_t l = 0;
     size_t i = index;
-    while(i != src.length() && src[i] != '\n')
+    while (i != src.length() && src[i] != '\n')
     {
         l++;
         i++;
@@ -52,7 +52,11 @@ Token Lexer::NextToken()
                 name += src[index];
                 index++;
             }
-            return {TokenID::IDEN, name, line};
+            // used for when custom types are added in the form of classes
+            if (TypeNameMap.find(name) != TypeNameMap.end())
+                return {TokenID::TYPENAME, name, line};
+            else
+                return {TokenID::IDEN, name, line};
         }
     }
 
@@ -104,7 +108,7 @@ Token Lexer::NextToken()
     }
     case '=':
     {
-        if(src[index + 1] == '=')
+        if (src[index + 1] == '=')
         {
             res = {TokenID::EQ_EQ, "==", line};
             index++;
@@ -142,7 +146,7 @@ Token Lexer::NextToken()
     default:
     {
         size_t lineSize = LineSize();
-        Error e = Error( "[LEX ERROR]: Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
+        Error e = Error("[LEX ERROR]: Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
         e.Dump();
         break;
     }
@@ -182,6 +186,14 @@ Token Lexer::LexNumber()
 
 bool Lexer::CheckKeyword(Token &tok)
 {
+    /*
+    keywords handled:
+    - 'true'
+    - 'false'
+    - 'int'
+    - 'double'
+    - 'bool'
+    */
     switch (src[index])
     {
     case 't':
@@ -191,6 +203,18 @@ bool Lexer::CheckKeyword(Token &tok)
     case 'f':
     {
         return MatchKeyWord("alse", TokenID::BOOL_L, tok);
+    }
+    case 'i':
+    {
+        return MatchKeyWord("nt", TokenID::TYPENAME, tok);
+    }
+    case 'd':
+    {
+        return MatchKeyWord("ouble", TokenID::TYPENAME, tok);
+    }
+    case 'b':
+    {
+        return MatchKeyWord("ool", TokenID::TYPENAME, tok);
     }
     }
     return false;

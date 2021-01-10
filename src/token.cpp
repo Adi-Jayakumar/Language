@@ -30,6 +30,11 @@ std::ostream &operator<<(std::ostream &out, const TokenID &t)
         out << "IDEN";
         break;
     }
+    case TokenID::TYPENAME:
+    {
+        out << "TYPENAME";
+        break;
+    }
     case TokenID::PLUS:
     {
         out << "PLUS";
