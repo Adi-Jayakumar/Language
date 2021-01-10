@@ -50,11 +50,6 @@ void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
     out << ")";
 }
 
-void ASTPrinter::PrintGrouping(Grouping *g, std::ostream &out)
-{
-    g->exp->Print(out);
-}
-
 void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
 {
     out << "(";
@@ -102,11 +97,6 @@ void Literal::Print(std::ostream &out)
 void Unary::Print(std::ostream &out)
 {
     ASTPrinter::PrintUnary(this, out);
-}
-
-void Grouping::Print(std::ostream &out)
-{
-    ASTPrinter::PrintGrouping(this, out);
 }
 
 void Binary::Print(std::ostream &out)

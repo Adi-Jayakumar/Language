@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <unordered_map>
 
-static const std::unordered_map<TokenID, uint8_t> TypeMap{
+static const std::unordered_map<TokenID, uint8_t> DefaultTypeMap{
     {TokenID::INT_L, 1},
     {TokenID::DOUBLE_L, 2},
     {TokenID::BOOL_L, 3}};
@@ -11,6 +11,7 @@ static const std::unordered_map<TokenID, uint8_t> TypeMap{
 struct Expr
 {
     virtual void Print(std::ostream &out) = 0;
+    virtual uint8_t Type() = 0;
     virtual ~Expr() = 0;
 };
 
@@ -35,6 +36,7 @@ struct Literal : Expr
     Literal(Token val);
 
     void Print(std::ostream &out) override;
+    uint8_t Type();
 };
 
 struct Unary : Expr
@@ -45,15 +47,7 @@ struct Unary : Expr
     ~Unary();
     
     void Print(std::ostream &out) override;
-};
-
-struct Grouping : Expr
-{
-    Expr *exp;
-    Grouping(Expr *_exp);
-    ~Grouping();
-    
-    void Print(std::ostream &out) override;
+    uint8_t Type();
 };
 
 struct Binary : Expr
@@ -65,4 +59,5 @@ struct Binary : Expr
     ~Binary();
     
     void Print(std::ostream &out) override;
+    uint8_t Type();
 };

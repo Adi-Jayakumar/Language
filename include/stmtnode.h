@@ -4,6 +4,7 @@
 struct Stmt
 {
     virtual void Print(std::ostream &out) = 0;
+    virtual uint8_t Type() = 0;
     virtual ~Stmt() = 0;
 };
 
@@ -16,4 +17,5 @@ struct ExprStmt : Stmt
     ~ExprStmt();
     
     void Print(std::ostream &out) override;
+    uint8_t Type();
 };

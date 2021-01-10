@@ -4,7 +4,7 @@ Expr::~Expr(){}
 
 Literal::Literal(Token val)
 {
-    switch(TypeMap.at(val.type))
+    switch(DefaultTypeMap.at(val.type))
     {
         case 1:
         {
@@ -38,16 +38,6 @@ Unary::Unary(Token _op, Expr* _right)
 Unary::~Unary()
 {
     delete right;
-}
-
-Grouping::Grouping(Expr* _exp)
-{
-    exp = _exp;
-}
-
-Grouping::~Grouping()
-{
-    delete exp;
 }
 
 Binary::Binary(Expr* _left, Token _op, Expr* _right)
