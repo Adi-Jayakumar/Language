@@ -1,12 +1,8 @@
 #pragma once
+#include "maps.h"
 #include "token.h"
 #include <cstdint>
 #include <unordered_map>
-
-static const std::unordered_map<TokenID, uint8_t> DefaultTypeMap{
-    {TokenID::INT_L, 1},
-    {TokenID::DOUBLE_L, 2},
-    {TokenID::BOOL_L, 3}};
 
 struct Expr
 {
@@ -67,7 +63,7 @@ struct Assign : Expr
 {
     std::string name;
     Expr *val;
-    Assign(std::string, Expr*);
+    Assign(std::string, Expr *);
     ~Assign();
 
     void Print(std::ostream &out) override;

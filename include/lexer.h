@@ -5,14 +5,12 @@
 #include <streambuf>
 #include <string>
 #include <unordered_map>
+#include "maps.h"
 
 namespace IO
 {
     std::string GetSrcString(std::string fName);
 } // namespace IO
-
-// map from string typenames to uint8_t type ids.
-static std::unordered_map<std::string, uint8_t> TypeNameMap{{"int", 1}, {"double", 2}, {"bool", 3}};
 
 struct Lexer
 {
