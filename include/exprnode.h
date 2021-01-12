@@ -6,24 +6,25 @@
 
 struct Expr
 {
+    Token loc;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual uint8_t Type() = 0;
+    virtual TypeID Type() = 0;
     virtual ~Expr() = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, Expr *e);
 
 /*
-    TypeIDs are represented as uint8_t with
+    TypeIDs are represented as TypeID with
     1 ---> int
     2 ---> double
     3 ---> bool
 */
 struct Literal : Expr
 {
-    uint8_t typeID;
+    TypeID typeID;
     union combo
     {
         int i;
@@ -33,7 +34,7 @@ struct Literal : Expr
     Literal(Token);
 
     void Print(std::ostream &out) override;
-    uint8_t Type();
+    TypeID Type();
 };
 
 struct Unary : Expr
@@ -44,7 +45,7 @@ struct Unary : Expr
     ~Unary();
 
     void Print(std::ostream &out) override;
-    uint8_t Type();
+    TypeID Type();
 };
 
 struct Binary : Expr
@@ -56,25 +57,25 @@ struct Binary : Expr
     ~Binary();
 
     void Print(std::ostream &out) override;
-    uint8_t Type() override;
+    TypeID Type() override;
 };
 
 struct Assign : Expr
 {
     std::string name;
     Expr *val;
-    Assign(std::string, Expr *);
+    Assign(std::string, Expr *, Token);
     ~Assign();
 
     void Print(std::ostream &out) override;
-    uint8_t Type() override;
+    TypeID Type() override;
 };
 
 struct VarReference : Expr
 {
     std::string name;
-    VarReference(std::string);
+    VarReference(Token);
 
     void Print(std::ostream &out) override;
-    uint8_t Type() override;
+    TypeID Type() override;
 };

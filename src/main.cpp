@@ -23,12 +23,6 @@ int main()
     for (Stmt *s : res)
     {
         std::cout << s << std::endl;
-        if (dynamic_cast<ExprStmt *>(s) != nullptr)
-        {
-            ExprStmt *es = dynamic_cast<ExprStmt *>(s);
-            if(dynamic_cast<Assign*>(es) != nullptr)
-                std::cout << "I AM HERE" << std::endl;
-        }
         std::cout << "Resulting type: " << +s->Type() << std::endl;
     }
 

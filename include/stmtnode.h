@@ -3,10 +3,11 @@
 
 struct Stmt
 {
+    Token loc;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual uint8_t Type() = 0;
+    virtual TypeID Type() = 0;
     virtual ~Stmt() = 0;
 };
 
@@ -15,21 +16,21 @@ std::ostream &operator<<(std::ostream &out, Stmt *s);
 struct ExprStmt : Stmt
 {
     Expr *exp;
-    ExprStmt(Expr *);
+    ExprStmt(Expr *, Token);
     ~ExprStmt();
 
     void Print(std::ostream &out) override;
-    uint8_t Type();
+    TypeID Type();
 };
 
 struct DeclaredVar : Stmt
 {
-    uint8_t tId;
+    TypeID tId;
     std::string name;
     Expr *value;
-    DeclaredVar(uint8_t, std::string, Expr *);
+    DeclaredVar(TypeID, std::string, Expr *, Token);
     ~DeclaredVar();
 
     void Print(std::ostream &out) override;
-    uint8_t Type() override;
+    TypeID Type() override;
 };

@@ -5,107 +5,133 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
 }
 
+void TypeChecker::TypeError(Token loc, std::string err)
+{
+    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
+    e.Dump();
+}
+
 //-----------------EXPRESSIONS---------------------//
 
-uint8_t TypeChecker::TypeOfLiteral(Literal *l)
+TypeID TypeChecker::TypeOfLiteral(Literal *l)
 {
-    if(l == nullptr)
+    if (l == nullptr)
         return 0;
     return l->typeID;
 }
 
-uint8_t TypeChecker::TypeOfUnary(Unary *u)
+TypeID TypeChecker::TypeOfUnary(Unary *u)
 {
     if (u == nullptr || u->right == nullptr)
         return 0;
-    uint8_t opType = u->right->Type();
+    TypeID opType = u->right->Type();
     TypeInfo info = {opType, u->op.type, 0};
 
     if (OperatorMap.find(info) != OperatorMap.end())
-        return static_cast<size_t>(OperatorMap.at(info));
+        return OperatorMap.at(info);
+    else
+        TypeError(u->loc, "Cannot use operator: " + std::to_string(static_cast<uint8_t>(u->op.type)) + " on operand of type: " + std::to_string(opType));
 
-    return 0;
+    return ~0;
 }
 
-uint8_t TypeChecker::TypeOfBinary(Binary *b)
+TypeID TypeChecker::TypeOfBinary(Binary *b)
 {
     if (b == nullptr || b->left == nullptr || b->right == nullptr)
         return 0;
-    uint8_t lType = b->left->Type();
-    uint8_t rType = b->right->Type();
+    TypeID lType = b->left->Type();
+    TypeID rType = b->right->Type();
     TypeInfo info = {lType, b->op.type, rType};
 
     if (OperatorMap.find(info) != OperatorMap.end())
         return OperatorMap.at(info);
-
-    return 0;
+    else
+        TypeError(b->loc, "Cannot use operator: " + std::to_string(static_cast<uint8_t>(b->op.type)) + " on operands of type: " + std::to_string(lType) + " and: " + std::to_string(rType));
+    return ~0;
 }
 
-uint8_t TypeChecker::TypeOfAssign(Assign *a)
+TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    return 0;
+    if (VarNameType.find(a->name) == VarNameType.end())
+        TypeError(a->loc, "Variable '" + a->name + "' has not been defined yet");
+    else
+    {
+        TypeID targetType = VarNameType[a->name];
+        TypeID valType = a->val->Type();
+        if(targetType != valType)
+            TypeError(a->loc, "Cannot assign a: " + std::to_string(valType) + " to variable: " + a->name + " of type: " + std::to_string(targetType));
+    }
+    return ~0;
 }
 
-uint8_t TypeChecker::TypeOfVarReference(VarReference *vr)
+TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    return 0;
+    if (VarNameType.find(vr->name) == VarNameType.end())
+        TypeError(vr->loc, "Variable '" + vr->name + "' has not been defined yet");
+    return VarNameType[vr->name];
 }
 
 //------------------STATEMENTS---------------------//
 
-uint8_t TypeChecker::TypeOfExprStmt(ExprStmt *es)
+TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
 {
     if (es == nullptr || es->exp == nullptr)
         return 0;
     return es->exp->Type();
 }
 
-uint8_t TypeChecker::TypeOfVar(DeclaredVar *v)
+TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
 {
     if (v == nullptr || v->value == nullptr)
         return 0;
-    uint8_t vType = v->tId;
-    uint8_t vValType = v->value->Type();
-    if(vType == vValType)
+
+    TypeID vType = v->tId;
+    TypeID vValType = v->value->Type();
+
+    if (VarNameType.find(v->name) == VarNameType.end())
+        VarNameType[v->name] = vType;
+
+    if (vType == vValType)
         return vType;
-    return 0;
+
+    return ~0;
 }
 
 //-----------------EXPRESSIONS---------------------//
 
-uint8_t Literal::Type()
+TypeID Literal::Type()
 {
     return TypeChecker::TypeOfLiteral(this);
 }
 
-uint8_t Unary::Type()
+TypeID Unary::Type()
 {
     return TypeChecker::TypeOfUnary(this);
 }
 
-uint8_t Binary::Type()
+TypeID Binary::Type()
 {
     return TypeChecker::TypeOfBinary(this);
 }
 
-uint8_t Assign::Type()
+TypeID Assign::Type()
 {
     return TypeChecker::TypeOfAssign(this);
 }
 
-uint8_t VarReference::Type()
+TypeID VarReference::Type()
 {
     return TypeChecker::TypeOfVarReference(this);
 }
 
 //------------------STATEMENTS---------------------//
 
-uint8_t ExprStmt::Type()
+TypeID ExprStmt::Type()
 {
     return TypeChecker::TypeOfExprStmt(this);
 }
 
-uint8_t DeclaredVar::Type()
+TypeID DeclaredVar::Type()
 {
-    return TypeChecker::TypeOfVar(this);
+    return TypeChecker::TypeOfDeclaredVar(this);
 }

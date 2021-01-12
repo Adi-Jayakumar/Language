@@ -1,5 +1,6 @@
 #pragma once
 #include "stmtnode.h"
+#include "perror.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -25,19 +26,21 @@ struct TypeInfoHasher
 
 namespace TypeChecker
 {
+    void TypeError(Token loc, std::string err);
+
     // expression typechecking
-    uint8_t TypeOfLiteral(Literal *l);
-    uint8_t TypeOfUnary(Unary *u);
-    uint8_t TypeOfBinary(Binary *b);
-    uint8_t TypeOfAssign(Assign *a);
-    uint8_t TypeOfVarReference(VarReference *vr);
+    TypeID TypeOfLiteral(Literal *l);
+    TypeID TypeOfUnary(Unary *u);
+    TypeID TypeOfBinary(Binary *b);
+    TypeID TypeOfAssign(Assign *a);
+    TypeID TypeOfVarReference(VarReference *vr);
 
     // statment typechecking
-    uint8_t TypeOfExprStmt(ExprStmt *es);
-    uint8_t TypeOfVar(DeclaredVar *v);
+    TypeID TypeOfExprStmt(ExprStmt *es);
+    TypeID TypeOfDeclaredVar(DeclaredVar *v);
 } // namespace TypeChecker
 
-static const std::unordered_map<TypeInfo, uint8_t, TypeInfoHasher>
+static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
     OperatorMap{
         {{1, TokenID::PLUS, 1}, 1},
         {{1, TokenID::PLUS, 2}, 2},

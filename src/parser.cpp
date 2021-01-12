@@ -49,6 +49,7 @@ Stmt *Parser::VarDeclaration()
 
     Advance();
     std::string name = cur.literal;
+    Token loc = cur;
 
     Advance();
     Expr *init = nullptr;
@@ -62,7 +63,7 @@ Stmt *Parser::VarDeclaration()
     Check(TokenID::SEMI, "Expect ';' after variable declaration");
     Advance();
 
-    return new DeclaredVar(type, name, init);
+    return new DeclaredVar(type, name, init, loc);
 }
 
 // ----------------------DECLARATIONS----------------------- //
@@ -74,10 +75,11 @@ Stmt *Parser::Statement()
 
 Stmt *Parser::ExpressionStatement()
 {
+    Token loc = cur;
     Expr *exp = Expression();
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
-    return new ExprStmt(exp);
+    return new ExprStmt(exp, loc);
 }
 
 Expr *Parser::Expression()
@@ -91,14 +93,13 @@ Expr *Parser::Assignment()
 
     if (cur.type == TokenID::EQ)
     {
+        Token loc = cur;
         Advance();
         Expr *val = Assignment();
 
         VarReference *v = dynamic_cast<VarReference *>(exp);
         if (v != nullptr)
-        {
-            return new Assign(v->name, val);
-        }
+            return new Assign(v->name, val, loc);
     }
     return exp;
 }
@@ -196,9 +197,9 @@ Expr *Parser::LiteralNode()
     }
     else if (cur.type == TokenID::IDEN)
     {
-        std::string name = cur.literal;
+        Token loc = cur;
         Advance();
-        return new VarReference(name);
+        return new VarReference(loc);
     }
     else
     {
