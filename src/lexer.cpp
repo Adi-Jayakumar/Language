@@ -143,6 +143,16 @@ Token Lexer::NextToken()
         res = {TokenID::CLOSE_PAR, ")", line};
         break;
     }
+    case '{':
+    {
+        res = {TokenID::OPEN_BRACE, "{", line};
+        break;
+    }
+    case '}':
+    {
+        res = {TokenID::CLOSE_BRACE, "}", line};
+        break;
+    }
     default:
     {
         size_t lineSize = LineSize();
