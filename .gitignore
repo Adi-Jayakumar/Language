@@ -35,12 +35,6 @@ bin/*
 # Example files
 ex/*
 
-# Useless folders
-bin
-ex
-
-# main cpp file
-src/main.cpp
 
 # vscode specific
 *.code-workspace

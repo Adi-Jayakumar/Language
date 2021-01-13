@@ -58,6 +58,10 @@ Scope outer:
 // [{"a", val:1, 1}, {"b", val:2, 2}, {"c", val:3, 2}, {"d", val:4, 3}, {"e", val:5, 2}, {"f", val:6, 1}, {"g", val:7, 1}]
 
 
+// How the compiler makes the locals array look
+// [{"a", val:1, 1}, {"b", val:2, 2}, {"c", val:3, 2}, {"d", val:4, 3}, {"e", val:5, 2}, {"f", val:6, 1}, {"g", val:7, 1}]
+
+
 
 // List of variable tables produced for the scopes
 /*
