@@ -17,19 +17,17 @@ int main()
 {
     Parser p = Parser("ex/test.txt");
 
-    DumpTokens("ex/test.txt");
+    // DumpTokens("ex/test.txt");
 
-    std::vector<Stmt *> res = p.Parse();
-    for (Stmt *s : res)
-    {
-        std::cout << s << std::endl;
-        std::cout << "Resulting type: " << +s->Type() << std::endl;
-    }
+    Block *res = p.ParseBlock();
+    std::cout << res << std::endl;
+    // for (Stmt *s : res->stmts)
+    // {
+    //     std::cout << s << std::endl;
+    //     std::cout << "Resulting type: " << +s->Type() << std::endl;
+    // }
 
-    for (Stmt *s : res)
-    {
-        delete s;
-    }
+    delete res;
 
     // Expr *e = p.Assignment();
     // std::cout << e << std::endl;

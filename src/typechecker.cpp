@@ -97,6 +97,11 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
     return ~0;
 }
 
+TypeID TypeChecker::TypeOfBlock(Block *b)
+{
+    return 0;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeID Literal::Type()
@@ -134,4 +139,9 @@ TypeID ExprStmt::Type()
 TypeID DeclaredVar::Type()
 {
     return TypeChecker::TypeOfDeclaredVar(this);
+}
+
+TypeID Block::Type()
+{
+    return TypeChecker::TypeOfBlock(this);
 }

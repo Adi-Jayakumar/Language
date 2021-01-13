@@ -38,6 +38,7 @@ namespace TypeChecker
     // statment typechecking
     TypeID TypeOfExprStmt(ExprStmt *es);
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
+    TypeID TypeOfBlock(Block *b);
 } // namespace TypeChecker
 
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>

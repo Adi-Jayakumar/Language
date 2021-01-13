@@ -5,6 +5,13 @@ Parser::Parser(const std::string &fPath)
 {
     lex = Lexer(fPath);
     cur = lex.NextToken();
+    depth = 0;
+}
+
+void Parser::ParseError(Token loc, std::string err)
+{
+    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
+    e.Dump();
 }
 
 void Parser::Check(TokenID t, std::string err)
@@ -22,13 +29,25 @@ void Parser::Advance()
     cur = lex.NextToken();
 }
 
-std::vector<Stmt *> Parser::Parse()
+Block* Parser::ParseBlock()
 {
-    std::vector<Stmt *> result;
-    while (cur.type != TokenID::END)
+    Advance();
+    depth++;
+    Block* result = new Block(depth);
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
-        result.push_back(Declaration());
+        if(cur.type == TokenID::OPEN_BRACE)
+            result->stmts.push_back(ParseBlock());
+        else
+            result->stmts.push_back(Declaration());
     }
+
+    if(cur.type == TokenID::CLOSE_BRACE)
+        Advance();
+    else
+        ParseError(cur, "Need to close braces");
+
+    depth--;
     return result;
 }
 
@@ -193,7 +212,7 @@ Expr *Parser::LiteralNode()
 
         // just in place of actual error handling
         if (cur.type != TokenID::CLOSE_PAR)
-            std::cout << "NEED TO CLOSE THE PARENS" << std::endl;
+            ParseError(cur, "NEED TO CLOSE THE PARENS");
     }
     else if (cur.type == TokenID::IDEN)
     {
@@ -202,10 +221,7 @@ Expr *Parser::LiteralNode()
         return new VarReference(loc);
     }
     else
-    {
-        Error e = Error("[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
-        e.Dump();
-    }
+        ParseError(cur, "[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
     Advance();
     return res;
 }

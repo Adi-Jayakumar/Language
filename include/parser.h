@@ -9,14 +9,18 @@ struct Parser
     Token prev;
     Token cur;
 
+    uint8_t depth;
+
     Parser(const std::string &fPath);
+
+    void ParseError(Token loc, std::string err);
 
     // updates the previous and current tokens
     void Advance();
     // checks t has same type as cur.type, gives an error
     void Check(TokenID t, std::string err);
     // parses a file into a list of statements
-    std::vector<Stmt *> Parse();
+    Block* ParseBlock();
     // parses any declaration
     Stmt *Declaration();
     // parses a variable declaraion

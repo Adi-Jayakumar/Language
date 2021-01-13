@@ -25,3 +25,15 @@ DeclaredVar::~DeclaredVar()
 {
     delete value;
 }
+
+Block::Block(uint8_t _depth)
+{
+    depth = _depth;
+}
+
+Block::~Block()
+{
+    for(size_t i = 0; i < stmts.size(); i++)
+        delete stmts[i];
+    stmts.clear();
+}

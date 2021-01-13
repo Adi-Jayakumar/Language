@@ -1,5 +1,6 @@
 #pragma once
 #include "exprnode.h"
+#include <vector>
 
 struct Stmt
 {
@@ -30,6 +31,17 @@ struct DeclaredVar : Stmt
     Expr *value;
     DeclaredVar(TypeID, std::string, Expr *, Token);
     ~DeclaredVar();
+
+    void Print(std::ostream &out) override;
+    TypeID Type() override;
+};
+
+struct Block : Stmt
+{
+    uint8_t depth;
+    std::vector<Stmt *> stmts;
+    Block(uint8_t);
+    ~Block();
 
     void Print(std::ostream &out) override;
     TypeID Type() override;

@@ -122,7 +122,7 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
 
 void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
 {
-    if(vr == nullptr)
+    if (vr == nullptr)
         out << "null";
     else
         out << vr->name;
@@ -148,6 +148,31 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     else
         out << "Variable: " << v->name << " declared with value: '" << v->value << "' has type: " << +v->tId;
     out << ";";
+}
+
+void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
+{
+    if (b == nullptr)
+        out << "null";
+    else
+    {
+
+        out << "DEPTH: " << +b->depth << std::endl;
+        for (uint8_t i = 1; i < b->depth; i++)
+            out << "\t";
+        out << "{\n";
+
+        for (Stmt *s : b->stmts)
+        {
+            for (uint8_t i = 1; i < b->depth; i++)
+                out << "\t";
+            out << "\t" << s << std::endl;
+        }
+
+        for (uint8_t i = 1; i < b->depth; i++)
+            out << "\t";
+        out << "}\n";
+    }
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -187,4 +212,9 @@ void ExprStmt::Print(std::ostream &out)
 void DeclaredVar::Print(std::ostream &out)
 {
     ASTPrinter::PrintDeclaredVar(this, out);
+}
+
+void Block::Print(std::ostream &out)
+{
+    ASTPrinter::PrintBlock(this, out);
 }
