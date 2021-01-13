@@ -21,6 +21,7 @@ int main()
 
     Block *res = p.ParseBlock();
     std::cout << res << std::endl;
+    res->Type();
     // for (Stmt *s : res->stmts)
     // {
     //     std::cout << s << std::endl;

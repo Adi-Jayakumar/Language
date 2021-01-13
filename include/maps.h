@@ -1,8 +1,15 @@
 #pragma once
 #include "token.h"
+#include <vector>
 #include <unordered_map>
 
 typedef uint8_t TypeID;
+
+struct VarID
+{
+    std::string name;
+    TypeID type;
+};
 
 // map from literal TokenIDs to 
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
@@ -13,4 +20,4 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
 // map from string typenames to uint8_t type ids.
 static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double", 2}, {"bool", 3}};
 
-static std::unordered_map<std::string, TypeID> VarNameType;
+static std::vector<VarID> Locals;

@@ -1,6 +1,6 @@
 #pragma once
-#include "stmtnode.h"
 #include "perror.h"
+#include "stmtnode.h"
 #include <unordered_map>
 #include <unordered_set>
 
@@ -27,6 +27,8 @@ struct TypeInfoHasher
 namespace TypeChecker
 {
     void TypeError(Token loc, std::string err);
+
+    TypeID ResolveLocal(std::string &name);
 
     // expression typechecking
     TypeID TypeOfLiteral(Literal *l);

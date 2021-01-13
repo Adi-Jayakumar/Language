@@ -11,19 +11,32 @@ void TypeChecker::TypeError(Token loc, std::string err)
     e.Dump();
 }
 
+TypeID TypeChecker::ResolveLocal(std::string &name)
+{
+    for (size_t i = Locals.size() - 1; (int) i >= 0; i--)
+    {
+        if (Locals[i].name == name)
+            return Locals[i].type;
+    }
+    return ~0;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeID TypeChecker::TypeOfLiteral(Literal *l)
 {
     if (l == nullptr)
-        return 0;
+        return ~0;
     return l->typeID;
 }
 
 TypeID TypeChecker::TypeOfUnary(Unary *u)
 {
-    if (u == nullptr || u->right == nullptr)
+    if (u == nullptr)
         return 0;
+    if (u->right == nullptr)
+        return ~0;
+
     TypeID opType = u->right->Type();
     TypeInfo info = {opType, u->op.type, 0};
 
@@ -38,7 +51,8 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
 TypeID TypeChecker::TypeOfBinary(Binary *b)
 {
     if (b == nullptr || b->left == nullptr || b->right == nullptr)
-        return 0;
+        return ~0;
+
     TypeID lType = b->left->Type();
     TypeID rType = b->right->Type();
     TypeInfo info = {lType, b->op.type, rType};
@@ -52,23 +66,24 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    if (VarNameType.find(a->name) == VarNameType.end())
-        TypeError(a->loc, "Variable '" + a->name + "' has not been defined yet");
+    TypeID varType = ResolveLocal(a->name);
+    TypeID valType = a->val->Type();
+
+    if (varType == valType)
+        return varType;
     else
-    {
-        TypeID targetType = VarNameType[a->name];
-        TypeID valType = a->val->Type();
-        if(targetType != valType)
-            TypeError(a->loc, "Cannot assign a: " + std::to_string(valType) + " to variable: " + a->name + " of type: " + std::to_string(targetType));
-    }
+        TypeError(a->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->name + "' of type: " + std::to_string(varType));
     return ~0;
 }
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    if (VarNameType.find(vr->name) == VarNameType.end())
-        TypeError(vr->loc, "Variable '" + vr->name + "' has not been defined yet");
-    return VarNameType[vr->name];
+    TypeID type = ResolveLocal(vr->name);
+
+    if (type == ~0)
+        TypeError(vr->loc, "Variable name: '" + vr->name + "' has not been defined before");
+
+    return type;
 }
 
 //------------------STATEMENTS---------------------//
@@ -82,23 +97,28 @@ TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
 
 TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
 {
-    if (v == nullptr || v->value == nullptr)
-        return 0;
+    if (v == nullptr)
+        return ~0;
+    Locals.push_back({v->name, v->tId});
+    if (v->value == nullptr)
+        return v->tId;
+    else
+    {
+        TypeID varType = v->tId;
+        TypeID valType = v->value->Type();
 
-    TypeID vType = v->tId;
-    TypeID vValType = v->value->Type();
-
-    if (VarNameType.find(v->name) == VarNameType.end())
-        VarNameType[v->name] = vType;
-
-    if (vType == vValType)
-        return vType;
-
+        if (valType == varType)
+            return valType;
+        else
+            TypeError(v->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + v->name + "' of type: " + std::to_string(varType));
+    }
     return ~0;
 }
 
 TypeID TypeChecker::TypeOfBlock(Block *b)
 {
+    for (Stmt *s : b->stmts)
+        s->Type();
     return 0;
 }
 
