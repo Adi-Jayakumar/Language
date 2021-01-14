@@ -9,6 +9,8 @@ struct Stmt
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type() = 0;
+    // compiles the node - implemented in compiler.cpp
+    virtual void NodeCompile() = 0;
     virtual ~Stmt() = 0;
 };
 
@@ -21,7 +23,8 @@ struct ExprStmt : Stmt
     ~ExprStmt();
 
     void Print(std::ostream &out) override;
-    TypeID Type();
+    TypeID Type() override;
+    void NodeCompile() override;
 };
 
 struct DeclaredVar : Stmt
@@ -34,6 +37,7 @@ struct DeclaredVar : Stmt
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
+    void NodeCompile() override;
 };
 
 struct Block : Stmt
@@ -45,4 +49,5 @@ struct Block : Stmt
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
+    void NodeCompile() override;
 };
