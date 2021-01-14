@@ -1,11 +1,11 @@
 #pragma once
 #include "stmtnode.h"
+#include "ASTPrinter.h"
 
-enum class Opcode
+enum class Opcode : uint8_t
 {
-    INT_C,
-    DOUBLE_C,
-    BOOL_C,
+    POP,
+    GET_C,
 
     ADD,
     SUB,
@@ -19,7 +19,12 @@ enum class Opcode
 
     EQ_EQ,
     BANG_EQ,
+    NONE,
 };
+
+std::string ToString(Opcode o);
+
+Opcode TokenToOpcode(TokenID t);
 
 struct Op
 {
@@ -27,24 +32,39 @@ struct Op
     uint8_t operand;
 };
 
-struct Chunk
+struct CompileConst
 {
-    std::vector<Op> result;
-    std::vector<Literal*> constants;
-    ~Chunk();
+    TypeID type;
+    union combo
+    {
+        int i;
+        double d;
+        bool b;
+    } as;
+    CompileConst(TypeID, std::string&);
 };
 
-namespace NodeCompiler
+std::ostream &operator<<(std::ostream &out, CompileConst &cc);
+
+
+struct Chunk
 {
-    // expressio node compiling
-    void CompileLiteral(Literal* l, std::vector<Op> &out);
-    void CompileUnary(Unary* u, std::vector<Op> &out);
-    void CompileBinary(Binary* b, std::vector<Op> &out);
-    void CompileAssign(Assign* a, std::vector<Op> &out);
-    void CompileVarReference(VarReference* vr, std::vector<Op> &out);
+    std::vector<Op> code;
+    std::vector<CompileConst> constants;
+    Chunk() = default;
+    ~Chunk();
+
+    void PrintCode();
+
+    // expression compiling
+    void CompileLiteral(Literal *l);
+    void CompileUnary(Unary *u);
+    void CompileBinary(Binary *b);
+    void CompileAssign(Assign *a);
+    void CompileVarReference(VarReference *vr);
 
     // statement compiling
-    void CompileExprStmt(ExprStmt* es, std::vector<Op> &out);
-    void CompileDeclaredVar(DeclaredVar* dv, std::vector<Op> &out);
-    void CompileBlock(Block* b, std::vector<Op> &out);
-}
+    void CompileExprStmt(ExprStmt *es);
+    void CompileDeclaredVar(DeclaredVar *dv);
+    void CompileBlock(Block *b);
+};

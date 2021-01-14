@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <unordered_map>
 
+struct Chunk;
+
 struct Expr
 {
     Token loc;
@@ -12,7 +14,7 @@ struct Expr
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type() = 0;
     // compiles the node - implmented in compiler.cpp
-    virtual void NodeCompile() = 0;
+    virtual void NodeCompile(Chunk &c) = 0;
     virtual ~Expr() = 0;
 };
 
@@ -37,7 +39,7 @@ struct Literal : Expr
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
-    void NodeCompile() override;
+    void NodeCompile(Chunk &c) override;
 };
 
 struct Unary : Expr
@@ -49,7 +51,7 @@ struct Unary : Expr
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
-    void NodeCompile() override;
+    void NodeCompile(Chunk &c) override;
 };
 
 struct Binary : Expr
@@ -62,7 +64,7 @@ struct Binary : Expr
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
-    void NodeCompile() override;
+    void NodeCompile(Chunk &c) override;
 };
 
 struct Assign : Expr
@@ -74,7 +76,7 @@ struct Assign : Expr
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
-    void NodeCompile() override;
+    void NodeCompile(Chunk &c) override;
 };
 
 struct VarReference : Expr
@@ -84,5 +86,5 @@ struct VarReference : Expr
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
-    void NodeCompile() override;
+    void NodeCompile(Chunk &c) override;
 };

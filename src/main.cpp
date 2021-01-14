@@ -1,4 +1,5 @@
 // #include "ASTPrinter.h"
+#include "compiler.h"
 #include "parser.h"
 #include "typechecker.h"
 
@@ -22,15 +23,9 @@ int main()
     Block *res = p.ParseBlock();
     std::cout << res << std::endl;
     res->Type();
-    // for (Stmt *s : res->stmts)
-    // {
-    //     std::cout << s << std::endl;
-    //     std::cout << "Resulting type: " << +s->Type() << std::endl;
-    // }
 
+    Chunk c = Chunk();
+    res->NodeCompile(c);
+    c.PrintCode();
     delete res;
-
-    // Expr *e = p.Assignment();
-    // std::cout << e << std::endl;
-    // Expr * e = new Assign("x", new Literal({TokenID::INT_L, "2", 12}));
 }
