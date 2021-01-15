@@ -114,9 +114,9 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
     {
         out << "Assign: ";
         if (a->val == nullptr)
-            out << "null to" << a->name;
+            out << "null to" << a->var->name;
         else
-            out << a->val << " to " << a->name;
+            out << a->val << " to " << a->var->name;
     }
 }
 

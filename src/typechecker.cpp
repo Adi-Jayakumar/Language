@@ -13,10 +13,10 @@ void TypeChecker::TypeError(Token loc, std::string err)
 
 TypeID TypeChecker::ResolveLocal(std::string &name)
 {
-    for (size_t i = Locals.size() - 1; (int) i >= 0; i--)
+    for (size_t i = Variables.size() - 1; (int) i >= 0; i--)
     {
-        if (Locals[i].name == name)
-            return Locals[i].type;
+        if (Variables[i].name == name)
+            return Variables[i].type;
     }
     return ~0;
 }
@@ -66,13 +66,13 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    TypeID varType = ResolveLocal(a->name);
+    TypeID varType = ResolveLocal(a->var->name);
     TypeID valType = a->val->Type();
 
     if (varType == valType)
         return varType;
     else
-        TypeError(a->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->name + "' of type: " + std::to_string(varType));
+        TypeError(a->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->var->name + "' of type: " + std::to_string(varType));
     return ~0;
 }
 
@@ -99,7 +99,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
 {
     if (v == nullptr)
         return ~0;
-    Locals.push_back({v->name, v->tId});
+    Variables.push_back({v->name, v->tId});
     if (v->value == nullptr)
         return v->tId;
     else

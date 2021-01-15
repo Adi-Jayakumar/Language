@@ -1,11 +1,13 @@
 #pragma once
 #include "stmtnode.h"
 #include "ASTPrinter.h"
+#include "maps.h"
 
 enum class Opcode : uint8_t
 {
     POP,
     GET_C,
+    GET_V,
 
     ADD,
     SUB,
@@ -44,6 +46,13 @@ struct CompileConst
     CompileConst(TypeID, std::string&);
 };
 
+struct CompileVar
+{
+    std::string name;
+    Expr* value;
+    CompileVar(std::string, Expr*);
+};
+
 std::ostream &operator<<(std::ostream &out, CompileConst &cc);
 
 
@@ -51,10 +60,13 @@ struct Chunk
 {
     std::vector<Op> code;
     std::vector<CompileConst> constants;
+    std::vector<CompileVar> vars;
     Chunk() = default;
-    ~Chunk();
+    ~Chunk() = default;
 
     void PrintCode();
+
+    size_t ResolveVariable(std::string &);
 
     // expression compiling
     void CompileLiteral(Literal *l);

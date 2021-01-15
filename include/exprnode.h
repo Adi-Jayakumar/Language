@@ -36,6 +36,7 @@ struct Literal : Expr
         bool b;
     } as;
     Literal(Token);
+    ~Literal() = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -67,22 +68,23 @@ struct Binary : Expr
     void NodeCompile(Chunk &c) override;
 };
 
-struct Assign : Expr
+struct VarReference : Expr
 {
     std::string name;
-    Expr *val;
-    Assign(std::string, Expr *, Token);
-    ~Assign();
+    VarReference(Token);
+    ~VarReference();
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
     void NodeCompile(Chunk &c) override;
 };
 
-struct VarReference : Expr
+struct Assign : Expr
 {
-    std::string name;
-    VarReference(Token);
+    VarReference *var;
+    Expr *val;
+    Assign(VarReference *, Expr *, Token);
+    ~Assign();
 
     void Print(std::ostream &out) override;
     TypeID Type() override;

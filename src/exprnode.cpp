@@ -56,9 +56,9 @@ Binary::~Binary()
     delete right;
 }
 
-Assign::Assign(std::string _name, Expr* _val, Token _loc)
+Assign::Assign(VarReference* _var, Expr* _val, Token _loc)
 {
-    name = _name;
+    var = _var;
     val = _val;
     loc = _loc;
 }
@@ -71,5 +71,9 @@ Assign::~Assign()
 VarReference::VarReference(Token _loc)
 {
     loc = _loc;
-    name = loc.literal;
+    name = _loc.literal;
+}
+
+VarReference::~VarReference()
+{
 }

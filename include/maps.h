@@ -20,4 +20,4 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
 // map from string typenames to uint8_t type ids.
 static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double", 2}, {"bool", 3}};
 
-static std::vector<VarID> Locals;
+static std::vector<VarID> Variables;

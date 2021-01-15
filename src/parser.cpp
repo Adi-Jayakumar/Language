@@ -118,7 +118,7 @@ Expr *Parser::Assignment()
 
         VarReference *v = dynamic_cast<VarReference *>(exp);
         if (v != nullptr)
-            return new Assign(v->name, val, loc);
+            return new Assign(v, val, loc);
     }
     return exp;
 }

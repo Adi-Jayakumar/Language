@@ -116,6 +116,12 @@ CompileConst::CompileConst(TypeID _type, std::string &literal)
     }
 }
 
+CompileVar::CompileVar(std::string _name, Expr* _value)
+{
+    name = _name;
+    value = _value;
+}
+
 std::ostream &operator<<(std::ostream &out, CompileConst &cc)
 {
     switch (cc.type)
@@ -139,10 +145,7 @@ std::ostream &operator<<(std::ostream &out, CompileConst &cc)
         break;
     }
     }
-}
-
-Chunk::~Chunk()
-{
+    return out;
 }
 
 void Chunk::PrintCode()
@@ -154,6 +157,16 @@ void Chunk::PrintCode()
             std::cout << " " << constants[o.operand];
         std::cout << std::endl;
     }
+}
+
+size_t Chunk::ResolveVariable(std::string &name)
+{
+    for(size_t i = vars.size() - 1; (int) i >= 0; i--)
+    {
+        if((vars[i].name.length() == name.length()) && (vars[i].name == name))
+            return i;
+    }
+    return ~0;
 }
 
 void Chunk::CompileLiteral(Literal *l)
@@ -178,10 +191,26 @@ void Chunk::CompileBinary(Binary *b)
 
 void Chunk::CompileAssign(Assign *a)
 {
+    size_t index = ResolveVariable(a->var->name);
+
+    Expr* val = a->val;
+    VarReference* vr = dynamic_cast<VarReference *>(val);
+
+    // needed to make sure that the compiler does not get stuck in a infinite loop when compiling 'int a = 5; a = a;'
+    if(vr == nullptr)
+        vars[index].value = a->val;
+    else
+    {
+        size_t valIndex = ResolveVariable(vr->name);
+        vars[index].value = vars[valIndex].value;
+    }
+    vars[index].value->NodeCompile(*this);
 }
 
 void Chunk::CompileVarReference(VarReference *vr)
 {
+    size_t index = ResolveVariable(vr->name);
+    vars[index].value->NodeCompile(*this);
 }
 
 void Chunk::CompileExprStmt(ExprStmt *es)
@@ -189,7 +218,11 @@ void Chunk::CompileExprStmt(ExprStmt *es)
     es->exp->NodeCompile(*this);
     code.push_back({Opcode::POP, 0});
 }
-void Chunk::CompileDeclaredVar(DeclaredVar *dv) {}
+
+void Chunk::CompileDeclaredVar(DeclaredVar *dv)
+{
+    vars.push_back(CompileVar(dv->name, dv->value));
+}
 
 void Chunk::CompileBlock(Block *b)
 {

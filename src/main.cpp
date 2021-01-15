@@ -24,8 +24,8 @@ int main()
     std::cout << res << std::endl;
     res->Type();
 
-    Chunk c = Chunk();
-    res->NodeCompile(c);
-    c.PrintCode();
+    // Chunk c = Chunk();
+    // res->NodeCompile(c);
+    // c.PrintCode();
     delete res;
 }
