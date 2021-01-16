@@ -1,7 +1,7 @@
 #include "ASTPrinter.h"
-#include "compiler.h"
 #include "parser.h"
 #include "typechecker.h"
+#include "vm.h"
 
 void DumpTokens(std::string fPath)
 {
@@ -28,4 +28,10 @@ int main()
     Compiler c = Compiler();
     c.Compile(res);
     c.Disassemble();
+
+    std::cout << std::endl;
+
+    VM vm = VM();
+    vm.SetChunk(c.c);
+    vm.ExecuteCurrentChunk();
 }

@@ -79,6 +79,7 @@ static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
         {{1, TokenID::EQ_EQ, 2}, 3},
         {{2, TokenID::EQ_EQ, 1}, 3},
         {{2, TokenID::EQ_EQ, 2}, 3},
+        {{3, TokenID::EQ_EQ, 3}, 3},
         {{1, TokenID::BANG_EQ, 1}, 3},
         {{1, TokenID::BANG_EQ, 2}, 3},
         {{2, TokenID::BANG_EQ, 1}, 3},

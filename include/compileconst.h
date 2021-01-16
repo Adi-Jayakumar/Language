@@ -11,7 +11,7 @@ struct CompileConst
         bool b;
     } as;
     CompileConst() = default;
-    CompileConst(TypeID, std::string &);
+    CompileConst(TypeID, std::string);
     CompileConst(int);
     CompileConst(double);
     CompileConst(bool);

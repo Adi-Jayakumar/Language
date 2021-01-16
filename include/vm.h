@@ -1,6 +1,7 @@
 #pragma once
 #include "compiler.h"
 #include <stack>
+#include "compileconst.h"
 
 
 
@@ -12,7 +13,8 @@ struct VM
         variables should go/are so we update this offset
         everytime we switch Chunks
     */
-    size_t varOffset;
+    size_t varOffset = 0;
+    size_t constOffset = 0;
     Chunk cur;
 
     std::vector<CompileConst> constants;
@@ -21,6 +23,9 @@ struct VM
     std::stack<CompileConst> stack;
 
     VM() = default;
+
+    void PrintStack();
+
     void SetChunk(Chunk &c);
     void ExecuteCurrentChunk();
 };

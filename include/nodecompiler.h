@@ -6,8 +6,8 @@ enum class Opcode : uint8_t
 {
     POP,
     GET_C,
-    GET_V,
     VAR_D,
+    GET_V,
 
     ADD,
     SUB,

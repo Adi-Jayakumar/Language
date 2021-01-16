@@ -179,7 +179,7 @@ void NodeCompiler::CompileBlock(Block *b, Chunk &c)
     c.depth++;
     for (std::shared_ptr<Stmt> &s : b->stmts)
         s.get()->NodeCompile(c);
-    c.CleanUpVariables();
+    // c.CleanUpVariables();
     c.depth--;
 }
 
