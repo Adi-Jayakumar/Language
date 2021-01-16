@@ -1,4 +1,4 @@
-// #include "ASTPrinter.h"
+#include "ASTPrinter.h"
 #include "compiler.h"
 #include "parser.h"
 #include "typechecker.h"
@@ -20,11 +20,11 @@ int main()
 
     // DumpTokens("ex/test.txt");
 
-    std::shared_ptr<Block> res = p.ParseBlock();
+    std::shared_ptr<Stmt> res = p.ParseBlock();
     std::cout << res.get() << std::endl;
     res->Type();
 
-    Chunk c = Chunk();
-    res->NodeCompile(c);
-    c.PrintCode();
+    Compiler c = Compiler();
+    c.Compile(res);
+    c.Disassemble();
 }
