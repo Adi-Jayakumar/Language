@@ -22,11 +22,20 @@ struct TypeInfoHasher
     }
 };
 
-namespace TypeChecker
+
+
+struct TypeChecker
 {
+    uint8_t depth;
+    std::vector<VarID> vars;
+
+    TypeChecker() = default;
+    void TypeCheck(std::shared_ptr<Stmt> &s);
+
     void TypeError(Token loc, std::string err);
 
-    TypeID ResolveLocal(std::string &name);
+    TypeID ResolveVariable(std::string &name);
+    void CleanUpVariables();
 
     // expression typechecking
     TypeID TypeOfLiteral(Literal *l);
@@ -39,7 +48,7 @@ namespace TypeChecker
     TypeID TypeOfExprStmt(ExprStmt *es);
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
     TypeID TypeOfBlock(Block *b);
-} // namespace TypeChecker
+};
 
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
     OperatorMap{
