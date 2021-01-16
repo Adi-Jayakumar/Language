@@ -1,12 +1,12 @@
 #include "stmtnode.h"
 
-ExprStmt::ExprStmt(std::shared_ptr<Expr> &_exp, Token _loc)
+ExprStmt::ExprStmt(std::shared_ptr<Expr> _exp, Token _loc)
 {
     exp = std::move(_exp);
     loc = _loc;
 }
 
-DeclaredVar::DeclaredVar(uint8_t _tId, std::string _name, std::shared_ptr<Expr> &_value, Token _loc)
+DeclaredVar::DeclaredVar(uint8_t _tId, std::string _name, std::shared_ptr<Expr> _value, Token _loc)
 {
     tId = _tId;
     name = _name;
@@ -17,4 +17,11 @@ DeclaredVar::DeclaredVar(uint8_t _tId, std::string _name, std::shared_ptr<Expr> 
 Block::Block(uint8_t _depth)
 {
     depth = _depth;
+}
+
+IfStmt::IfStmt(std::shared_ptr<Expr> _cond, std::shared_ptr<Stmt> _thenBranch, std::shared_ptr<Stmt> _elseBranch)
+{
+    cond = _cond;
+    thenBranch = _thenBranch;
+    elseBranch = _elseBranch;
 }

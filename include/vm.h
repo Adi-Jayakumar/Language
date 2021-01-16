@@ -15,6 +15,10 @@ struct VM
     */
     size_t varOffset = 0;
     size_t constOffset = 0;
+
+    // instruction pointer
+    size_t ip;
+
     Chunk cur;
 
     std::vector<CompileConst> constants;
@@ -27,5 +31,8 @@ struct VM
     void PrintStack();
 
     void SetChunk(Chunk &c);
+
+    void Jump(size_t jump);
     void ExecuteCurrentChunk();
+    void ExecuteInstruction();
 };

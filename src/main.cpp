@@ -18,7 +18,7 @@ int main()
 {
     Parser p = Parser("ex/test.txt");
 
-    // DumpTokens("ex/test.txt");
+    DumpTokens("ex/test.txt");
 
     std::shared_ptr<Stmt> res = p.ParseBlock();
     std::cout << res.get() << std::endl;
@@ -29,9 +29,9 @@ int main()
     c.Compile(res);
     c.Disassemble();
 
-    std::cout << std::endl;
+    // std::cout << std::endl;
 
-    VM vm = VM();
-    vm.SetChunk(c.c);
-    vm.ExecuteCurrentChunk();
+    // VM vm = VM();
+    // vm.SetChunk(c.c);
+    // vm.ExecuteCurrentChunk();
 }

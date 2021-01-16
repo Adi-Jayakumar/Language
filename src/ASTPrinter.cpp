@@ -175,6 +175,19 @@ void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
     }
 }
 
+void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
+{
+    out << "if (";
+    i->cond->Print(out);
+    out << ")\n";
+    i->thenBranch->Print(out);
+    if(i->elseBranch != nullptr)
+    {
+        out << "\nelse";
+        i->elseBranch->Print(out);
+    }
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)
@@ -217,4 +230,9 @@ void DeclaredVar::Print(std::ostream &out)
 void Block::Print(std::ostream &out)
 {
     ASTPrinter::PrintBlock(this, out);
+}
+
+void IfStmt::Print(std::ostream &out)
+{
+    ASTPrinter::PrintIfStmt(this, out);
 }

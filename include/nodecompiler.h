@@ -8,6 +8,7 @@ enum class Opcode : uint8_t
     GET_C,
     VAR_D,
     GET_V,
+    JUMP_IF_FALSE,
 
     ADD,
     SUB,
@@ -31,7 +32,7 @@ Opcode TokenToOpcode(TokenID t);
 struct Op
 {
     Opcode code;
-    uint8_t operand;
+    uint16_t operand;
 };
 
 struct Chunk
@@ -39,12 +40,12 @@ struct Chunk
     std::vector<Op> code;
     std::vector<CompileConst> constants;
     std::vector<VarID> vars;
-    uint8_t depth = 0;
+    uint16_t depth = 0;
     Chunk() = default;
     ~Chunk() = default;
 
     void PrintCode();
-    size_t ResolveVariable(std::string &, uint8_t depth);
+    size_t ResolveVariable(std::string &, uint16_t depth);
     void CleanUpVariables();
 };
 
@@ -61,4 +62,5 @@ namespace NodeCompiler
     void CompileExprStmt(ExprStmt *es, Chunk &c);
     void CompileDeclaredVar(DeclaredVar *dv, Chunk &c);
     void CompileBlock(Block *b, Chunk &c);
+    void CompileIfStmt(IfStmt*i, Chunk &c);
 } // namespace NodeCompiler

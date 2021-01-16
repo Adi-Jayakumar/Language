@@ -89,7 +89,21 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 
 std::shared_ptr<Stmt> Parser::Statement()
 {
+    if(cur.type == TokenID::IF)
+        return IfStatement();
     return ExpressionStatement();
+}
+
+std::shared_ptr<Stmt> Parser::IfStatement()
+{
+    Advance();
+    Check(TokenID::OPEN_PAR, "Need an open paranthesis at the beginning of an if statement");
+    Advance();
+    std::shared_ptr<Expr> cond = Expression();
+    Check(TokenID::CLOSE_PAR, "Missing a close parenthesis");
+    Advance();
+    std::shared_ptr<Stmt> thenBranch = Statement();
+    return std::make_shared<IfStmt>(cond, thenBranch, nullptr);
 }
 
 std::shared_ptr<Stmt> Parser::ExpressionStatement()

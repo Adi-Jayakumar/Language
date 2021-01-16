@@ -120,6 +120,11 @@ std::ostream &operator<<(std::ostream &out, const TokenID &t)
         out << "CLOSE_BRACE";
         break;
     }
+    case TokenID::IF:
+    {
+        out << "IF";
+        break;
+    }
     case TokenID::END:
     {
         out << "END";

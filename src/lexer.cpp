@@ -216,7 +216,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'i':
     {
-        return MatchKeyWord("nt", TokenID::TYPENAME, tok);
+        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
     }
     case 'd':
     {

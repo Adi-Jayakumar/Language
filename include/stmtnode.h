@@ -18,7 +18,7 @@ std::ostream &operator<<(std::ostream &out, Stmt *s);
 struct ExprStmt : Stmt
 {
     std::shared_ptr<Expr> exp;
-    ExprStmt(std::shared_ptr<Expr> &, Token);
+    ExprStmt(std::shared_ptr<Expr>, Token);
 
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
@@ -30,7 +30,7 @@ struct DeclaredVar : Stmt
     TypeID tId;
     std::string name;
     std::shared_ptr<Expr> value;
-    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> &, Token);
+    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> , Token);
 
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
@@ -43,6 +43,17 @@ struct Block : Stmt
     std::vector<std::shared_ptr<Stmt>> stmts;
     Block(uint8_t);
 
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    void NodeCompile(Chunk &c) override;
+};
+
+struct IfStmt : Stmt
+{
+    std::shared_ptr<Expr> cond;
+    std::shared_ptr<Stmt> thenBranch;
+    std::shared_ptr<Stmt> elseBranch;
+    IfStmt(std::shared_ptr<Expr> , std::shared_ptr<Stmt>, std::shared_ptr<Stmt> );
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;

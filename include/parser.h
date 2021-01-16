@@ -26,6 +26,8 @@ struct Parser
     std::shared_ptr<Stmt> VarDeclaration();
     // parses any statement
     std::shared_ptr<Stmt> Statement();
+    // parses an if statement
+    std::shared_ptr<Stmt> IfStatement();
     // parses an expression statement
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression

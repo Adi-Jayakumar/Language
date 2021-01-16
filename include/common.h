@@ -9,7 +9,7 @@ struct VarID
 {
     TypeID type;
     std::string name;
-    uint8_t depth;
+    uint16_t depth;
 };
 
 // map from literal TokenIDs to 

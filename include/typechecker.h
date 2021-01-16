@@ -27,4 +27,5 @@ struct TypeChecker
     TypeID TypeOfExprStmt(ExprStmt *es);
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
     TypeID TypeOfBlock(Block *b);
+    TypeID TypeOfIfStmt(IfStmt* i);
 };

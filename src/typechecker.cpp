@@ -28,7 +28,7 @@ TypeID TypeChecker::ResolveVariable(std::string &name)
 
 void TypeChecker::CleanUpVariables()
 {
-    while(!vars.empty() && vars.back().depth == depth)
+    while (!vars.empty() && vars.back().depth == depth)
         vars.pop_back();
 }
 
@@ -129,13 +129,23 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
 TypeID TypeChecker::TypeOfBlock(Block *b)
 {
     depth++;
-    if(depth == UINT8_MAX)
+    if (depth == UINT8_MAX)
         TypeError(b->loc, "Exceeded maximum number of nested blocks: " + std::to_string(UINT8_MAX));
     for (std::shared_ptr<Stmt> &s : b->stmts)
         s->Type(*this);
     CleanUpVariables();
     depth--;
-    return 0;
+    return 255;
+}
+
+TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
+{
+    if(i->cond->Type(*this) != 3)
+        TypeError(i->loc, "Condition of and if statement must have type: bool");
+    i->thenBranch->Type(*this);
+    if(i->elseBranch != nullptr)
+        i->elseBranch->Type(*this);
+    return 255;
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -180,4 +190,9 @@ TypeID DeclaredVar::Type(TypeChecker &t)
 TypeID Block::Type(TypeChecker &t)
 {
     return t.TypeOfBlock(this);
+}
+
+TypeID IfStmt::Type(TypeChecker &t)
+{
+    return t.TypeOfIfStmt(this);
 }
