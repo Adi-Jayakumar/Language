@@ -13,7 +13,7 @@ void TypeChecker::TypeError(Token loc, std::string err)
 
 TypeID TypeChecker::ResolveLocal(std::string &name)
 {
-    for (size_t i = Variables.size() - 1; (int) i >= 0; i--)
+    for (size_t i = Variables.size() - 1; (int)i >= 0; i--)
     {
         if (Variables[i].name == name)
             return Variables[i].type;
@@ -117,7 +117,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
 
 TypeID TypeChecker::TypeOfBlock(Block *b)
 {
-    for (Stmt *s : b->stmts)
+    for (std::shared_ptr<Stmt> &s : b->stmts)
         s->Type();
     return 0;
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include "stmtnode.h"
 #include "ASTPrinter.h"
 #include "maps.h"
 
@@ -43,18 +42,17 @@ struct CompileConst
         double d;
         bool b;
     } as;
-    CompileConst(TypeID, std::string&);
+    CompileConst(TypeID, std::string &);
 };
 
 struct CompileVar
 {
     std::string name;
-    Expr* value;
-    CompileVar(std::string, Expr*);
+    Expr *value;
+    CompileVar(std::string, Expr *);
 };
 
 std::ostream &operator<<(std::ostream &out, CompileConst &cc);
-
 
 struct Chunk
 {

@@ -4,7 +4,6 @@
 #include <fstream>
 #include <streambuf>
 #include <string>
-#include <unordered_map>
 #include "maps.h"
 
 namespace IO

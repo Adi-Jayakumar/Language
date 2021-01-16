@@ -20,12 +20,11 @@ int main()
 
     // DumpTokens("ex/test.txt");
 
-    Block *res = p.ParseBlock();
-    std::cout << res << std::endl;
+    std::shared_ptr<Block> res = p.ParseBlock();
+    std::cout << res.get() << std::endl;
     res->Type();
 
-    // Chunk c = Chunk();
-    // res->NodeCompile(c);
-    // c.PrintCode();
-    delete res;
+    Chunk c = Chunk();
+    res->NodeCompile(c);
+    c.PrintCode();
 }

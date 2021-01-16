@@ -2,7 +2,7 @@
 #include "exprnode.h"
 #include <vector>
 
-struct Stmt
+struct Stmt : std::enable_shared_from_this<Stmt>
 {
     Token loc;
     // prints the node - implemented in ASTPrinter.cpp
@@ -11,16 +11,14 @@ struct Stmt
     virtual TypeID Type() = 0;
     // compiles the node - implemented in compiler.cpp
     virtual void NodeCompile(Chunk &c) = 0;
-    virtual ~Stmt() = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, Stmt *s);
 
 struct ExprStmt : Stmt
 {
-    Expr *exp;
-    ExprStmt(Expr *, Token);
-    ~ExprStmt();
+    std::shared_ptr<Expr> exp;
+    ExprStmt(std::shared_ptr<Expr> &, Token);
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -31,9 +29,8 @@ struct DeclaredVar : Stmt
 {
     TypeID tId;
     std::string name;
-    Expr *value;
-    DeclaredVar(TypeID, std::string, Expr *, Token);
-    ~DeclaredVar();
+    std::shared_ptr<Expr> value;
+    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> &, Token);
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -43,9 +40,8 @@ struct DeclaredVar : Stmt
 struct Block : Stmt
 {
     uint8_t depth;
-    std::vector<Stmt *> stmts;
+    std::vector<std::shared_ptr<Stmt>> stmts;
     Block(uint8_t);
-    ~Block();
 
     void Print(std::ostream &out) override;
     TypeID Type() override;

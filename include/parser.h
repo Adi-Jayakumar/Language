@@ -1,7 +1,6 @@
 #pragma once
 #include "lexer.h"
 #include "stmtnode.h"
-#include <vector>
 
 struct Parser
 {
@@ -20,31 +19,31 @@ struct Parser
     // checks t has same type as cur.type, gives an error
     void Check(TokenID t, std::string err);
     // parses a file into a list of statements
-    Block* ParseBlock();
+    std::shared_ptr<Block> ParseBlock();
     // parses any declaration
-    Stmt *Declaration();
+    std::shared_ptr<Stmt> Declaration();
     // parses a variable declaraion
-    Stmt *VarDeclaration();
+    std::shared_ptr<Stmt> VarDeclaration();
     // parses any statement
-    Stmt *Statement();
+    std::shared_ptr<Stmt> Statement();
     // parses an expression statement
-    Stmt *ExpressionStatement();
+    std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression
-    Expr *Expression();
+    std::shared_ptr<Expr> Expression();
     // parses any assignment
-    Expr *Assignment();
+    std::shared_ptr<Expr> Assignment();
     // parses a series of == or != operations
-    Expr *EqualityCheck();
+    std::shared_ptr<Expr> EqualityCheck();
     // parses a series of >, <, >=, <= operations
-    Expr *Comparison();
+    std::shared_ptr<Expr> Comparison();
     // parses a series of + or - operations
-    Expr *Sum();
-    // parses a series of * or / operations
-    Expr *Product();
+    std::shared_ptr<Expr> Sum();
+    // parses a series of* or / operations
+    std::shared_ptr<Expr> Product();
     // parses a series of - operations for the moment
-    Expr *UnaryOp();
+    std::shared_ptr<Expr> UnaryOp();
     // parses an experession of the form '(' expression ')'
-    Expr *Grouping();
+    std::shared_ptr<Expr> Grouping();
     // parses a literal -- just a double for now
-    Expr *LiteralNode();
+    std::shared_ptr<Expr> LiteralNode();
 };

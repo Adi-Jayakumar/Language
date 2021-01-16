@@ -116,7 +116,7 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
         if (a->val == nullptr)
             out << "null to" << a->var->name;
         else
-            out << a->val << " to " << a->var->name;
+            out << a->val.get() << " to " << a->var->name;
     }
 }
 
@@ -146,7 +146,7 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     if (v == nullptr)
         out << "null";
     else
-        out << "Variable: " << v->name << " declared with value: '" << v->value << "' has type: " << +v->tId;
+        out << "Variable: " << v->name << " declared with value: '" << v->value.get() << "' has type: " << +v->tId;
     out << ";";
 }
 
@@ -162,11 +162,11 @@ void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
             out << "\t";
         out << "{\n";
 
-        for (Stmt *s : b->stmts)
+        for (std::shared_ptr<Stmt> &s : b->stmts)
         {
             for (uint8_t i = 1; i < b->depth; i++)
                 out << "\t";
-            out << "\t" << s << std::endl;
+            out << "\t" << s.get() << std::endl;
         }
 
         for (uint8_t i = 1; i < b->depth; i++)

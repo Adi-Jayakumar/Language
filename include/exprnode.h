@@ -1,8 +1,7 @@
 #pragma once
 #include "maps.h"
 #include "token.h"
-#include <cstdint>
-#include <unordered_map>
+#include <memory>
 
 struct Chunk;
 
@@ -15,10 +14,10 @@ struct Expr
     virtual TypeID Type() = 0;
     // compiles the node - implmented in compiler.cpp
     virtual void NodeCompile(Chunk &c) = 0;
-    virtual ~Expr() = 0;
+    // virtual ~Expr() = 0;
 };
 
-std::ostream &operator<<(std::ostream &out, Expr *e);
+std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
 
 /*
     TypeIDs are represented as TypeID with
@@ -36,7 +35,7 @@ struct Literal : Expr
         bool b;
     } as;
     Literal(Token);
-    ~Literal() = default;
+    // ~Literal() override = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -46,9 +45,9 @@ struct Literal : Expr
 struct Unary : Expr
 {
     Token op;
-    Expr *right;
-    Unary(Token, Expr *);
-    ~Unary();
+    std::shared_ptr<Expr> right;
+    Unary(Token, std::shared_ptr<Expr>);
+    // ~Unary() override = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -57,11 +56,11 @@ struct Unary : Expr
 
 struct Binary : Expr
 {
-    Expr *left;
+    std::shared_ptr<Expr> left;
     Token op;
-    Expr *right;
-    Binary(Expr *, Token, Expr *);
-    ~Binary();
+    std::shared_ptr<Expr> right;
+    Binary(std::shared_ptr<Expr>, Token, std::shared_ptr<Expr>);
+    // ~Binary() override = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -72,7 +71,7 @@ struct VarReference : Expr
 {
     std::string name;
     VarReference(Token);
-    ~VarReference();
+    // ~VarReference() override = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;
@@ -81,10 +80,10 @@ struct VarReference : Expr
 
 struct Assign : Expr
 {
-    VarReference *var;
-    Expr *val;
-    Assign(VarReference *, Expr *, Token);
-    ~Assign();
+    std::shared_ptr<VarReference> var;
+    std::shared_ptr<Expr> val;
+    Assign(std::shared_ptr<VarReference>, std::shared_ptr<Expr>, Token);
+    // ~Assign() override = default;
 
     void Print(std::ostream &out) override;
     TypeID Type() override;

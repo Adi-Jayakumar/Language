@@ -29,20 +29,20 @@ void Parser::Advance()
     cur = lex.NextToken();
 }
 
-Block* Parser::ParseBlock()
+std::shared_ptr<Block> Parser::ParseBlock()
 {
     Advance();
     depth++;
-    Block* result = new Block(depth);
+    std::shared_ptr<Block> result = std::make_shared<Block>(depth);
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
-        if(cur.type == TokenID::OPEN_BRACE)
+        if (cur.type == TokenID::OPEN_BRACE)
             result->stmts.push_back(ParseBlock());
         else
             result->stmts.push_back(Declaration());
     }
 
-    if(cur.type == TokenID::CLOSE_BRACE)
+    if (cur.type == TokenID::CLOSE_BRACE)
         Advance();
     else
         ParseError(cur, "Need to close braces");
@@ -53,7 +53,7 @@ Block* Parser::ParseBlock()
 
 // ----------------------DECLARATIONS----------------------- //
 
-Stmt *Parser::Declaration()
+std::shared_ptr<Stmt> Parser::Declaration()
 {
     if (cur.type == TokenID::TYPENAME)
         return VarDeclaration();
@@ -61,7 +61,7 @@ Stmt *Parser::Declaration()
         return Statement();
 }
 
-Stmt *Parser::VarDeclaration()
+std::shared_ptr<Stmt> Parser::VarDeclaration()
 {
     Check(TokenID::TYPENAME, "Expect type name at the beginning of a declaration");
     uint8_t type = TypeNameMap[cur.literal];
@@ -71,7 +71,7 @@ Stmt *Parser::VarDeclaration()
     Token loc = cur;
 
     Advance();
-    Expr *init = nullptr;
+    std::shared_ptr<Expr> init = nullptr;
 
     if (cur.type == TokenID::EQ)
     {
@@ -82,129 +82,132 @@ Stmt *Parser::VarDeclaration()
     Check(TokenID::SEMI, "Expect ';' after variable declaration");
     Advance();
 
-    return new DeclaredVar(type, name, init, loc);
+    return std::make_shared<DeclaredVar>(type, name, init, loc);
 }
 
 // ----------------------DECLARATIONS----------------------- //
 
-Stmt *Parser::Statement()
+std::shared_ptr<Stmt> Parser::Statement()
 {
     return ExpressionStatement();
 }
 
-Stmt *Parser::ExpressionStatement()
+std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
-    Expr *exp = Expression();
+    std::shared_ptr<Expr> exp = Expression();
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
-    return new ExprStmt(exp, loc);
+    return std::make_shared<ExprStmt>(exp, loc);
 }
 
-Expr *Parser::Expression()
+std::shared_ptr<Expr> Parser::Expression()
 {
     return Assignment();
 }
 
-Expr *Parser::Assignment()
+std::shared_ptr<Expr> Parser::Assignment()
 {
-    Expr *exp = EqualityCheck();
+    std::shared_ptr<Expr> exp = EqualityCheck();
 
     if (cur.type == TokenID::EQ)
     {
         Token loc = cur;
         Advance();
-        Expr *val = Assignment();
+        std::shared_ptr<Expr> val = Assignment();
 
-        VarReference *v = dynamic_cast<VarReference *>(exp);
+        VarReference *v = dynamic_cast<VarReference *>(exp.get());
         if (v != nullptr)
-            return new Assign(v, val, loc);
+        {
+            std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->loc);
+            return std::make_shared<Assign>(u, val, loc);
+        }
     }
     return exp;
 }
 
-Expr *Parser::EqualityCheck()
+std::shared_ptr<Expr> Parser::EqualityCheck()
 {
-    Expr *left = Comparison();
+    std::shared_ptr<Expr> left = Comparison();
     Token op = cur;
 
     while (cur.type == TokenID::EQ_EQ || cur.type == TokenID::BANG_EQ)
     {
         Advance();
-        Expr *right = Comparison();
-        left = new Binary(left, op, right);
+        std::shared_ptr<Expr> right = Comparison();
+        left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
 
     return left;
 }
 
-Expr *Parser::Comparison()
+std::shared_ptr<Expr> Parser::Comparison()
 {
-    Expr *left = Sum();
+    std::shared_ptr<Expr> left = Sum();
     Token op = cur;
 
     while (cur.type == TokenID::GT || cur.type == TokenID::LT || cur.type == TokenID::GEQ || cur.type == TokenID::LEQ)
     {
         Advance();
-        Expr *right = Sum();
-        left = new Binary(left, op, right);
+        std::shared_ptr<Expr> right = Sum();
+        left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
 
     return left;
 }
 
-Expr *Parser::Sum()
+std::shared_ptr<Expr> Parser::Sum()
 {
-    Expr *left = Product();
+    std::shared_ptr<Expr> left = Product();
     Token op = cur;
 
     while (cur.type == TokenID::PLUS || cur.type == TokenID::MINUS)
     {
         Advance();
-        Expr *right = Product();
-        left = new Binary(left, op, right);
+        std::shared_ptr<Expr> right = Product();
+        left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
 
     return left;
 }
 
-Expr *Parser::Product()
+std::shared_ptr<Expr> Parser::Product()
 {
-    Expr *left = UnaryOp();
+    std::shared_ptr<Expr> left = UnaryOp();
     Token op = cur;
 
     while (cur.type == TokenID::STAR || cur.type == TokenID::SLASH)
     {
         Advance();
-        Expr *right = UnaryOp();
-        left = new Binary(left, op, right);
+        std::shared_ptr<Expr> right = UnaryOp();
+        left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
 
     return left;
 }
 
-Expr *Parser::UnaryOp()
+std::shared_ptr<Expr> Parser::UnaryOp()
 {
 
     if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
         Advance();
-        Expr *right = new Unary(prev, UnaryOp());
+        std::shared_ptr<Expr> right = std::make_shared<Unary>(prev, UnaryOp());
         return right;
     }
 
     return LiteralNode();
 }
 
-Expr *Parser::LiteralNode()
+std::shared_ptr<Expr> Parser::LiteralNode()
 {
-    Expr *res = nullptr;
+    std::shared_ptr<Expr> res = nullptr;
     if (IsLiteral(cur))
-        res = new Literal(cur);
+        res = std::make_shared<Literal>(cur);
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
@@ -218,7 +221,7 @@ Expr *Parser::LiteralNode()
     {
         Token loc = cur;
         Advance();
-        return new VarReference(loc);
+        return std::make_shared<VarReference>(loc);
     }
     else
         ParseError(cur, "[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");

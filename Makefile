@@ -1,5 +1,5 @@
 CC		:= g++ 
-C_FLAGS := -g -std=c++17 -fsanitize=address -Wall -Wextra -march=native -fext-numeric-literals
+C_FLAGS := -g -std=c++17 -fsanitize=address -fsanitize=leak -fsanitize=undefined -Wall -Wextra -march=native -fext-numeric-literals
 
 BIN		:= bin
 SRC		:= src

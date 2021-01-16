@@ -1,8 +1,6 @@
 #pragma once
 #include "perror.h"
 #include "stmtnode.h"
-#include <unordered_map>
-#include <unordered_set>
 
 struct TypeInfo
 {
