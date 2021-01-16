@@ -1,25 +1,26 @@
 #pragma once
 #include "compiler.h"
+#include <stack>
 
-struct CompileVar
-{
-    std::string name;
-    uint8_t depth;
-    CompileConst decl;
-    CompileVar(std::string, uint8_t);
-};
 
-// CompileVar::CompileVar(std::string _name, uint8_t _depth)
-// {
-//     name = _name;
-//     std::string null = "-1";
-//     decl = {UINT8_MAX, null};
-//     depth = _depth;
-// }
 
 struct VM
 {
-    std::vector<Op> code;
+    /*
+        When executing multiple Chunks the codes GET_V and
+        VAR_D provide relative 'addresses' of where their
+        variables should go/are so we update this offset
+        everytime we switch Chunks
+    */
+    size_t varOffset;
+    Chunk cur;
+
     std::vector<CompileConst> constants;
     std::vector<CompileVar> vars;
+
+    std::stack<CompileConst> stack;
+
+    VM() = default;
+    void SetChunk(Chunk &c);
+    void ExecuteCurrentChunk();
 };

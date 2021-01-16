@@ -95,74 +95,15 @@ Opcode TokenToOpcode(TokenID t)
         return Opcode::NONE;
 }
 
-CompileConst::CompileConst(TypeID _type, std::string &literal)
-{
-    type = _type;
-    switch (type)
-    {
-    case 1:
-    {
-        type = 1;
-        as.i = std::stoi(literal);
-        break;
-    }
-    case 2:
-    {
-        type = 2;
-        as.d = std::stod(literal);
-        break;
-    }
-    case 3:
-    {
-        type = 3;
-        if (literal == "true")
-            as.b = true;
-        else
-            as.b = false;
-    }
-    }
-}
-
-std::ostream &operator<<(std::ostream &out, CompileConst &cc)
-{
-    switch (cc.type)
-    {
-    case UINT8_MAX:
-    {
-        out << cc.as.i;
-        break;
-    }
-    case 1:
-    {
-        out << cc.as.i;
-        break;
-    }
-    case 2:
-    {
-        out << cc.as.d;
-        break;
-    }
-    case 3:
-    {
-        if (cc.as.b)
-            out << "true";
-        else
-            out << "false";
-        break;
-    }
-    }
-    return out;
-}
-
 void Chunk::PrintCode()
 {
     for (Op &o : code)
     {
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
-            std::cout << " " << constants[o.operand];
+            std::cout << " '" << constants[o.operand] << "' at index: " << +o.operand;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D)
-            std::cout << " " << vars[o.operand].name;
+            std::cout << " '" << vars[o.operand].name << "' at index: " << +o.operand;
         else
             std::cout << " " << +o.operand;
 
@@ -177,16 +118,11 @@ size_t Chunk::ResolveVariable(std::string &name, uint8_t depth)
         if ((depth == vars[i].depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
             return i;
     }
-    return ~0;
+    return 255;
 }
 
 void Chunk::CleanUpVariables()
 {
-
-    // std::cout << "Chunk depth: " << depth << std::endl;
-    // for(int i = vars.size() - 1; i >= 0; i--)
-    //     std::cout << "name: " << vars[i].name << " depth: " << +vars[i].depth << " val: " << vars[i].decl << std::endl;
-
     while(!vars.empty() && vars.back().depth == depth)
         vars.pop_back();
 }

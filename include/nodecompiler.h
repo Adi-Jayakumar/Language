@@ -1,6 +1,6 @@
 #pragma once
 #include "ASTPrinter.h"
-#include "common.h"
+#include "compileconst.h"
 
 enum class Opcode : uint8_t
 {
@@ -33,21 +33,6 @@ struct Op
     Opcode code;
     uint8_t operand;
 };
-
-struct CompileConst
-{
-    TypeID type;
-    union combo
-    {
-        int i;
-        double d;
-        bool b;
-    } as;
-    CompileConst() = default;
-    CompileConst(TypeID, std::string &);
-};
-
-std::ostream &operator<<(std::ostream &out, CompileConst &cc);
 
 struct Chunk
 {
