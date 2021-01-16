@@ -123,13 +123,6 @@ CompileConst::CompileConst(TypeID _type, std::string &literal)
     }
 }
 
-CompileVar::CompileVar(std::string _name)
-{
-    name = _name;
-    std::string null = "-1";
-    decl = {UINT8_MAX, null};
-}
-
 std::ostream &operator<<(std::ostream &out, CompileConst &cc)
 {
     switch (cc.type)
@@ -177,14 +170,25 @@ void Chunk::PrintCode()
     }
 }
 
-size_t Chunk::ResolveVariable(std::string &name)
+size_t Chunk::ResolveVariable(std::string &name, uint8_t depth)
 {
     for (size_t i = vars.size() - 1; (int)i >= 0; i--)
     {
-        if ((vars[i].name.length() == name.length()) && (vars[i].name == name))
+        if ((depth == vars[i].depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
             return i;
     }
     return ~0;
+}
+
+void Chunk::CleanUpVariables()
+{
+
+    // std::cout << "Chunk depth: " << depth << std::endl;
+    // for(int i = vars.size() - 1; i >= 0; i--)
+    //     std::cout << "name: " << vars[i].name << " depth: " << +vars[i].depth << " val: " << vars[i].decl << std::endl;
+
+    while(!vars.empty() && vars.back().depth == depth)
+        vars.pop_back();
 }
 
 void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
@@ -209,7 +213,7 @@ void NodeCompiler::CompileBinary(Binary *b, Chunk &c)
 
 void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 {
-    size_t index = c.ResolveVariable(a->var->name);
+    size_t index = c.ResolveVariable(a->var->name, c.depth);
     a->val->NodeCompile(c);
     c.code.push_back({Opcode::VAR_D, static_cast<uint8_t>(index)});
     c.code.push_back({Opcode::GET_V, static_cast<uint8_t>(index)});
@@ -217,7 +221,7 @@ void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
 {
-    size_t index = c.ResolveVariable(vr->name);
+    size_t index = c.ResolveVariable(vr->name, c.depth);
     c.code.push_back({Opcode::GET_V, static_cast<uint8_t>(index)});
 }
 
@@ -229,15 +233,18 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Chunk &c)
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Chunk &c)
 {
-    c.vars.push_back(CompileVar(dv->name));
+    c.vars.push_back({0, dv->name, c.depth});
     dv->value->NodeCompile(c);
     c.code.push_back({Opcode::VAR_D, static_cast<uint8_t>(c.vars.size() - 1)});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Chunk &c)
 {
+    c.depth++;
     for (std::shared_ptr<Stmt> &s : b->stmts)
         s.get()->NodeCompile(c);
+    c.CleanUpVariables();
+    c.depth--;
 }
 
 void Literal::NodeCompile(Chunk &c)

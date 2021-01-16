@@ -7,8 +7,9 @@ typedef uint8_t TypeID;
 
 struct VarID
 {
-    std::string name;
     TypeID type;
+    std::string name;
+    uint8_t depth;
 };
 
 // map from literal TokenIDs to 
@@ -19,5 +20,3 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
 
 // map from string typenames to uint8_t type ids.
 static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double", 2}, {"bool", 3}};
-
-static std::vector<VarID> Variables;

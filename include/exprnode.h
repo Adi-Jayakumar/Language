@@ -1,9 +1,10 @@
 #pragma once
-#include "maps.h"
+#include "common.h"
 #include "token.h"
 #include <memory>
 
 struct Chunk;
+struct TypeChecker;
 
 struct Expr
 {
@@ -11,7 +12,7 @@ struct Expr
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeID Type() = 0;
+    virtual TypeID Type(TypeChecker &t) = 0;
     // compiles the node - implmented in compiler.cpp
     virtual void NodeCompile(Chunk &c) = 0;
     // virtual ~Expr() = 0;
@@ -38,7 +39,7 @@ struct Literal : Expr
     // ~Literal() override = default;
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -50,7 +51,7 @@ struct Unary : Expr
     // ~Unary() override = default;
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -63,7 +64,7 @@ struct Binary : Expr
     // ~Binary() override = default;
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -74,7 +75,7 @@ struct VarReference : Expr
     // ~VarReference() override = default;
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -86,6 +87,6 @@ struct Assign : Expr
     // ~Assign() override = default;
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };

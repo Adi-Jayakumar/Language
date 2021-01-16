@@ -8,7 +8,7 @@ struct Stmt : std::enable_shared_from_this<Stmt>
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeID Type() = 0;
+    virtual TypeID Type(TypeChecker &t) = 0;
     // compiles the node - implemented in compiler.cpp
     virtual void NodeCompile(Chunk &c) = 0;
 };
@@ -21,7 +21,7 @@ struct ExprStmt : Stmt
     ExprStmt(std::shared_ptr<Expr> &, Token);
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -33,7 +33,7 @@ struct DeclaredVar : Stmt
     DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> &, Token);
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };
 
@@ -44,6 +44,6 @@ struct Block : Stmt
     Block(uint8_t);
 
     void Print(std::ostream &out) override;
-    TypeID Type() override;
+    TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
 };

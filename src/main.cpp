@@ -22,7 +22,8 @@ int main()
 
     std::shared_ptr<Stmt> res = p.ParseBlock();
     std::cout << res.get() << std::endl;
-    res->Type();
+    TypeChecker t = TypeChecker();
+    t.TypeCheck(res);
 
     Compiler c = Compiler();
     c.Compile(res);

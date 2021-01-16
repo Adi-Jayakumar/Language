@@ -1,6 +1,6 @@
 #pragma once
 #include "ASTPrinter.h"
-#include "maps.h"
+#include "common.h"
 
 enum class Opcode : uint8_t
 {
@@ -47,25 +47,20 @@ struct CompileConst
     CompileConst(TypeID, std::string &);
 };
 
-struct CompileVar
-{
-    std::string name;
-    CompileConst decl;
-    CompileVar(std::string);
-};
-
 std::ostream &operator<<(std::ostream &out, CompileConst &cc);
 
 struct Chunk
 {
     std::vector<Op> code;
     std::vector<CompileConst> constants;
-    std::vector<CompileVar> vars;
+    std::vector<VarID> vars;
+    uint8_t depth = 0;
     Chunk() = default;
     ~Chunk() = default;
 
     void PrintCode();
-    size_t ResolveVariable(std::string &);
+    size_t ResolveVariable(std::string &, uint8_t depth);
+    void CleanUpVariables();
 };
 
 namespace NodeCompiler
