@@ -29,11 +29,20 @@ void Parser::Advance()
     cur = lex.NextToken();
 }
 
+std::shared_ptr<Stmt> Parser::Statement()
+{
+    if (cur.type == TokenID::OPEN_BRACE)
+        return ParseBlock();
+    else if (cur.type == TokenID::IF)
+        return IfStatement();
+    return ExpressionStatement();
+}
+
 std::shared_ptr<Block> Parser::ParseBlock()
 {
     Advance();
     depth++;
-    std::shared_ptr<Block> result = std::make_shared<Block>(depth);
+    std::shared_ptr<Block> result = std::make_shared<Block>(depth, cur);
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
         if (cur.type == TokenID::OPEN_BRACE)
@@ -87,12 +96,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 
 // ----------------------DECLARATIONS----------------------- //
 
-std::shared_ptr<Stmt> Parser::Statement()
-{
-    if(cur.type == TokenID::IF)
-        return IfStatement();
-    return ExpressionStatement();
-}
+
 
 std::shared_ptr<Stmt> Parser::IfStatement()
 {
@@ -103,7 +107,13 @@ std::shared_ptr<Stmt> Parser::IfStatement()
     Check(TokenID::CLOSE_PAR, "Missing a close parenthesis");
     Advance();
     std::shared_ptr<Stmt> thenBranch = Statement();
-    return std::make_shared<IfStmt>(cond, thenBranch, nullptr);
+    std::shared_ptr<Stmt> elseBranch = nullptr;
+    if(cur.type == TokenID::ELSE)
+    {
+        Advance();
+        elseBranch = Statement();
+    }
+    return std::make_shared<IfStmt>(cond, thenBranch, elseBranch, cur);
 }
 
 std::shared_ptr<Stmt> Parser::ExpressionStatement()
@@ -135,6 +145,10 @@ std::shared_ptr<Expr> Parser::Assignment()
         {
             std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->loc);
             return std::make_shared<Assign>(u, val, loc);
+        }
+        else
+        {
+            ParseError(cur, "Invalid assignment target");
         }
     }
     return exp;

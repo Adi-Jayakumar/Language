@@ -206,25 +206,29 @@ bool Lexer::CheckKeyword(Token &tok)
     */
     switch (src[index])
     {
-    case 't':
+    case 'b':
     {
-        return MatchKeyWord("rue", TokenID::BOOL_L, tok);
-    }
-    case 'f':
-    {
-        return MatchKeyWord("alse", TokenID::BOOL_L, tok);
-    }
-    case 'i':
-    {
-        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
+        return MatchKeyWord("ool", TokenID::TYPENAME, tok);
     }
     case 'd':
     {
         return MatchKeyWord("ouble", TokenID::TYPENAME, tok);
     }
-    case 'b':
+    case 'e':
     {
-        return MatchKeyWord("ool", TokenID::TYPENAME, tok);
+        return MatchKeyWord("lse", TokenID::ELSE, tok);
+    }
+    case 'i':
+    {
+        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
+    }
+    case 'f':
+    {
+        return MatchKeyWord("alse", TokenID::BOOL_L, tok);
+    }
+    case 't':
+    {
+        return MatchKeyWord("rue", TokenID::BOOL_L, tok);
     }
     }
     return false;

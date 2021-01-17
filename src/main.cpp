@@ -2,6 +2,7 @@
 #include "parser.h"
 #include "typechecker.h"
 #include "vm.h"
+#include <cstring>
 
 void DumpTokens(std::string fPath)
 {
@@ -16,11 +17,10 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    Parser p = Parser("ex/test.txt");
-
     DumpTokens("ex/test.txt");
 
-    std::shared_ptr<Stmt> res = p.ParseBlock();
+    Parser p = Parser("ex/test.txt");
+    std::shared_ptr<Stmt> res = p.Statement();
     std::cout << res.get() << std::endl;
     TypeChecker t = TypeChecker();
     t.TypeCheck(res);
@@ -29,9 +29,9 @@ int main()
     c.Compile(res);
     c.Disassemble();
 
-    // std::cout << std::endl;
-
-    // VM vm = VM();
-    // vm.SetChunk(c.c);
-    // vm.ExecuteCurrentChunk();
+    std::cout << std::endl;
+    VM vm = VM();
+    vm.SetChunk(c.c);
+    vm.ExecuteCurrentChunk();
+    // vm.StepThrough();
 }

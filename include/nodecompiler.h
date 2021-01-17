@@ -1,14 +1,17 @@
 #pragma once
 #include "ASTPrinter.h"
 #include "compileconst.h"
+#include "perror.h"
 
 enum class Opcode : uint8_t
 {
     POP,
     GET_C,
     VAR_D,
+    VAR_A,
     GET_V,
     JUMP_IF_FALSE,
+    JUMP,
 
     ADD,
     SUB,
@@ -51,6 +54,8 @@ struct Chunk
 
 namespace NodeCompiler
 {
+    void CompileError(std::string err);
+
     // expression compiling
     void CompileLiteral(Literal *l, Chunk &c);
     void CompileUnary(Unary *u, Chunk &c);

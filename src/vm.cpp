@@ -53,8 +53,13 @@ void VM::ExecuteInstruction()
     case Opcode::VAR_D:
     {
         CompileConst val = stack.top();
-        stack.pop();
         vars.push_back(CompileVar(cur.vars[o.operand].name, val));
+        break;
+    }
+    case Opcode::VAR_A:
+    {
+        CompileConst val = stack.top();
+        vars[varOffset + o.operand].val = val;
         break;
     }
     // returns the value of the variable at o.operand's location + varOffset
@@ -66,9 +71,18 @@ void VM::ExecuteInstruction()
         stack.push(v.val);
         break;
     }
+    // adds the operand to the ip if the value on the top of the stack is not truthy
     case Opcode::JUMP_IF_FALSE:
     {
-        // ip += o.operand;
+        if(!IsTruthy(stack.top()))
+            ip += o.operand;
+        stack.pop();
+        break;
+    }
+    // adds the operand to the ip
+    case Opcode::JUMP:
+    {
+        ip += o.operand;
         break;
     }
     // adds the last 2 things on the stack
@@ -176,5 +190,15 @@ void VM::ExecuteInstruction()
     {
         break;
     }
+    }
+}
+
+void VM::StepThrough()
+{
+    while(ip != cur.code.size())
+    {
+        std::cout << ToString(cur.code[ip].code) << " " << +cur.code[ip].operand << std::endl;
+        ExecuteInstruction();
+        Jump(1);
     }
 }

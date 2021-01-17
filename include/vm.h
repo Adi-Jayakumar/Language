@@ -35,4 +35,5 @@ struct VM
     void Jump(size_t jump);
     void ExecuteCurrentChunk();
     void ExecuteInstruction();
+    void StepThrough();
 };

@@ -125,6 +125,11 @@ std::ostream &operator<<(std::ostream &out, const TokenID &t)
         out << "IF";
         break;
     }
+    case TokenID::ELSE:
+    {
+        out << "ELSE";
+        break;
+    }
     case TokenID::END:
     {
         out << "END";

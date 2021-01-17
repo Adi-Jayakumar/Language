@@ -41,7 +41,7 @@ struct Block : Stmt
 {
     uint8_t depth;
     std::vector<std::shared_ptr<Stmt>> stmts;
-    Block(uint8_t);
+    Block(uint8_t, Token);
 
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
@@ -53,7 +53,7 @@ struct IfStmt : Stmt
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> thenBranch;
     std::shared_ptr<Stmt> elseBranch;
-    IfStmt(std::shared_ptr<Expr> , std::shared_ptr<Stmt>, std::shared_ptr<Stmt> );
+    IfStmt(std::shared_ptr<Expr> , std::shared_ptr<Stmt>, std::shared_ptr<Stmt> , Token);
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;

@@ -20,9 +20,17 @@ std::string ToString(Opcode o)
     {
         return "VAR_D";
     }
+    case Opcode::VAR_A:
+    {
+        return "VAR_A";
+    }
     case Opcode::JUMP_IF_FALSE:
     {
         return "JUMP_IF_FALSE";
+    }
+    case Opcode::JUMP:
+    {
+        return "JUMP";
     }
     case Opcode::ADD:
     {
@@ -106,7 +114,7 @@ void Chunk::PrintCode()
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
             std::cout << " '" << constants[o.operand] << "' at index: " << +o.operand;
-        else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D)
+        else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
             std::cout << " '" << vars[o.operand].name << "' at index: " << +o.operand;
         else
             std::cout << " " << +o.operand;
@@ -129,6 +137,12 @@ void Chunk::CleanUpVariables()
 {
     while (!vars.empty() && vars.back().depth == depth)
         vars.pop_back();
+}
+
+void NodeCompiler::CompileError(std::string err)
+{
+    Error e = Error("[COMPILE ERROR]" + err);
+    e.Dump();
 }
 
 void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
@@ -155,8 +169,9 @@ void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 {
     size_t index = c.ResolveVariable(a->var->name, c.depth);
     a->val->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_D, static_cast<uint16_t>(index)});
+    c.code.push_back({Opcode::VAR_A, static_cast<uint16_t>(index)});
     c.code.push_back({Opcode::GET_V, static_cast<uint16_t>(index)});
+    c.code.push_back({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
@@ -176,6 +191,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Chunk &c)
     c.vars.push_back({0, dv->name, c.depth});
     dv->value->NodeCompile(c);
     c.code.push_back({Opcode::VAR_D, static_cast<uint16_t>(c.vars.size() - 1)});
+    c.code.push_back({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Chunk &c)
@@ -191,21 +207,35 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
 {
     i->cond->NodeCompile(c);
     c.code.push_back({Opcode::JUMP_IF_FALSE, 0});
+
     size_t patchIndex = c.code.size() - 1;
     size_t befSize = c.code.size();
+
     i->thenBranch->NodeCompile(c);
+
+    c.code.push_back({Opcode::POP, 0});
+
     size_t sizeDiff = c.code.size() - befSize;
 
+
     if (sizeDiff > UINT16_MAX)
-    { /* error handling*/
-    }
+        CompileError("Too much code to junmp over");
 
     c.code[patchIndex].operand = static_cast<uint16_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
-    
+    c.code[patchIndex].operand++;
+    c.code.push_back({Opcode::JUMP, 0});
+    patchIndex = c.code.size() - 1;
+    befSize = c.code.size();
+
     i->elseBranch->NodeCompile(c);
+
+    sizeDiff = c.code.size() - befSize;
+    if (sizeDiff > UINT16_MAX)
+        CompileError("Too much code to junmp over");
+    c.code[patchIndex].operand = static_cast<uint16_t>(sizeDiff);
 }
 
 void Literal::NodeCompile(Chunk &c)
