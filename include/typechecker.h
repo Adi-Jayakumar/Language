@@ -5,7 +5,7 @@
 
 struct TypeChecker
 {
-    uint8_t depth;
+    uint16_t depth;
     std::vector<VarID> vars;
 
     TypeChecker() = default;
@@ -14,7 +14,8 @@ struct TypeChecker
     void TypeError(Token loc, std::string err);
 
     TypeID ResolveVariable(std::string &name);
-    void CleanUpVariables();
+    TypeID ResolveVariableInScope(std::string &name);
+    // void CleanUpVariables();
 
     // expression typechecking
     TypeID TypeOfLiteral(Literal *l);

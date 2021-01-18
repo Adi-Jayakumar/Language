@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
-typedef uint8_t TypeID;
+typedef uint16_t TypeID;
 
 struct VarID
 {
@@ -23,9 +23,9 @@ static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double"
 
 struct TypeInfo
 {
-    uint8_t left;
+    uint16_t left;
     TokenID t;
-    uint8_t right;
+    uint16_t right;
 };
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);

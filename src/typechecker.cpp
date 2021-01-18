@@ -23,21 +23,31 @@ TypeID TypeChecker::ResolveVariable(std::string &name)
         if (vars[i].name == name)
             return vars[i].type;
     }
-    return 255;
+    return UINT16_MAX;
 }
 
-void TypeChecker::CleanUpVariables()
+TypeID TypeChecker::ResolveVariableInScope(std::string &name)
 {
-    while (!vars.empty() && vars.back().depth == depth)
-        vars.pop_back();
+    for(size_t i = vars.size() - 1; (int) i >= 0; i--)
+    {
+        if(vars[i].depth == depth && vars[i].name == name)
+            return UINT16_MAX;
+    }
+    return 0;
 }
+
+// void TypeChecker::CleanUpVariables()
+// {
+//     while (!vars.empty() && vars.back().depth == depth)
+//         vars.pop_back();
+// }
 
 //-----------------EXPRESSIONS---------------------//
 
 TypeID TypeChecker::TypeOfLiteral(Literal *l)
 {
     if (l == nullptr)
-        return 255;
+        return UINT16_MAX;
     return l->typeID;
 }
 
@@ -46,7 +56,7 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
     if (u == nullptr)
         return 0;
     if (u->right == nullptr)
-        return 255;
+        return UINT16_MAX;
 
     TypeID opType = u->right->Type(*this);
     TypeInfo info = {opType, u->op.type, 0};
@@ -56,13 +66,13 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
     else
         TypeError(u->loc, "Cannot use operator: " + std::to_string(static_cast<uint8_t>(u->op.type)) + " on operand of type: " + std::to_string(opType));
 
-    return 255;
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfBinary(Binary *b)
 {
     if (b == nullptr || b->left == nullptr || b->right == nullptr)
-        return 255;
+        return UINT16_MAX;
 
     TypeID lType = b->left->Type(*this);
     TypeID rType = b->right->Type(*this);
@@ -72,7 +82,7 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
         return OperatorMap.at(info);
     else
         TypeError(b->loc, "Cannot use operator: " + std::to_string(static_cast<uint8_t>(b->op.type)) + " on operands of type: " + std::to_string(lType) + " and: " + std::to_string(rType));
-    return 255;
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
@@ -84,14 +94,14 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
         return varType;
     else
         TypeError(a->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->var->name + "' of type: " + std::to_string(varType));
-    return 255;
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
     TypeID type = ResolveVariable(vr->name);
 
-    if (type == 255)
+    if (type == UINT16_MAX)
         TypeError(vr->loc, "Variable name: '" + vr->name + "' has not been defined before");
 
     return type;
@@ -106,24 +116,29 @@ TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
     return es->exp->Type(*this);
 }
 
-TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *v)
+TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
-    if (v == nullptr)
-        return 255;
-    vars.push_back({v->tId, v->name, depth});
-    if (v->value == nullptr)
-        return v->tId;
+    if (dv == nullptr)
+        return UINT16_MAX;
+
+    TypeID isAlreadyDef = ResolveVariableInScope(dv->name);
+    if(isAlreadyDef == UINT16_MAX)
+        TypeError(dv->loc, "Variable: '" + dv->name + "' has already been defined");
+
+    vars.push_back({dv->tId, dv->name, depth});
+    if (dv->value == nullptr)
+        return dv->tId;
     else
     {
-        TypeID varType = v->tId;
-        TypeID valType = v->value->Type(*this);
+        TypeID varType = dv->tId;
+        TypeID valType = dv->value->Type(*this);
 
         if (valType == varType)
             return valType;
         else
-            TypeError(v->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + v->name + "' of type: " + std::to_string(varType));
+            TypeError(dv->loc, "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + dv->name + "' of type: " + std::to_string(varType));
     }
-    return 255;
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfBlock(Block *b)
@@ -133,9 +148,9 @@ TypeID TypeChecker::TypeOfBlock(Block *b)
         TypeError(b->loc, "Exceeded maximum number of nested blocks: " + std::to_string(UINT8_MAX));
     for (std::shared_ptr<Stmt> &s : b->stmts)
         s->Type(*this);
-    CleanUpVariables();
+    // CleanUpVariables();
     depth--;
-    return 255;
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
@@ -145,7 +160,7 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
     i->thenBranch->Type(*this);
     if(i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
-    return 255;
+    return UINT16_MAX;
 }
 
 //-----------------EXPRESSIONS---------------------//
