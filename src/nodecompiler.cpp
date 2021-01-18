@@ -16,6 +16,10 @@ std::string ToString(Opcode o)
     {
         return "GET_V";
     }
+    case Opcode::DEL_V:
+    {
+        return "DEL_V";
+    }
     case Opcode::VAR_D:
     {
         return "VAR_D";
@@ -109,13 +113,13 @@ Opcode TokenToOpcode(TokenID t)
 
 void Chunk::PrintCode()
 {
-    for (Op &o : code)
+    for (DebugOp &o : code)
     {
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
             std::cout << " '" << constants[o.operand] << "' at index: " << +o.operand;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
-            std::cout << " '" << vars[o.operand].name << "' at index: " << +o.operand;
+            std::cout << " '" << vars[o.debug].name << "' at runtime index: " << +o.operand << " at compile time index: " << o.debug;
         else
             std::cout << " " << +o.operand;
 
@@ -123,11 +127,11 @@ void Chunk::PrintCode()
     }
 }
 
-size_t Chunk::ResolveVariable(std::string &name, uint16_t depth)
+size_t Chunk::ResolveVariable(std::string &name)
 {
     for (size_t i = vars.size() - 1; (int)i >= 0; i--)
     {
-        if ((depth == vars[i].depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
+        if ((vars[i].name.length() == name.length()) && (vars[i].name == name))
             return i;
     }
     return 255;
@@ -135,13 +139,21 @@ size_t Chunk::ResolveVariable(std::string &name, uint16_t depth)
 
 void Chunk::CleanUpVariables()
 {
-    while (!vars.empty() && vars.back().depth == depth)
-        vars.pop_back();
+    // while (!vars.empty() && vars.back().depth == depth)
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        if (vars[i].depth == depth)
+        {
+            numPops++;
+            code.push_back({Opcode::POP, 0, 0});
+            code.push_back({Opcode::DEL_V, 0, 0});
+        }
+    }
 }
 
 void NodeCompiler::CompileError(std::string err)
 {
-    Error e = Error("[COMPILE ERROR]" + err);
+    Error e = Error("[COMPILE ERROR] " + err);
     e.Dump();
 }
 
@@ -149,74 +161,75 @@ void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
 {
     CompileConst copy = CompileConst(l->typeID, l->loc.literal);
     c.constants.push_back(copy);
-    c.code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.constants.size() - 1)});
+    c.code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.constants.size() - 1), 0});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Chunk &c)
 {
     u->right->NodeCompile(c);
-    c.code.push_back({TokenToOpcode(u->op.type), 0});
+    c.code.push_back({TokenToOpcode(u->op.type), 0, 0});
 }
 
 void NodeCompiler::CompileBinary(Binary *b, Chunk &c)
 {
     b->left->NodeCompile(c);
     b->right->NodeCompile(c);
-    c.code.push_back({TokenToOpcode(b->op.type), 0});
+    c.code.push_back({TokenToOpcode(b->op.type), 0, 0});
 }
 
 void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 {
-    size_t index = c.ResolveVariable(a->var->name, c.depth);
+    size_t index = c.ResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_A, static_cast<uint16_t>(index)});
-    c.code.push_back({Opcode::GET_V, static_cast<uint16_t>(index)});
-    c.code.push_back({Opcode::POP, 0});
+    c.code.push_back({Opcode::VAR_A, c.vars[index].index, 0});
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, 0});
+    c.code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
 {
-    size_t index = c.ResolveVariable(vr->name, c.depth);
-    c.code.push_back({Opcode::GET_V, static_cast<uint16_t>(index)});
+    size_t index = c.ResolveVariable(vr->name);
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(c.vars.size() - 1)});
 }
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Chunk &c)
 {
     es->exp->NodeCompile(c);
-    c.code.push_back({Opcode::POP, 0});
+    c.code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Chunk &c)
 {
-    c.vars.push_back({0, dv->name, c.depth});
+    c.vars.push_back({dv->name, c.depth, 0});
+    uint16_t rtindex = static_cast<uint16_t>(c.vars.size() - 1 - c.numPops);
+    c.vars.back().index = rtindex;
     dv->value->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_D, static_cast<uint16_t>(c.vars.size() - 1)});
-    c.code.push_back({Opcode::POP, 0});
+    c.code.push_back({Opcode::VAR_D, rtindex, static_cast<uint16_t>(c.vars.size() - 1)});
+    // c.code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Chunk &c)
 {
     c.depth++;
     for (std::shared_ptr<Stmt> &s : b->stmts)
-        s.get()->NodeCompile(c);
-    // c.CleanUpVariables();
+        s->NodeCompile(c);
+    c.CleanUpVariables();
     c.depth--;
 }
 
 void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
 {
     i->cond->NodeCompile(c);
-    c.code.push_back({Opcode::JUMP_IF_FALSE, 0});
+    c.code.push_back({Opcode::JUMP_IF_FALSE, 0, 0});
 
     size_t patchIndex = c.code.size() - 1;
     size_t befSize = c.code.size();
 
     i->thenBranch->NodeCompile(c);
 
-    c.code.push_back({Opcode::POP, 0});
+    c.code.push_back({Opcode::POP, 0, 0});
 
     size_t sizeDiff = c.code.size() - befSize;
-
 
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
@@ -226,7 +239,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
     if (i->elseBranch == nullptr)
         return;
     c.code[patchIndex].operand++;
-    c.code.push_back({Opcode::JUMP, 0});
+    c.code.push_back({Opcode::JUMP, 0, 0});
     patchIndex = c.code.size() - 1;
     befSize = c.code.size();
 

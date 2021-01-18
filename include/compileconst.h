@@ -36,7 +36,7 @@ CompileConst operator!=(const CompileConst &left, const CompileConst &right);
 struct CompileVar
 {
     std::string name;
-    CompileConst val;
-    CompileVar(std::string &, CompileConst &);
+    uint16_t index;
+    CompileVar(std::string &, uint16_t );
 };
 std::ostream& operator<<(std::ostream& out, const CompileVar &cv);

@@ -1,6 +1,6 @@
 #pragma once
 #include "compiler.h"
-#include <stack>
+#include "stack.h"
 #include "compileconst.h"
 
 
@@ -24,7 +24,7 @@ struct VM
     std::vector<CompileConst> constants;
     std::vector<CompileVar> vars;
 
-    std::stack<CompileConst> stack;
+    Stack stack;
 
     VM() = default;
 

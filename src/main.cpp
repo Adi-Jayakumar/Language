@@ -17,11 +17,11 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("ex/test.txt");
+    // DumpTokens("ex/test.txt");
 
     Parser p = Parser("ex/test.txt");
     std::shared_ptr<Stmt> res = p.Statement();
-    std::cout << res.get() << std::endl;
+    // std::cout << res.get() << std::endl;
     TypeChecker t = TypeChecker();
     t.TypeCheck(res);
 
@@ -33,5 +33,8 @@ int main()
     VM vm = VM();
     vm.SetChunk(c.c);
     vm.ExecuteCurrentChunk();
-    // vm.StepThrough();
+    for(CompileVar &cv : vm.vars)
+    {
+        std::cout << cv << std::endl;
+    }
 }

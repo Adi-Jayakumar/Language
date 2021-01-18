@@ -99,15 +99,15 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
     return out;
 }
 
-CompileVar::CompileVar(std::string &_name, CompileConst &_val)
+CompileVar::CompileVar(std::string &_name, uint16_t _index)
 {
     name = _name;
-    val = _val;
+    index = _index;
 }
 
 std::ostream &operator<<(std::ostream &out, const CompileVar &cv)
 {
-    out << "Name: " << cv.name << " Value: " << cv.val;
+    out << "Name: " << cv.name << " Value: " << cv.index;
     return out;
 }
 
