@@ -48,7 +48,7 @@ Token IfStmt::Loc()
     return loc;
 }
 
-FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<TypeID> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
+FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<Token> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
 {
     ret = _ret;
     name = _name;
@@ -58,6 +58,17 @@ FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<TypeID> &_params
 }
 
 Token FuncDecl::Loc()
+{
+    return loc;
+}
+
+Return::Return(std::shared_ptr<Expr> _retVal, Token _loc)
+{
+    retVal = _retVal;
+    loc = _loc;
+}
+
+Token Return::Loc()
 {
     return loc;
 }

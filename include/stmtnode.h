@@ -69,10 +69,21 @@ struct FuncDecl : Stmt
 {
     TypeID ret;
     std::string name;
-    std::vector<TypeID> params;
+    std::vector<Token> params;
     std::vector<std::shared_ptr<Stmt>> body;
 
-    FuncDecl(TypeID, std::string &, std::vector<TypeID> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    FuncDecl(TypeID, std::string &, std::vector<Token> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    void NodeCompile(Chunk &c) override;
+};
+
+struct Return : Stmt
+{
+    std::shared_ptr<Expr> retVal;
+    Return(std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

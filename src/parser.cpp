@@ -98,6 +98,9 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
+    if(depth >= 1)
+        Check(TokenID::END, "Cannot declare function inside another scope");
+
     Token beg = cur;
     Advance();
     Check(TokenID::TYPENAME, "Expect a return type after function declaration");
@@ -111,18 +114,20 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     Advance();
     Check(TokenID::OPEN_PAR, "Expect argument list after function declaration");
-
-    std::vector<TypeID> params;
+    Advance();
+    std::vector<Token> params;
 
     while(cur.type != TokenID::CLOSE_PAR)
     {
-        if(cur.type == TokenID::TYPENAME)
-            params.push_back(TypeNameMap[cur.literal]);
+        if(cur.type != TokenID::COMMA)
+            params.push_back(cur);
         Advance();
     }
 
     Advance();
     Check(TokenID::OPEN_BRACE, "Function body must start with an open brace");
+
+    depth++;
 
     Advance();
 
@@ -134,6 +139,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     }
     
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
+    depth--;
     Advance();
     std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, beg);
     return func;

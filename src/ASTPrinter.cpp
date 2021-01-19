@@ -191,9 +191,13 @@ void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 {
     out << fd->name << "(";
-    for (const TypeID &t : fd->params)
+    for (const Token &t : fd->params)
     {
-        out << t << ", ";
+        out << t.literal;
+        if(t.type == TokenID::TYPENAME)
+            out << " ";
+        else
+            out << ", ";
     }
     out << ")" << std::endl;
     out << "{" << std::endl;
@@ -204,6 +208,14 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
     }
     out << std::endl
         << "}";
+}
+
+void ASTPrinter::PrintReturn(Return* r, std::ostream &out)
+{
+    out << "return ";
+    r->retVal->Print(out);
+    out << ";";
+    return;
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -258,4 +270,9 @@ void IfStmt::Print(std::ostream &out)
 void FuncDecl::Print(std::ostream &out)
 {
     ASTPrinter::PrintFuncDecl(this, out);
+}
+
+void Return::Print(std::ostream &out)
+{
+    ASTPrinter::PrintReturn(this, out);
 }

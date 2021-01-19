@@ -168,6 +168,11 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     return 0;
 }
 
+TypeID TypeChecker::TypeOfReturn(Return *r)
+{
+    return r->retVal->Type(*this);
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeID Literal::Type(TypeChecker &t)
@@ -220,4 +225,9 @@ TypeID IfStmt::Type(TypeChecker &t)
 TypeID FuncDecl::Type(TypeChecker &t)
 {
     return t.TypeOfFuncDecl(this);
+}
+
+TypeID Return::Type(TypeChecker &t)
+{
+    return t.TypeOfReturn(this);
 }

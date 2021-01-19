@@ -30,4 +30,5 @@ struct TypeChecker
     TypeID TypeOfBlock(Block *b);
     TypeID TypeOfIfStmt(IfStmt *i);
     TypeID TypeOfFuncDecl(FuncDecl *fd);
+    TypeID TypeOfReturn(Return *r);
 };

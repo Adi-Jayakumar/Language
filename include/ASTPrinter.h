@@ -16,4 +16,5 @@ namespace ASTPrinter
     void PrintBlock(Block *b, std::ostream &out);
     void PrintIfStmt(IfStmt *i, std::ostream &out);
     void PrintFuncDecl(FuncDecl *fd, std::ostream &out);
+    void PrintReturn(Return* r, std::ostream &out);
 }; // namespace ASTPrinter

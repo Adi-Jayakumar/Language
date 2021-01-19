@@ -256,6 +256,11 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
     return;
 }
 
+void NodeCompiler::CompileReturn(Return *r, Chunk &c)
+{
+    return;
+}
+
 void Literal::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileLiteral(this, c);
@@ -304,4 +309,9 @@ void IfStmt::NodeCompile(Chunk &c)
 void FuncDecl::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileFuncDecl(this, c);
+}
+
+void Return::NodeCompile(Chunk &c)
+{
+    NodeCompiler::CompileReturn(this, c);
 }

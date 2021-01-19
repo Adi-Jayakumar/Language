@@ -85,4 +85,5 @@ namespace NodeCompiler
     void CompileBlock(Block *b, Chunk &c);
     void CompileIfStmt(IfStmt*i, Chunk &c);
     void CompileFuncDecl(FuncDecl* fd, Chunk &c);
+    void CompileReturn(Return *r, Chunk &c);
 } // namespace NodeCompiler
