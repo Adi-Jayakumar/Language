@@ -26,9 +26,9 @@ TypeID TypeChecker::ResolveVariable(std::string &name)
     return UINT16_MAX;
 }
 
-TypeID TypeChecker::ResolveVariableInScope(std::string &name)
+TypeID TypeChecker::CheckVariablesInFunction(std::string &name)
 {
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    for (size_t i = vars.size() - 1; (int) i >= (int) funcVarBegin; i--)
     {
         if ((vars[i].depth == depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
             return vars[i].type;
@@ -97,7 +97,13 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    TypeID varType = isInFunc ? ResolveVariableInScope(a->var->name) : ResolveVariable(a->var->name);
+    TypeID varType;
+    if(isInFunc)
+    {
+        varType = CheckVariablesInFunction(a->var->name);
+        if(varType == UINT16_MAX)
+            varType = ResolveVariable(a->var->name);
+    }
 
     if (varType == UINT16_MAX)
         TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
@@ -114,7 +120,13 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    TypeID type = isInFunc ? ResolveVariableInScope(vr->name) : ResolveVariable(vr->name);
+    TypeID type;
+    if (isInFunc)
+    {
+        type = CheckVariablesInFunction(vr->name);
+        if (type == UINT16_MAX)
+            type = ResolveVariable(vr->name);
+    }
 
     if (type == UINT16_MAX)
         TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");
@@ -180,6 +192,8 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
     isInFunc = true;
+    funcVarBegin = vars.size();
+    std::cout << "first funcVarBegin: " << funcVarBegin << std::endl;
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
@@ -193,11 +207,17 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
         vars.push_back({pType, pName, depth});
     }
 
-    for(auto &s : fd->body)
+    for(size_t i = vars.size() - 1; (int) i >= 0; i--)
+    {
+        std::cout << "type: " << vars[i].type << " name: " << vars[i].name << " depth: " << vars[i].depth << std::endl;
+    }
+
+    for (auto &s : fd->body)
         s->Type(*this);
 
     isInFunc = false;
     CleanUpVariables();
+    funcVarBegin = 0;
     return UINT16_MAX;
 }
 

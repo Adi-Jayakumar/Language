@@ -7,6 +7,7 @@ struct TypeChecker
 {
     uint16_t depth;
     bool isInFunc = false;
+    size_t funcVarBegin = 0;
     std::vector<VarID> vars;
 
     TypeChecker() = default;
@@ -15,7 +16,7 @@ struct TypeChecker
     void TypeError(Token loc, std::string err);
 
     TypeID ResolveVariable(std::string &name);
-    TypeID ResolveVariableInScope(std::string &name);
+    TypeID CheckVariablesInFunction(std::string &name);
     bool IsVariableInScope(std::string &name);
     void CleanUpVariables();
 
