@@ -8,13 +8,14 @@ struct TypeChecker;
 
 struct Expr
 {
-    Token loc;
+    virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type(TypeChecker &t) = 0;
     // compiles the node - implmented in compiler.cpp
     virtual void NodeCompile(Chunk &c) = 0;
+    // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;
 };
 
@@ -29,6 +30,7 @@ std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
 struct Literal : Expr
 {
     TypeID typeID;
+    Token loc;
     union combo
     {
         int i;
@@ -38,9 +40,11 @@ struct Literal : Expr
     Literal(Token);
     // ~Literal() override = default;
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
+    // bool IsTruthy() override;
 };
 
 struct Unary : Expr
@@ -50,9 +54,11 @@ struct Unary : Expr
     Unary(Token, std::shared_ptr<Expr>);
     // ~Unary() override = default;
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
+    // bool IsTruthy() override;
 };
 
 struct Binary : Expr
@@ -63,30 +69,38 @@ struct Binary : Expr
     Binary(std::shared_ptr<Expr>, Token, std::shared_ptr<Expr>);
     // ~Binary() override = default;
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
+    // bool IsTruthy() override;
 };
 
 struct VarReference : Expr
 {
+    Token loc;
     std::string name;
     VarReference(Token);
     // ~VarReference() override = default;
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
+    // bool IsTruthy() override;
 };
 
 struct Assign : Expr
 {
+    Token loc;
     std::shared_ptr<VarReference> var;
     std::shared_ptr<Expr> val;
     Assign(std::shared_ptr<VarReference>, std::shared_ptr<Expr>, Token);
     // ~Assign() override = default;
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
+    // bool IsTruthy() override;
 };

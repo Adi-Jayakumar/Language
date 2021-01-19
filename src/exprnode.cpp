@@ -28,11 +28,21 @@ Literal::Literal(Token val)
     }
 }
 
+Token Literal::Loc()
+{
+    return loc;
+}
+
+
 Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
 {
     op = _op;
-    loc = op;
     right = _right;
+}
+
+Token Unary::Loc()
+{
+    return op;
 }
 
 Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _right)
@@ -40,7 +50,11 @@ Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _ri
     left = _left;
     op = _op;
     right = _right;
-    loc = op;
+}
+
+Token Binary::Loc()
+{
+    return op;
 }
 
 Assign::Assign(std::shared_ptr<VarReference> _var, std::shared_ptr<Expr> _val, Token _loc)
@@ -50,8 +64,17 @@ Assign::Assign(std::shared_ptr<VarReference> _var, std::shared_ptr<Expr> _val, T
     loc = _loc;
 }
 
+Token Assign::Loc()
+{
+    return loc;
+}
+
 VarReference::VarReference(Token _loc)
 {
     loc = _loc;
     name = _loc.literal;
+}
+Token VarReference::Loc()
+{
+    return loc;
 }

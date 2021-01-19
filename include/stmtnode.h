@@ -2,9 +2,10 @@
 #include "exprnode.h"
 #include <vector>
 
-struct Stmt : std::enable_shared_from_this<Stmt>
+struct Stmt
 {
     Token loc;
+    virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
@@ -20,6 +21,7 @@ struct ExprStmt : Stmt
     std::shared_ptr<Expr> exp;
     ExprStmt(std::shared_ptr<Expr>, Token);
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
@@ -32,6 +34,7 @@ struct DeclaredVar : Stmt
     std::shared_ptr<Expr> value;
     DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> , Token);
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
@@ -43,6 +46,7 @@ struct Block : Stmt
     std::vector<std::shared_ptr<Stmt>> stmts;
     Block(uint8_t, Token);
 
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
@@ -54,6 +58,8 @@ struct IfStmt : Stmt
     std::shared_ptr<Stmt> thenBranch;
     std::shared_ptr<Stmt> elseBranch;
     IfStmt(std::shared_ptr<Expr> , std::shared_ptr<Stmt>, std::shared_ptr<Stmt> , Token);
+
+    Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
     void NodeCompile(Chunk &c) override;
