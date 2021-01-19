@@ -14,6 +14,11 @@ enum class TokenID : uint8_t
     IDEN,
     // type name
     TYPENAME,
+    // function declration
+    FUNC,
+    // return keyword
+    RETURN,
+    COMMA,
 
     // arithmetic operators
     PLUS,
@@ -60,6 +65,8 @@ struct Token
 };
 
 bool IsLiteral(const Token &);
+
+std::string ToString(const TokenID &token);
 
 std::ostream &operator<<(std::ostream &out, const TokenID &t);
 std::ostream &operator<<(std::ostream &out, const Token &t);

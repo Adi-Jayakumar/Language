@@ -1,141 +1,136 @@
 
 #include "token.h"
 
-std::ostream &operator<<(std::ostream &out, const TokenID &t)
+std::string ToString(const TokenID &t)
 {
     switch (t)
     {
     case TokenID::BEG:
     {
-        out << "BEG";
-        break;
+        return "BEG";
     }
     case TokenID::INT_L:
     {
-        out << "INT_L";
-        break;
+        return "INT_L";
     }
     case TokenID::DOUBLE_L:
     {
-        out << "DOUBLE_L";
-        break;
+        return "DOUBLE_L";
     }
     case TokenID::BOOL_L:
     {
-        out << "BOOL_L";
-        break;
+        return "BOOL_L";
     }
     case TokenID::IDEN:
     {
-        out << "IDEN";
-        break;
+        return "IDEN";
+    }
+    case TokenID::FUNC:
+    {
+        return "FUNC";
+    }
+    case TokenID::RETURN:
+    {
+        return "RETURN";
+    }
+    case TokenID::COMMA:
+    {
+        return "COMMA";
     }
     case TokenID::TYPENAME:
     {
-        out << "TYPENAME";
-        break;
+        return "TYPENAME";
     }
     case TokenID::PLUS:
     {
-        out << "PLUS";
-        break;
+        return "PLUS";
     }
     case TokenID::MINUS:
     {
-        out << "MINUS";
-        break;
+        return "MINUS";
     }
     case TokenID::STAR:
     {
-        out<< "STAR";
-        break;
+        return "STAR";
     }
     case TokenID::SLASH:
     {
-        out << "SLASH";
-        break;
+        return "SLASH";
     }
     case TokenID::GT:
     {
-        out << "GT";
-        break;
+        return "GT";
     }
     case TokenID::LT:
     {
-        out << "LT";
-        break;
+        return "LT";
     }
     case TokenID::GEQ:
     {
-        out << "GEQ";
-        break;
+        return "GEQ";
     }
     case TokenID::LEQ:
     {
-        out << "LEQ";
-        break;
+        return "LEQ";
     }
     case TokenID::EQ_EQ:
     {
-        out << "EQ_EQ";
-        break;
+        return "EQ_EQ";
     }
     case TokenID::BANG_EQ:
     {
-        out << "BANG_EQ";
-        break;
+        return "BANG_EQ";
     }
     case TokenID::EQ:
     {
-        out << "EQ";
-        break;
+        return "EQ";
     }
     case TokenID::BANG:
     {
-        out << "BANG";
-        break;
+        return "BANG";
     }
     case TokenID::SEMI:
     {
-        out << "SEMI";
-        break;
+        return "SEMI";
     }
     case TokenID::OPEN_PAR:
     {
-        out << "OPEN_PAR";
-        break;
+        return "OPEN_PAR";
     }
     case TokenID::CLOSE_PAR:
     {
-        out << "CLOSE_PAR";
-        break;
+        return "CLOSE_PAR";
     }
     case TokenID::OPEN_BRACE:
     {
-        out << "OPEN_BRACE";
-        break;
+        return "OPEN_BRACE";
     }
     case TokenID::CLOSE_BRACE:
     {
-        out << "CLOSE_BRACE";
-        break;
+        return "CLOSE_BRACE";
     }
     case TokenID::IF:
     {
-        out << "IF";
-        break;
+        return "IF";
     }
     case TokenID::ELSE:
     {
-        out << "ELSE";
-        break;
+        return "ELSE";
     }
     case TokenID::END:
     {
-        out << "END";
-        break;
+        return "END";
+    }
+    default:
+    {
+        return "UNRECOGNISED TOKEN";
     }
     }
+}
+
+std::ostream &operator<<(std::ostream &out, const TokenID &t)
+{
+    out << ToString(t);
     return out;
 }
 

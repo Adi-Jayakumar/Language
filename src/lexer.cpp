@@ -153,6 +153,11 @@ Token Lexer::NextToken()
         res = {TokenID::CLOSE_BRACE, "}", line};
         break;
     }
+    case ',':
+    {
+        res = {TokenID::COMMA, ",", line};
+        break;
+    }
     default:
     {
         size_t lineSize = LineSize();
@@ -218,13 +223,17 @@ bool Lexer::CheckKeyword(Token &tok)
     {
         return MatchKeyWord("lse", TokenID::ELSE, tok);
     }
+    case 'f':
+    {
+        return MatchKeyWord("unction", TokenID::FUNC, tok) || MatchKeyWord("alse", TokenID::BOOL_L, tok);
+    }
     case 'i':
     {
         return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
     }
-    case 'f':
+    case 'r':
     {
-        return MatchKeyWord("alse", TokenID::BOOL_L, tok);
+        return MatchKeyWord("eturn", TokenID::RETURN, tok);
     }
     case 't':
     {
