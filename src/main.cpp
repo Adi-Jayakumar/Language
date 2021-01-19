@@ -22,8 +22,8 @@ int main()
     Parser p = Parser("ex/func.txt");
     std::shared_ptr<Stmt> res = p.Statement();
     std::cout << res.get() << std::endl;
-    // TypeChecker t = TypeChecker();
-    // t.TypeCheck(res);
+    TypeChecker t = TypeChecker();
+    t.TypeCheck(res);
 
     // Compiler c = Compiler();
     // c.Compile(res);

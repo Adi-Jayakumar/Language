@@ -6,6 +6,7 @@
 struct TypeChecker
 {
     uint16_t depth;
+    bool isInFunc = false;
     std::vector<VarID> vars;
 
     TypeChecker() = default;
@@ -15,7 +16,8 @@ struct TypeChecker
 
     TypeID ResolveVariable(std::string &name);
     TypeID ResolveVariableInScope(std::string &name);
-    // void CleanUpVariables();
+    bool IsVariableInScope(std::string &name);
+    void CleanUpVariables();
 
     // expression typechecking
     TypeID TypeOfLiteral(Literal *l);

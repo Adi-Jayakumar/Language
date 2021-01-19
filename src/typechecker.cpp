@@ -30,17 +30,27 @@ TypeID TypeChecker::ResolveVariableInScope(std::string &name)
 {
     for (size_t i = vars.size() - 1; (int)i >= 0; i--)
     {
-        if (vars[i].depth == depth && vars[i].name == name)
-            return UINT16_MAX;
+        if ((vars[i].depth == depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
+            return vars[i].type;
     }
-    return 0;
+    return UINT16_MAX;
 }
 
-// void TypeChecker::CleanUpVariables()
-// {
-//     while (!vars.empty() && vars.back().depth == depth)
-//         vars.pop_back();
-// }
+bool TypeChecker::IsVariableInScope(std::string &name)
+{
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        if (vars[i].depth == depth && vars[i].name == name)
+            return true;
+    }
+    return false;
+}
+
+void TypeChecker::CleanUpVariables()
+{
+    while (!vars.empty() && vars.back().depth == depth)
+        vars.pop_back();
+}
 
 //-----------------EXPRESSIONS---------------------//
 
@@ -87,7 +97,12 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    TypeID varType = ResolveVariable(a->var->name);
+    TypeID varType = isInFunc ? ResolveVariableInScope(a->var->name) : ResolveVariable(a->var->name);
+
+    if (varType == UINT16_MAX)
+        TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
+
+    // TypeID varType = ResolveVariable(a->var->name);
     TypeID valType = a->val->Type(*this);
 
     if (varType == valType)
@@ -99,7 +114,7 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    TypeID type = ResolveVariable(vr->name);
+    TypeID type = isInFunc ? ResolveVariableInScope(vr->name) : ResolveVariable(vr->name);
 
     if (type == UINT16_MAX)
         TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");
@@ -121,8 +136,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     if (dv == nullptr)
         return UINT16_MAX;
 
-    TypeID isAlreadyDef = ResolveVariableInScope(dv->name);
-    if (isAlreadyDef == UINT16_MAX)
+    if (IsVariableInScope(dv->name))
         TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
 
     vars.push_back({dv->tId, dv->name, depth});
@@ -165,7 +179,26 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
-    return 0;
+    isInFunc = true;
+
+    for (size_t i = 0; i < fd->params.size(); i++)
+    {
+        TypeID pType;
+        std::string pName;
+        if (fd->params[i].type == TokenID::TYPENAME)
+            pType = TypeNameMap[fd->params[i].literal];
+        i++;
+        if (fd->params[i].type == TokenID::IDEN)
+            pName = fd->params[i].literal;
+        vars.push_back({pType, pName, depth});
+    }
+
+    for(auto &s : fd->body)
+        s->Type(*this);
+
+    isInFunc = false;
+    CleanUpVariables();
+    return UINT16_MAX;
 }
 
 TypeID TypeChecker::TypeOfReturn(Return *r)

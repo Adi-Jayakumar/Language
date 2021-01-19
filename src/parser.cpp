@@ -98,8 +98,8 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
-    if(depth >= 1)
-        Check(TokenID::END, "Cannot declare function inside another scope");
+    if(depth > 1)
+        Check(TokenID::END, "Cannot declare function inside nested scope");
 
     Token beg = cur;
     Advance();
