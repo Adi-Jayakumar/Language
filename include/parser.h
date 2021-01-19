@@ -8,7 +8,7 @@ struct Parser
     Token prev;
     Token cur;
 
-    uint8_t depth;
+    uint16_t depth;
 
     Parser(const std::string &fPath);
 
@@ -28,6 +28,8 @@ struct Parser
     std::shared_ptr<Stmt> Statement();
     // parses an if statement
     std::shared_ptr<Stmt> IfStatement();
+    // parses a function Declrataion
+    std::shared_ptr<Stmt> FuncDeclaration();
     // parses an expression statement
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression

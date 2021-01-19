@@ -159,7 +159,7 @@ void NodeCompiler::CompileError(std::string err)
 
 void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
 {
-    CompileConst copy = CompileConst(l->typeID, l->loc.literal);
+    CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
     c.constants.push_back(copy);
     c.code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.constants.size() - 1), 0});
 }
@@ -251,6 +251,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
     c.code[patchIndex].operand = static_cast<uint16_t>(sizeDiff);
 }
 
+void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
+{
+    return;
+}
+
 void Literal::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileLiteral(this, c);
@@ -294,4 +299,9 @@ void Block::NodeCompile(Chunk &c)
 void IfStmt::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileIfStmt(this, c);
+}
+
+void FuncDecl::NodeCompile(Chunk &c)
+{
+    NodeCompiler::CompileFuncDecl(this, c);
 }

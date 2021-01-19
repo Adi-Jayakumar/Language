@@ -47,3 +47,17 @@ Token IfStmt::Loc()
 {
     return loc;
 }
+
+FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<TypeID> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
+{
+    ret = _ret;
+    name = _name;
+    params = _params;
+    body = _body;
+    loc = _loc;
+}
+
+Token FuncDecl::Loc()
+{
+    return loc;
+}

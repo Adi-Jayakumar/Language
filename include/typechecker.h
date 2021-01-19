@@ -1,7 +1,7 @@
 #pragma once
+#include "common.h"
 #include "perror.h"
 #include "stmtnode.h"
-#include "common.h"
 
 struct TypeChecker
 {
@@ -28,5 +28,6 @@ struct TypeChecker
     TypeID TypeOfExprStmt(ExprStmt *es);
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
     TypeID TypeOfBlock(Block *b);
-    TypeID TypeOfIfStmt(IfStmt* i);
+    TypeID TypeOfIfStmt(IfStmt *i);
+    TypeID TypeOfFuncDecl(FuncDecl *fd);
 };

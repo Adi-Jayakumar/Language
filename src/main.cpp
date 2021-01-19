@@ -19,9 +19,9 @@ int main()
 {
     DumpTokens("ex/func.txt");
 
-    // Parser p = Parser("ex/test.txt");
-    // std::shared_ptr<Stmt> res = p.Statement();
-    // // std::cout << res.get() << std::endl;
+    Parser p = Parser("ex/func.txt");
+    std::shared_ptr<Stmt> res = p.Statement();
+    std::cout << res.get() << std::endl;
     // TypeChecker t = TypeChecker();
     // t.TypeCheck(res);
 

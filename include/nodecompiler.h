@@ -84,4 +84,5 @@ namespace NodeCompiler
     void CompileDeclaredVar(DeclaredVar *dv, Chunk &c);
     void CompileBlock(Block *b, Chunk &c);
     void CompileIfStmt(IfStmt*i, Chunk &c);
+    void CompileFuncDecl(FuncDecl* fd, Chunk &c);
 } // namespace NodeCompiler

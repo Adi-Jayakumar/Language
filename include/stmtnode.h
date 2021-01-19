@@ -32,7 +32,7 @@ struct DeclaredVar : Stmt
     TypeID tId;
     std::string name;
     std::shared_ptr<Expr> value;
-    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr> , Token);
+    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -57,7 +57,22 @@ struct IfStmt : Stmt
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> thenBranch;
     std::shared_ptr<Stmt> elseBranch;
-    IfStmt(std::shared_ptr<Expr> , std::shared_ptr<Stmt>, std::shared_ptr<Stmt> , Token);
+    IfStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, std::shared_ptr<Stmt>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    void NodeCompile(Chunk &c) override;
+};
+
+struct FuncDecl : Stmt
+{
+    TypeID ret;
+    std::string name;
+    std::vector<TypeID> params;
+    std::vector<std::shared_ptr<Stmt>> body;
+
+    FuncDecl(TypeID, std::string &, std::vector<TypeID> &, std::vector<std::shared_ptr<Stmt>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

@@ -181,11 +181,29 @@ void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
     i->cond->Print(out);
     out << ")\n";
     i->thenBranch->Print(out);
-    if(i->elseBranch != nullptr)
+    if (i->elseBranch != nullptr)
     {
         out << "\nelse";
         i->elseBranch->Print(out);
     }
+}
+
+void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
+{
+    out << fd->name << "(";
+    for (const TypeID &t : fd->params)
+    {
+        out << t << ", ";
+    }
+    out << ")" << std::endl;
+    out << "{" << std::endl;
+    for (auto &s : fd->body)
+    {
+        out << "\t";
+        s->Print(out);
+    }
+    out << std::endl
+        << "}";
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -235,4 +253,9 @@ void Block::Print(std::ostream &out)
 void IfStmt::Print(std::ostream &out)
 {
     ASTPrinter::PrintIfStmt(this, out);
+}
+
+void FuncDecl::Print(std::ostream &out)
+{
+    ASTPrinter::PrintFuncDecl(this, out);
 }

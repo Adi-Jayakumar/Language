@@ -35,6 +35,8 @@ std::shared_ptr<Stmt> Parser::Statement()
         return ParseBlock();
     else if (cur.type == TokenID::IF)
         return IfStatement();
+    else if (cur.type == TokenID::FUNC)
+        return FuncDeclaration();
     return ExpressionStatement();
 }
 
@@ -94,9 +96,50 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     return std::make_shared<DeclaredVar>(type, name, init, loc);
 }
 
-// ----------------------DECLARATIONS----------------------- //
+std::shared_ptr<Stmt> Parser::FuncDeclaration()
+{
+    Token beg = cur;
+    Advance();
+    Check(TokenID::TYPENAME, "Expect a return type after function declaration");
 
+    TypeID ret = TypeNameMap[cur.literal];
 
+    Advance();
+    Check(TokenID::IDEN, "Expect name after function declaration");
+
+    std::string name = cur.literal;
+
+    Advance();
+    Check(TokenID::OPEN_PAR, "Expect argument list after function declaration");
+
+    std::vector<TypeID> params;
+
+    while(cur.type != TokenID::CLOSE_PAR)
+    {
+        if(cur.type == TokenID::TYPENAME)
+            params.push_back(TypeNameMap[cur.literal]);
+        Advance();
+    }
+
+    Advance();
+    Check(TokenID::OPEN_BRACE, "Function body must start with an open brace");
+
+    Advance();
+
+    std::vector<std::shared_ptr<Stmt>> body;
+
+    while(cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    {
+        body.push_back(Statement());
+    }
+    
+    Check(TokenID::CLOSE_BRACE, "Missing close brace");
+    Advance();
+    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, beg);
+    return func;
+}
+
+// ----------------------STATEMENTS----------------------- //
 
 std::shared_ptr<Stmt> Parser::IfStatement()
 {
@@ -108,7 +151,7 @@ std::shared_ptr<Stmt> Parser::IfStatement()
     Advance();
     std::shared_ptr<Stmt> thenBranch = Statement();
     std::shared_ptr<Stmt> elseBranch = nullptr;
-    if(cur.type == TokenID::ELSE)
+    if (cur.type == TokenID::ELSE)
     {
         Advance();
         elseBranch = Statement();
@@ -124,6 +167,8 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);
 }
+
+// ----------------------EPRESSIONS----------------------- //
 
 std::shared_ptr<Expr> Parser::Expression()
 {
@@ -143,7 +188,7 @@ std::shared_ptr<Expr> Parser::Assignment()
         VarReference *v = dynamic_cast<VarReference *>(exp.get());
         if (v != nullptr)
         {
-            std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->loc);
+            std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->Loc());
             return std::make_shared<Assign>(u, val, loc);
         }
         else
