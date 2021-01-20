@@ -12,6 +12,13 @@ struct VarID
     uint16_t depth;
 };
 
+struct FuncID
+{
+    TypeID ret;
+    std::string name;
+    std::vector<TypeID> argtypes;
+};
+
 // map from literal TokenIDs to 
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::INT_L, 1},

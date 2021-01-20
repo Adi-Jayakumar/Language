@@ -128,6 +128,17 @@ void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
         out << vr->name;
 }
 
+void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
+{
+    out << fc->name << "(";
+    for (auto &e : fc->args)
+    {
+        e->Print(out);
+        out << ", ";
+    }
+    out << ")";
+}
+
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
@@ -194,7 +205,7 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
     for (const Token &t : fd->params)
     {
         out << t.literal;
-        if(t.type == TokenID::TYPENAME)
+        if (t.type == TokenID::TYPENAME)
             out << " ";
         else
             out << ", ";
@@ -210,7 +221,7 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
         << "}";
 }
 
-void ASTPrinter::PrintReturn(Return* r, std::ostream &out)
+void ASTPrinter::PrintReturn(Return *r, std::ostream &out)
 {
     out << "return ";
     r->retVal->Print(out);
@@ -243,6 +254,11 @@ void Assign::Print(std::ostream &out)
 void VarReference::Print(std::ostream &out)
 {
     ASTPrinter::PrintVarReference(this, out);
+}
+
+void FunctionCall::Print(std::ostream &out)
+{
+    ASTPrinter::PrintFunctionCall(this, out);
 }
 
 //------------------STATEMENTS---------------------//

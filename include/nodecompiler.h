@@ -78,6 +78,7 @@ namespace NodeCompiler
     void CompileBinary(Binary *b, Chunk &c);
     void CompileAssign(Assign *a, Chunk &c);
     void CompileVarReference(VarReference *vr, Chunk &c);
+    void CompileFunctionCall(FunctionCall *fc, Chunk &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Chunk &c);

@@ -33,7 +33,6 @@ Token Literal::Loc()
     return loc;
 }
 
-
 Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
 {
     op = _op;
@@ -75,6 +74,18 @@ VarReference::VarReference(Token _loc)
     name = _loc.literal;
 }
 Token VarReference::Loc()
+{
+    return loc;
+}
+
+FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> &_args, Token _loc)
+{
+    name = _name;
+    args = _args;
+    loc = _loc;
+}
+
+Token FunctionCall::Loc()
 {
     return loc;
 }

@@ -157,6 +157,8 @@ void NodeCompiler::CompileError(std::string err)
     e.Dump();
 }
 
+//-----------------EXPRESSIONS---------------------//
+
 void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
 {
     CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
@@ -191,6 +193,8 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
     size_t index = c.ResolveVariable(vr->name);
     c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(c.vars.size() - 1)});
 }
+
+//------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Chunk &c)
 {
@@ -261,6 +265,13 @@ void NodeCompiler::CompileReturn(Return *r, Chunk &c)
     return;
 }
 
+void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Chunk &c)
+{
+    return;
+}
+
+//-----------------EXPRESSIONS---------------------//
+
 void Literal::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileLiteral(this, c);
@@ -285,6 +296,14 @@ void VarReference::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileVarReference(this, c);
 }
+
+
+void FunctionCall::NodeCompile(Chunk &c)
+{
+    NodeCompiler::CompileFunctionCall(this, c);
+}
+
+//------------------STATEMENTS---------------------//
 
 void ExprStmt::NodeCompile(Chunk &c)
 {

@@ -52,6 +52,28 @@ void TypeChecker::CleanUpVariables()
         vars.pop_back();
 }
 
+TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argtypes)
+{
+    for(size_t i = funcs.size() - 1; (int) i >= 0; i--)
+    {
+        if( (argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
+        {
+            bool doesMatch = true;
+            for(size_t j = 0; j < argtypes.size(); j++)
+            {
+                if(argtypes[j] != funcs[i].argtypes[j])
+                {
+                    doesMatch = false;
+                    break;
+                }
+            }
+            if(doesMatch)
+                return i;
+        }
+    }
+    return UINT16_MAX;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeID TypeChecker::TypeOfLiteral(Literal *l)
@@ -134,6 +156,24 @@ TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
     return type;
 }
 
+TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
+{
+    std::vector<TypeID> argtypes;
+
+    for(auto &e : fc->args)
+        argtypes.push_back(e->Type(*this));
+
+    size_t index = ResolveFunction(fc->name, argtypes);
+
+    if(index == UINT16_MAX)
+        TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
+
+    if(index > UINT16_MAX)
+        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT16_MAX) + " functions");
+    
+    return funcs[index].ret;
+}
+
 //------------------STATEMENTS---------------------//
 
 TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
@@ -191,9 +231,18 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
+    std::vector<TypeID> argtypes;
+
+    for(auto &t : fd->params)
+    {
+        if(t.type == TokenID::TYPENAME)
+            argtypes.push_back(TypeNameMap[t.literal]);
+    }
+
+    funcs.push_back({fd->ret, fd->name, argtypes});
+
     isInFunc = true;
     funcVarBegin = vars.size();
-    std::cout << "first funcVarBegin: " << funcVarBegin << std::endl;
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
@@ -251,6 +300,11 @@ TypeID Assign::Type(TypeChecker &t)
 TypeID VarReference::Type(TypeChecker &t)
 {
     return t.TypeOfVarReference(this);
+}
+
+TypeID FunctionCall::Type(TypeChecker &t)
+{
+    return t.TypeOfFunctionCall(this);
 }
 
 //------------------STATEMENTS---------------------//

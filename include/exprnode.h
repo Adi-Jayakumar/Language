@@ -104,3 +104,16 @@ struct Assign : Expr
     void NodeCompile(Chunk &c) override;
     // bool IsTruthy() override;
 };
+
+struct FunctionCall : Expr
+{
+    Token loc;
+    std::string name;
+    std::vector<std::shared_ptr<Expr>> args;
+    FunctionCall(std::string, std::vector<std::shared_ptr<Expr>> &, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    void NodeCompile(Chunk &c) override;
+};
