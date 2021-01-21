@@ -5,12 +5,13 @@ Parser::Parser(const std::string &fPath)
 {
     lex = Lexer(fPath);
     cur = lex.NextToken();
+    next = lex.NextToken();
     depth = 0;
 }
 
 void Parser::ParseError(Token loc, std::string err)
 {
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
+    Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
     e.Dump();
 }
 
@@ -26,18 +27,9 @@ void Parser::Check(TokenID t, std::string err)
 void Parser::Advance()
 {
     prev = cur;
-    cur = lex.NextToken();
-}
-
-std::shared_ptr<Stmt> Parser::Statement()
-{
-    if (cur.type == TokenID::OPEN_BRACE)
-        return ParseBlock();
-    else if (cur.type == TokenID::IF)
-        return IfStatement();
-    else if (cur.type == TokenID::FUNC)
-        return FuncDeclaration();
-    return ExpressionStatement();
+    cur = next;
+    if (cur.type != TokenID::END)
+        next = lex.NextToken();
 }
 
 std::shared_ptr<Block> Parser::ParseBlock()
@@ -68,8 +60,19 @@ std::shared_ptr<Stmt> Parser::Declaration()
 {
     if (cur.type == TokenID::TYPENAME)
         return VarDeclaration();
+    else if (cur.type == TokenID::FUNC)
+        return FuncDeclaration();
     else
         return Statement();
+}
+
+std::shared_ptr<Stmt> Parser::Statement()
+{
+    if (cur.type == TokenID::OPEN_BRACE)
+        return ParseBlock();
+    else if (cur.type == TokenID::IF)
+        return IfStatement();
+    return ExpressionStatement();
 }
 
 std::shared_ptr<Stmt> Parser::VarDeclaration()
@@ -98,7 +101,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
-    if(depth > 1)
+    if (depth > 1)
         Check(TokenID::END, "Cannot declare function inside nested scope");
 
     Token beg = cur;
@@ -117,9 +120,9 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Advance();
     std::vector<Token> params;
 
-    while(cur.type != TokenID::CLOSE_PAR)
+    while (cur.type != TokenID::CLOSE_PAR)
     {
-        if(cur.type != TokenID::COMMA)
+        if (cur.type != TokenID::COMMA)
             params.push_back(cur);
         Advance();
     }
@@ -133,11 +136,11 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     std::vector<std::shared_ptr<Stmt>> body;
 
-    while(cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
         body.push_back(Statement());
     }
-    
+
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     depth--;
     Advance();
@@ -168,7 +171,14 @@ std::shared_ptr<Stmt> Parser::IfStatement()
 std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
-    std::shared_ptr<Expr> exp = Expression();
+
+    std::shared_ptr<Expr> exp;
+
+    if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
+        exp = FuncCall();
+    else
+        exp = Expression();
+
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);
@@ -179,6 +189,29 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 std::shared_ptr<Expr> Parser::Expression()
 {
     return Assignment();
+}
+
+std::shared_ptr<Expr> Parser::FuncCall()
+{
+    std::string name = cur.literal;
+
+    // skipping the name
+    Advance();
+
+
+    std::vector<std::shared_ptr<Expr>> args;
+
+    while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
+    {
+        Advance();
+        if (cur.type != TokenID::COMMA)
+            args.push_back(Expression());
+    }
+
+    Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
+    Advance();
+
+    return std::make_shared<FunctionCall>(name, args, cur);
 }
 
 std::shared_ptr<Expr> Parser::Assignment()

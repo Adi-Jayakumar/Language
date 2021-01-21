@@ -7,6 +7,7 @@ struct Parser
     Lexer lex;
     Token prev;
     Token cur;
+    Token next;
 
     uint16_t depth;
 
@@ -34,6 +35,8 @@ struct Parser
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression
     std::shared_ptr<Expr> Expression();
+    // parses any function call
+    std::shared_ptr<Expr> FuncCall();
     // parses any assignment
     std::shared_ptr<Expr> Assignment();
     // parses a series of == or != operations
