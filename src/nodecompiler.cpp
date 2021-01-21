@@ -30,7 +30,7 @@ void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
-    size_t index = c.cur->ResolveVariable(a->var->name);
+    size_t index = c.cur->ChunkResolveVariable(a->var->name);
     a->val->NodeCompile(c);
     c.cur->code.push_back({Opcode::VAR_A, c.cur->vars[index].index, static_cast<uint16_t>(index)});
     c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
@@ -39,7 +39,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    size_t index = c.cur->ResolveVariable(vr->name);
+    size_t index = c.cur->ChunkResolveVariable(vr->name);
     c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
 }
 
@@ -106,6 +106,9 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
+    if(fd->params.size() > UINT16_MAX)
+        CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
+    c.funcs.push_back(fd->name);
     for (size_t i = 0; i < fd->params.size(); i++)
     {
         if (fd->params[i].type == TokenID::IDEN)
@@ -133,7 +136,18 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
-    return;
+    size_t index = c.ResolveFunction(fc->name);
+
+    if(index > UINT16_MAX)
+        CompileError("Too many functions");
+
+    if (fc->args.size() > UINT16_MAX)
+        CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
+
+    for(std::shared_ptr<Expr> &e : fc->args)
+        e->NodeCompile(c);
+    
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint16_t>(index), static_cast<uint16_t>(fc->args.size())});
 }
 
 //-----------------EXPRESSIONS---------------------//

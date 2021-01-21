@@ -20,6 +20,6 @@ struct Chunk
     ~Chunk() = default;
 
     void PrintCode();
-    size_t ResolveVariable(std::string &);
+    size_t ChunkResolveVariable(std::string &);
     void CleanUpVariables();
 };

@@ -9,8 +9,11 @@ enum class Opcode : uint8_t
     VAR_A,
     GET_V,
     DEL_V,
+
     JUMP_IF_FALSE,
     JUMP,
+
+    CALL_F,
 
     ADD,
     SUB,

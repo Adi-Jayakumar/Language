@@ -24,3 +24,18 @@ void Compiler::Disassemble()
         std::cout << std::endl;
     }
 }
+
+size_t Compiler::ResolveVariableInCur(std::string &name)
+{
+    return cur->ChunkResolveVariable(name);
+}
+
+size_t Compiler::ResolveFunction(std::string &name)
+{
+    for(size_t i = 0; i < funcs.size(); i++)
+    {
+        if(funcs[i] == name)
+            return i;
+    }
+    return SIZE_MAX;
+}

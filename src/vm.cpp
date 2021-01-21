@@ -99,6 +99,11 @@ void VM::ExecuteInstruction()
         ip += o.op1;
         break;
     }
+    // op1 is the index of the function, op2 is the arity of the function called
+    case Opcode::CALL_F:
+    {
+        break;
+    }
     // adds the last 2 things on the stack
     case Opcode::ADD:
     {

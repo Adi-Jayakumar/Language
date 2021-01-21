@@ -9,6 +9,8 @@ void Chunk::PrintCode()
             std::cout << " '" << constants[o.op1] << "' at index: " << +o.op1;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
             std::cout << " '" << vars[o.op2].name << "' at runtime index: " << +o.op1 << " at compile time index: " << o.op2;
+        else if(o.code == Opcode::CALL_F)
+            std::cout << " " <<  o.op1 << " " << o.op2;
         else
             std::cout << " " << +o.op1;
 
@@ -16,14 +18,14 @@ void Chunk::PrintCode()
     }
 }
 
-size_t Chunk::ResolveVariable(std::string &name)
+size_t Chunk::ChunkResolveVariable(std::string &name)
 {
     for (size_t i = vars.size() - 1; (int)i >= 0; i--)
     {
         if ((vars[i].name.length() == name.length()) && (vars[i].name == name))
             return i;
     }
-    return 255;
+    return SIZE_MAX;
 }
 
 void Chunk::CleanUpVariables()

@@ -36,6 +36,10 @@ std::string ToString(Opcode o)
     {
         return "JUMP";
     }
+    case Opcode::CALL_F:
+    {
+        return "CALL_F";
+    }
     case Opcode::ADD:
     {
         return "ADD";
