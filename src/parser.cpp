@@ -35,7 +35,7 @@ void Parser::Advance()
 std::vector<std::shared_ptr<Stmt>> Parser::Parse()
 {
     std::vector<std::shared_ptr<Stmt>> res;
-    while(cur.type != TokenID::END)
+    while (cur.type != TokenID::END)
         res.push_back(Statement());
     return res;
 }
@@ -48,7 +48,6 @@ std::shared_ptr<Stmt> Parser::Statement()
         return IfStatement();
     return Declaration();
 }
-
 
 // ----------------------DECLARATIONS----------------------- //
 
@@ -183,8 +182,11 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
 
+    std::cout << "pre expression curliteral: " << cur.literal << std::endl;
+
     std::shared_ptr<Expr> exp = Expression();
 
+    std::cout << "post expression curliteral: " << cur.literal << std::endl;
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);
@@ -194,32 +196,7 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
-    if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
-        return FuncCall();
     return Assignment();
-}
-
-std::shared_ptr<Expr> Parser::FuncCall()
-{
-    std::string name = cur.literal;
-
-    // skipping the name
-    Advance();
-
-
-    std::vector<std::shared_ptr<Expr>> args;
-
-    while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
-    {
-        Advance();
-        if (cur.type != TokenID::COMMA)
-            args.push_back(Expression());
-    }
-
-    Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
-    Advance();
-
-    return std::make_shared<FunctionCall>(name, args, cur);
 }
 
 std::shared_ptr<Expr> Parser::Assignment()
@@ -328,6 +305,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     std::shared_ptr<Expr> res = nullptr;
     if (IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
+        res = FuncCall();
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
@@ -347,4 +326,26 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         ParseError(cur, "[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
     Advance();
     return res;
+}
+
+std::shared_ptr<Expr> Parser::FuncCall()
+{
+    std::string name = cur.literal;
+
+    // skipping the name
+    Advance();
+
+    std::vector<std::shared_ptr<Expr>> args;
+
+    while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
+    {
+        Advance();
+        if (cur.type != TokenID::COMMA)
+            args.push_back(Expression());
+    }
+
+    Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
+    // Advance();
+
+    return std::make_shared<FunctionCall>(name, args, cur);
 }
