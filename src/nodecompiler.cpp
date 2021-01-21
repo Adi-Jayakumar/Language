@@ -1,155 +1,6 @@
 #include "nodecompiler.h"
 
-std::string ToString(Opcode o)
-{
-    switch (o)
-    {
-    case Opcode::POP:
-    {
-        return "POP";
-    }
-    case Opcode::GET_C:
-    {
-        return "GET_C";
-    }
-    case Opcode::GET_V:
-    {
-        return "GET_V";
-    }
-    case Opcode::DEL_V:
-    {
-        return "DEL_V";
-    }
-    case Opcode::VAR_D:
-    {
-        return "VAR_D";
-    }
-    case Opcode::VAR_A:
-    {
-        return "VAR_A";
-    }
-    case Opcode::JUMP_IF_FALSE:
-    {
-        return "JUMP_IF_FALSE";
-    }
-    case Opcode::JUMP:
-    {
-        return "JUMP";
-    }
-    case Opcode::ADD:
-    {
-        return "ADD";
-    }
-    case Opcode::SUB:
-    {
-        return "SUB";
-    }
-    case Opcode::MUL:
-    {
-        return "MUL";
-    }
-    case Opcode::DIV:
-    {
-        return "DIV";
-    }
 
-    case Opcode::GT:
-    {
-        return "GT";
-    }
-    case Opcode::LT:
-    {
-        return "LT";
-    }
-    case Opcode::GEQ:
-    {
-        return "GEQ";
-    }
-    case Opcode::LEQ:
-    {
-        return "LEQ";
-    }
-
-    case Opcode::EQ_EQ:
-    {
-        return "EQ_EQ";
-    }
-    case Opcode::BANG_EQ:
-    {
-        return "BANG_EQ";
-    }
-    default:
-    {
-        return "UNRECOGNISED OPCODE " + std::to_string((uint16_t)o);
-    }
-    }
-}
-
-Opcode TokenToOpcode(TokenID t)
-{
-    if (t == TokenID::PLUS)
-        return Opcode::ADD;
-    else if (t == TokenID::MINUS)
-        return Opcode::SUB;
-    else if (t == TokenID::STAR)
-        return Opcode::MUL;
-    else if (t == TokenID::SLASH)
-        return Opcode::DIV;
-    else if (t == TokenID::GT)
-        return Opcode::GT;
-    else if (t == TokenID::LT)
-        return Opcode::LT;
-    else if (t == TokenID::GEQ)
-        return Opcode::GEQ;
-    else if (t == TokenID::LEQ)
-        return Opcode::LEQ;
-    else if (t == TokenID::EQ_EQ)
-        return Opcode::EQ_EQ;
-    else if (t == TokenID::BANG_EQ)
-        return Opcode::BANG_EQ;
-    else
-        return Opcode::NONE;
-}
-
-void Chunk::PrintCode()
-{
-    for (DebugOp &o : code)
-    {
-        std::cout << ToString(o.code);
-        if (o.code == Opcode::GET_C)
-            std::cout << " '" << constants[o.operand] << "' at index: " << +o.operand;
-        else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
-            std::cout << " '" << vars[o.debug].name << "' at runtime index: " << +o.operand << " at compile time index: " << o.debug;
-        else
-            std::cout << " " << +o.operand;
-
-        std::cout << std::endl;
-    }
-}
-
-size_t Chunk::ResolveVariable(std::string &name)
-{
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if ((vars[i].name.length() == name.length()) && (vars[i].name == name))
-            return i;
-    }
-    return 255;
-}
-
-void Chunk::CleanUpVariables()
-{
-    // while (!vars.empty() && vars.back().depth == depth)
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].depth == depth)
-        {
-            numPops++;
-            code.push_back({Opcode::POP, 0, 0});
-            code.push_back({Opcode::DEL_V, 0, 0});
-        }
-    }
-}
 
 void NodeCompiler::CompileError(std::string err)
 {
@@ -183,15 +34,15 @@ void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 {
     size_t index = c.ResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_A, c.vars[index].index, index});
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, index});
+    c.code.push_back({Opcode::VAR_A, c.vars[index].index, static_cast<uint16_t>(index)});
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(index)});
     c.code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
 {
     size_t index = c.ResolveVariable(vr->name);
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, index});
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(index)});
 }
 
 //------------------STATEMENTS---------------------//
@@ -238,11 +89,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
 
-    c.code[patchIndex].operand = static_cast<uint16_t>(sizeDiff);
+    c.code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
-    c.code[patchIndex].operand++;
+    c.code[patchIndex].op1++;
     c.code.push_back({Opcode::JUMP, 0, 0});
     patchIndex = c.code.size() - 1;
     befSize = c.code.size();
@@ -252,7 +103,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
     sizeDiff = c.code.size() - befSize;
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
-    c.code[patchIndex].operand = static_cast<uint16_t>(sizeDiff);
+    c.code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
@@ -275,7 +126,6 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
     {
         s->NodeCompile(c);
     }
-    c.CleanUpVariables();
 }
 
 void NodeCompiler::CompileReturn(Return *r, Chunk &c)

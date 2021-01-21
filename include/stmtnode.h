@@ -10,7 +10,7 @@ struct Stmt
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type(TypeChecker &t) = 0;
-    // compiles the node - implemented in compiler.cpp
+    // compiles the node - implemented in Chunk.cpp
     virtual void NodeCompile(Chunk &c) = 0;
 };
 

@@ -13,7 +13,7 @@ struct Expr
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type(TypeChecker &t) = 0;
-    // compiles the node - implmented in compiler.cpp
+    // compiles the node - implmented in Chunk.cpp
     virtual void NodeCompile(Chunk &c) = 0;
     // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;

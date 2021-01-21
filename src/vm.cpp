@@ -24,7 +24,7 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteCurrentChunk()
 {
-    while(ip != cur.code.size())
+    while (ip != cur.code.size())
     {
         ExecuteInstruction();
         Jump(1);
@@ -34,7 +34,7 @@ void VM::ExecuteCurrentChunk()
 void VM::ExecuteInstruction()
 {
     // Op o = cur.code[ip];
-    DebugOp o = cur.code[ip];
+    Op o = cur.code[ip];
     switch (o.code)
     {
     // pops the top value off the stack
@@ -43,36 +43,36 @@ void VM::ExecuteInstruction()
         stack.Pop();
         break;
     }
-    // returns the constant at o.operand's location + constOffset
+    // returns the constant at o.op1's location + constOffset
     case Opcode::GET_C:
     {
-        CompileConst c = cur.constants[o.operand];
+        CompileConst c = cur.constants[o.op1];
         stack.Push(c);
         break;
     }
-    // pops the value currently on the top of the stack and assigns it to a CompileVar at o.operand's location
+    // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
     case Opcode::VAR_D:
     {
         // CompileConst val = stack.Top();
-        // vars.push_back(CompileVar(cur.vars[o.operand].name, val));
-        // vars[varOffset + o.operand].index = o.operand;
-        vars.push_back(CompileVar(cur.vars[o.debug].name, o.operand));
+        // vars.push_back(CompileVar(cur.vars[o.op1].name, val));
+        // vars[varOffset + o.op1].index = o.op1;
+        vars.push_back(CompileVar(cur.vars[o.op2].name, o.op1));
         break;
     }
     case Opcode::VAR_A:
     {
         // CompileConst val = stack.Top();
         // std::cout << "stack size in VAR_A: " << stack.Size() << std::endl;
-        // std::cout << "operand in VAR_A: " << o.operand << std::endl;
-        vars[varOffset + o.operand].index = stack.Size() - 1;
+        // std::cout << "operand in VAR_A: " << o.op1 << std::endl;
+        vars[varOffset + o.op1].index = stack.Size() - 1;
         break;
     }
-    // returns the value of the variable at o.operand's location + varOffset
+    // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        CompileVar var = vars[o.operand];
+        CompileVar var = vars[o.op1];
         CompileConst v = stack[var.index];
-        // std::cout << "index of var in 'vars' array: " << o.operand << std::endl;
+        // std::cout << "index of var in 'vars' array: " << o.op1 << std::endl;
         // std::cout << "index of var on stack: " << var.index << std::endl;
         // temporary until the 'print' function is implemented
         // std::cout << "Var name: " << v.name << " Var val: " << v.val << std::endl;
@@ -88,15 +88,15 @@ void VM::ExecuteInstruction()
     // adds the operand to the ip if the value on the top of the stack is not truthy
     case Opcode::JUMP_IF_FALSE:
     {
-        if(!IsTruthy(stack.Top()))
-            ip += o.operand;
+        if (!IsTruthy(stack.Top()))
+            ip += o.op1;
         stack.Pop();
         break;
     }
     // adds the operand to the ip
     case Opcode::JUMP:
     {
-        ip += o.operand;
+        ip += o.op1;
         break;
     }
     // adds the last 2 things on the stack
@@ -209,9 +209,9 @@ void VM::ExecuteInstruction()
 
 void VM::StepThrough()
 {
-    while(ip != cur.code.size())
+    while (ip != cur.code.size())
     {
-        std::cout << ToString(cur.code[ip].code) << " " << +cur.code[ip].operand << std::endl;
+        std::cout << ToString(cur.code[ip].code) << " " << +cur.code[ip].op1 << std::endl;
         ExecuteInstruction();
         Jump(1);
     }
