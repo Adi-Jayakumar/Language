@@ -3,20 +3,14 @@
 Compiler::Compiler()
 {
     chunks.push_back(Chunk());
+    cur = &chunks[0];
 }
 
 void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
     for(auto &stmt : s)
     {
-        if(dynamic_cast<FuncDecl*>(stmt.get()) != nullptr)
-        {
-            Chunk d = Chunk();
-            stmt->NodeCompile(d);
-            chunks.push_back(d);
-        }
-        else
-            stmt->NodeCompile(chunks[0]);
+        stmt->NodeCompile(*this);
     }
 }
 

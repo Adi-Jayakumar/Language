@@ -10,8 +10,8 @@ struct Stmt
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type(TypeChecker &t) = 0;
-    // compiles the node - implemented in Chunk.cpp
-    virtual void NodeCompile(Chunk &c) = 0;
+    // compiles the node - implemented in Compiler.cpp
+    virtual void NodeCompile(Compiler &c) = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, Stmt *s);
@@ -24,7 +24,7 @@ struct ExprStmt : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 struct DeclaredVar : Stmt
@@ -37,7 +37,7 @@ struct DeclaredVar : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 struct Block : Stmt
@@ -49,7 +49,7 @@ struct Block : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 struct IfStmt : Stmt
@@ -62,7 +62,7 @@ struct IfStmt : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 struct FuncDecl : Stmt
@@ -77,7 +77,7 @@ struct FuncDecl : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 struct Return : Stmt
@@ -88,5 +88,5 @@ struct Return : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };

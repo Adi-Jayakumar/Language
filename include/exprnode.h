@@ -3,7 +3,7 @@
 #include "token.h"
 #include <memory>
 
-struct Chunk;
+struct Compiler;
 struct TypeChecker;
 
 struct Expr
@@ -13,8 +13,8 @@ struct Expr
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeID Type(TypeChecker &t) = 0;
-    // compiles the node - implmented in Chunk.cpp
-    virtual void NodeCompile(Chunk &c) = 0;
+    // compiles the node - implmented in Compiler.cpp
+    virtual void NodeCompile(Compiler &c) = 0;
     // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;
 };
@@ -43,7 +43,7 @@ struct Literal : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
 
@@ -57,7 +57,7 @@ struct Unary : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
 
@@ -72,7 +72,7 @@ struct Binary : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
 
@@ -86,7 +86,7 @@ struct VarReference : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
 
@@ -101,7 +101,7 @@ struct Assign : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
 
@@ -115,5 +115,5 @@ struct FunctionCall : Expr
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeID Type(TypeChecker &t) override;
-    void NodeCompile(Chunk &c) override;
+    void NodeCompile(Compiler &c) override;
 };

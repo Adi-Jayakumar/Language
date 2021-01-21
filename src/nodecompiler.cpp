@@ -1,7 +1,5 @@
 #include "nodecompiler.h"
 
-
-
 void NodeCompiler::CompileError(std::string err)
 {
     Error e = Error("[COMPILE ERROR] " + err);
@@ -10,103 +8,103 @@ void NodeCompiler::CompileError(std::string err)
 
 //-----------------EXPRESSIONS---------------------//
 
-void NodeCompiler::CompileLiteral(Literal *l, Chunk &c)
+void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
-    c.constants.push_back(copy);
-    c.code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.constants.size() - 1), 0});
+    c.cur->constants.push_back(copy);
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.cur->constants.size() - 1), 0});
 }
 
-void NodeCompiler::CompileUnary(Unary *u, Chunk &c)
+void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
     u->right->NodeCompile(c);
-    c.code.push_back({TokenToOpcode(u->op.type), 0, 0});
+    c.cur->code.push_back({TokenToOpcode(u->op.type), 0, 0});
 }
 
-void NodeCompiler::CompileBinary(Binary *b, Chunk &c)
+void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 {
     b->left->NodeCompile(c);
     b->right->NodeCompile(c);
-    c.code.push_back({TokenToOpcode(b->op.type), 0, 0});
+    c.cur->code.push_back({TokenToOpcode(b->op.type), 0, 0});
 }
 
-void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
+void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
-    size_t index = c.ResolveVariable(a->var->name);
+    size_t index = c.cur->ResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_A, c.vars[index].index, static_cast<uint16_t>(index)});
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(index)});
-    c.code.push_back({Opcode::POP, 0, 0});
+    c.cur->code.push_back({Opcode::VAR_A, c.cur->vars[index].index, static_cast<uint16_t>(index)});
+    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
+    c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
-void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
+void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    size_t index = c.ResolveVariable(vr->name);
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(index)});
+    size_t index = c.cur->ResolveVariable(vr->name);
+    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
 }
 
 //------------------STATEMENTS---------------------//
 
-void NodeCompiler::CompileExprStmt(ExprStmt *es, Chunk &c)
+void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
     es->exp->NodeCompile(c);
-    c.code.push_back({Opcode::POP, 0, 0});
+    c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
-void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Chunk &c)
+void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
-    c.vars.push_back({dv->name, c.depth, 0});
-    uint16_t rtindex = static_cast<uint16_t>(c.vars.size() - 1 - c.numPops);
-    c.vars.back().index = rtindex;
+    c.cur->vars.push_back({dv->name, c.cur->depth, 0});
+    uint16_t rtindex = static_cast<uint16_t>(c.cur->vars.size() - 1 - c.cur->numPops);
+    c.cur->vars.back().index = rtindex;
     dv->value->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_D, rtindex, static_cast<uint16_t>(c.vars.size() - 1)});
-    // c.code.push_back({Opcode::POP, 0, 0});
+    c.cur->code.push_back({Opcode::VAR_D, rtindex, static_cast<uint16_t>(c.cur->vars.size() - 1)});
+    // c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
-void NodeCompiler::CompileBlock(Block *b, Chunk &c)
+void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
-    c.depth++;
+    c.cur->depth++;
     for (std::shared_ptr<Stmt> &s : b->stmts)
         s->NodeCompile(c);
-    c.CleanUpVariables();
-    c.depth--;
+    c.cur->CleanUpVariables();
+    c.cur->depth--;
 }
 
-void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
+void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 {
     i->cond->NodeCompile(c);
-    c.code.push_back({Opcode::JUMP_IF_FALSE, 0, 0});
+    c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0, 0});
 
-    size_t patchIndex = c.code.size() - 1;
-    size_t befSize = c.code.size();
+    size_t patchIndex = c.cur->code.size() - 1;
+    size_t befSize = c.cur->code.size();
 
     i->thenBranch->NodeCompile(c);
 
-    c.code.push_back({Opcode::POP, 0, 0});
+    c.cur->code.push_back({Opcode::POP, 0, 0});
 
-    size_t sizeDiff = c.code.size() - befSize;
+    size_t sizeDiff = c.cur->code.size() - befSize;
 
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
 
-    c.code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
+    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
-    c.code[patchIndex].op1++;
-    c.code.push_back({Opcode::JUMP, 0, 0});
-    patchIndex = c.code.size() - 1;
-    befSize = c.code.size();
+    c.cur->code[patchIndex].op1++;
+    c.cur->code.push_back({Opcode::JUMP, 0, 0});
+    patchIndex = c.cur->code.size() - 1;
+    befSize = c.cur->code.size();
 
     i->elseBranch->NodeCompile(c);
 
-    sizeDiff = c.code.size() - befSize;
+    sizeDiff = c.cur->code.size() - befSize;
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
-    c.code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
+    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
 }
 
-void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
+void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
     for (size_t i = 0; i < fd->params.size(); i++)
     {
@@ -115,10 +113,10 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
 
             CTVarID arg;
             arg.name = fd->params[i].literal;
-            arg.depth = c.depth;
-            arg.index = c.vars.size();
+            arg.depth = c.cur->depth;
+            arg.index = c.cur->vars.size();
 
-            c.vars.push_back(arg);
+            c.cur->vars.push_back(arg);
         }
     }
 
@@ -128,76 +126,80 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
     }
 }
 
-void NodeCompiler::CompileReturn(Return *r, Chunk &c)
+void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
     return;
 }
 
-void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Chunk &c)
+void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     return;
 }
 
 //-----------------EXPRESSIONS---------------------//
 
-void Literal::NodeCompile(Chunk &c)
+void Literal::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileLiteral(this, c);
 }
 
-void Unary::NodeCompile(Chunk &c)
+void Unary::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileUnary(this, c);
 }
 
-void Binary::NodeCompile(Chunk &c)
+void Binary::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileBinary(this, c);
 }
 
-void Assign::NodeCompile(Chunk &c)
+void Assign::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileAssign(this, c);
 }
 
-void VarReference::NodeCompile(Chunk &c)
+void VarReference::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileVarReference(this, c);
 }
 
-void FunctionCall::NodeCompile(Chunk &c)
+void FunctionCall::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileFunctionCall(this, c);
 }
 
 //------------------STATEMENTS---------------------//
 
-void ExprStmt::NodeCompile(Chunk &c)
+void ExprStmt::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileExprStmt(this, c);
 }
 
-void DeclaredVar::NodeCompile(Chunk &c)
+void DeclaredVar::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileDeclaredVar(this, c);
 }
 
-void Block::NodeCompile(Chunk &c)
+void Block::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileBlock(this, c);
 }
 
-void IfStmt::NodeCompile(Chunk &c)
+void IfStmt::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileIfStmt(this, c);
 }
 
-void FuncDecl::NodeCompile(Chunk &c)
+void FuncDecl::NodeCompile(Compiler &c)
 {
+    c.chunks.push_back(Chunk());
+    c.cur = &c.chunks.back();
     NodeCompiler::CompileFuncDecl(this, c);
+    c.cur->CleanUpVariables();
+    c.cur = &c.chunks[0];
 }
 
-void Return::NodeCompile(Chunk &c)
+void Return::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileReturn(this, c);
 }
