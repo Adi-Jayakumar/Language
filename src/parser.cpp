@@ -93,6 +93,8 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
         init = Expression();
     }
 
+    std::cout << "cur literal: " << cur.literal << std::endl;
+
     Check(TokenID::SEMI, "Expect ';' after variable declaration");
     Advance();
 
@@ -172,12 +174,7 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
 
-    std::shared_ptr<Expr> exp;
-
-    if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
-        exp = FuncCall();
-    else
-        exp = Expression();
+    std::shared_ptr<Expr> exp = Expression();
 
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
@@ -188,6 +185,8 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
+    if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
+        return FuncCall();
     return Assignment();
 }
 

@@ -20,21 +20,11 @@ int main()
     // DumpTokens("ex/func.txt");
 
     Parser p = Parser("ex/func.txt");
-    // std::cout << p.cur << std::endl;
-    // std::cout << p.next << std::endl;
-
-    // while (p.cur.type != TokenID::END)
-    // {
-    //     std::cout << p.cur << std::endl;
-    //     std::cout << p.next << std::endl;
-    //     std::cout << std::endl;
-    //     p.Advance();
-    // }
 
     std::shared_ptr<Stmt> res = p.Statement();
     std::cout << res.get() << std::endl;
-    // TypeChecker t = TypeChecker();
-    // t.TypeCheck(res);
+    TypeChecker t = TypeChecker();
+    t.TypeCheck(res);
 
     // Compiler c = Compiler();
     // c.Compile(res);
