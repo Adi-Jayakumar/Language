@@ -4,8 +4,8 @@
 
 struct Compiler
 {
-    Chunk c;
-    Compiler() = default;
-    void Compile(std::shared_ptr<Stmt> &s);
+    std::vector<Chunk> chunks;
+    Compiler();
+    void Compile(std::vector<std::shared_ptr<Stmt>> &s);
     void Disassemble();
 };

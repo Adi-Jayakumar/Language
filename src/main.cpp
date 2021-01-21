@@ -21,14 +21,18 @@ int main()
 
     Parser p = Parser("ex/func.txt");
 
-    std::shared_ptr<Stmt> res = p.Statement();
-    std::cout << res.get() << std::endl;
-    TypeChecker t = TypeChecker();
-    t.TypeCheck(res);
+    std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
-    // Compiler c = Compiler();
-    // c.Compile(res);
-    // c.Disassemble();
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
+
+    TypeChecker t = TypeChecker();
+    for (auto &s : res)
+        t.TypeCheck(s);
+
+    Compiler c = Compiler();
+    c.Compile(res);
+    c.Disassemble();
 
     // std::cout << std::endl;
     // VM vm = VM();

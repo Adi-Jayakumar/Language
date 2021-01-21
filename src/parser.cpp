@@ -32,27 +32,23 @@ void Parser::Advance()
         next = lex.NextToken();
 }
 
-std::shared_ptr<Block> Parser::ParseBlock()
+std::vector<std::shared_ptr<Stmt>> Parser::Parse()
 {
-    Advance();
-    depth++;
-    std::shared_ptr<Block> result = std::make_shared<Block>(depth, cur);
-    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
-    {
-        if (cur.type == TokenID::OPEN_BRACE)
-            result->stmts.push_back(ParseBlock());
-        else
-            result->stmts.push_back(Declaration());
-    }
-
-    if (cur.type == TokenID::CLOSE_BRACE)
-        Advance();
-    else
-        ParseError(cur, "Need to close braces");
-
-    depth--;
-    return result;
+    std::vector<std::shared_ptr<Stmt>> res;
+    while(cur.type != TokenID::END)
+        res.push_back(Statement());
+    return res;
 }
+
+std::shared_ptr<Stmt> Parser::Statement()
+{
+    if (cur.type == TokenID::OPEN_BRACE)
+        return ParseBlock();
+    else if (cur.type == TokenID::IF)
+        return IfStatement();
+    return Declaration();
+}
+
 
 // ----------------------DECLARATIONS----------------------- //
 
@@ -63,16 +59,7 @@ std::shared_ptr<Stmt> Parser::Declaration()
     else if (cur.type == TokenID::FUNC)
         return FuncDeclaration();
     else
-        return Statement();
-}
-
-std::shared_ptr<Stmt> Parser::Statement()
-{
-    if (cur.type == TokenID::OPEN_BRACE)
-        return ParseBlock();
-    else if (cur.type == TokenID::IF)
-        return IfStatement();
-    return ExpressionStatement();
+        return ExpressionStatement();
 }
 
 std::shared_ptr<Stmt> Parser::VarDeclaration()
@@ -151,6 +138,28 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 }
 
 // ----------------------STATEMENTS----------------------- //
+
+std::shared_ptr<Block> Parser::ParseBlock()
+{
+    Advance();
+    depth++;
+    std::shared_ptr<Block> result = std::make_shared<Block>(depth, cur);
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    {
+        if (cur.type == TokenID::OPEN_BRACE)
+            result->stmts.push_back(ParseBlock());
+        else
+            result->stmts.push_back(Declaration());
+    }
+
+    if (cur.type == TokenID::CLOSE_BRACE)
+        Advance();
+    else
+        ParseError(cur, "Need to close braces");
+
+    depth--;
+    return result;
+}
 
 std::shared_ptr<Stmt> Parser::IfStatement()
 {

@@ -183,15 +183,15 @@ void NodeCompiler::CompileAssign(Assign *a, Chunk &c)
 {
     size_t index = c.ResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.code.push_back({Opcode::VAR_A, c.vars[index].index, 0});
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, 0});
+    c.code.push_back({Opcode::VAR_A, c.vars[index].index, index});
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, index});
     c.code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Chunk &c)
 {
     size_t index = c.ResolveVariable(vr->name);
-    c.code.push_back({Opcode::GET_V, c.vars[index].index, static_cast<uint16_t>(c.vars.size() - 1)});
+    c.code.push_back({Opcode::GET_V, c.vars[index].index, index});
 }
 
 //------------------STATEMENTS---------------------//
@@ -257,7 +257,25 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Chunk &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Chunk &c)
 {
-    return;
+    for (size_t i = 0; i < fd->params.size(); i++)
+    {
+        if (fd->params[i].type == TokenID::IDEN)
+        {
+
+            CTVarID arg;
+            arg.name = fd->params[i].literal;
+            arg.depth = c.depth;
+            arg.index = c.vars.size();
+
+            c.vars.push_back(arg);
+        }
+    }
+
+    for (auto &s : fd->body)
+    {
+        s->NodeCompile(c);
+    }
+    c.CleanUpVariables();
 }
 
 void NodeCompiler::CompileReturn(Return *r, Chunk &c)
@@ -296,7 +314,6 @@ void VarReference::NodeCompile(Chunk &c)
 {
     NodeCompiler::CompileVarReference(this, c);
 }
-
 
 void FunctionCall::NodeCompile(Chunk &c)
 {

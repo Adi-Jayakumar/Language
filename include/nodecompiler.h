@@ -58,7 +58,7 @@ struct Chunk
     std::vector<DebugOp> code;
     std::vector<CompileConst> constants;
     std::vector<CTVarID> vars;
-    uint16_t depth = 0;
+    uint16_t depth = 1;
     uint16_t numPops = 0;
     Chunk() = default;
     ~Chunk() = default;

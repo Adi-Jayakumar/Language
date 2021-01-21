@@ -256,11 +256,6 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
         vars.push_back({pType, pName, depth});
     }
 
-    for(size_t i = vars.size() - 1; (int) i >= 0; i--)
-    {
-        std::cout << "type: " << vars[i].type << " name: " << vars[i].name << " depth: " << vars[i].depth << std::endl;
-    }
-
     for (auto &s : fd->body)
         s->Type(*this);
 
