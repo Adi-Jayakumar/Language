@@ -2,6 +2,7 @@
 #include "compiler.h"
 #include "stack.h"
 #include "compileconst.h"
+#include "callstack.h"
 
 
 
@@ -13,27 +14,30 @@ struct VM
         variables should go/are so we update this offset
         everytime we switch Chunks
     */
-    size_t varOffset = 0;
-    size_t constOffset = 0;
+
+    std::vector<Chunk> functions;
 
     // instruction pointer
     size_t ip;
-
-    Chunk cur;
+    // Call stack
+    CallStack cs;
+    // current CallFrame
+    CallFrame curCF;
+    // current Chunk index
+    size_t curChunk;
 
     std::vector<CompileConst> constants;
     std::vector<CompileVar> vars;
 
     Stack stack;
 
-    VM() = default;
+    VM(std::vector<Chunk> &);
 
     void PrintStack();
 
-    void SetChunk(Chunk &c);
+    void SetChunk(size_t);
 
     void Jump(size_t jump);
     void ExecuteCurrentChunk();
     void ExecuteInstruction();
-    void StepThrough();
 };

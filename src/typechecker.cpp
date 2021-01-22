@@ -126,6 +126,8 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
         if(varType == UINT16_MAX)
             varType = ResolveVariable(a->var->name);
     }
+    else
+        varType = ResolveVariable(a->var->name);
 
     if (varType == UINT16_MAX)
         TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
@@ -149,6 +151,8 @@ TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
         if (type == UINT16_MAX)
             type = ResolveVariable(vr->name);
     }
+    else
+        type = ResolveVariable(vr->name);
 
     if (type == UINT16_MAX)
         TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");

@@ -107,7 +107,7 @@ CompileVar::CompileVar(std::string &_name, uint16_t _index)
 
 std::ostream &operator<<(std::ostream &out, const CompileVar &cv)
 {
-    out << "Name: " << cv.name << " Value: " << cv.index;
+    out << "Name: " << cv.name << " Index on value stack: " << cv.index;
     return out;
 }
 

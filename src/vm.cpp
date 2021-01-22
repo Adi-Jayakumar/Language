@@ -1,10 +1,22 @@
 #include "vm.h"
 
-void VM::SetChunk(Chunk &_cur)
+VM::VM(std::vector<Chunk> &_functions)
 {
-    varOffset = stack.Size();
-    constOffset = constants.size();
-    cur = _cur;
+    stack = Stack();
+    functions = _functions;
+
+    cs = CallStack();
+    cs.Push({0, 0, 0, 0});
+
+    curCF = cs.Top();
+
+    curChunk = 0;
+    ip = 0;
+}
+
+void VM::SetChunk(size_t n)
+{
+    curChunk = n;
 }
 
 void VM::PrintStack()
@@ -24,17 +36,33 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteCurrentChunk()
 {
-    while (ip != cur.code.size())
+    while (cs.Size() >= 1)
     {
-        ExecuteInstruction();
-        Jump(1);
+        while (ip != functions[curChunk].code.size())
+        {
+            // std::cout << ToString(functions[curChunk].code[ip].code) << " " << functions[curChunk].code[ip].op1 << " " << functions[curChunk].code[ip].op2 << std::endl;
+            ExecuteInstruction();
+            Jump(1);
+        }
+
+        if (cs.Size() != 1)
+        {
+            // CallFrame with the details of where to return to
+            CallFrame returnCF = cs.Top();
+            cs.Pop();
+            ip = returnCF.retIndex;
+            curChunk = returnCF.retChunk;
+            curCF = cs.Top();
+        }
+        else
+            break;
     }
 }
 
 void VM::ExecuteInstruction()
 {
-    // Op o = cur.code[ip];
-    Op o = cur.code[ip];
+    Op o = functions[curChunk].code[ip];
+    // Op o = *ip;
     switch (o.code)
     {
     // pops the top value off the stack
@@ -46,37 +74,47 @@ void VM::ExecuteInstruction()
     // returns the constant at o.op1's location + constOffset
     case Opcode::GET_C:
     {
-        CompileConst c = cur.constants[o.op1];
+        CompileConst c = functions[curChunk].constants[o.op1];
         stack.Push(c);
         break;
     }
     // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
     case Opcode::VAR_D:
     {
-        // CompileConst val = stack.Top();
-        // vars.push_back(CompileVar(cur.vars[o.op1].name, val));
-        // vars[varOffset + o.op1].index = o.op1;
-        vars.push_back(CompileVar(cur.vars[o.op2].name, o.op1));
+        vars.push_back(CompileVar(functions[curChunk].vars[o.op2].name, curCF.valStackMin + o.op1));
         break;
     }
     case Opcode::VAR_A:
     {
-        // CompileConst val = stack.Top();
-        // std::cout << "stack size in VAR_A: " << stack.Size() << std::endl;
-        // std::cout << "operand in VAR_A: " << o.op1 << std::endl;
-        vars[varOffset + o.op1].index = stack.Size() - 1;
+        vars[curCF.varListMin + o.op1].index = stack.Size() - 1;
         break;
     }
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        CompileVar var = vars[o.op1];
+    //     std::cout << "varListMin: " << curCF.varListMin <<  std::endl;
+    //     std::cout << "GET_V index into vars: " << o.op1 + curCF.varListMin << std::endl;
+        CompileVar var = vars[o.op1 + curCF.varListMin];
+        // std::cout << "Var at that index: " << var << std::endl;
+        // std::cout << "GET_V index into value stack: " << var.index << std::endl;
         CompileConst v = stack[var.index];
-        // std::cout << "index of var in 'vars' array: " << o.op1 << std::endl;
-        // std::cout << "index of var on stack: " << var.index << std::endl;
-        // temporary until the 'print' function is implemented
-        // std::cout << "Var name: " << v.name << " Var val: " << v.val << std::endl;
+        // std::cout << "Value at that index: " << v << std::endl;
         std::cout << "Var val: " << v << std::endl;
+
+        // std::cout << std::endl;
+        // std::cout << "Stuff in vars: " << std::endl;
+        // for (CompileVar &cv : vars)
+        // {
+        //     std::cout << cv << std::endl;
+        // }
+
+        // std::cout << std::endl;
+        // std::cout << "Stuff in stack" << std::endl;
+        // PrintStack();
+
+        // std::cout << std::endl
+        //           << std::endl;
+
         stack.Push(v);
         break;
     }
@@ -102,6 +140,27 @@ void VM::ExecuteInstruction()
     // op1 is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
+        // std::cout << "CALL_F, vars.size(): " << vars.size() << std::endl;
+        // std::cout << "Stuff in vars" << std::endl;
+        // for (CompileVar &cv : vars)
+        // {
+        //     std::cout << cv << std::endl;
+        // }
+
+        cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
+
+        // std::cout << "new valStackMin: " << stack.Size() - o.op2 <<std::endl;
+        // std::cout << "new valListMin: " << vars.size() << std::endl;
+
+        // std::cout << std::endl
+        //           << std::endl;
+
+        curChunk = o.op1;
+        curCF = cs.Top();
+        // ip is incremented after each instruction executes so need to set it to -1
+        // -1 here is SIZE_MAX but C++ standard specifies unsigned addition wraps around
+        // conveniently
+        ip = -1;
         break;
     }
     // adds the last 2 things on the stack
@@ -209,15 +268,5 @@ void VM::ExecuteInstruction()
     {
         break;
     }
-    }
-}
-
-void VM::StepThrough()
-{
-    while (ip != cur.code.size())
-    {
-        std::cout << ToString(cur.code[ip].code) << " " << +cur.code[ip].op1 << std::endl;
-        ExecuteInstruction();
-        Jump(1);
     }
 }

@@ -79,8 +79,6 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
         init = Expression();
     }
 
-    std::cout << "cur literal: " << cur.literal << std::endl;
-
     Check(TokenID::SEMI, "Expect ';' after variable declaration");
     Advance();
 
@@ -182,11 +180,8 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
 
-    std::cout << "pre expression curliteral: " << cur.literal << std::endl;
-
     std::shared_ptr<Expr> exp = Expression();
 
-    std::cout << "post expression curliteral: " << cur.literal << std::endl;
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);

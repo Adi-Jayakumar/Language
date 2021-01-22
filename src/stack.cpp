@@ -17,7 +17,7 @@ void Stack::Pop()
 
 bool Stack::Empty()
 {
-    return s.size() == 0;
+    return s.empty();
 }
 
 size_t Stack::Size()

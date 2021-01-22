@@ -12,6 +12,7 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
     {
         stmt->NodeCompile(*this);
     }
+    cur->CleanUpVariables();
 }
 
 void Compiler::Disassemble()

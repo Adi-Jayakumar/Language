@@ -48,7 +48,10 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
     es->exp->NodeCompile(c);
-    c.cur->code.push_back({Opcode::POP, 0, 0});
+
+    // TEMPORARY THING UNTIL WE SUPPORT RETURN STATEMENTS
+    if(dynamic_cast<FunctionCall*>(es->exp.get()) == nullptr)
+        c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
@@ -108,18 +111,22 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
     if(fd->params.size() > UINT16_MAX)
         CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
+
     c.funcs.push_back(fd->name);
+    size_t numVars = 0;
+
     for (size_t i = 0; i < fd->params.size(); i++)
     {
         if (fd->params[i].type == TokenID::IDEN)
         {
-
             CTVarID arg;
             arg.name = fd->params[i].literal;
             arg.depth = c.cur->depth;
             arg.index = c.cur->vars.size();
 
             c.cur->vars.push_back(arg);
+            c.cur->code.push_back({Opcode::VAR_D, static_cast<uint16_t>(numVars), static_cast<uint16_t>(c.cur->vars.size() - 1)});
+            numVars++;
         }
     }
 
@@ -144,10 +151,11 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     if (fc->args.size() > UINT16_MAX)
         CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
 
+    
     for(std::shared_ptr<Expr> &e : fc->args)
         e->NodeCompile(c);
     
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint16_t>(index), static_cast<uint16_t>(fc->args.size())});
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint16_t>(index  + 1), static_cast<uint16_t>(fc->args.size())});
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -208,8 +216,17 @@ void FuncDecl::NodeCompile(Compiler &c)
 {
     c.chunks.push_back(Chunk());
     c.cur = &c.chunks.back();
+
+    // c.isInFunc = true;
+    // c.curArity = params.size();
+
     NodeCompiler::CompileFuncDecl(this, c);
+
+    // c.isInFunc = false;
+    // c.curArity = -1;
+
     c.cur->CleanUpVariables();
+
     c.cur = &c.chunks[0];
 }
 
