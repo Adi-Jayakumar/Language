@@ -46,6 +46,28 @@ std::shared_ptr<Stmt> Parser::Statement()
         return ParseBlock();
     else if (cur.type == TokenID::IF)
         return IfStatement();
+    else if(cur.type == TokenID::RETURN)
+    {
+        // skipping the 'return' token
+        Advance();
+
+        // if the statement is 'return;'
+        if(cur.type == TokenID::SEMI)
+        {
+            Advance();
+            return std::make_shared<Return>(nullptr, cur);
+        }
+
+        // parsing the return value
+        std::shared_ptr<Expr> retVal = Expression();
+
+        // checking for the semicolon
+        Check(TokenID::SEMI, "Require ';' at the end of a return statement");
+
+        // advancing over the semicolon
+        Advance();
+        return std::make_shared<Return>(retVal, cur);
+    }
     return Declaration();
 }
 

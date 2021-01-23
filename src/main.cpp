@@ -17,7 +17,10 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    // DumpTokens("ex/func.txt");
+    DumpTokens("ex/func.txt");
+
+    std::cout << std::endl
+              << std::endl;
 
     Parser p = Parser("ex/func.txt");
 
@@ -29,38 +32,38 @@ int main()
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    TypeChecker t = TypeChecker();
-    for (auto &s : res)
-        t.TypeCheck(s);
+    // TypeChecker t = TypeChecker();
+    // for (auto &s : res)
+    //     t.TypeCheck(s);
 
-    Compiler c = Compiler();
-    c.Compile(res);
-    c.Disassemble();
+    // Compiler c = Compiler();
+    // c.Compile(res);
+    // c.Disassemble();
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    VM vm = VM(c.chunks);
-    vm.ExecuteCurrentChunk();
+    // VM vm = VM(c.chunks);
+    // vm.ExecuteCurrentChunk();
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::cout << "Vars not cleaned up:" << std::endl;
-    for (CompileVar &cv : vm.vars)
-    {
-        std::cout << cv << std::endl;
-    }
+    // std::cout << "Vars not cleaned up:" << std::endl;
+    // for (CompileVar &cv : vm.vars)
+    // {
+    //     std::cout << cv << std::endl;
+    // }
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::cout << "Constants on the stack not cleaned up" << std::endl;
-    for(auto thing : vm.stack.s)
-    {
-        std::cout << thing << std::endl;
-    }
+    // std::cout << "Constants on the stack not cleaned up" << std::endl;
+    // for(auto thing : vm.stack.s)
+    // {
+    //     std::cout << thing << std::endl;
+    // }
 }
