@@ -90,7 +90,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
 
-    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
+    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff - 1);
 
     if (i->elseBranch == nullptr)
         return;
@@ -99,7 +99,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     c.cur->code.push_back({Opcode::JUMP, 0, 0});
     c.cur->code.push_back({Opcode::POP, 0, 0});
 
-    patchIndex = c.cur->code.size() - 1;
+    patchIndex = c.cur->code.size() - 2;
     befSize = c.cur->code.size();
 
     i->elseBranch->NodeCompile(c);
@@ -107,7 +107,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     sizeDiff = c.cur->code.size() - befSize;
     if (sizeDiff > UINT16_MAX)
         CompileError("Too much code to junmp over");
-    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff);
+    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff + 1);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)

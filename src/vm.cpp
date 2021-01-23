@@ -86,14 +86,20 @@ void VM::ExecuteInstruction()
     }
     case Opcode::VAR_A:
     {
-        vars[curCF.varListMin + o.op1].index = stack.Size() - 1;
+        // vars[curCF.varListMin + o.op1].index = stack.Size() - 1;
+        CompileConst value = stack.Top();
+        // std::cout << "assignment value: " << value << std::endl;
+        size_t indexOfAssginee = vars[curCF.varListMin + o.op1].index;
+        // std::cout << "current value there: " << stack[indexOfAssginee] << std::endl;
+        stack[indexOfAssginee] = value;
+        // std::cout << "Value after assignment: " << stack[indexOfAssginee] << std::endl;
         break;
     }
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-    //     std::cout << "varListMin: " << curCF.varListMin <<  std::endl;
-    //     std::cout << "GET_V index into vars: " << o.op1 + curCF.varListMin << std::endl;
+        //     std::cout << "varListMin: " << curCF.varListMin <<  std::endl;
+        //     std::cout << "GET_V index into vars: " << o.op1 + curCF.varListMin << std::endl;
         CompileVar var = vars[o.op1 + curCF.varListMin];
         // std::cout << "Var at that index: " << var << std::endl;
         // std::cout << "GET_V index into value stack: " << var.index << std::endl;
