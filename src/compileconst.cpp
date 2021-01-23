@@ -26,21 +26,24 @@ CompileConst::CompileConst(TypeID _type, std::string literal)
     type = _type;
     switch (type)
     {
+    // sentinel null value
+    case 0:
+    {
+        as.i = 0;
+        break;
+    }
     case 1:
     {
-        type = 1;
         as.i = std::stoi(literal);
         break;
     }
     case 2:
     {
-        type = 2;
         as.d = std::stod(literal);
         break;
     }
     case 3:
     {
-        type = 3;
         if (literal == "true")
             as.b = true;
         else
@@ -72,9 +75,9 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
 {
     switch (cc.type)
     {
-    case UINT8_MAX:
+    case 0:
     {
-        out << cc.as.i;
+        out << "null";
         break;
     }
     case 1:

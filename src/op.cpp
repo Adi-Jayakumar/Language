@@ -40,6 +40,10 @@ std::string ToString(Opcode o)
     {
         return "CALL_F";
     }
+    case Opcode::RETURN:
+    {
+        return "RETURN";
+    }
     case Opcode::ADD:
     {
         return "ADD";

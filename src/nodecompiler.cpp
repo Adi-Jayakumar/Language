@@ -59,7 +59,39 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     c.cur->vars.push_back({dv->name, c.cur->depth, 0});
     uint16_t rtindex = static_cast<uint16_t>(c.cur->vars.size() - 1 - c.cur->numPops);
     c.cur->vars.back().index = rtindex;
-    dv->value->NodeCompile(c);
+    if(dv->value != nullptr)
+        dv->value->NodeCompile(c);
+    else
+    {
+        CompileConst defVal;
+        switch (dv->tId)
+        {
+            case 1:
+            {
+                defVal = CompileConst(1, "0");
+                break;
+            }
+            case 2:
+            {
+                defVal = CompileConst(2, "0");
+                break;
+            }
+            case 3:
+            {
+                defVal = CompileConst(3, "false");
+                break;
+            }
+            default:
+            {
+                defVal = CompileConst(0, "");
+                break;
+            }
+        }
+
+        c.cur->constants.push_back(defVal);
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.cur->constants.size() - 1), 0});
+
+    }
     c.cur->code.push_back({Opcode::VAR_D, rtindex, static_cast<uint16_t>(c.cur->vars.size() - 1)});
     // c.cur->code.push_back({Opcode::POP, 0, 0});
 }
@@ -141,7 +173,14 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
-    return;
+    if(r->retVal == nullptr)
+        // the 1 in op1's position is to ensure that we do not pop a value off the stack
+        c.cur->code.push_back({Opcode::RETURN, 1, 0});
+    else
+    {
+        r->retVal->NodeCompile(c);
+        c.cur->code.push_back({Opcode::RETURN, 0, 0});
+    }
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
