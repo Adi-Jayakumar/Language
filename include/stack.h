@@ -13,5 +13,5 @@ struct Stack
     bool Empty();
     size_t Size();
 
-    CompileConst operator[](size_t i);
+    CompileConst &operator[](size_t i);
 };

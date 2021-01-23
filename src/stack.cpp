@@ -25,7 +25,7 @@ size_t Stack::Size()
     return s.size();
 }
 
-CompileConst Stack::operator[](size_t i)
+CompileConst &Stack::operator[](size_t i)
 {
     return s[i];
 }
