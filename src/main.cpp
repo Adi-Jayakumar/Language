@@ -59,9 +59,8 @@ int main()
               << std::endl;
 
     std::cout << "Constants on the stack not cleaned up" << std::endl;
-    while (!vm.stack.Empty())
+    for(auto thing : vm.stack.s)
     {
-        std::cout << vm.stack.Top() << std::endl;
-        vm.stack.Pop();
+        std::cout << thing << std::endl;
     }
 }

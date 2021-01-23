@@ -95,7 +95,10 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     if (i->elseBranch == nullptr)
         return;
     c.cur->code[patchIndex].op1++;
+    
     c.cur->code.push_back({Opcode::JUMP, 0, 0});
+    c.cur->code.push_back({Opcode::POP, 0, 0});
+
     patchIndex = c.cur->code.size() - 1;
     befSize = c.cur->code.size();
 
