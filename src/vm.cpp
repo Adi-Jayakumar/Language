@@ -153,6 +153,8 @@ void VM::ExecuteInstruction()
         //     std::cout << cv << std::endl;
         // }
 
+        std::cout << "Going into function: " << o.op1 << std::endl;
+
         cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
 
         // std::cout << "new valStackMin: " << stack.Size() - o.op2 <<std::endl;
