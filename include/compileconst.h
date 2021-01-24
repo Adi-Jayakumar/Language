@@ -32,12 +32,3 @@ CompileConst operator>=(const CompileConst &left, const CompileConst &right);
 CompileConst operator<=(const CompileConst &left, const CompileConst &right);
 CompileConst operator==(const CompileConst &left, const CompileConst &right);
 CompileConst operator!=(const CompileConst &left, const CompileConst &right);
-
-struct CompileVar
-{
-    std::string name;
-    uint8_t index;
-    CompileVar() = default;
-    CompileVar(std::string &, uint8_t);
-};
-std::ostream &operator<<(std::ostream &out, const CompileVar &cv);

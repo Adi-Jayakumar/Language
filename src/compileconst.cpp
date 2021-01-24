@@ -102,18 +102,6 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
     return out;
 }
 
-CompileVar::CompileVar(std::string &_name, uint8_t _index)
-{
-    name = _name;
-    index = _index;
-}
-
-std::ostream &operator<<(std::ostream &out, const CompileVar &cv)
-{
-    out << "Name: " << cv.name << " Index on value stack: " << cv.index;
-    return out;
-}
-
 CompileConst operator+(const CompileConst &left, const CompileConst &right)
 {
     switch (left.type)
