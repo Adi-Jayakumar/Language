@@ -102,7 +102,7 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
     return out;
 }
 
-CompileVar::CompileVar(std::string &_name, uint16_t _index)
+CompileVar::CompileVar(std::string &_name, uint8_t _index)
 {
     name = _name;
     index = _index;

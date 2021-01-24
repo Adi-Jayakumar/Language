@@ -1,15 +1,15 @@
 #pragma once
 #include "token.h"
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
-typedef uint16_t TypeID;
+typedef uint8_t TypeID;
 
 struct VarID
 {
     TypeID type;
     std::string name;
-    uint16_t depth;
+    uint8_t depth;
 };
 
 struct FuncID
@@ -19,7 +19,7 @@ struct FuncID
     std::vector<TypeID> argtypes;
 };
 
-// map from literal TokenIDs to 
+// map from literal TokenIDs to
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::INT_L, 1},
     {TokenID::DOUBLE_L, 2},
@@ -30,9 +30,9 @@ static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double"
 
 struct TypeInfo
 {
-    uint16_t left;
+    uint8_t left;
     TokenID t;
-    uint16_t right;
+    uint8_t right;
 };
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);

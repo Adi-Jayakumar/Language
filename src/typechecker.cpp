@@ -23,17 +23,17 @@ TypeID TypeChecker::ResolveVariable(std::string &name)
         if (vars[i].name == name)
             return vars[i].type;
     }
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::CheckVariablesInFunction(std::string &name)
 {
-    for (size_t i = vars.size() - 1; (int) i >= (int) funcVarBegin; i--)
+    for (size_t i = vars.size() - 1; (int)i >= (int)funcVarBegin; i--)
     {
         if ((vars[i].depth == depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
             return vars[i].type;
     }
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 bool TypeChecker::IsVariableInScope(std::string &name)
@@ -54,24 +54,24 @@ void TypeChecker::CleanUpVariables()
 
 TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argtypes)
 {
-    for(size_t i = funcs.size() - 1; (int) i >= 0; i--)
+    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
     {
-        if( (argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
+        if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
         {
             bool doesMatch = true;
-            for(size_t j = 0; j < argtypes.size(); j++)
+            for (size_t j = 0; j < argtypes.size(); j++)
             {
-                if(argtypes[j] != funcs[i].argtypes[j])
+                if (argtypes[j] != funcs[i].argtypes[j])
                 {
                     doesMatch = false;
                     break;
                 }
             }
-            if(doesMatch)
+            if (doesMatch)
                 return i;
         }
     }
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -79,7 +79,7 @@ TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argt
 TypeID TypeChecker::TypeOfLiteral(Literal *l)
 {
     if (l == nullptr)
-        return UINT16_MAX;
+        return UINT8_MAX;
     return l->typeID;
 }
 
@@ -88,7 +88,7 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
     if (u == nullptr)
         return 0;
     if (u->right == nullptr)
-        return UINT16_MAX;
+        return UINT8_MAX;
 
     TypeID opType = u->right->Type(*this);
     TypeInfo info = {opType, u->op.type, 0};
@@ -98,13 +98,13 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
     else
         TypeError(u->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(u->op.type)) + " on operand of type: " + std::to_string(opType));
 
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfBinary(Binary *b)
 {
     if (b == nullptr || b->left == nullptr || b->right == nullptr)
-        return UINT16_MAX;
+        return UINT8_MAX;
 
     TypeID lType = b->left->Type(*this);
     TypeID rType = b->right->Type(*this);
@@ -114,22 +114,22 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
         return OperatorMap.at(info);
     else
         TypeError(b->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(b->op.type)) + " on operands of type: " + std::to_string(lType) + " and: " + std::to_string(rType));
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
     TypeID varType;
-    if(isInFunc)
+    if (isInFunc)
     {
         varType = CheckVariablesInFunction(a->var->name);
-        if(varType == UINT16_MAX)
+        if (varType == UINT8_MAX)
             varType = ResolveVariable(a->var->name);
     }
     else
         varType = ResolveVariable(a->var->name);
 
-    if (varType == UINT16_MAX)
+    if (varType == UINT8_MAX)
         TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
 
     // TypeID varType = ResolveVariable(a->var->name);
@@ -139,7 +139,7 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
         return varType;
     else
         TypeError(a->Loc(), "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->var->name + "' of type: " + std::to_string(varType));
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
@@ -148,13 +148,13 @@ TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
     if (isInFunc)
     {
         type = CheckVariablesInFunction(vr->name);
-        if (type == UINT16_MAX)
+        if (type == UINT8_MAX)
             type = ResolveVariable(vr->name);
     }
     else
         type = ResolveVariable(vr->name);
 
-    if (type == UINT16_MAX)
+    if (type == UINT8_MAX)
         TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");
 
     return type;
@@ -164,17 +164,17 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 {
     std::vector<TypeID> argtypes;
 
-    for(auto &e : fc->args)
+    for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
 
     size_t index = ResolveFunction(fc->name, argtypes);
 
-    if(index == UINT16_MAX)
+    if (index == UINT8_MAX)
         TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
 
-    if(index > UINT16_MAX)
-        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT16_MAX) + " functions");
-    
+    if (index > UINT8_MAX)
+        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
+
     return funcs[index].ret;
 }
 
@@ -190,7 +190,7 @@ TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
 TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
     if (dv == nullptr)
-        return UINT16_MAX;
+        return UINT8_MAX;
 
     if (IsVariableInScope(dv->name))
         TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
@@ -208,7 +208,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         else
             TypeError(dv->Loc(), "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + dv->name + "' of type: " + std::to_string(varType));
     }
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfBlock(Block *b)
@@ -220,7 +220,7 @@ TypeID TypeChecker::TypeOfBlock(Block *b)
         s->Type(*this);
     // CleanUpVariables();
     depth--;
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
@@ -230,16 +230,16 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
     i->thenBranch->Type(*this);
     if (i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
     std::vector<TypeID> argtypes;
 
-    for(auto &t : fd->params)
+    for (auto &t : fd->params)
     {
-        if(t.type == TokenID::TYPENAME)
+        if (t.type == TokenID::TYPENAME)
             argtypes.push_back(TypeNameMap[t.literal]);
     }
 
@@ -266,7 +266,7 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     isInFunc = false;
     CleanUpVariables();
     funcVarBegin = 0;
-    return UINT16_MAX;
+    return UINT8_MAX;
 }
 
 TypeID TypeChecker::TypeOfReturn(Return *r)

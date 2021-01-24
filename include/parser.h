@@ -9,7 +9,7 @@ struct Parser
     Token cur;
     Token next;
 
-    uint16_t depth;
+    uint8_t depth;
 
     Parser(const std::string &fPath);
 

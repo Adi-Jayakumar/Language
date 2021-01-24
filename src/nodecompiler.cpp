@@ -12,7 +12,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
     c.cur->constants.push_back(copy);
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.cur->constants.size() - 1), 0});
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1), 0});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
@@ -32,15 +32,15 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
     size_t index = c.cur->ChunkResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.cur->code.push_back({Opcode::VAR_A, c.cur->vars[index].index, static_cast<uint16_t>(index)});
-    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
+    c.cur->code.push_back({Opcode::VAR_A, c.cur->vars[index].index, static_cast<uint8_t>(index)});
+    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint8_t>(index)});
     c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     size_t index = c.cur->ChunkResolveVariable(vr->name);
-    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint16_t>(index)});
+    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint8_t>(index)});
 }
 
 //------------------STATEMENTS---------------------//
@@ -50,49 +50,48 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
 
     // TEMPORARY THING UNTIL WE SUPPORT RETURN STATEMENTS
-    if(dynamic_cast<FunctionCall*>(es->exp.get()) == nullptr)
+    if (dynamic_cast<FunctionCall *>(es->exp.get()) == nullptr)
         c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     c.cur->vars.push_back({dv->name, c.cur->depth, 0});
-    uint16_t rtindex = static_cast<uint16_t>(c.cur->vars.size() - 1 - c.cur->numPops);
+    uint8_t rtindex = static_cast<uint8_t>(c.cur->vars.size() - 1 - c.cur->numPops);
     c.cur->vars.back().index = rtindex;
-    if(dv->value != nullptr)
+    if (dv->value != nullptr)
         dv->value->NodeCompile(c);
     else
     {
         CompileConst defVal;
         switch (dv->tId)
         {
-            case 1:
-            {
-                defVal = CompileConst(1, "0");
-                break;
-            }
-            case 2:
-            {
-                defVal = CompileConst(2, "0");
-                break;
-            }
-            case 3:
-            {
-                defVal = CompileConst(3, "false");
-                break;
-            }
-            default:
-            {
-                defVal = CompileConst(0, "");
-                break;
-            }
+        case 1:
+        {
+            defVal = CompileConst(1, "0");
+            break;
+        }
+        case 2:
+        {
+            defVal = CompileConst(2, "0");
+            break;
+        }
+        case 3:
+        {
+            defVal = CompileConst(3, "false");
+            break;
+        }
+        default:
+        {
+            defVal = CompileConst(0, "");
+            break;
+        }
         }
 
         c.cur->constants.push_back(defVal);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint16_t>(c.cur->constants.size() - 1), 0});
-
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1), 0});
     }
-    c.cur->code.push_back({Opcode::VAR_D, rtindex, static_cast<uint16_t>(c.cur->vars.size() - 1)});
+    c.cur->code.push_back({Opcode::VAR_D, rtindex, static_cast<uint8_t>(c.cur->vars.size() - 1)});
     // c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 
@@ -119,15 +118,15 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     size_t sizeDiff = c.cur->code.size() - befSize;
 
-    if (sizeDiff > UINT16_MAX)
+    if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
 
-    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff - 1);
+    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff - 1);
 
     if (i->elseBranch == nullptr)
         return;
     c.cur->code[patchIndex].op1++;
-    
+
     c.cur->code.push_back({Opcode::JUMP, 0, 0});
     c.cur->code.push_back({Opcode::POP, 0, 0});
 
@@ -137,15 +136,15 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     i->elseBranch->NodeCompile(c);
 
     sizeDiff = c.cur->code.size() - befSize;
-    if (sizeDiff > UINT16_MAX)
+    if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
-    c.cur->code[patchIndex].op1 = static_cast<uint16_t>(sizeDiff + 1);
+    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff + 1);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
-    if(fd->params.size() > UINT16_MAX)
-        CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
+    if (fd->params.size() > UINT8_MAX)
+        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
 
     c.funcs.push_back(fd->name);
     size_t numVars = 0;
@@ -160,7 +159,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
             arg.index = c.cur->vars.size();
 
             c.cur->vars.push_back(arg);
-            c.cur->code.push_back({Opcode::VAR_D, static_cast<uint16_t>(numVars), static_cast<uint16_t>(c.cur->vars.size() - 1)});
+            c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
             numVars++;
         }
     }
@@ -173,7 +172,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
-    if(r->retVal == nullptr)
+    if (r->retVal == nullptr)
         // the 1 in op1's position is to ensure that we do not pop a value off the stack
         c.cur->code.push_back({Opcode::RETURN, 1, 0});
     else
@@ -187,17 +186,16 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     size_t index = c.ResolveFunction(fc->name);
 
-    if(index > UINT16_MAX)
+    if (index > UINT8_MAX)
         CompileError("Too many functions");
 
-    if (fc->args.size() > UINT16_MAX)
-        CompileError("Functions can only have " + std::to_string(UINT16_MAX) + " number of arguments");
+    if (fc->args.size() > UINT8_MAX)
+        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
 
-    
-    for(std::shared_ptr<Expr> &e : fc->args)
+    for (std::shared_ptr<Expr> &e : fc->args)
         e->NodeCompile(c);
-    
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint16_t>(index  + 1), static_cast<uint16_t>(fc->args.size())});
+
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1), static_cast<uint8_t>(fc->args.size())});
 }
 
 //-----------------EXPRESSIONS---------------------//

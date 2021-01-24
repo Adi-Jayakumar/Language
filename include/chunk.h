@@ -5,8 +5,8 @@
 struct CTVarID
 {
     std::string name;
-    uint16_t depth;
-    uint16_t index;
+    uint8_t depth;
+    uint8_t index;
 };
 
 struct Chunk
@@ -14,8 +14,8 @@ struct Chunk
     std::vector<Op> code;
     std::vector<CompileConst> constants;
     std::vector<CTVarID> vars;
-    uint16_t depth = 1;
-    uint16_t numPops = 0;
+    uint8_t depth = 1;
+    uint8_t numPops = 0;
     Chunk() = default;
     ~Chunk() = default;
 

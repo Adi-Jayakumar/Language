@@ -88,7 +88,7 @@ std::string ToString(Opcode o)
     }
     default:
     {
-        return "UNRECOGNISED OPCODE " + std::to_string((uint16_t)o);
+        return "UNRECOGNISED OPCODE " + std::to_string((uint8_t)o);
     }
     }
 }

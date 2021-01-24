@@ -106,7 +106,8 @@ void VM::ExecuteInstruction()
     {
         CompileVar var = vars[o.op1 + curCF.varListMin];
         CompileConst v = stack[var.index];
-        std::cout << "Var val: " << v << std::endl;
+        if(curChunk == 0)
+            std::cout << "Var val: " << v << std::endl;
         stack.Push(v);
         break;
     }
@@ -133,7 +134,7 @@ void VM::ExecuteInstruction()
     case Opcode::CALL_F:
     {
 
-        std::cout << "Calling function: " << o.op1 << std::endl;
+        // std::cout << "Calling function: " << o.op1 << std::endl;
 
         cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
 
@@ -144,7 +145,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::RETURN:
     {
-        std::cout << "Returning from function: " << curChunk << std::endl;
+        // std::cout << "Returning from function: " << curChunk << std::endl;
         CallFrame returnCF = cs.Top();
         cs.Pop();
         ip = returnCF.retIndex - 1;

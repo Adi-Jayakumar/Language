@@ -5,7 +5,7 @@
 
 struct TypeChecker
 {
-    uint16_t depth;
+    uint8_t depth;
     bool isInFunc = false;
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;

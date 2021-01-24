@@ -38,6 +38,6 @@ Opcode TokenToOpcode(TokenID t);
 struct Op
 {
     Opcode code;
-    uint16_t op1;
-    uint16_t op2;
+    uint8_t op1;
+    uint8_t op2;
 };
