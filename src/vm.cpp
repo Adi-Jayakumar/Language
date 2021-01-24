@@ -73,7 +73,6 @@ void VM::ExecuteCurrentChunk()
 void VM::ExecuteInstruction()
 {
     Op o = functions[curChunk].code[ip];
-    // Op o = *ip;
     switch (o.code)
     {
     // pops the top value off the stack
@@ -92,47 +91,22 @@ void VM::ExecuteInstruction()
     // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
     case Opcode::VAR_D:
     {
-        // std::cout << "Running Var_D" << std::endl;
         vars.push_back(CompileVar(functions[curChunk].vars[o.op2].name, curCF.valStackMin + o.op1));
         break;
     }
     case Opcode::VAR_A:
     {
-        // vars[curCF.varListMin + o.op1].index = stack.Size() - 1;
         CompileConst value = stack.Top();
-        // std::cout << "assignment value: " << value << std::endl;
         size_t indexOfAssginee = vars[curCF.varListMin + o.op1].index;
-        // std::cout << "current value there: " << stack[indexOfAssginee] << std::endl;
         stack[indexOfAssginee] = value;
-        // std::cout << "Value after assignment: " << stack[indexOfAssginee] << std::endl;
         break;
     }
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        //     std::cout << "varListMin: " << curCF.varListMin <<  std::endl;
-        //     std::cout << "GET_V index into vars: " << o.op1 + curCF.varListMin << std::endl;
         CompileVar var = vars[o.op1 + curCF.varListMin];
-        // std::cout << "Var at that index: " << var << std::endl;
-        // std::cout << "GET_V index into value stack: " << var.index << std::endl;
         CompileConst v = stack[var.index];
-        // std::cout << "Value at that index: " << v << std::endl;
         std::cout << "Var val: " << v << std::endl;
-
-        // std::cout << std::endl;
-        // std::cout << "Stuff in vars: " << std::endl;
-        // for (CompileVar &cv : vars)
-        // {
-        //     std::cout << cv << std::endl;
-        // }
-
-        // std::cout << std::endl;
-        // std::cout << "Stuff in stack" << std::endl;
-        // PrintStack();
-
-        // std::cout << std::endl
-        //           << std::endl;
-
         stack.Push(v);
         break;
     }
@@ -158,28 +132,13 @@ void VM::ExecuteInstruction()
     // op1 is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
-        // std::cout << "CALL_F, vars.size(): " << vars.size() << std::endl;
-        // std::cout << "Stuff in vars" << std::endl;
-        // for (CompileVar &cv : vars)
-        // {
-        //     std::cout << cv << std::endl;
-        // }
 
         std::cout << "Calling function: " << o.op1 << std::endl;
 
         cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
 
-        // std::cout << "new valStackMin: " << stack.Size() - o.op2 <<std::endl;
-        // std::cout << "new valListMin: " << vars.size() << std::endl;
-
-        // std::cout << std::endl
-        //           << std::endl;
-
         curChunk = o.op1;
         curCF = cs.Top();
-        // ip is incremented after each instruction executes so need to set it to -1
-        // -1 here is SIZE_MAX but C++ standard specifies unsigned addition wraps around
-        // conveniently
         ip = -1;
         break;
     }
@@ -194,24 +153,14 @@ void VM::ExecuteInstruction()
 
         size_t stackDiff = stack.Size() - returnCF.valStackMin;
         size_t varDiff = vars.size() - returnCF.varListMin;
-
-        // std::cout << "stackDiff: " << stackDiff << std::endl;
-        // std::cout << "varDiff: " << varDiff << std::endl;
-        
-        // std::cout << "stack size: " << stack.Size() << std::endl;
-        // std::cout << "vars size: " << vars.size() << std::endl;
-
         CompileConst retVal;
 
         if(o.op1 == 0)
             retVal = stack.Top();
 
-        // std::cout << "retVal: " << retVal << std::endl;
-
         // cleaning up the function's constants
         stack.s.resize(stack.s.size() - stackDiff);
 
-        // std::cout << "Done stack" << std::endl;
 
         // cleaning up the fucntion's varaib;es
         vars.resize(vars.size() - varDiff);
@@ -219,12 +168,6 @@ void VM::ExecuteInstruction()
 
         if(o.op1 == 0)
             stack.Push(retVal);
-
-        // std::cout << "printing stack: " << std::endl;
-        // PrintStack();
-
-        // std::cout << "Printing vars" << std::endl;
-        // PrintVars();
 
         break;
     }
