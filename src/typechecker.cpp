@@ -250,7 +250,7 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
-        TypeID pType;
+        TypeID pType = 0;
         std::string pName;
         if (fd->params[i].type == TokenID::TYPENAME)
             pType = TypeNameMap[fd->params[i].literal];

@@ -168,7 +168,7 @@ std::shared_ptr<Block> Parser::ParseBlock()
         if (cur.type == TokenID::OPEN_BRACE)
             result->stmts.push_back(ParseBlock());
         else
-            result->stmts.push_back(Declaration());
+            result->stmts.push_back(Statement());
     }
 
     if (cur.type == TokenID::CLOSE_BRACE)

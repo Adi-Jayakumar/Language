@@ -22,10 +22,20 @@ void VM::SetChunk(size_t n)
 void VM::PrintStack()
 {
     Stack s = stack;
-    while (!s.Empty())
+    std::cout << "index |||| value" << std::endl;
+    for(size_t i = s.s.size() - 1; (int) i >= 0; i--)
     {
-        std::cout << s.Top() << std::endl;
-        s.Pop();
+        std::cout << i << " " << s.s[i] << std::endl;
+    }
+}
+
+void VM::PrintVars()
+{
+    Stack s = stack;
+    std::cout << "index |||| value" << std::endl;
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        std::cout << i << " " << vars[i] << std::endl;
     }
 }
 
@@ -47,6 +57,7 @@ void VM::ExecuteCurrentChunk()
 
         if (cs.Size() != 1)
         {
+            std::cout << "Finished executing fucntion " << curChunk << std::endl;
             // CallFrame with the details of where to return to
             CallFrame returnCF = cs.Top();
             cs.Pop();
@@ -81,6 +92,7 @@ void VM::ExecuteInstruction()
     // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
     case Opcode::VAR_D:
     {
+        // std::cout << "Running Var_D" << std::endl;
         vars.push_back(CompileVar(functions[curChunk].vars[o.op2].name, curCF.valStackMin + o.op1));
         break;
     }
@@ -153,7 +165,7 @@ void VM::ExecuteInstruction()
         //     std::cout << cv << std::endl;
         // }
 
-        std::cout << "Going into function: " << o.op1 << std::endl;
+        std::cout << "Calling function: " << o.op1 << std::endl;
 
         cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
 
@@ -169,6 +181,51 @@ void VM::ExecuteInstruction()
         // -1 here is SIZE_MAX but C++ standard specifies unsigned addition wraps around
         // conveniently
         ip = -1;
+        break;
+    }
+    case Opcode::RETURN:
+    {
+        std::cout << "Returning from function: " << curChunk << std::endl;
+        CallFrame returnCF = cs.Top();
+        cs.Pop();
+        ip = returnCF.retIndex - 1;
+        curChunk = returnCF.retChunk;
+        curCF = cs.Top();
+
+        size_t stackDiff = stack.Size() - returnCF.valStackMin;
+        size_t varDiff = vars.size() - returnCF.varListMin;
+
+        // std::cout << "stackDiff: " << stackDiff << std::endl;
+        // std::cout << "varDiff: " << varDiff << std::endl;
+        
+        // std::cout << "stack size: " << stack.Size() << std::endl;
+        // std::cout << "vars size: " << vars.size() << std::endl;
+
+        CompileConst retVal;
+
+        if(o.op1 == 0)
+            retVal = stack.Top();
+
+        // std::cout << "retVal: " << retVal << std::endl;
+
+        // cleaning up the function's constants
+        stack.s.resize(stack.s.size() - stackDiff);
+
+        // std::cout << "Done stack" << std::endl;
+
+        // cleaning up the fucntion's varaib;es
+        vars.resize(vars.size() - varDiff);
+
+
+        if(o.op1 == 0)
+            stack.Push(retVal);
+
+        // std::cout << "printing stack: " << std::endl;
+        // PrintStack();
+
+        // std::cout << "Printing vars" << std::endl;
+        // PrintVars();
+
         break;
     }
     // adds the last 2 things on the stack

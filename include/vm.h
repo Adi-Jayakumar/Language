@@ -34,6 +34,7 @@ struct VM
     VM(std::vector<Chunk> &);
 
     void PrintStack();
+    void PrintVars();
 
     void SetChunk(size_t);
 

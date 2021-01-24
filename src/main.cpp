@@ -17,10 +17,10 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("ex/func.txt");
+    // DumpTokens("ex/func.txt");
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
     Parser p = Parser("ex/func.txt");
 

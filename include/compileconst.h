@@ -37,6 +37,7 @@ struct CompileVar
 {
     std::string name;
     uint16_t index;
+    CompileVar() = default;
     CompileVar(std::string &, uint16_t );
 };
 std::ostream& operator<<(std::ostream& out, const CompileVar &cv);
