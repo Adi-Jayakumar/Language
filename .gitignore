@@ -34,8 +34,8 @@ bin/*
 
 # Example files
 ex/*
-
 notes/*
+analyses/*
 
 # vscode specific
 *.code-workspace
