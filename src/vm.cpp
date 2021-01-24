@@ -50,7 +50,6 @@ void VM::ExecuteCurrentChunk()
     {
         while (ip != functions[curChunk].code.size())
         {
-            // std::cout << ToString(functions[curChunk].code[ip].code) << " " << functions[curChunk].code[ip].op1 << " " << functions[curChunk].code[ip].op2 << std::endl;
             ExecuteInstruction();
             Jump(1);
         }
@@ -91,7 +90,6 @@ void VM::ExecuteInstruction()
     // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
     case Opcode::VAR_D:
     {
-        // vars.push_back(CompileVar(functions[curChunk].vars[o.op2].name, curCF.valStackMin + o.op1));
         vars.push_back(curCF.valStackMin + o.op1);
         break;
     }
@@ -106,8 +104,6 @@ void VM::ExecuteInstruction()
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        // CompileVar var = vars[o.op1 + curCF.varListMin];
-        // CompileConst v = stack[var.index];
         uint8_t var = vars[o.op1 + curCF.varListMin];
         CompileConst v = stack[var];
         if(curChunk == 0)
