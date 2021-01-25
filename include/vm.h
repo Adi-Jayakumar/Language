@@ -1,10 +1,8 @@
 #pragma once
+#include "callstack.h"
+#include "compileconst.h"
 #include "compiler.h"
 #include "stack.h"
-#include "compileconst.h"
-#include "callstack.h"
-
-
 
 struct VM
 {
