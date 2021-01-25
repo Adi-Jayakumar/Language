@@ -121,7 +121,7 @@ void VM::ExecuteInstruction()
     {
         if (!IsTruthy(stack.Top()))
             ip += o.op1;
-        // stack.Pop();
+        stack.Pop();
         break;
     }
     // adds the operand to the ip

@@ -114,8 +114,6 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     i->thenBranch->NodeCompile(c);
 
-    c.cur->code.push_back({Opcode::POP, 0, 0});
-
     size_t sizeDiff = c.cur->code.size() - befSize;
 
     if (sizeDiff > UINT8_MAX)
@@ -128,9 +126,8 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     c.cur->code[patchIndex].op1++;
 
     c.cur->code.push_back({Opcode::JUMP, 0, 0});
-    c.cur->code.push_back({Opcode::POP, 0, 0});
 
-    patchIndex = c.cur->code.size() - 2;
+    patchIndex = c.cur->code.size() - 1;
     befSize = c.cur->code.size();
 
     i->elseBranch->NodeCompile(c);

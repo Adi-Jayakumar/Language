@@ -56,7 +56,7 @@ int main()
     auto t2 = std::chrono::high_resolution_clock::now();
 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << (double)duration/1e3 << std::endl;
+    std::cout << "Time taken (s): " << (double)duration/1e3 << std::endl;
 
     std::cout << std::endl
               << std::endl;
