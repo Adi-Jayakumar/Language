@@ -23,7 +23,7 @@ void VM::PrintStack()
 {
     Stack s = stack;
     std::cout << "index |||| value" << std::endl;
-    for(size_t i = s.s.size() - 1; (int) i >= 0; i--)
+    for (size_t i = s.s.size() - 1; (int)i >= 0; i--)
     {
         std::cout << i << " " << s.s[i] << std::endl;
     }
@@ -106,7 +106,7 @@ void VM::ExecuteInstruction()
     {
         uint8_t var = vars[o.op1 + curCF.varListMin];
         CompileConst v = stack[var];
-        if(curChunk == 0)
+        if (curChunk == 0)
             std::cout << "Var val: " << v << std::endl;
         stack.Push(v);
         break;
@@ -156,18 +156,16 @@ void VM::ExecuteInstruction()
         size_t varDiff = vars.size() - returnCF.varListMin;
         CompileConst retVal;
 
-        if(o.op1 == 0)
+        if (o.op1 == 0)
             retVal = stack.Top();
 
         // cleaning up the function's constants
         stack.s.resize(stack.s.size() - stackDiff);
 
-
         // cleaning up the fucntion's varaib;es
         vars.resize(vars.size() - varDiff);
 
-
-        if(o.op1 == 0)
+        if (o.op1 == 0)
             stack.Push(retVal);
 
         break;

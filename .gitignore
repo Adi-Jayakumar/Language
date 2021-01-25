@@ -39,3 +39,6 @@ analyses/*
 
 # vscode specific
 *.code-workspace
+
+# Makefile
+./Makefile

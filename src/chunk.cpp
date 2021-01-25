@@ -9,8 +9,8 @@ void Chunk::PrintCode()
             std::cout << " '" << constants[o.op1] << "' at index: " << +o.op1;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
             std::cout << " '" << vars[o.op2].name << "' at runtime index: " << +o.op1 << " at compile time index: " << o.op2;
-        else if(o.code == Opcode::CALL_F)
-            std::cout << " " <<  o.op1 << " " << o.op2;
+        else if (o.code == Opcode::CALL_F)
+            std::cout << " " << o.op1 << " " << o.op2;
         else
             std::cout << " " << +o.op1;
 

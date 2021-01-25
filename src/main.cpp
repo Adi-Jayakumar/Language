@@ -22,7 +22,8 @@ int main()
     // std::cout << std::endl
     //           << std::endl;
 
-    Parser p = Parser("ex/func.txt");
+    // Parser p = Parser("ex/func.txt");
+    Parser p = Parser("ex/if.txt");
 
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 

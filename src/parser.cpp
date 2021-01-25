@@ -46,13 +46,13 @@ std::shared_ptr<Stmt> Parser::Statement()
         return ParseBlock();
     else if (cur.type == TokenID::IF)
         return IfStatement();
-    else if(cur.type == TokenID::RETURN)
+    else if (cur.type == TokenID::RETURN)
     {
         // skipping the 'return' token
         Advance();
 
         // if the statement is 'return;'
-        if(cur.type == TokenID::SEMI)
+        if (cur.type == TokenID::SEMI)
         {
             Advance();
             return std::make_shared<Return>(nullptr, cur);
