@@ -57,7 +57,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     c.cur->vars.push_back({dv->name, c.cur->depth, 0});
-    uint8_t rtindex = static_cast<uint8_t>(c.cur->vars.size() - 1 - c.cur->numPops);
+    uint8_t rtindex = static_cast<uint8_t>(c.cur->vars.size() - 1);
     c.cur->vars.back().index = rtindex;
     if (dv->value != nullptr)
         dv->value->NodeCompile(c);
@@ -119,10 +119,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
 
-    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff - 1);
+    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
+
     c.cur->code[patchIndex].op1++;
 
     c.cur->code.push_back({Opcode::JUMP, 0, 0});
@@ -135,7 +136,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     sizeDiff = c.cur->code.size() - befSize;
     if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
-    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff + 1);
+    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
