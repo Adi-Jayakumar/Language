@@ -2,7 +2,7 @@
 
 VM::VM(std::vector<Chunk> &_functions)
 {
-    stack = Stack();
+    stack = Stack(512);
     functions = _functions;
 
     cs = CallStack();

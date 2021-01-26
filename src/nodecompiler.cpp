@@ -59,6 +59,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     c.cur->vars.push_back({dv->name, c.cur->depth, 0});
     uint8_t rtindex = static_cast<uint8_t>(c.cur->vars.size() - 1);
     c.cur->vars.back().index = rtindex;
+
     if (dv->value != nullptr)
         dv->value->NodeCompile(c);
     else
@@ -91,7 +92,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         c.cur->constants.push_back(defVal);
         c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1), 0});
     }
-    c.cur->code.push_back({Opcode::VAR_D, rtindex, static_cast<uint8_t>(c.cur->vars.size() - 1)});
+    c.cur->code.push_back({Opcode::VAR_D, rtindex, 0});
     // c.cur->code.push_back({Opcode::POP, 0, 0});
 }
 

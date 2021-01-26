@@ -4,7 +4,6 @@
 #include "vm.h"
 #include <chrono>
 
-// MAIN IN RTOPTIMISATION
 void DumpTokens(std::string fPath)
 {
     Lexer l = Lexer(fPath);
@@ -29,13 +28,13 @@ int main()
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
     std::cout << std::endl
-              << std::endl;
+    << std::endl;
 
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
     std::cout << std::endl
-              << std::endl;
+    << std::endl;
 
     TypeChecker t = TypeChecker();
     for (auto &s : res)
@@ -46,34 +45,34 @@ int main()
     c.Disassemble();
 
     std::cout << std::endl
-              << std::endl;
+    << std::endl;
 
-    VM vm = VM(c.chunks);
+    // VM vm = VM(c.chunks);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    // auto t1 = std::chrono::high_resolution_clock::now();
 
-    vm.ExecuteCurrentChunk();
+    // vm.ExecuteCurrentChunk();
 
-    auto t2 = std::chrono::high_resolution_clock::now();
+    // auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "Time taken (s): " << (double)duration / 1e3 << std::endl;
+    // auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    // std::cout << "Time taken (s): " << (double)duration / 1e3 << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    // << std::endl;
 
-    std::cout << "Vars not cleaned up:" << std::endl;
-    for (uint8_t &u : vm.vars)
-    {
-        std::cout << "Stack index: " << u << " value: " << vm.stack[u] << std::endl;
-    }
+    // std::cout << "Vars not cleaned up:" << std::endl;
+    // for (uint8_t &u : vm.vars)
+    // {
+    //     std::cout << "Stack index: " << u << " value: " << vm.stack[u] << std::endl;
+    // }
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    // << std::endl;
 
-    std::cout << "Constants on the stack not cleaned up" << std::endl;
-    for (auto thing : vm.stack.s)
-    {
-        std::cout << thing << std::endl;
-    }
+    // std::cout << "Constants on the stack not cleaned up" << std::endl;
+    // for (auto thing : vm.stack.s)
+    // {
+    //     std::cout << thing << std::endl;
+    // }
 }

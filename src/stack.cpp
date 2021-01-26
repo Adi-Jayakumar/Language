@@ -1,5 +1,10 @@
 #include "stack.h"
 
+Stack::Stack(size_t preAlloc)
+{
+    s.reserve(preAlloc);
+}
+
 void Stack::Push(CompileConst cc)
 {
     s.push_back(cc);

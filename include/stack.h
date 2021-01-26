@@ -5,6 +5,7 @@ struct Stack
 {
     std::vector<CompileConst> s;
     Stack() = default;
+    Stack(size_t);
 
     void Push(CompileConst cc);
     CompileConst Top();
