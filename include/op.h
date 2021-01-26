@@ -37,5 +37,4 @@ struct Op
 {
     Opcode code;
     uint8_t op1;
-    uint8_t op2;
 };

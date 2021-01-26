@@ -2,6 +2,7 @@
 
 void CallStack::Push(CallFrame cf)
 {
+
     if (s.size() == UINT8_MAX)
     {
         std::cout << "Stack overflow." << std::endl;

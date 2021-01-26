@@ -12,35 +12,35 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
     c.cur->constants.push_back(copy);
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1), 0});
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
     u->right->NodeCompile(c);
-    c.cur->code.push_back({TokenToOpcode(u->op.type), 0, 0});
+    c.cur->code.push_back({TokenToOpcode(u->op.type), 0});
 }
 
 void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 {
     b->left->NodeCompile(c);
     b->right->NodeCompile(c);
-    c.cur->code.push_back({TokenToOpcode(b->op.type), 0, 0});
+    c.cur->code.push_back({TokenToOpcode(b->op.type), 0});
 }
 
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
     a->val->NodeCompile(c);
     size_t stackIndex = c.cur->ChunkResolveVariable(a->var->name);
-    c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex), 0});
-    c.cur->code.push_back({Opcode::POP, 0, 0});
-    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex), 0});
+    c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
+    c.cur->code.push_back({Opcode::POP, 0});
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     size_t stackIndex = c.cur->ChunkResolveVariable(vr->name);
-    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex), 0});
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
 }
 
 //------------------STATEMENTS---------------------//
@@ -51,7 +51,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
     // TEMPORARY THING UNTIL WE SUPPORT RETURN STATEMENTS
     if (dynamic_cast<FunctionCall *>(es->exp.get()) == nullptr)
-        c.cur->code.push_back({Opcode::POP, 0, 0});
+        c.cur->code.push_back({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
@@ -75,7 +75,7 @@ void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 {
     i->cond->NodeCompile(c);
-    c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0, 0});
+    c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0});
 
     size_t patchIndex = c.cur->code.size() - 1;
     size_t befSize = c.cur->code.size();
@@ -94,7 +94,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     c.cur->code[patchIndex].op1++;
 
-    c.cur->code.push_back({Opcode::JUMP, 0, 0});
+    c.cur->code.push_back({Opcode::JUMP, 0});
 
     patchIndex = c.cur->code.size() - 1;
     befSize = c.cur->code.size();
@@ -140,11 +140,11 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
     if (r->retVal == nullptr)
         // the 1 in op1's position is to ensure that we do not pop a value off the stack
-        c.cur->code.push_back({Opcode::RETURN, 1, 0});
+        c.cur->code.push_back({Opcode::RETURN, 1});
     else
     {
         r->retVal->NodeCompile(c);
-        c.cur->code.push_back({Opcode::RETURN, 0, 0});
+        c.cur->code.push_back({Opcode::RETURN, 0});
     }
 }
 
@@ -156,12 +156,14 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         CompileError("Too many functions");
 
     if (fc->args.size() > UINT8_MAX)
-        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
+        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
 
     for (std::shared_ptr<Expr> &e : fc->args)
         e->NodeCompile(c);
 
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1), static_cast<uint8_t>(fc->args.size())});
+    c.cur->arity = static_cast<uint8_t>(fc->args.size());
+
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
 
 //-----------------EXPRESSIONS---------------------//

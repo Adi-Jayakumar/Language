@@ -5,13 +5,20 @@ VM::VM(std::vector<Chunk> &_functions)
     stack = Stack(512);
     functions = _functions;
 
-    cs = CallStack();
-    cs.Push({0, 0, 0});
+    // cs = CallStack();
+    // cs.Push({0, 0, 0});
+    // curCF = cs.Top();
 
-    curCF = cs.Top();
+    cs = new CallFrame[UINT8_MAX];
+    curCF = cs;
+    *curCF = {0, 0, 0};
 
     curChunk = 0;
     ip = 0;
+}
+VM::~VM()
+{
+    delete[] cs;
 }
 
 void VM::SetChunk(size_t n)
@@ -36,7 +43,8 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteCurrentChunk()
 {
-    while (cs.Size() >= 1)
+    // while (cs.Size() >= 1)
+    while (true)
     {
         while (ip != functions[curChunk].code.size())
         {
@@ -44,15 +52,22 @@ void VM::ExecuteCurrentChunk()
             Jump(1);
         }
 
-        if (cs.Size() != 1)
+        // if (cs.Size() != 1)
+        if ((curCF - cs) != 0)
         {
             std::cout << "Finished executing fucntion " << curChunk << std::endl;
+            // // CallFrame with the details of where to return to
+            // CallFrame returnCF = cs.Top();
+            // cs.Pop();
+            // ip = returnCF.retIndex;
+            // curChunk = returnCF.retChunk;
+            // curCF = cs.Top();
+
             // CallFrame with the details of where to return to
-            CallFrame returnCF = cs.Top();
-            cs.Pop();
-            ip = returnCF.retIndex;
-            curChunk = returnCF.retChunk;
-            curCF = cs.Top();
+            CallFrame *returnCF = curCF;
+            curCF--;
+            ip = returnCF->retIndex;
+            curChunk = returnCF->retChunk;
         }
         else
             break;
@@ -80,13 +95,13 @@ void VM::ExecuteInstruction()
     case Opcode::VAR_A:
     {
         CompileConst value = stack.Top();
-        stack[o.op1 + curCF.valStackMin] = value;
+        stack[o.op1 + curCF->valStackMin] = value;
         break;
     }
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        CompileConst v = stack[o.op1 + curCF.valStackMin];
+        CompileConst v = stack[o.op1 + curCF->valStackMin];
         if (curChunk == 0)
             std::cout << "Var val: " << v << std::endl;
         stack.Push(v);
@@ -109,26 +124,39 @@ void VM::ExecuteInstruction()
     // op1 is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
+        // cs.Push({ip + 1, curChunk, stack.Size() - functions[curChunk].arity});
+        curCF++;
 
-        // std::cout << "Calling function: " << o.op1 << std::endl;
-
-        cs.Push({ip + 1, curChunk, stack.Size() - o.op2});
+        if (curCF == &cs[UINT8_MAX - 1])
+        {
+            std::cout << "CallStack overflow." << std::endl;
+            exit(3);
+        }
+        
+        *curCF = {ip + 1, curChunk, stack.Size() - functions[curChunk].arity};
 
         curChunk = o.op1;
-        curCF = cs.Top();
+        // curCF = cs.Top();
         ip = -1;
         break;
     }
     case Opcode::RETURN:
     {
-        // std::cout << "Returning from function: " << curChunk << std::endl;
-        CallFrame returnCF = cs.Top();
-        cs.Pop();
-        ip = returnCF.retIndex - 1;
-        curChunk = returnCF.retChunk;
-        curCF = cs.Top();
+        // CallFrame returnCF = cs.Top();
+        // cs.Pop();
 
-        size_t stackDiff = stack.Size() - returnCF.valStackMin;
+        CallFrame *returnCF = curCF;
+        curCF--;
+
+        // ip = returnCF.retIndex - 1;
+        // curChunk = returnCF.retChunk;
+
+        ip = returnCF->retIndex - 1;
+        curChunk = returnCF->retChunk;
+
+        // curCF = cs.Top();
+
+        size_t stackDiff = stack.Size() - returnCF->valStackMin;
         CompileConst retVal;
 
         if (o.op1 == 0)

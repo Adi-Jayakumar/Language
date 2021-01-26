@@ -10,7 +10,7 @@ void Chunk::PrintCode()
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
             std::cout << " '" << vars[o.op1].name << "' at relative stack index: " << +o.op1;
         else if (o.code == Opcode::CALL_F)
-            std::cout << " " << +o.op1 << " " << +o.op2;
+            std::cout << " " << +o.op1;
         else
             std::cout << " " << +o.op1;
 
@@ -35,8 +35,7 @@ void Chunk::CleanUpVariables()
     {
         if (vars[i].depth == depth)
         {
-            code.push_back({Opcode::POP, 0, 0});
-            // code.push_back({Opcode::DEL_V, 0, 0});
+            code.push_back({Opcode::POP, 0});
             vars.pop_back();
         }
     }

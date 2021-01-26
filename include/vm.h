@@ -17,10 +17,15 @@ struct VM
 
     // instruction pointer
     size_t ip;
-    // Call stack
-    CallStack cs;
-    // current CallFrame
-    CallFrame curCF;
+
+    // // Call stack
+    // CallStack cs;
+    CallFrame* cs;
+
+    // // current CallFrame
+    // CallFrame curCF;
+    CallFrame* curCF;
+
     // current Chunk index
     size_t curChunk;
 
@@ -29,6 +34,7 @@ struct VM
     Stack stack;
 
     VM(std::vector<Chunk> &);
+    ~VM();
 
     void PrintStack();
 
