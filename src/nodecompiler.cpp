@@ -30,17 +30,17 @@ void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
-    size_t index = c.cur->ChunkResolveVariable(a->var->name);
     a->val->NodeCompile(c);
-    c.cur->code.push_back({Opcode::VAR_A, c.cur->vars[index].index, static_cast<uint8_t>(index)});
-    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint8_t>(index)});
+    size_t stackIndex = c.cur->ChunkResolveVariable(a->var->name);
+    c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex), 0});
     c.cur->code.push_back({Opcode::POP, 0, 0});
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex), 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    size_t index = c.cur->ChunkResolveVariable(vr->name);
-    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[index].index, static_cast<uint8_t>(index)});
+    size_t stackIndex = c.cur->ChunkResolveVariable(vr->name);
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex), 0});
 }
 
 //------------------STATEMENTS---------------------//
@@ -56,44 +56,11 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
-    c.cur->vars.push_back({dv->name, c.cur->depth, 0});
-    uint8_t rtindex = static_cast<uint8_t>(c.cur->vars.size() - 1);
-    c.cur->vars.back().index = rtindex;
+    // compile the initialiser
+    dv->value->NodeCompile(c);
 
-    if (dv->value != nullptr)
-        dv->value->NodeCompile(c);
-    else
-    {
-        CompileConst defVal;
-        switch (dv->tId)
-        {
-        case 1:
-        {
-            defVal = CompileConst(1, "0");
-            break;
-        }
-        case 2:
-        {
-            defVal = CompileConst(2, "0");
-            break;
-        }
-        case 3:
-        {
-            defVal = CompileConst(3, "false");
-            break;
-        }
-        default:
-        {
-            defVal = CompileConst(0, "");
-            break;
-        }
-        }
-
-        c.cur->constants.push_back(defVal);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1), 0});
-    }
-    c.cur->code.push_back({Opcode::VAR_D, rtindex, 0});
-    // c.cur->code.push_back({Opcode::POP, 0, 0});
+    // add to the list of variables                 relative stack location
+    c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -158,7 +125,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
             arg.index = c.cur->vars.size();
 
             c.cur->vars.push_back(arg);
-            c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
+            // c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
             numVars++;
         }
     }

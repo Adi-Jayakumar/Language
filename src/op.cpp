@@ -16,14 +16,6 @@ std::string ToString(Opcode o)
     {
         return "GET_V";
     }
-    case Opcode::DEL_V:
-    {
-        return "DEL_V";
-    }
-    case Opcode::VAR_D:
-    {
-        return "VAR_D";
-    }
     case Opcode::VAR_A:
     {
         return "VAR_A";

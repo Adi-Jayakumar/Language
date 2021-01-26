@@ -5,10 +5,8 @@ enum class Opcode : uint8_t
 {
     POP,
     GET_C,
-    VAR_D,
     VAR_A,
     GET_V,
-    DEL_V,
 
     JUMP_IF_FALSE,
     JUMP,

@@ -54,7 +54,8 @@
 			"map": "cpp",
 			"set": "cpp",
 			"unordered_set": "cpp",
-			"cstring": "cpp"
+			"cstring": "cpp",
+			"chrono": "cpp"
 		}
 	}
 }

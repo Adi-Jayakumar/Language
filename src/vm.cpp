@@ -6,7 +6,7 @@ VM::VM(std::vector<Chunk> &_functions)
     functions = _functions;
 
     cs = CallStack();
-    cs.Push({0, 0, 0, 0});
+    cs.Push({0, 0, 0});
 
     curCF = cs.Top();
 
@@ -26,16 +26,6 @@ void VM::PrintStack()
     for (size_t i = s.s.size() - 1; (int)i >= 0; i--)
     {
         std::cout << i << " " << s.s[i] << std::endl;
-    }
-}
-
-void VM::PrintVars()
-{
-    Stack s = stack;
-    std::cout << "index |||| value" << std::endl;
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        std::cout << i << " " << vars[i] << std::endl;
     }
 }
 
@@ -87,33 +77,19 @@ void VM::ExecuteInstruction()
         stack.Push(c);
         break;
     }
-    // pops the value currently on the top of the stack and assigns it to a CompileVar at o.op1's location
-    case Opcode::VAR_D:
-    {
-        vars.push_back(curCF.valStackMin + o.op1);
-        break;
-    }
     case Opcode::VAR_A:
     {
         CompileConst value = stack.Top();
-        // size_t indexOfAssginee = vars[curCF.varListMin + o.op1].index;
-        size_t indexOfAssginee = vars[curCF.varListMin + o.op1];
-        stack[indexOfAssginee] = value;
+        stack[o.op1 + curCF.valStackMin] = value;
         break;
     }
     // returns the value of the variable at o.op1's location + varOffset
     case Opcode::GET_V:
     {
-        uint8_t var = vars[o.op1 + curCF.varListMin];
-        CompileConst v = stack[var];
+        CompileConst v = stack[o.op1 + curCF.valStackMin];
         if (curChunk == 0)
             std::cout << "Var val: " << v << std::endl;
         stack.Push(v);
-        break;
-    }
-    case Opcode::DEL_V:
-    {
-        vars.pop_back();
         break;
     }
     // adds the operand to the ip if the value on the top of the stack is not truthy
@@ -136,7 +112,7 @@ void VM::ExecuteInstruction()
 
         // std::cout << "Calling function: " << o.op1 << std::endl;
 
-        cs.Push({ip + 1, curChunk, stack.Size() - o.op2, vars.size()});
+        cs.Push({ip + 1, curChunk, stack.Size() - o.op2});
 
         curChunk = o.op1;
         curCF = cs.Top();
@@ -153,7 +129,6 @@ void VM::ExecuteInstruction()
         curCF = cs.Top();
 
         size_t stackDiff = stack.Size() - returnCF.valStackMin;
-        size_t varDiff = vars.size() - returnCF.varListMin;
         CompileConst retVal;
 
         if (o.op1 == 0)
@@ -161,9 +136,6 @@ void VM::ExecuteInstruction()
 
         // cleaning up the function's constants
         stack.s.resize(stack.s.size() - stackDiff);
-
-        // cleaning up the fucntion's varaib;es
-        vars.resize(vars.size() - varDiff);
 
         if (o.op1 == 0)
             stack.Push(retVal);

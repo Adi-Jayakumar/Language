@@ -25,15 +25,12 @@ struct VM
     size_t curChunk;
 
     std::vector<CompileConst> constants;
-    // std::vector<CompileVar> vars;
-    std::vector<uint8_t> vars;
 
     Stack stack;
 
     VM(std::vector<Chunk> &);
 
     void PrintStack();
-    void PrintVars();
 
     void SetChunk(size_t);
 

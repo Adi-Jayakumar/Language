@@ -7,8 +7,8 @@ void Chunk::PrintCode()
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
             std::cout << " '" << constants[o.op1] << "' at index: " << +o.op1;
-        else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_D || o.code == Opcode::VAR_A)
-            std::cout << " '" << vars[o.op2].name << "' at runtime index: " << +o.op1 << " at compile time index: " << +o.op2;
+        else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
+            std::cout << " '" << vars[o.op1].name << "' at relative stack index: " << +o.op1;
         else if (o.code == Opcode::CALL_F)
             std::cout << " " << +o.op1 << " " << +o.op2;
         else
@@ -36,7 +36,7 @@ void Chunk::CleanUpVariables()
         if (vars[i].depth == depth)
         {
             code.push_back({Opcode::POP, 0, 0});
-            code.push_back({Opcode::DEL_V, 0, 0});
+            // code.push_back({Opcode::DEL_V, 0, 0});
             vars.pop_back();
         }
     }
