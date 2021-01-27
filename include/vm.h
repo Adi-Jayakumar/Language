@@ -31,7 +31,7 @@ struct VM
 
     std::vector<CompileConst> constants;
 
-    Stack stack;
+    Array stack;
 
     VM(std::vector<Chunk> &);
     ~VM();

@@ -2,7 +2,7 @@
 
 VM::VM(std::vector<Chunk> &_functions)
 {
-    stack = Stack(512);
+    stack = Array();
     functions = _functions;
 
     // cs = CallStack();
@@ -28,11 +28,11 @@ void VM::SetChunk(size_t n)
 
 void VM::PrintStack()
 {
-    Stack s = stack;
+    Array s = stack;
     std::cout << "index |||| value" << std::endl;
-    for (size_t i = s.s.size() - 1; (int)i >= 0; i--)
+    for (size_t i = s.count - 1; (int)i >= 0; i--)
     {
-        std::cout << i << " " << s.s[i] << std::endl;
+        std::cout << i << " " << s[i] << std::endl;
     }
 }
 
@@ -58,7 +58,7 @@ void VM::ExecuteCurrentChunk()
             std::cout << "Finished executing fucntion " << curChunk << std::endl;
             // // CallFrame with the details of where to return to
             // CallFrame returnCF = cs.Top();
-            // cs.Pop();
+            // cs.pop_back();
             // ip = returnCF.retIndex;
             // curChunk = returnCF.retChunk;
             // curCF = cs.Top();
@@ -82,19 +82,19 @@ void VM::ExecuteInstruction()
     // pops the top value off the stack
     case Opcode::POP:
     {
-        stack.Pop();
+        stack.pop_back();
         break;
     }
     // returns the constant at o.op1's location + constOffset
     case Opcode::GET_C:
     {
         CompileConst c = functions[curChunk].constants[o.op1];
-        stack.Push(c);
+        stack.push_back(c);
         break;
     }
     case Opcode::VAR_A:
     {
-        CompileConst value = stack.Top();
+        CompileConst value = *stack.back;
         stack[o.op1 + curCF->valStackMin] = value;
         break;
     }
@@ -104,15 +104,15 @@ void VM::ExecuteInstruction()
         CompileConst v = stack[o.op1 + curCF->valStackMin];
         if (curChunk == 0)
             std::cout << "Var val: " << v << std::endl;
-        stack.Push(v);
+        stack.push_back(v);
         break;
     }
     // adds the operand to the ip if the value on the top of the stack is not truthy
     case Opcode::JUMP_IF_FALSE:
     {
-        if (!IsTruthy(stack.Top()))
+        if (!IsTruthy(*stack.back))
             ip += o.op1;
-        stack.Pop();
+        stack.pop_back();
         break;
     }
     // adds the operand to the ip
@@ -133,7 +133,7 @@ void VM::ExecuteInstruction()
             exit(3);
         }
         
-        *curCF = {ip + 1, curChunk, stack.Size() - functions[curChunk].arity};
+        *curCF = {ip + 1, curChunk, stack.count - functions[curChunk].arity};
 
         curChunk = o.op1;
         // curCF = cs.Top();
@@ -143,7 +143,7 @@ void VM::ExecuteInstruction()
     case Opcode::RETURN:
     {
         // CallFrame returnCF = cs.Top();
-        // cs.Pop();
+        // cs.pop_back();
 
         CallFrame *returnCF = curCF;
         curCF--;
@@ -156,118 +156,120 @@ void VM::ExecuteInstruction()
 
         // curCF = cs.Top();
 
-        size_t stackDiff = stack.Size() - returnCF->valStackMin;
+        size_t stackDiff = stack.count - returnCF->valStackMin;
         CompileConst retVal;
 
         if (o.op1 == 0)
-            retVal = stack.Top();
+            retVal = *stack.back;
 
         // cleaning up the function's constants
-        stack.s.resize(stack.s.size() - stackDiff);
+        // stack.s.resize(stack.s.size() - stackDiff);
+        stack.count -= stackDiff;
+        stack.back = &stack.data[stack.count - 1];
 
         if (o.op1 == 0)
-            stack.Push(retVal);
+            stack.push_back(retVal);
 
         break;
     }
     // adds the last 2 things on the stack
     case Opcode::ADD:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left + right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left + right);
         break;
     }
     // subtracts the last 2 things on the stack
     case Opcode::SUB:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left - right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left - right);
         break;
     }
     // multiplies the last 2 things on the stack
     case Opcode::MUL:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left * right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left * right);
         break;
     }
     // divides the last 2 things on the stack
     case Opcode::DIV:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left / right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left / right);
         break;
     }
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::GT:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left > right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left > right);
         break;
     }
     // does a less than comparison on the last 2 things on the stack
     case Opcode::LT:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left < right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left < right);
         break;
     }
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::GEQ:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left >= right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left >= right);
         break;
     }
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::LEQ:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left <= right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left <= right);
         break;
     }
     // does an equality check on the last 2 things on the stack
     case Opcode::EQ_EQ:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left == right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left == right);
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::BANG_EQ:
     {
-        CompileConst right = stack.Top();
-        stack.Pop();
-        CompileConst left = stack.Top();
-        stack.Pop();
-        stack.Push(left != right);
+        CompileConst right = *stack.back;
+        stack.pop_back();
+        CompileConst left = *stack.back;
+        stack.pop_back();
+        stack.push_back(left != right);
         break;
     }
     // Does nothing

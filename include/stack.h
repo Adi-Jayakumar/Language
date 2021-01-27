@@ -1,18 +1,22 @@
 #pragma once
 #include "compileconst.h"
+#include <cstring>
 
-struct Stack
+#define DEF_SIZE 8U
+#define GROW_FAC 2U
+
+struct Array
 {
-    std::vector<CompileConst> s;
-    Stack() = default;
-    Stack(size_t);
+    size_t count;
+    CompileConst *data;
+    CompileConst *back;
 
-    void Push(CompileConst cc);
-    CompileConst Top();
-    void Pop();
+    Array();
+    ~Array();
+    CompileConst &operator[](const size_t index);
+    void push_back(CompileConst cc);
+    void pop_back();
 
-    bool Empty();
-    size_t Size();
-
-    CompileConst &operator[](size_t i);
+private:
+    size_t capacity;
 };

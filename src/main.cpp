@@ -60,10 +60,4 @@ int main()
 
     std::cout << std::endl
     << std::endl;
-
-    std::cout << "Constants on the stack not cleaned up" << std::endl;
-    for (auto thing : vm.stack.s)
-    {
-        std::cout << thing << std::endl;
-    }
 }

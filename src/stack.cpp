@@ -1,36 +1,46 @@
 #include "stack.h"
 
-Stack::Stack(size_t preAlloc)
+Array::Array()
 {
-    s.reserve(preAlloc);
+    data = (CompileConst *)malloc(DEF_SIZE * sizeof(CompileConst));
+    count = 0;
+    capacity = DEF_SIZE;
+    back = data;
 }
 
-void Stack::Push(CompileConst cc)
+Array::~Array()
 {
-    s.push_back(cc);
+    free(data);
 }
 
-CompileConst Stack::Top()
+void Array::push_back(CompileConst cc)
 {
-    return s[s.size() - 1];
+    if (count < capacity)
+    {
+        data[count] = cc;
+        back = &data[count];
+    }
+    else
+    {
+        CompileConst *more = (CompileConst *)malloc(GROW_FAC * capacity * sizeof(CompileConst));
+        capacity *= GROW_FAC;
+        memcpy(more, data, count * sizeof(CompileConst));
+        free(data);
+        data = more;
+        data[count] = cc;
+        back = &data[count];
+
+    }
+    count++;
 }
 
-void Stack::Pop()
+void Array::pop_back()
 {
-    s.pop_back();
+    count--;
+    back = &data[count - 1];
 }
 
-bool Stack::Empty()
+CompileConst &Array::operator[](const size_t index)
 {
-    return s.empty();
-}
-
-size_t Stack::Size()
-{
-    return s.size();
-}
-
-CompileConst &Stack::operator[](size_t i)
-{
-    return s[i];
+    return data[index];
 }
