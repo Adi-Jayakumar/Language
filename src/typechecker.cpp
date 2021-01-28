@@ -54,12 +54,7 @@ void TypeChecker::CleanUpVariables()
 
 TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argtypes)
 {
-    size_t isNative = ResolveNativeFunction(name, argtypes);
-
-    if (isNative != UINT8_MAX)
-        return isNative;
-
-    for (size_t i = 0; i < funcs.size(); i++)
+    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
     {
         if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
         {
@@ -73,32 +68,7 @@ TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argt
                 }
             }
             if (doesMatch)
-                return funcs[i].ret;
-        }
-    }
-    return UINT8_MAX;
-}
-
-TypeID TypeChecker::ResolveNativeFunction(std::string &name, std::vector<TypeID> &argtypes)
-{
-    for (size_t i = 0; i < funcs.size(); i++)
-    {
-        if (NativeFunctions.find(funcs[i].name) == NativeFunctions.end())
-            return UINT8_MAX;
-
-        if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
-        {
-            bool doesMatch = true;
-            for (size_t j = 0; j < argtypes.size(); j++)
-            {
-                if (funcs[i].argtypes[j] != 0 && funcs[i].argtypes[j] != argtypes[j])
-                {
-                    doesMatch = false;
-                    break;
-                }
-            }
-            if (doesMatch)
-                return funcs[i].ret;
+                return i;
         }
     }
     return UINT8_MAX;
@@ -197,12 +167,15 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
 
-    TypeID type = ResolveFunction(fc->name, argtypes);
+    size_t index = ResolveFunction(fc->name, argtypes);
 
-    if (type == UINT8_MAX)
+    if (index == UINT8_MAX)
         TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
 
-    return type;
+    if (index > UINT8_MAX)
+        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
+
+    return funcs[index].ret;
 }
 
 //------------------STATEMENTS---------------------//
