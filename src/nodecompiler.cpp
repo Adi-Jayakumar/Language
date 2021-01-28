@@ -45,30 +45,21 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
-    if (NativeFunctions.find(fc->name) != NativeFunctions.end())
-    {
-        for (std::shared_ptr<Expr> &e : fc->args)
-            e->NodeCompile(c);
 
-        c.cur->code.push_back({Opcode::NATIVE_FN, NativeFnIndices[fc->name]});
-    }
-    else
-    {
-        size_t index = c.ResolveFunction(fc->name);
+    size_t index = c.ResolveFunction(fc->name);
 
-        if (index > UINT8_MAX)
-            CompileError("Too many functions");
+    if (index > UINT8_MAX)
+        CompileError("Too many functions");
 
-        if (fc->args.size() > UINT8_MAX)
-            CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
+    if (fc->args.size() > UINT8_MAX)
+        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
 
-        for (std::shared_ptr<Expr> &e : fc->args)
-            e->NodeCompile(c);
+    for (std::shared_ptr<Expr> &e : fc->args)
+        e->NodeCompile(c);
 
-        c.cur->arity = static_cast<uint8_t>(fc->args.size());
+    c.cur->arity = static_cast<uint8_t>(fc->args.size());
 
-        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
-    }
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
 
 //------------------STATEMENTS---------------------//
@@ -85,20 +76,9 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
     else
     {
-        std::cout << "name: " << asFC->name << std::endl;
-        if (NativeFunctions.find(asFC->name) == NativeFunctions.end())
-        {
-            std::cout << "name in NON NATIVE: " << asFC->name << std::endl;
-            size_t index = c.ResolveFunction(asFC->name);
-            if (c.funcs[index].ret != 0)
-                c.cur->code.push_back({Opcode::POP, 0});
-        }
-        else
-        {
-            std::cout << "name in NATIVE: " << asFC->name << std::endl;
-            if (NativeReturn.at(asFC->name) != 0)
-                c.cur->code.push_back({Opcode::POP, 0});
-        }
+        size_t index = c.ResolveFunction(asFC->name);
+        if (c.funcs[index].ret != 0)
+            c.cur->code.push_back({Opcode::POP, 0});
     }
 }
 

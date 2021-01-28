@@ -235,11 +235,8 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
-    if (funcs.size() > UINT8_MAX + NativeFunctions.size())
+    if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
-
-    if (NativeFunctions.find(fd->name) != NativeFunctions.end())
-        TypeError(fd->loc, "Cannot redefine a native function");
 
     std::vector<TypeID> argtypes;
 

@@ -32,10 +32,6 @@ std::string ToString(Opcode o)
     {
         return "CALL_F";
     }
-    case Opcode::NATIVE_FN:
-    {
-        return "NATIVE_FN";
-    }
     case Opcode::RETURN:
     {
         return "RETURN";

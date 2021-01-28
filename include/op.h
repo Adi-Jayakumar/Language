@@ -12,7 +12,6 @@ enum class Opcode : uint8_t
     JUMP,
 
     CALL_F,
-    NATIVE_FN,
     RETURN,
 
     ADD,
