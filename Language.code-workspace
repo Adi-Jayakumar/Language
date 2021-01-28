@@ -55,7 +55,18 @@
 			"set": "cpp",
 			"unordered_set": "cpp",
 			"cstring": "cpp",
-			"chrono": "cpp"
+			"chrono": "cpp",
+			"bitset": "cpp",
+			"condition_variable": "cpp",
+			"ctime": "cpp",
+			"ratio": "cpp",
+			"regex": "cpp",
+			"future": "cpp",
+			"iomanip": "cpp",
+			"mutex": "cpp",
+			"shared_mutex": "cpp",
+			"thread": "cpp",
+			"variant": "cpp"
 		}
 	}
 }

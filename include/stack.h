@@ -2,7 +2,7 @@
 #include "compileconst.h"
 #include <cstring>
 
-#define DEF_SIZE 8U
+#define DEF_SIZE 512U
 #define GROW_FAC 2U
 
 struct Array

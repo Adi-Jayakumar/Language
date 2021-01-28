@@ -2,12 +2,8 @@
 
 VM::VM(std::vector<Chunk> &_functions)
 {
-    stack = Array();
+    // stack = Array();
     functions = _functions;
-
-    // cs = CallStack();
-    // cs.Push({0, 0, 0});
-    // curCF = cs.Top();
 
     cs = new CallFrame[UINT8_MAX];
     curCF = cs;
@@ -55,13 +51,6 @@ void VM::ExecuteCurrentChunk()
         // if (cs.Size() != 1)
         if ((curCF - cs) != 0)
         {
-            std::cout << "Finished executing fucntion " << curChunk << std::endl;
-            // // CallFrame with the details of where to return to
-            // CallFrame returnCF = cs.Top();
-            // cs.pop_back();
-            // ip = returnCF.retIndex;
-            // curChunk = returnCF.retChunk;
-            // curCF = cs.Top();
 
             // CallFrame with the details of where to return to
             CallFrame *returnCF = curCF;
