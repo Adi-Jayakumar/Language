@@ -54,7 +54,12 @@ void TypeChecker::CleanUpVariables()
 
 TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argtypes)
 {
-    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
+    size_t isNative = ResolveNativeFunction(name, argtypes);
+
+    if (isNative != UINT8_MAX)
+        return isNative;
+
+    for (size_t i = 0; i < funcs.size(); i++)
     {
         if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
         {
@@ -68,7 +73,32 @@ TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argt
                 }
             }
             if (doesMatch)
-                return i;
+                return funcs[i].ret;
+        }
+    }
+    return UINT8_MAX;
+}
+
+TypeID TypeChecker::ResolveNativeFunction(std::string &name, std::vector<TypeID> &argtypes)
+{
+    for (size_t i = 0; i < funcs.size(); i++)
+    {
+        if (NativeFunctions.find(funcs[i].name) == NativeFunctions.end())
+            return UINT8_MAX;
+
+        if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
+        {
+            bool doesMatch = true;
+            for (size_t j = 0; j < argtypes.size(); j++)
+            {
+                if (funcs[i].argtypes[j] != 0 && funcs[i].argtypes[j] != argtypes[j])
+                {
+                    doesMatch = false;
+                    break;
+                }
+            }
+            if (doesMatch)
+                return funcs[i].ret;
         }
     }
     return UINT8_MAX;
@@ -167,15 +197,14 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
 
-    size_t index = ResolveFunction(fc->name, argtypes);
+    TypeID type = ResolveFunction(fc->name, argtypes);
 
-    if (index == UINT8_MAX)
+    if (type == UINT8_MAX)
         TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
 
-    if (index > UINT8_MAX)
-        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
+    std::cout << fc->name << ": " << +type << std::endl;
 
-    return funcs[index].ret;
+    return type;
 }
 
 //------------------STATEMENTS---------------------//
@@ -235,6 +264,12 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
+    if(funcs.size() > UINT8_MAX + NativeFunctions.size())
+        TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
+
+    if (NativeFunctions.find(fd->name) != NativeFunctions.end())
+        TypeError(fd->loc, "Cannot redefine a native function");
+
     std::vector<TypeID> argtypes;
 
     for (auto &t : fd->params)

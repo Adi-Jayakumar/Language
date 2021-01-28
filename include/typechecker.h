@@ -23,7 +23,7 @@ struct TypeChecker
     bool isInFunc = false;
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;
-    std::vector<FuncID> funcs;
+    std::vector<FuncID> funcs{{0, "Print", {0}}};
 
     TypeChecker() = default;
     void TypeCheck(std::shared_ptr<Stmt> &s);
@@ -38,6 +38,8 @@ struct TypeChecker
 
     // resolve functions
     TypeID ResolveFunction(std::string &name, std::vector<TypeID> &argtypes);
+    // resolve native functions
+    TypeID ResolveNativeFunction(std::string &name, std::vector<TypeID> &argtypes);
 
     // expression typechecking
     TypeID TypeOfLiteral(Literal *l);

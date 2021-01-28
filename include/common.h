@@ -1,6 +1,7 @@
 #pragma once
 #include "token.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 typedef uint8_t TypeID;
@@ -35,8 +36,8 @@ struct TypeInfoHasher
 };
 
 // map of the name of a native function and its return type
-static const std::unordered_map<std::string, TypeID> NativeFunctions{
-    {"Print", 0},
+static const std::unordered_set<std::string> NativeFunctions{
+    "Print",
 };
 
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
