@@ -37,6 +37,10 @@ std::string ToString(const TokenID &t)
     {
         return "COMMA";
     }
+    case TokenID::WHILE:
+    {
+        return "WHILE";
+    }
     case TokenID::TYPENAME:
     {
         return "TYPENAME";

@@ -19,6 +19,8 @@ enum class TokenID : uint8_t
     // return keyword
     RETURN,
     COMMA,
+    
+    WHILE,
 
     // arithmetic operators
     PLUS,
