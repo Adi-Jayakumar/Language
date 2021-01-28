@@ -43,15 +43,63 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
     c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
 }
 
+void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
+{
+    if (NativeFunctions.find(fc->name) != NativeFunctions.end())
+    {
+        for (std::shared_ptr<Expr> &e : fc->args)
+            e->NodeCompile(c);
+
+        c.cur->code.push_back({Opcode::NATIVE_FN, NativeFnIndices[fc->name]});
+    }
+    else
+    {
+        size_t index = c.ResolveFunction(fc->name);
+
+        if (index > UINT8_MAX)
+            CompileError("Too many functions");
+
+        if (fc->args.size() > UINT8_MAX)
+            CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
+
+        for (std::shared_ptr<Expr> &e : fc->args)
+            e->NodeCompile(c);
+
+        c.cur->arity = static_cast<uint8_t>(fc->args.size());
+
+        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
+    }
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
     es->exp->NodeCompile(c);
 
-    // TEMPORARY THING UNTIL WE SUPPORT RETURN STATEMENTS
-    if (dynamic_cast<FunctionCall *>(es->exp.get()) == nullptr)
+    FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
+
+    // Function calls need not always have a POP after due to void functions
+    if (asFC == nullptr)
         c.cur->code.push_back({Opcode::POP, 0});
+
+    else
+    {
+        std::cout << "name: " << asFC->name << std::endl;
+        if (NativeFunctions.find(asFC->name) == NativeFunctions.end())
+        {
+            std::cout << "name in NON NATIVE: " << asFC->name << std::endl;
+            size_t index = c.ResolveFunction(asFC->name);
+            if (c.funcs[index].ret != 0)
+                c.cur->code.push_back({Opcode::POP, 0});
+        }
+        else
+        {
+            std::cout << "name in NATIVE: " << asFC->name << std::endl;
+            if (NativeReturn.at(asFC->name) != 0)
+                c.cur->code.push_back({Opcode::POP, 0});
+        }
+    }
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
@@ -112,7 +160,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     if (fd->params.size() > UINT8_MAX)
         CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
 
-    c.funcs.push_back(fd->name);
+    c.funcs.push_back({fd->name, fd->ret});
     size_t numVars = 0;
 
     for (size_t i = 0; i < fd->params.size(); i++)
@@ -146,24 +194,6 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
         r->retVal->NodeCompile(c);
         c.cur->code.push_back({Opcode::RETURN, 0});
     }
-}
-
-void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
-{
-    size_t index = c.ResolveFunction(fc->name);
-
-    if (index > UINT8_MAX)
-        CompileError("Too many functions");
-
-    if (fc->args.size() > UINT8_MAX)
-        CompileError("Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
-
-    for (std::shared_ptr<Expr> &e : fc->args)
-        e->NodeCompile(c);
-
-    c.cur->arity = static_cast<uint8_t>(fc->args.size());
-
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
 
 //-----------------EXPRESSIONS---------------------//

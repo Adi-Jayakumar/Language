@@ -1,10 +1,15 @@
 #pragma once
 #include "ASTPrinter.h"
-#include "perror.h"
 #include "compiler.h"
+#include "perror.h"
 
 namespace NodeCompiler
 {
+
+    static const std::unordered_map<std::string, TypeID> NativeReturn{
+        {"Print", 0},
+    };
+
     void CompileError(std::string err);
 
     // expression compiling

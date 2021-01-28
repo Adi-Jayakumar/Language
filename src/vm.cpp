@@ -110,7 +110,6 @@ void VM::ExecuteInstruction()
     // adds the operand to the ip if the value on the top of the stack is not truthy
     case Opcode::JUMP_IF_FALSE:
     {
-        // if (!stack.back->as.b)
         if (!IsTruthy(*stack.back))
             ip += o.op1;
         stack.pop_back();
@@ -133,7 +132,7 @@ void VM::ExecuteInstruction()
             std::cout << "CallStack overflow." << std::endl;
             exit(3);
         }
-
+        
         *curCF = {ip + 1, curChunk, stack.count - functions[curChunk].arity};
 
         curChunk = o.op1;

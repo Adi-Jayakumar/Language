@@ -2,17 +2,21 @@
 #include "chunk.h"
 #include "stmtnode.h"
 
-
+struct CTFunc
+{
+    std::string name;
+    TypeID ret;
+};
 
 struct Compiler
 {
     std::vector<Chunk> chunks;
-    std::vector<std::string> funcs;
+    std::vector<CTFunc> funcs;
 
     // bool isInFunc = false;
     // size_t curArity = -1;
 
-    Chunk* cur;
+    Chunk *cur;
     Compiler();
 
     void Compile(std::vector<std::shared_ptr<Stmt>> &s);

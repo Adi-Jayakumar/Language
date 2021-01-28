@@ -60,4 +60,16 @@ int main()
 
     std::cout << std::endl
     << std::endl;
+
+
+    std::cout << "Size of stack: " << vm.stack.count << std::endl;
+
+    if(vm.stack.count != 0)
+    {
+        for(size_t i =  0; i < vm.stack.count; i++)
+        {
+            std::cout << vm.stack.data[i] << std::endl;
+        }
+    }
+
 }
