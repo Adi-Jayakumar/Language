@@ -40,6 +40,10 @@ static const std::unordered_set<std::string> NativeFunctions{
     "Print",
 };
 
+static std::unordered_map<std::string, TypeID> NativeFnIndices{
+    {"Print", 0},
+};
+
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
     OperatorMap{
         {{1, TokenID::PLUS, 1}, 1},

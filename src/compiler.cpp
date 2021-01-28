@@ -35,7 +35,7 @@ size_t Compiler::ResolveFunction(std::string &name)
 {
     for (size_t i = 0; i < funcs.size(); i++)
     {
-        if (funcs[i] == name)
+        if (funcs[i].name == name)
             return i;
     }
     return SIZE_MAX;

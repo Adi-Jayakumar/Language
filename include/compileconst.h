@@ -17,6 +17,7 @@ struct CompileConst
     CompileConst(bool);
 };
 
+std::string ToString(const CompileConst &cc);
 bool IsTruthy(const CompileConst &cc);
 
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc);

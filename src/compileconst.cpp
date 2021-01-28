@@ -1,6 +1,29 @@
 #include "compileconst.h"
 #define DUMMYCC CompileConst(255, "") // to silence compiler warnings -- never returned due to typechecking
 
+std::string ToString(const CompileConst &cc)
+{
+    switch (cc.type)
+    {
+    case 1:
+    {
+        return std::to_string(cc.as.i);
+    }
+    case 2:
+    {
+        return std::to_string(cc.as.d);
+    }
+    case 3:
+    {
+        if (cc.as.b)
+            return "true";
+        else
+            return "false";
+    }
+    }
+    return "";
+}
+
 bool IsTruthy(const CompileConst &cc)
 {
     switch (cc.type)

@@ -202,8 +202,6 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     if (type == UINT8_MAX)
         TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
 
-    std::cout << fc->name << ": " << +type << std::endl;
-
     return type;
 }
 
@@ -264,7 +262,7 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
-    if(funcs.size() > UINT8_MAX + NativeFunctions.size())
+    if (funcs.size() > UINT8_MAX + NativeFunctions.size())
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
 
     if (NativeFunctions.find(fd->name) != NativeFunctions.end())
