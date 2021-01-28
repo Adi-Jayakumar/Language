@@ -3,6 +3,20 @@
 #include "perror.h"
 #include "stmtnode.h"
 
+struct VarID
+{
+    TypeID type;
+    std::string name;
+    uint8_t depth;
+};
+
+struct FuncID
+{
+    TypeID ret;
+    std::string name;
+    std::vector<TypeID> argtypes;
+};
+
 struct TypeChecker
 {
     uint8_t depth;

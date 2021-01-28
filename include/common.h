@@ -5,20 +5,6 @@
 
 typedef uint8_t TypeID;
 
-struct VarID
-{
-    TypeID type;
-    std::string name;
-    uint8_t depth;
-};
-
-struct FuncID
-{
-    TypeID ret;
-    std::string name;
-    std::vector<TypeID> argtypes;
-};
-
 // map from literal TokenIDs to
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::INT_L, 1},
@@ -46,6 +32,11 @@ struct TypeInfoHasher
         size_t tok = static_cast<size_t>(t.t);
         return (l << 16) | (r << 8) | (tok);
     }
+};
+
+// map of the name of a native function and its return type
+static const std::unordered_map<std::string, TypeID> NativeFunctions{
+    {"Print", 0},
 };
 
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
