@@ -233,6 +233,15 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
     return UINT8_MAX;
 }
 
+TypeID TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
+{
+    if(ws->cond->Type(*this) != 3)
+        TypeError(ws->Loc(), "Conditionof a while statment must have type: bool");
+    
+    ws->body->Type(*this);
+    return UINT8_MAX;
+}
+
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
     if (funcs.size() > UINT8_MAX)
@@ -329,6 +338,11 @@ TypeID Block::Type(TypeChecker &t)
 TypeID IfStmt::Type(TypeChecker &t)
 {
     return t.TypeOfIfStmt(this);
+}
+
+TypeID WhileStmt::Type(TypeChecker &t)
+{
+    return t.TypeOfWhileStmt(this);
 }
 
 TypeID FuncDecl::Type(TypeChecker &t)

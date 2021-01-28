@@ -32,6 +32,8 @@ struct Parser
     std::shared_ptr<Stmt> Statement();
     // parses an if statement
     std::shared_ptr<Stmt> IfStatement();
+    // parses a while statement
+    std::shared_ptr<Stmt> WhileStatement();
     // parses a function Declrataion
     std::shared_ptr<Stmt> FuncDeclaration();
     // parses an expression statement

@@ -135,6 +135,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff);
 }
 
+void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
+{
+    return;
+}
+
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
     if (fd->params.size() > UINT8_MAX)
@@ -228,6 +233,11 @@ void Block::NodeCompile(Compiler &c)
 void IfStmt::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileIfStmt(this, c);
+}
+
+void WhileStmt::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileWhileStmt(this, c);
 }
 
 void FuncDecl::NodeCompile(Compiler &c)

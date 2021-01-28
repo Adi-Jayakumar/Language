@@ -65,6 +65,20 @@ struct IfStmt : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
+struct WhileStmt : Stmt
+{
+    std::shared_ptr<Expr> cond;
+    std::shared_ptr<Stmt> body;
+    Token loc;
+
+    WhileStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    void NodeCompile(Compiler &c) override;
+};
+
 struct FuncDecl : Stmt
 {
     TypeID ret;

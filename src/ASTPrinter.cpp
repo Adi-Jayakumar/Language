@@ -199,6 +199,14 @@ void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
     }
 }
 
+void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
+{
+    out << "while(";
+    ws->cond->Print(out);
+    out << ")\n";
+    ws->body->Print(out);
+}
+
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 {
     out << fd->name << "(";
@@ -281,6 +289,11 @@ void Block::Print(std::ostream &out)
 void IfStmt::Print(std::ostream &out)
 {
     ASTPrinter::PrintIfStmt(this, out);
+}
+
+void WhileStmt::Print(std::ostream &out)
+{
+    ASTPrinter::PrintWhileStmt(this, out);
 }
 
 void FuncDecl::Print(std::ostream &out)

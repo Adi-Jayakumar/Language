@@ -52,6 +52,7 @@ struct TypeChecker
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
     TypeID TypeOfBlock(Block *b);
     TypeID TypeOfIfStmt(IfStmt *i);
+    TypeID TypeOfWhileStmt(WhileStmt *ws);
     TypeID TypeOfFuncDecl(FuncDecl *fd);
     TypeID TypeOfReturn(Return *r);
 };

@@ -17,20 +17,20 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("ex/func.txt");
+    DumpTokens("ex/if.txt");
 
     std::cout << std::endl
               << std::endl;
 
-    // Parser p = Parser("ex/if.txt");
+    Parser p = Parser("ex/if.txt");
 
-    // std::vector<std::shared_ptr<Stmt>> res = p.Parse();
+    std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
-    // std::cout << std::endl
-    // << std::endl;
+    std::cout << std::endl
+    << std::endl;
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
     // std::cout << std::endl
     // << std::endl;

@@ -48,6 +48,18 @@ Token IfStmt::Loc()
     return loc;
 }
 
+WhileStmt::WhileStmt(std::shared_ptr<Expr> _cond, std::shared_ptr<Stmt> _body, Token _loc)
+{
+    cond = _cond;
+    body = _body;
+    loc = _loc;
+}
+
+Token WhileStmt::Loc()
+{
+    return loc;
+}
+
 FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<Token> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
 {
     ret = _ret;

@@ -46,6 +46,8 @@ std::shared_ptr<Stmt> Parser::Statement()
         return ParseBlock();
     else if (cur.type == TokenID::IF)
         return IfStatement();
+    else if (cur.type == TokenID::WHILE)
+        return WhileStatement();
     else if (cur.type == TokenID::RETURN)
     {
         // skipping the 'return' token
@@ -182,6 +184,7 @@ std::shared_ptr<Block> Parser::ParseBlock()
 
 std::shared_ptr<Stmt> Parser::IfStatement()
 {
+    Token loc = cur;
     Advance();
     Check(TokenID::OPEN_PAR, "Need an open paranthesis at the beginning of an if statement");
     Advance();
@@ -195,7 +198,28 @@ std::shared_ptr<Stmt> Parser::IfStatement()
         Advance();
         elseBranch = Statement();
     }
-    return std::make_shared<IfStmt>(cond, thenBranch, elseBranch, cur);
+    return std::make_shared<IfStmt>(cond, thenBranch, elseBranch, loc);
+}
+
+std::shared_ptr<Stmt> Parser::WhileStatement()
+{
+    Token loc = cur;
+    // skip the WHILE token
+    Advance();
+
+    Check(TokenID::OPEN_PAR, "Need an open parenthesis at the beginning of a while statement");
+    //skipping over the OPEN_PAR
+    Advance();
+    
+    std::shared_ptr<Expr> cond = Expression();
+    Check(TokenID::CLOSE_PAR, "Missing close parenthesis");
+
+    // skipping over the CLOSE_PAR
+    Advance();
+
+    std::shared_ptr<Stmt> body = Statement();
+
+    return std::make_shared<WhileStmt>(cond, body, loc);
 }
 
 std::shared_ptr<Stmt> Parser::ExpressionStatement()
