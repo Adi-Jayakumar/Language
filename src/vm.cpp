@@ -2,7 +2,6 @@
 
 VM::VM(std::vector<Chunk> &_functions)
 {
-    // stack = Array();
     functions = _functions;
 
     cs = new CallFrame[UINT8_MAX];
@@ -48,7 +47,6 @@ void VM::ExecuteCurrentChunk()
             Jump(1);
         }
 
-        // if (cs.Size() != 1)
         if ((curCF - cs) != 0)
         {
 
@@ -74,13 +72,15 @@ void VM::ExecuteInstruction()
         stack.pop_back();
         break;
     }
-    // returns the constant at o.op1's location + constOffset
+    // pushes the constant at o.op1's location + constOffset onto the stack
     case Opcode::GET_C:
     {
         CompileConst c = functions[curChunk].constants[o.op1];
         stack.push_back(c);
         break;
     }
+    // updates the value on the stack at the relative index given by
+    // the operand to the value currently at the top of the stack
     case Opcode::VAR_A:
     {
         CompileConst value = *stack.back;
@@ -113,7 +113,6 @@ void VM::ExecuteInstruction()
     // op1 is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
-        // cs.Push({ip + 1, curChunk, stack.Size() - functions[curChunk].arity});
         curCF++;
 
         if (curCF == &cs[UINT8_MAX - 1])
@@ -129,21 +128,15 @@ void VM::ExecuteInstruction()
         ip = -1;
         break;
     }
+    // returns from the current function and cleans up the current function's constants
+    // operand is 1 if there is nothing to return
     case Opcode::RETURN:
     {
-        // CallFrame returnCF = cs.Top();
-        // cs.pop_back();
-
         CallFrame *returnCF = curCF;
         curCF--;
 
-        // ip = returnCF.retIndex - 1;
-        // curChunk = returnCF.retChunk;
-
         ip = returnCF->retIndex - 1;
         curChunk = returnCF->retChunk;
-
-        // curCF = cs.Top();
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
         CompileConst retVal;
@@ -152,7 +145,6 @@ void VM::ExecuteInstruction()
             retVal = *stack.back;
 
         // cleaning up the function's constants
-        // stack.s.resize(stack.s.size() - stackDiff);
         stack.count -= stackDiff;
         stack.back = &stack.data[stack.count - 1];
 
