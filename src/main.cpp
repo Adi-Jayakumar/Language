@@ -47,16 +47,16 @@ int main()
     std::cout << std::endl
     << std::endl;
 
-    // VM vm = VM(c.chunks);
+    VM vm = VM(c.chunks);
 
-    // auto t1 = std::chrono::high_resolution_clock::now();
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    // vm.ExecuteCurrentChunk();
+    vm.ExecuteCurrentChunk();
 
-    // auto t2 = std::chrono::high_resolution_clock::now();
+    auto t2 = std::chrono::high_resolution_clock::now();
 
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    // std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
 
     std::cout << std::endl
     << std::endl;
