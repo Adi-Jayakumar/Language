@@ -168,13 +168,37 @@ std::string ToString(Opcode o)
     {
         return "D_LEQ";
     }
-    case Opcode::EQ_EQ:
+    case Opcode::I_EQ_EQ:
     {
-        return "EQ_EQ";
+        return "I_EQ_EQ";
     }
-    case Opcode::BANG_EQ:
+    case Opcode::DI_EQ_EQ:
     {
-        return "BANG_EQ";
+        return "DI_EQ_EQ";
+    }
+    case Opcode::ID_EQ_EQ:
+    {
+        return "ID_EQ_EQ";
+    }
+    case Opcode::D_EQ_EQ:
+    {
+        return "D_EQ_EQ";
+    }
+    case Opcode::I_BANG_EQ:
+    {
+        return "I_BANG_EQ";
+    }
+    case Opcode::DI_BANG_EQ:
+    {
+        return "DI_BANG_EQ";
+    }
+    case Opcode::ID_BANG_EQ:
+    {
+        return "ID_BANG_EQ";
+    }
+    case Opcode::D_BANG_EQ:
+    {
+        return "D_BANG_EQ";
     }
     default:
     {
@@ -240,9 +264,15 @@ Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r)
         return o;
     }
     else if (t == TokenID::EQ_EQ)
-        return Opcode::EQ_EQ;
+    {
+        GET_TYPED_OP(l, EQ_EQ, r, o);
+        return o;
+    }
     else if (t == TokenID::BANG_EQ)
-        return Opcode::BANG_EQ;
+    {
+        GET_TYPED_OP(l, BANG_EQ, r, o);
+        return o;
+    }
     else
         return Opcode::NONE;
 }

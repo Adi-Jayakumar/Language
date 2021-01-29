@@ -63,8 +63,17 @@ enum class Opcode : uint8_t
     ID_LEQ,
     D_LEQ,
 
-    EQ_EQ,
-    BANG_EQ,
+    // EQ_EQ,
+    I_EQ_EQ,
+    DI_EQ_EQ,
+    ID_EQ_EQ,
+    D_EQ_EQ,
+
+    // BANG_EQ,
+    I_BANG_EQ,
+    DI_BANG_EQ,
+    ID_BANG_EQ,
+    D_BANG_EQ,
     NONE,
 };
 
