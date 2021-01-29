@@ -78,23 +78,19 @@ TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argt
 
 TypeID TypeChecker::TypeOfLiteral(Literal *l)
 {
-    if (l == nullptr)
-        return UINT8_MAX;
     return l->typeID;
 }
 
 TypeID TypeChecker::TypeOfUnary(Unary *u)
 {
-    if (u == nullptr)
-        return 0;
-    if (u->right == nullptr)
-        return UINT8_MAX;
-
     TypeID opType = u->right->Type(*this);
     TypeInfo info = {opType, u->op.type, 0};
 
     if (OperatorMap.find(info) != OperatorMap.end())
-        return OperatorMap.at(info);
+    {
+        u->typeID = OperatorMap.at(info);
+        return u->typeID;
+    }
     else
         TypeError(u->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(u->op.type)) + " on operand of type: " + std::to_string(opType));
 
@@ -111,7 +107,10 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
     TypeInfo info = {lType, b->op.type, rType};
 
     if (OperatorMap.find(info) != OperatorMap.end())
-        return OperatorMap.at(info);
+    {
+        b->typeID = OperatorMap.at(info);
+        return b->typeID;
+    }
     else
         TypeError(b->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(b->op.type)) + " on operands of type: " + std::to_string(lType) + " and: " + std::to_string(rType));
     return UINT8_MAX;
@@ -132,11 +131,13 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
     if (varType == UINT8_MAX)
         TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
 
-    // TypeID varType = ResolveVariable(a->var->name);
     TypeID valType = a->val->Type(*this);
 
     if (varType == valType)
+    {
+        a->typeID = varType;
         return varType;
+    }
     else
         TypeError(a->Loc(), "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->var->name + "' of type: " + std::to_string(varType));
     return UINT8_MAX;
@@ -157,6 +158,7 @@ TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
     if (type == UINT8_MAX)
         TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");
 
+    vr->typeID = type;
     return type;
 }
 
@@ -175,6 +177,7 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     if (index > UINT8_MAX)
         TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
 
+    fc->typeID = funcs[index].ret;
     return funcs[index].ret;
 }
 
@@ -235,9 +238,9 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeID TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 {
-    if(ws->cond->Type(*this) != 3)
+    if (ws->cond->Type(*this) != 3)
         TypeError(ws->Loc(), "Conditionof a while statment must have type: bool");
-    
+
     ws->body->Type(*this);
     return UINT8_MAX;
 }

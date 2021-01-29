@@ -26,6 +26,7 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
         out << "null";
     else
     {
+        out << "<Type: " << +l->typeID << "> ";
         switch (l->typeID)
         {
         case 1:
@@ -56,6 +57,7 @@ void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
         out << "null";
     else
     {
+        out << "<Type: " << +u->typeID << "> ";
         if (u->op.type == TokenID::MINUS)
             out << " -";
         else if (u->op.type == TokenID::BANG)
@@ -74,6 +76,7 @@ void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
         out << "null";
     else
     {
+        out << "<Type: " << +b->typeID << "> ";
         out << "(";
         b->left->Print(out);
 
@@ -112,6 +115,7 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
         out << "null";
     else
     {
+        out << "<Type: " << +a->typeID << "> ";
         out << "Assign: ";
         if (a->val == nullptr)
             out << "null to" << a->var->name;
@@ -125,11 +129,15 @@ void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
     if (vr == nullptr)
         out << "null";
     else
+    {
+        out << "<Type: " << +vr->typeID << "> ";
         out << vr->name;
+    }
 }
 
 void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 {
+    out << "<Type: " << +fc->typeID << "> ";
     out << fc->name << "(";
     for (auto &e : fc->args)
     {

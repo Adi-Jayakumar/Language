@@ -29,15 +29,18 @@ int main()
     std::cout << std::endl
     << std::endl;
 
+    TypeChecker t = TypeChecker();
+    for (auto &s : res)
+        t.TypeCheck(s);
+
+    std::cout << std::endl
+              << std::endl;
+
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
     std::cout << std::endl
     << std::endl;
-
-    // TypeChecker t = TypeChecker();
-    // for (auto &s : res)
-    //     t.TypeCheck(s);
 
     Compiler c = Compiler();
     c.Compile(res);
