@@ -33,6 +33,11 @@ Token Literal::Loc()
     return loc;
 }
 
+TypeID Literal::GetType()
+{
+    return typeID;
+}
+
 Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
 {
     op = _op;
@@ -42,6 +47,11 @@ Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
 Token Unary::Loc()
 {
     return op;
+}
+
+TypeID Unary::GetType()
+{
+    return typeID;
 }
 
 Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _right)
@@ -56,6 +66,11 @@ Token Binary::Loc()
     return op;
 }
 
+TypeID Binary::GetType()
+{
+    return typeID;
+}
+
 Assign::Assign(std::shared_ptr<VarReference> _var, std::shared_ptr<Expr> _val, Token _loc)
 {
     var = _var;
@@ -68,6 +83,11 @@ Token Assign::Loc()
     return loc;
 }
 
+TypeID Assign::GetType()
+{
+    return typeID;
+}
+
 VarReference::VarReference(Token _loc)
 {
     loc = _loc;
@@ -76,6 +96,11 @@ VarReference::VarReference(Token _loc)
 Token VarReference::Loc()
 {
     return loc;
+}
+
+TypeID VarReference::GetType()
+{
+    return typeID;
 }
 
 FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> &_args, Token _loc)
@@ -88,4 +113,9 @@ FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>>
 Token FunctionCall::Loc()
 {
     return loc;
+}
+
+TypeID FunctionCall::GetType()
+{
+    return typeID;
 }
