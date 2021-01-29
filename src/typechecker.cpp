@@ -84,7 +84,7 @@ TypeID TypeChecker::TypeOfLiteral(Literal *l)
 TypeID TypeChecker::TypeOfUnary(Unary *u)
 {
     TypeID opType = u->right->Type(*this);
-    TypeInfo info = {opType, u->op.type, 0};
+    TypeInfo info = {0, u->op.type, opType};
 
     if (OperatorMap.find(info) != OperatorMap.end())
     {
