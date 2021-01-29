@@ -16,9 +16,9 @@ static std::unordered_map<std::string, TypeID> TypeNameMap{{"int", 1}, {"double"
 
 struct TypeInfo
 {
-    uint8_t left;
+    TypeID left;
     TokenID t;
-    uint8_t right;
+    TypeID right;
 };
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);
