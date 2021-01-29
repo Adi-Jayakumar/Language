@@ -333,8 +333,9 @@ std::shared_ptr<Expr> Parser::UnaryOp()
 
     if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
+        Token loc = cur;
         Advance();
-        std::shared_ptr<Expr> right = std::make_shared<Unary>(prev, UnaryOp());
+        std::shared_ptr<Expr> right = std::make_shared<Unary>(loc, UnaryOp());
         return right;
     }
 
