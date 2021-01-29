@@ -40,23 +40,70 @@ std::string ToString(Opcode o)
     {
         return "RETURN";
     }
-    case Opcode::ADD:
+    case Opcode::I_ADD:
     {
-        return "ADD";
+        return "I_ADD";
     }
-    case Opcode::SUB:
+    case Opcode::DI_ADD:
     {
-        return "SUB";
+        return "DI_ADD";
     }
-    case Opcode::MUL:
+    case Opcode::ID_ADD:
     {
-        return "MUL";
+        return "ID_ADD";
     }
-    case Opcode::DIV:
+    case Opcode::D_ADD:
     {
-        return "DIV";
+        return "D_ADD";
     }
-
+    case Opcode::I_SUB:
+    {
+        return "I_SUB";
+    }
+    case Opcode::DI_SUB:
+    {
+        return "DI_SUB";
+    }
+    case Opcode::ID_SUB:
+    {
+        return "ID_SUB";
+    }
+    case Opcode::D_SUB:
+    {
+        return "D_SUB";
+    }
+    case Opcode::I_MUL:
+    {
+        return "I_MUL";
+    }
+    case Opcode::DI_MUL:
+    {
+        return "DI_MUL";
+    }
+    case Opcode::ID_MUL:
+    {
+        return "ID_MUL";
+    }
+    case Opcode::D_MUL:
+    {
+        return "D_MUL";
+    }
+    case Opcode::I_DIV:
+    {
+        return "I_DIV";
+    }
+    case Opcode::DI_DIV:
+    {
+        return "DI_DIV";
+    }
+    case Opcode::ID_DIV:
+    {
+        return "ID_DIV";
+    }
+    case Opcode::D_DIV:
+    {
+        return "D_DIV";
+    }
     case Opcode::GT:
     {
         return "GT";
@@ -89,16 +136,42 @@ std::string ToString(Opcode o)
     }
 }
 
-Opcode TokenToOpcode(TokenID t)
+#define GET_TYPED_ARITH_OP(l, op, r, ret) \
+    do                                    \
+    {                                     \
+        if (l == 1 && r == 1)             \
+            ret = Opcode::I_##op;         \
+        else if (l == 1 && r == 2)        \
+            ret = Opcode::ID_##op;        \
+        else if (l == 2 && r == 1)        \
+            ret = Opcode::DI_##op;        \
+        else                              \
+            ret = Opcode::D_##op;         \
+    } while (false)
+
+Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r)
 {
+    Opcode o;
     if (t == TokenID::PLUS)
-        return Opcode::ADD;
+    {
+        GET_TYPED_ARITH_OP(l, ADD, r, o);
+        return o;
+    }
     else if (t == TokenID::MINUS)
-        return Opcode::SUB;
+    {
+        GET_TYPED_ARITH_OP(l, SUB, r, o);
+        return o;
+    }
     else if (t == TokenID::STAR)
-        return Opcode::MUL;
+    {
+        GET_TYPED_ARITH_OP(l, MUL, r, o);
+        return o;
+    }
     else if (t == TokenID::SLASH)
-        return Opcode::DIV;
+    {
+        GET_TYPED_ARITH_OP(l, DIV, r, o);
+        return o;
+    }
     else if (t == TokenID::GT)
         return Opcode::GT;
     else if (t == TokenID::LT)

@@ -15,10 +15,29 @@ enum class Opcode : uint8_t
     CALL_F,
     RETURN,
 
-    ADD,
-    SUB,
-    MUL,
-    DIV,
+    // ADDITION
+    I_ADD,
+    DI_ADD,
+    ID_ADD,
+    D_ADD,
+
+    // SUBTRACTION
+    I_SUB,
+    DI_SUB,
+    ID_SUB,
+    D_SUB,
+
+    // MULTIPLICATION
+    I_MUL,
+    DI_MUL,
+    ID_MUL,
+    D_MUL,
+
+    // DIVISION
+    I_DIV,
+    DI_DIV,
+    ID_DIV,
+    D_DIV,
 
     GT,
     LT,
@@ -32,7 +51,7 @@ enum class Opcode : uint8_t
 
 std::string ToString(Opcode o);
 
-Opcode TokenToOpcode(TokenID t);
+Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r);
 
 struct Op
 {
