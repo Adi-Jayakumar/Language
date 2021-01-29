@@ -39,10 +39,29 @@ enum class Opcode : uint8_t
     ID_DIV,
     D_DIV,
 
-    GT,
-    LT,
-    GEQ,
-    LEQ,
+    // GT,
+    I_GT,
+    DI_GT,
+    ID_GT,
+    D_GT,
+
+    // LT,
+    I_LT,
+    DI_LT,
+    ID_LT,
+    D_LT,
+
+    // GEQ,
+    I_GEQ,
+    DI_GEQ,
+    ID_GEQ,
+    D_GEQ,
+
+    // LEQ,
+    I_LEQ,
+    DI_LEQ,
+    ID_LEQ,
+    D_LEQ,
 
     EQ_EQ,
     BANG_EQ,

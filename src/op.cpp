@@ -104,23 +104,70 @@ std::string ToString(Opcode o)
     {
         return "D_DIV";
     }
-    case Opcode::GT:
+    case Opcode::I_GT:
     {
-        return "GT";
+        return "I_GT";
     }
-    case Opcode::LT:
+    case Opcode::DI_GT:
     {
-        return "LT";
+        return "DI_GT";
     }
-    case Opcode::GEQ:
+    case Opcode::ID_GT:
     {
-        return "GEQ";
+        return "ID_GT";
     }
-    case Opcode::LEQ:
+    case Opcode::D_GT:
     {
-        return "LEQ";
+        return "D_GT";
     }
-
+    case Opcode::I_LT:
+    {
+        return "I_LT";
+    }
+    case Opcode::DI_LT:
+    {
+        return "DI_LT";
+    }
+    case Opcode::ID_LT:
+    {
+        return "ID_LT";
+    }
+    case Opcode::D_LT:
+    {
+        return "D_LT";
+    }
+    case Opcode::I_GEQ:
+    {
+        return "I_GEQ";
+    }
+    case Opcode::DI_GEQ:
+    {
+        return "DI_GEQ";
+    }
+    case Opcode::ID_GEQ:
+    {
+        return "ID_GEQ";
+    }
+    case Opcode::D_GEQ:
+    {
+        return "D_GEQ";
+    }
+    case Opcode::I_LEQ:
+    {
+        return "I_LEQ";
+    }
+    case Opcode::DI_LEQ:
+    {
+        return "DI_LEQ";
+    }
+    case Opcode::ID_LEQ:
+    {
+        return "ID_LEQ";
+    }
+    case Opcode::D_LEQ:
+    {
+        return "D_LEQ";
+    }
     case Opcode::EQ_EQ:
     {
         return "EQ_EQ";
@@ -136,17 +183,17 @@ std::string ToString(Opcode o)
     }
 }
 
-#define GET_TYPED_ARITH_OP(l, op, r, ret) \
-    do                                    \
-    {                                     \
-        if (l == 1 && r == 1)             \
-            ret = Opcode::I_##op;         \
-        else if (l == 1 && r == 2)        \
-            ret = Opcode::ID_##op;        \
-        else if (l == 2 && r == 1)        \
-            ret = Opcode::DI_##op;        \
-        else                              \
-            ret = Opcode::D_##op;         \
+#define GET_TYPED_OP(l, op, r, ret) \
+    do                              \
+    {                               \
+        if (l == 1 && r == 1)       \
+            ret = Opcode::I_##op;   \
+        else if (l == 1 && r == 2)  \
+            ret = Opcode::ID_##op;  \
+        else if (l == 2 && r == 1)  \
+            ret = Opcode::DI_##op;  \
+        else                        \
+            ret = Opcode::D_##op;   \
     } while (false)
 
 Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r)
@@ -154,32 +201,44 @@ Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r)
     Opcode o;
     if (t == TokenID::PLUS)
     {
-        GET_TYPED_ARITH_OP(l, ADD, r, o);
+        GET_TYPED_OP(l, ADD, r, o);
         return o;
     }
     else if (t == TokenID::MINUS)
     {
-        GET_TYPED_ARITH_OP(l, SUB, r, o);
+        GET_TYPED_OP(l, SUB, r, o);
         return o;
     }
     else if (t == TokenID::STAR)
     {
-        GET_TYPED_ARITH_OP(l, MUL, r, o);
+        GET_TYPED_OP(l, MUL, r, o);
         return o;
     }
     else if (t == TokenID::SLASH)
     {
-        GET_TYPED_ARITH_OP(l, DIV, r, o);
+        GET_TYPED_OP(l, DIV, r, o);
         return o;
     }
     else if (t == TokenID::GT)
-        return Opcode::GT;
+    {
+        GET_TYPED_OP(l, GT, r, o);
+        return o;
+    }
     else if (t == TokenID::LT)
-        return Opcode::LT;
+    {
+        GET_TYPED_OP(l, LT, r, o);
+        return o;
+    }
     else if (t == TokenID::GEQ)
-        return Opcode::GEQ;
+    {
+        GET_TYPED_OP(l, GEQ, r, o);
+        return o;
+    }
     else if (t == TokenID::LEQ)
-        return Opcode::LEQ;
+    {
+        GET_TYPED_OP(l, LEQ, r, o);
+        return o;
+    }
     else if (t == TokenID::EQ_EQ)
         return Opcode::EQ_EQ;
     else if (t == TokenID::BANG_EQ)
