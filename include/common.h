@@ -36,47 +36,61 @@ struct TypeInfoHasher
 
 static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
     OperatorMap{
+        // binary plus
         {{1, TokenID::PLUS, 1}, 1},
         {{1, TokenID::PLUS, 2}, 2},
         {{2, TokenID::PLUS, 1}, 2},
         {{2, TokenID::PLUS, 2}, 2},
+        // binary mins
         {{1, TokenID::MINUS, 1}, 1},
         {{1, TokenID::MINUS, 2}, 2},
         {{2, TokenID::MINUS, 1}, 2},
         {{2, TokenID::MINUS, 2}, 2},
+        // unary minus
+        {{0, TokenID::MINUS, 1}, 1},
+        {{0, TokenID::MINUS, 2}, 2},
+        // binary mult
         {{1, TokenID::STAR, 1}, 1},
         {{1, TokenID::STAR, 2}, 2},
         {{2, TokenID::STAR, 1}, 2},
         {{2, TokenID::STAR, 2}, 2},
+        // binary div
         {{1, TokenID::SLASH, 1}, 1},
         {{1, TokenID::SLASH, 2}, 2},
         {{2, TokenID::SLASH, 1}, 2},
         {{2, TokenID::SLASH, 2}, 2},
+        // binary greater than
         {{1, TokenID::GT, 1}, 3},
         {{1, TokenID::GT, 2}, 3},
         {{2, TokenID::GT, 1}, 3},
         {{2, TokenID::GT, 2}, 3},
+        // unary less than
         {{1, TokenID::LT, 1}, 3},
         {{1, TokenID::LT, 2}, 3},
         {{2, TokenID::LT, 1}, 3},
         {{2, TokenID::LT, 2}, 3},
+        // binary greater than or equal
         {{1, TokenID::GEQ, 1}, 3},
         {{1, TokenID::GEQ, 2}, 3},
         {{2, TokenID::GEQ, 1}, 3},
         {{2, TokenID::GEQ, 2}, 3},
+        // binary less than or equal
         {{1, TokenID::LEQ, 1}, 3},
         {{1, TokenID::LEQ, 2}, 3},
         {{2, TokenID::LEQ, 1}, 3},
         {{2, TokenID::LEQ, 2}, 3},
+        // binary eqality
         {{1, TokenID::EQ_EQ, 1}, 3},
         {{1, TokenID::EQ_EQ, 2}, 3},
         {{2, TokenID::EQ_EQ, 1}, 3},
         {{2, TokenID::EQ_EQ, 2}, 3},
         {{3, TokenID::EQ_EQ, 3}, 3},
+        // binary not equality
         {{1, TokenID::BANG_EQ, 1}, 3},
         {{1, TokenID::BANG_EQ, 2}, 3},
         {{2, TokenID::BANG_EQ, 1}, 3},
         {{2, TokenID::BANG_EQ, 2}, 3},
         {{3, TokenID::BANG_EQ, 3}, 3},
+        // unary negation
         {{0, TokenID::BANG, 3}, 3},
     };
