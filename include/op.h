@@ -74,12 +74,15 @@ enum class Opcode : uint8_t
     DI_BANG_EQ,
     ID_BANG_EQ,
     D_BANG_EQ,
+
+    BANG,
+
     NONE,
 };
 
 std::string ToString(Opcode o);
 
-Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r);
+Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary);
 
 struct Op
 {

@@ -200,6 +200,10 @@ std::string ToString(Opcode o)
     {
         return "D_BANG_EQ";
     }
+    case Opcode::BANG:
+    {
+        return "BANG";
+    }
     default:
     {
         return "UNRECOGNISED OPCODE " + std::to_string((uint8_t)o);
@@ -207,71 +211,87 @@ std::string ToString(Opcode o)
     }
 }
 
-#define GET_TYPED_OP(l, op, r, ret) \
-    do                              \
-    {                               \
-        if (l == 1 && r == 1)       \
-            ret = Opcode::I_##op;   \
-        else if (l == 1 && r == 2)  \
-            ret = Opcode::ID_##op;  \
-        else if (l == 2 && r == 1)  \
-            ret = Opcode::DI_##op;  \
-        else                        \
-            ret = Opcode::D_##op;   \
+#define GET_TYPED_BINARY_OP(l, op, r, ret) \
+    do                                     \
+    {                                      \
+        if (l == 1 && r == 1)              \
+            ret = Opcode::I_##op;          \
+        else if (l == 1 && r == 2)         \
+            ret = Opcode::ID_##op;         \
+        else if (l == 2 && r == 1)         \
+            ret = Opcode::DI_##op;         \
+        else                               \
+            ret = Opcode::D_##op;          \
     } while (false)
 
-Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r)
+#define GET_TYPED_UNARY_OP(op, r, ret) \
+    do                                 \
+    {                                  \
+        if (r == 1)                    \
+            ret = Opcode::I_##op;      \
+        else if (r == 2)               \
+            ret = Opcode::D_##op;      \
+    } while (false)
+
+Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary)
 {
     Opcode o;
     if (t == TokenID::PLUS)
     {
-        GET_TYPED_OP(l, ADD, r, o);
+        GET_TYPED_BINARY_OP(l, ADD, r, o);
         return o;
     }
     else if (t == TokenID::MINUS)
     {
-        GET_TYPED_OP(l, SUB, r, o);
+        if (isUnary)
+            GET_TYPED_UNARY_OP(SUB, r, o);
+        else
+            GET_TYPED_BINARY_OP(l, SUB, r, o);
         return o;
     }
     else if (t == TokenID::STAR)
     {
-        GET_TYPED_OP(l, MUL, r, o);
+        GET_TYPED_BINARY_OP(l, MUL, r, o);
         return o;
     }
     else if (t == TokenID::SLASH)
     {
-        GET_TYPED_OP(l, DIV, r, o);
+        GET_TYPED_BINARY_OP(l, DIV, r, o);
         return o;
     }
     else if (t == TokenID::GT)
     {
-        GET_TYPED_OP(l, GT, r, o);
+        GET_TYPED_BINARY_OP(l, GT, r, o);
         return o;
     }
     else if (t == TokenID::LT)
     {
-        GET_TYPED_OP(l, LT, r, o);
+        GET_TYPED_BINARY_OP(l, LT, r, o);
         return o;
     }
     else if (t == TokenID::GEQ)
     {
-        GET_TYPED_OP(l, GEQ, r, o);
+        GET_TYPED_BINARY_OP(l, GEQ, r, o);
         return o;
     }
     else if (t == TokenID::LEQ)
     {
-        GET_TYPED_OP(l, LEQ, r, o);
+        GET_TYPED_BINARY_OP(l, LEQ, r, o);
         return o;
     }
     else if (t == TokenID::EQ_EQ)
     {
-        GET_TYPED_OP(l, EQ_EQ, r, o);
+        GET_TYPED_BINARY_OP(l, EQ_EQ, r, o);
         return o;
     }
     else if (t == TokenID::BANG_EQ)
     {
-        GET_TYPED_OP(l, BANG_EQ, r, o);
+        GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
         return o;
+    }
+    else if (t == TokenID::BANG)
+    {
+        return Opcode::BANG;
     }
     else
         return Opcode::NONE;
