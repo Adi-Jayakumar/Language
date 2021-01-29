@@ -17,10 +17,13 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 
 void Compiler::Disassemble()
 {
-    std::cout << "NUM CHUNKS: " << chunks.size() << std::endl;
+    std::cout << "NUM CHUNKS: " << chunks.size() << std::endl
+              << std::endl
+              << std::endl;
     for (size_t i = 0; i < chunks.size(); i++)
     {
-        std::cout << "Chunk index: " << i << std::endl;
+        std::cout << "Chunk index: " << i << std::endl
+                  << std::endl;
         chunks[i].PrintCode();
         std::cout << std::endl;
     }
