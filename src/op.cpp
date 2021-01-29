@@ -28,6 +28,10 @@ std::string ToString(Opcode o)
     {
         return "JUMP";
     }
+    case Opcode::LOOP:
+    {
+        return "LOOP";
+    }
     case Opcode::CALL_F:
     {
         return "CALL_F";

@@ -137,7 +137,24 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 {
-    return;
+    size_t begLoop = c.cur->code.size() - 1;
+    ws->cond->NodeCompile(c);
+    c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0});
+    size_t patchIndex = c.cur->code.size() - 1;
+
+    ws->body->NodeCompile(c);
+
+    if (c.cur->code.size() - begLoop > UINT8_MAX)
+        CompileError("Too much code to loop over");
+
+    c.cur->code.push_back({Opcode::LOOP, static_cast<uint8_t>(begLoop)});
+
+    size_t jumpSize = c.cur->code.size() - patchIndex;
+
+    if (jumpSize > UINT8_MAX)
+        CompileError("Too much code to jump over");
+
+    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(jumpSize - 1);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)

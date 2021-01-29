@@ -10,6 +10,7 @@ enum class Opcode : uint8_t
 
     JUMP_IF_FALSE,
     JUMP,
+    LOOP,
 
     CALL_F,
     RETURN,

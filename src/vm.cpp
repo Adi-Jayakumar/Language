@@ -110,6 +110,12 @@ void VM::ExecuteInstruction()
         ip += o.op1;
         break;
     }
+    // sets the ip to the operand used in loops
+    case Opcode::LOOP:
+    {
+        ip = o.op1;
+        break;
+    }
     // op1 is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
