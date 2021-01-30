@@ -115,12 +115,12 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
 
-    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff);
+    c.cur->code[patchIndex].op = static_cast<uint8_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
 
-    c.cur->code[patchIndex].op1++;
+    c.cur->code[patchIndex].op++;
 
     c.cur->code.push_back({Opcode::JUMP, 0});
 
@@ -132,7 +132,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     sizeDiff = c.cur->code.size() - befSize;
     if (sizeDiff > UINT8_MAX)
         CompileError("Too much code to junmp over");
-    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(sizeDiff);
+    c.cur->code[patchIndex].op = static_cast<uint8_t>(sizeDiff);
 }
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
@@ -154,7 +154,7 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
     if (jumpSize > UINT8_MAX)
         CompileError("Too much code to jump over");
 
-    c.cur->code[patchIndex].op1 = static_cast<uint8_t>(jumpSize - 1);
+    c.cur->code[patchIndex].op = static_cast<uint8_t>(jumpSize - 1);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
@@ -189,7 +189,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
     if (r->retVal == nullptr)
-        // the 1 in op1's position is to ensure that we do not pop a value off the stack
+        // the 1 in op's position is to ensure that we do not pop a value off the stack
         c.cur->code.push_back({Opcode::RETURN, 1});
     else
     {

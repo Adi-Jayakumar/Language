@@ -93,10 +93,10 @@ void VM::ExecuteInstruction()
         stack.pop_back();
         break;
     }
-    // pushes the constant at o.op1's location + constOffset onto the stack
+    // pushes the constant at o.op's location + constOffset onto the stack
     case Opcode::GET_C:
     {
-        CompileConst c = functions[curChunk].constants[o.op1];
+        CompileConst c = functions[curChunk].constants[o.op];
         stack.push_back(c);
         break;
     }
@@ -105,13 +105,13 @@ void VM::ExecuteInstruction()
     case Opcode::VAR_A:
     {
         CompileConst value = stack.back;
-        stack[o.op1 + curCF->valStackMin] = value;
+        stack[o.op + curCF->valStackMin] = value;
         break;
     }
-    // returns the value of the variable at o.op1's location + varOffset
+    // returns the value of the variable at o.op's location + varOffset
     case Opcode::GET_V:
     {
-        CompileConst v = stack[o.op1 + curCF->valStackMin];
+        CompileConst v = stack[o.op + curCF->valStackMin];
         if (curChunk == 0)
             std::cout << "Var val: " << v << std::endl;
         stack.push_back(v);
@@ -121,23 +121,23 @@ void VM::ExecuteInstruction()
     case Opcode::JUMP_IF_FALSE:
     {
         if (!IsTruthy(*stack.back))
-            ip += o.op1;
+            ip += o.op;
         stack.pop_back();
         break;
     }
     // adds the operand to the ip
     case Opcode::JUMP:
     {
-        ip += o.op1;
+        ip += o.op;
         break;
     }
     // sets the ip to the operand used in loops
     case Opcode::LOOP:
     {
-        ip = o.op1;
+        ip = o.op;
         break;
     }
-    // op1 is the index of the function, op2 is the arity of the function called
+    // op is the index of the function, op2 is the arity of the function called
     case Opcode::CALL_F:
     {
         curCF++;
@@ -150,7 +150,7 @@ void VM::ExecuteInstruction()
 
         *curCF = {ip + 1, curChunk, stack.count - functions[curChunk].arity};
 
-        curChunk = o.op1;
+        curChunk = o.op;
         // curCF = cs.Top();
         ip = -1;
         break;
@@ -168,14 +168,14 @@ void VM::ExecuteInstruction()
         size_t stackDiff = stack.count - returnCF->valStackMin;
         CompileConst retVal;
 
-        if (o.op1 == 0)
+        if (o.op == 0)
             retVal = *stack.back;
 
         // cleaning up the function's constants
         stack.count -= stackDiff;
         stack.back = &stack.data[stack.count - 1];
 
-        if (o.op1 == 0)
+        if (o.op == 0)
             stack.push_back(retVal);
 
         break;
@@ -231,7 +231,7 @@ void VM::ExecuteInstruction()
 
         CompileConst right = *stack.back;
         stack.pop_back();
-        if (o.op1 == 0)
+        if (o.op == 0)
         {
             CompileConst left = *stack.back;
             stack.pop_back();
@@ -272,7 +272,7 @@ void VM::ExecuteInstruction()
         CompileConst right = *stack.back;
         stack.pop_back();
 
-        if (o.op1 == 0)
+        if (o.op == 0)
         {
             CompileConst left = *stack.back;
             stack.pop_back();

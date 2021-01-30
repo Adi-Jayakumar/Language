@@ -6,13 +6,13 @@ void Chunk::PrintCode()
     {
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
-            std::cout << " '" << constants[o.op1] << "' at index: " << +o.op1;
+            std::cout << " '" << constants[o.op] << "' at index: " << +o.op;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
-            std::cout << " '" << vars[o.op1].name << "' at relative stack index: " << +o.op1;
+            std::cout << " '" << vars[o.op].name << "' at relative stack index: " << +o.op;
         else if (o.code == Opcode::CALL_F)
-            std::cout << " " << +o.op1;
+            std::cout << " " << +o.op;
         else
-            std::cout << " " << +o.op1;
+            std::cout << " " << +o.op;
 
         std::cout << std::endl;
     }

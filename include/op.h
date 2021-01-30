@@ -89,5 +89,5 @@ Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary);
 struct Op
 {
     Opcode code;
-    uint8_t op1;
+    uint8_t op;
 };

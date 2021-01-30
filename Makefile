@@ -1,5 +1,7 @@
 CC		:= g++
 
+# -fsanitize=leak -fsanitize=address -fsanitize=undefined
+
 C_FLAGS := -std=c++17 -O3 -Wall -Wextra -march=native
 
 BIN		:= bin
