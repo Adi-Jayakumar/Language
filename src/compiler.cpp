@@ -24,8 +24,17 @@ void Compiler::Disassemble()
     {
         std::cout << "Chunk index: " << i << std::endl
                   << std::endl;
+
         chunks[i].PrintCode();
-        std::cout << std::endl;
+
+        std::cout << std::endl
+                  << std::endl;
+
+        std::cout << "Chunk constants" << std::endl;
+        for (size_t j = 0; j < chunks[i].constants.size(); j++)
+        {
+            std::cout << chunks[i].constants[j] << std::endl;
+        }
     }
 }
 
