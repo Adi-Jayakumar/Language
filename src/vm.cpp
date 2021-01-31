@@ -84,6 +84,12 @@ void VM::ExecuteCurrentChunk()
 #define UNARY_B_OP(op, r) \
     CompileConst(op r.as.b)
 
+#define TAKE_LEFT_RIGHT(left, right, stack) \
+    right = *stack.back;                    \
+    stack.pop_back();                       \
+    left = *stack.back;                     \
+    stack.pop_back()
+
 void VM::ExecuteInstruction()
 {
     Op o = functions[curChunk].code[ip];
@@ -185,46 +191,32 @@ void VM::ExecuteInstruction()
         // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, +, right));
         break;
     }
     case Opcode::DI_ADD:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, +, right));
         break;
     }
     case Opcode::ID_ADD:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, +, right));
         break;
     }
     case Opcode::D_ADD:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, +, right));
 
         break;
     }
         // SUBTRACTIONS: subtracts the last 2 things on the stack
+        // if o.op is 1 then is a unary negation (only the case
+        // for I_SUB and D_SUB obviously)
     case Opcode::I_SUB:
     {
         CompileConst right = *stack.back;
@@ -246,22 +238,14 @@ void VM::ExecuteInstruction()
     case Opcode::DI_SUB:
     {
         // DI_SUB cannot be a unary operation
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+    TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, -, right));
         break;
     }
     case Opcode::ID_SUB:
     {
         // ID_SUB cannot be a unary operation
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+    TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, -, right));
         break;
     }
@@ -285,44 +269,28 @@ void VM::ExecuteInstruction()
     // multiplies the last 2 things on the stack
     case Opcode::I_MUL:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, *, right));
 
         break;
     }
     case Opcode::DI_MUL:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, *, right));
 
         break;
     }
     case Opcode::ID_MUL:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, *, right));
 
         break;
     }
     case Opcode::D_MUL:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, *, right));
 
         break;
@@ -330,44 +298,28 @@ void VM::ExecuteInstruction()
     // divides the last 2 things on the stack
     case Opcode::I_DIV:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, /, right));
 
         break;
     }
     case Opcode::DI_DIV:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, /, right));
 
         break;
     }
     case Opcode::ID_DIV:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, /, right));
 
         break;
     }
     case Opcode::D_DIV:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, /, right));
 
         break;
@@ -375,44 +327,28 @@ void VM::ExecuteInstruction()
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::I_GT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, >, right));
 
         break;
     }
     case Opcode::DI_GT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, >, right));
 
         break;
     }
     case Opcode::ID_GT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, >, right));
 
         break;
     }
     case Opcode::D_GT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, >, right));
 
         break;
@@ -420,44 +356,28 @@ void VM::ExecuteInstruction()
     // does a less than comparison on the last 2 things on the stack
     case Opcode::I_LT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, <, right));
 
         break;
     }
     case Opcode::DI_LT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, <, right));
 
         break;
     }
     case Opcode::ID_LT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, <, right));
 
         break;
     }
     case Opcode::D_LT:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, <, right));
 
         break;
@@ -465,44 +385,28 @@ void VM::ExecuteInstruction()
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::I_GEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, >=, right));
 
         break;
     }
     case Opcode::DI_GEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, >=, right));
 
         break;
     }
     case Opcode::ID_GEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, >=, right));
 
         break;
     }
     case Opcode::D_GEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, >=, right));
 
         break;
@@ -510,44 +414,28 @@ void VM::ExecuteInstruction()
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::I_LEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, <=, right));
 
         break;
     }
     case Opcode::DI_LEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, <=, right));
 
         break;
     }
     case Opcode::ID_LEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, <=, right));
 
         break;
     }
     case Opcode::D_LEQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, <=, right));
 
         break;
@@ -555,110 +443,70 @@ void VM::ExecuteInstruction()
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, ==, right));
 
         break;
     }
     case Opcode::DI_EQ_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, ==, right));
 
         break;
     }
     case Opcode::ID_EQ_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, ==, right));
 
         break;
     }
     case Opcode::D_EQ_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, ==, right));
 
         break;
     }
     case Opcode::B_EQ_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(CompileConst(left.as.b == right.as.b));
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::I_BANG_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_I_OP(left, !=, right));
 
         break;
     }
     case Opcode::DI_BANG_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, !=, right));
 
         break;
     }
     case Opcode::ID_BANG_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, !=, right));
 
         break;
     }
     case Opcode::D_BANG_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_D_OP(left, !=, right));
 
         break;
     }
     case Opcode::B_BANG_EQ:
     {
-        CompileConst right = *stack.back;
-        stack.pop_back();
-        CompileConst left = *stack.back;
-        stack.pop_back();
-
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(CompileConst(left.as.b != right.as.b));
         break;
     }
