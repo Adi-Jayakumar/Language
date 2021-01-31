@@ -8,7 +8,9 @@ void Chunk::PrintCode()
         if (o.code == Opcode::GET_C)
             std::cout << " '" << constants[o.op] << "' at index: " << +o.op;
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
-            std::cout << " '" << vars[o.op].name << "' at relative stack index: " << +o.op;
+        {
+            std::cout << "' at relative stack index: " << +o.op;
+        }
         else if (o.code == Opcode::CALL_F)
             std::cout << " " << +o.op;
         else

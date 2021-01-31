@@ -11,7 +11,7 @@ struct CTVarID
 
 struct Chunk
 {
-    uint8_t arity = 0;
+    uint8_t arity;
     std::vector<Op> code;
     std::vector<CompileConst> constants;
     std::vector<CTVarID> vars;
