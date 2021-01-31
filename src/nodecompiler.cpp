@@ -57,8 +57,6 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     for (std::shared_ptr<Expr> &e : fc->args)
         e->NodeCompile(c);
 
-    c.cur->arity = static_cast<uint8_t>(fc->args.size());
-
     c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
 
@@ -262,13 +260,9 @@ void FuncDecl::NodeCompile(Compiler &c)
     c.chunks.push_back(Chunk());
     c.cur = &c.chunks.back();
 
-    // c.isInFunc = true;
-    // c.curArity = params.size();
+    c.cur->arity = params.size() / 2;
 
     NodeCompiler::CompileFuncDecl(this, c);
-
-    // c.isInFunc = false;
-    // c.curArity = -1;
 
     c.cur->CleanUpVariables();
 
