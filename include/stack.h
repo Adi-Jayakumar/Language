@@ -4,6 +4,7 @@
 
 #define DEF_SIZE 512U
 #define GROW_FAC 2U
+#define STACK_MAX 64 * UINT8_MAX
 
 struct Array
 {
