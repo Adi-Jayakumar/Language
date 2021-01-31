@@ -4,7 +4,7 @@ VM::VM(std::vector<Chunk> &_functions)
 {
     functions = _functions;
 
-    cs = new CallFrame[UINT8_MAX];
+    cs = new CallFrame[STACK_MAX];
     curCF = cs;
     *curCF = {0, 0, 0};
 
@@ -23,12 +23,15 @@ void VM::SetChunk(size_t n)
 
 void VM::PrintStack()
 {
-    Array s = stack;
-    std::cout << "index |||| value" << std::endl;
-    for (size_t i = s.count - 1; (int)i >= 0; i--)
+
+    CompileConst *cc = (CompileConst *)malloc(stack.count * sizeof(CompileConst));
+    memcpy(cc, stack.data, stack.count * sizeof(CompileConst));
+    std::cout << "index\t|\tvalue" << std::endl;
+    for (size_t i = stack.count - 1; (int)i >= 0; i--)
     {
-        std::cout << i << " " << s[i] << std::endl;
+        std::cout << i << "\t|\t" << cc[i] << std::endl;
     }
+    free(cc);
 }
 
 void VM::Jump(size_t jump)
@@ -38,7 +41,6 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteCurrentChunk()
 {
-    // while (cs.Size() >= 1)
     while (true)
     {
         while (ip != functions[curChunk].code.size())
@@ -104,7 +106,7 @@ void VM::ExecuteInstruction()
     // the operand to the value currently at the top of the stack
     case Opcode::VAR_A:
     {
-        CompileConst value = stack.back;
+        CompileConst value = *stack.back;
         stack[o.op + curCF->valStackMin] = value;
         break;
     }
@@ -113,7 +115,7 @@ void VM::ExecuteInstruction()
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
         if (curChunk == 0)
-            std::cout << "Var val: " << v << std::endl;
+            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
     }
@@ -142,16 +144,16 @@ void VM::ExecuteInstruction()
     {
         curCF++;
 
-        if (curCF == &cs[UINT8_MAX - 1])
+        if (curCF == &cs[STACK_MAX - 1])
         {
+            std::cout << (curCF - &cs[0]) << std::endl;
             std::cout << "CallStack overflow." << std::endl;
             exit(3);
         }
 
-        *curCF = {ip + 1, curChunk, stack.count - functions[curChunk].arity};
+        *curCF = {ip, curChunk, stack.count - functions[o.op].arity};
 
         curChunk = o.op;
-        // curCF = cs.Top();
         ip = -1;
         break;
     }
@@ -162,7 +164,7 @@ void VM::ExecuteInstruction()
         CallFrame *returnCF = curCF;
         curCF--;
 
-        ip = returnCF->retIndex - 1;
+        ip = returnCF->retIndex;
         curChunk = returnCF->retChunk;
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
@@ -173,7 +175,7 @@ void VM::ExecuteInstruction()
 
         // cleaning up the function's constants
         stack.count -= stackDiff;
-        stack.back = &stack.data[stack.count - 1];
+        stack.back = &stack.data[stack.count];
 
         if (o.op == 0)
             stack.push_back(retVal);
@@ -225,10 +227,6 @@ void VM::ExecuteInstruction()
         // SUBTRACTIONS: subtracts the last 2 things on the stack
     case Opcode::I_SUB:
     {
-
-        // std::cout << "State of stack in I_SUB:" << std::endl;
-        // PrintStack();
-
         CompileConst right = *stack.back;
         stack.pop_back();
         if (o.op == 0)
