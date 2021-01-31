@@ -25,7 +25,6 @@ void Array::push_back(CompileConst cc)
         capacity *= GROW_FAC;
         CompileConst *more = (CompileConst *)malloc(capacity * sizeof(CompileConst));
         memcpy(more, data, count * sizeof(CompileConst));
-        std::cout << "Freeing in push_back" << std::endl;
         free(data);
         data = more;
         data[count] = cc;
