@@ -286,6 +286,8 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 
 TypeID TypeChecker::TypeOfReturn(Return *r)
 {
+    if (depth == 0)
+        TypeError(r->Loc(), "Cannot return from outside of a function");
     return r->retVal->Type(*this);
 }
 
