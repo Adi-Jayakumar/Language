@@ -29,7 +29,7 @@ size_t Lexer::LineSize()
 Token Lexer::NextToken()
 {
     SkipWhiteSpace();
-    
+
     if (index == src.length())
         return {TokenID::END, "", line};
 
@@ -238,6 +238,10 @@ bool Lexer::CheckKeyword(Token &tok)
     case 't':
     {
         return MatchKeyWord("rue", TokenID::BOOL_L, tok);
+    }
+    case 'v':
+    {
+        return MatchKeyWord("oid", TokenID::TYPENAME, tok);
     }
     case 'w':
     {
