@@ -92,7 +92,7 @@ TypeID TypeChecker::TypeOfUnary(Unary *u)
         return u->typeID;
     }
     else
-        TypeError(u->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(u->op.type)) + " on operand of type: " + std::to_string(opType));
+        TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + TypeStringMap.at(opType));
 
     return UINT8_MAX;
 }
@@ -112,7 +112,7 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
         return b->typeID;
     }
     else
-        TypeError(b->Loc(), "Cannot use operator: " + std::to_string(static_cast<uint8_t>(b->op.type)) + " on operands of type: " + std::to_string(lType) + " and: " + std::to_string(rType));
+        TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + TypeStringMap.at(lType) + " and: " + TypeStringMap.at(rType));
     return UINT8_MAX;
 }
 
@@ -139,7 +139,7 @@ TypeID TypeChecker::TypeOfAssign(Assign *a)
         return varType;
     }
     else
-        TypeError(a->Loc(), "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + a->var->name + "' of type: " + std::to_string(varType));
+        TypeError(a->Loc(), "Cannot assign value of type: " + TypeStringMap.at(valType) + " to variable: '" + a->var->name + "' of type: " + TypeStringMap.at(varType));
     return UINT8_MAX;
 }
 
@@ -209,7 +209,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         if (valType == varType)
             return valType;
         else
-            TypeError(dv->Loc(), "Cannot assign value of type: " + std::to_string(valType) + " to variable: '" + dv->name + "' of type: " + std::to_string(varType));
+            TypeError(dv->Loc(), "Cannot assign value of type: " + TypeStringMap.at(valType) + " to variable: '" + dv->name + "' of type: " + TypeStringMap.at(varType));
     }
     return UINT8_MAX;
 }
@@ -239,7 +239,7 @@ TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
 TypeID TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 {
     if (ws->cond->Type(*this) != 3)
-        TypeError(ws->Loc(), "Conditionof a while statment must have type: bool");
+        TypeError(ws->Loc(), "Condition of a while statment must have type: bool");
 
     ws->body->Type(*this);
     return UINT8_MAX;
@@ -290,6 +290,8 @@ TypeID TypeChecker::TypeOfReturn(Return *r)
 {
     if (depth == 0)
         TypeError(r->Loc(), "Cannot return from outside of a function");
+    if (r->retVal == nullptr)
+        return 0;
     return r->retVal->Type(*this);
 }
 

@@ -26,7 +26,7 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
         out << "null";
     else
     {
-        out << "<Type: " << +l->typeID << "> ";
+        out << "<" << TypeStringMap.at(l->typeID) << "> ";
         switch (l->typeID)
         {
         case 1:
@@ -57,7 +57,7 @@ void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
         out << "null";
     else
     {
-        out << "<Type: " << +u->typeID << "> ";
+        out << "<" << TypeStringMap.at(u->typeID) << "> ";
         if (u->op.type == TokenID::MINUS)
             out << " -";
         else if (u->op.type == TokenID::BANG)
@@ -76,7 +76,7 @@ void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
         out << "null";
     else
     {
-        out << "<Type: " << +b->typeID << "> ";
+        out << "<" << TypeStringMap.at(b->typeID) << "> ";
         out << "(";
         b->left->Print(out);
 
@@ -115,7 +115,7 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
         out << "null";
     else
     {
-        out << "<Type: " << +a->typeID << "> ";
+        out << "<" << TypeStringMap.at(a->typeID) << "> ";
         out << "Assign: ";
         if (a->val == nullptr)
             out << "null to" << a->var->name;
@@ -130,14 +130,14 @@ void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
         out << "null";
     else
     {
-        out << "<Type: " << +vr->typeID << "> ";
+        out << "<" << TypeStringMap.at(vr->typeID) << "> ";
         out << vr->name;
     }
 }
 
 void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 {
-    out << "<Type: " << +fc->typeID << "> ";
+    out << "<" << TypeStringMap.at(fc->typeID) << "> ";
     out << fc->name << "(";
     for (auto &e : fc->args)
     {
@@ -165,7 +165,7 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     if (v == nullptr)
         out << "null";
     else
-        out << "Variable: " << v->name << " declared with value: '" << v->value.get() << "' has type: " << +v->tId;
+        out << "Variable: " << v->name << " declared with value: '" << v->value.get() << "' has type: " << TypeStringMap.at(v->tId);
     out << ";";
 }
 
@@ -217,6 +217,7 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 {
+    out << TypeStringMap.at(fd->ret) << " ";
     out << fd->name << "(";
     for (const Token &t : fd->params)
     {
@@ -240,7 +241,8 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 void ASTPrinter::PrintReturn(Return *r, std::ostream &out)
 {
     out << "return ";
-    r->retVal->Print(out);
+    if (r->retVal != nullptr)
+        r->retVal->Print(out);
     out << ";";
     return;
 }
