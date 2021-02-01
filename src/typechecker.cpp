@@ -247,6 +247,7 @@ TypeID TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 
 TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
+    depth++;
     if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
 
@@ -281,6 +282,7 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     isInFunc = false;
     CleanUpVariables();
     funcVarBegin = 0;
+    depth--;
     return UINT8_MAX;
 }
 
