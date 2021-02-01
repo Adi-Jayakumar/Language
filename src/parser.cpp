@@ -88,6 +88,8 @@ std::shared_ptr<Stmt> Parser::Declaration()
 std::shared_ptr<Stmt> Parser::VarDeclaration()
 {
     Check(TokenID::TYPENAME, "Expect type name at the beginning of a declaration");
+    if (cur.literal == "void")
+        ParseError(cur, "A variable cannot have 'void' type");
     uint8_t type = TypeNameMap[cur.literal];
 
     Advance();
@@ -210,7 +212,7 @@ std::shared_ptr<Stmt> Parser::WhileStatement()
     Check(TokenID::OPEN_PAR, "Need an open parenthesis at the beginning of a while statement");
     //skipping over the OPEN_PAR
     Advance();
-    
+
     std::shared_ptr<Expr> cond = Expression();
     Check(TokenID::CLOSE_PAR, "Missing close parenthesis");
 
