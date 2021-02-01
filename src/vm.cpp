@@ -120,8 +120,8 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V:
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
-        if (curChunk == 0)
-            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
+        // if (curChunk == 0)
+        std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
     }
@@ -238,14 +238,14 @@ void VM::ExecuteInstruction()
     case Opcode::DI_SUB:
     {
         // DI_SUB cannot be a unary operation
-    TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_DI_OP(left, -, right));
         break;
     }
     case Opcode::ID_SUB:
     {
         // ID_SUB cannot be a unary operation
-    TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
         stack.push_back(BINARY_ID_OP(left, -, right));
         break;
     }

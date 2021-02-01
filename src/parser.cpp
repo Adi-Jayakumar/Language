@@ -355,8 +355,6 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     {
         Advance();
         res = Expression();
-
-        // just in place of actual error handling
         if (cur.type != TokenID::CLOSE_PAR)
             ParseError(cur, "NEED TO CLOSE THE PARENS");
     }
@@ -380,6 +378,11 @@ std::shared_ptr<Expr> Parser::FuncCall()
     Advance();
 
     std::vector<std::shared_ptr<Expr>> args;
+
+    Check(TokenID::OPEN_PAR, "Function calls require parenthesised arguments");
+
+    // skipping the open parentheses
+    Advance();
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
