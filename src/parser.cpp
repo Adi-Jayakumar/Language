@@ -378,16 +378,11 @@ std::shared_ptr<Expr> Parser::FuncCall()
     Advance();
 
     std::vector<std::shared_ptr<Expr>> args;
-
-    Check(TokenID::OPEN_PAR, "Function calls require parenthesised arguments");
-
-    // skipping the open parentheses
-    Advance();
-
+    
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
         Advance();
-        if (cur.type != TokenID::COMMA)
+        if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_PAR)
             args.push_back(Expression());
     }
 
