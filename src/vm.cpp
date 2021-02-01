@@ -51,12 +51,17 @@ void VM::ExecuteCurrentChunk()
 
         if ((curCF - cs) != 0)
         {
-
-            // CallFrame with the details of where to return to
             CallFrame *returnCF = curCF;
             curCF--;
-            ip = returnCF->retIndex;
+
+            ip = returnCF->retIndex + 1;
             curChunk = returnCF->retChunk;
+
+            size_t stackDiff = stack.count - returnCF->valStackMin;
+
+            // cleaning up the function's constants
+            stack.count -= stackDiff;
+            stack.back = &stack.data[stack.count];
         }
         else
             break;
@@ -120,7 +125,7 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V:
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
-        // if (curChunk == 0)
+        // if (curChunk != 1)
         std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
