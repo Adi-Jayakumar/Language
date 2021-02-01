@@ -41,4 +41,4 @@ analyses/*
 *.code-workspace
 
 # Makefile
-./Makefile
+Makefile
