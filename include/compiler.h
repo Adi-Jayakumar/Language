@@ -1,5 +1,6 @@
 #pragma once
 #include "chunk.h"
+#include "perror.h"
 #include "stmtnode.h"
 
 struct CTFunc
@@ -15,6 +16,8 @@ struct Compiler
 
     // bool isInFunc = false;
     // size_t curArity = -1;
+
+    void CompileError(std::string err);
 
     Chunk *cur;
     Compiler();

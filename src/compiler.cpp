@@ -7,6 +7,12 @@ Compiler::Compiler()
     cur = &chunks[0];
 }
 
+void Compiler::CompileError(std::string err)
+{
+    Error e = Error("[COMPILE ERROR] " + err);
+    e.Dump();
+}
+
 size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
     for (size_t i = 0; i < s.size(); i++)

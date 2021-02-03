@@ -1,7 +1,6 @@
 #pragma once
 #include "ASTPrinter.h"
 #include "compiler.h"
-#include "perror.h"
 
 namespace NodeCompiler
 {
@@ -10,7 +9,6 @@ namespace NodeCompiler
         {"Print", 0},
     };
 
-    void CompileError(std::string err);
 
     // expression compiling
     void CompileLiteral(Literal *l, Compiler &c);
