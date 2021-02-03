@@ -23,9 +23,9 @@ bool ReturnChecker::ReturnCheckIfStmt(IfStmt *is, TypeID ret)
 
     Literal *lCond = dynamic_cast<Literal *>(is->cond.get());
     if (lCond && lCond->GetType() == 3 && lCond->as.b)
-        ans =  is->thenBranch->DoesReturn(ret);
-    
-    if(ans)
+        ans = is->thenBranch->DoesReturn(ret);
+
+    if (ans)
         return true;
 
     if (is->elseBranch == nullptr)
@@ -73,12 +73,12 @@ bool ReturnChecker::ReturnCheckReturn(Return *r, TypeID ret)
 }
 //-------------------------------VISITOR-------------------------------//
 
-bool ExprStmt::DoesReturn(TypeID ret)
+bool ExprStmt::DoesReturn(TypeID)
 {
     return false;
 }
 
-bool DeclaredVar::DoesReturn(TypeID ret)
+bool DeclaredVar::DoesReturn(TypeID)
 {
     return false;
 }

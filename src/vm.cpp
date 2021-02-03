@@ -1,14 +1,14 @@
 #include "vm.h"
 
-VM::VM(std::vector<Chunk> &_functions)
+VM::VM(std::vector<Chunk> &_functions, size_t mainIndex)
 {
     functions = _functions;
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
-    *curCF = {0, 0, 0};
+    curChunk = mainIndex + 1;
+    *curCF = {0, curChunk, 0};
 
-    curChunk = 0;
     ip = 0;
 }
 VM::~VM()
@@ -41,7 +41,9 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteCurrentChunk()
 {
-    while (true)
+    if (curChunk == SIZE_MAX)
+        return;
+    while (curCF != cs - 1)
     {
         while (ip != functions[curChunk].code.size())
         {
@@ -49,22 +51,17 @@ void VM::ExecuteCurrentChunk()
             Jump(1);
         }
 
-        if ((curCF - cs) != 0)
-        {
-            CallFrame *returnCF = curCF;
-            curCF--;
+        CallFrame *returnCF = curCF;
+        curCF--;
 
-            ip = returnCF->retIndex + 1;
-            curChunk = returnCF->retChunk;
+        ip = returnCF->retIndex + 1;
+        curChunk = returnCF->retChunk;
 
-            size_t stackDiff = stack.count - returnCF->valStackMin;
+        size_t stackDiff = stack.count - returnCF->valStackMin;
 
-            // cleaning up the function's constants
-            stack.count -= stackDiff;
-            stack.back = &stack.data[stack.count];
-        }
-        else
-            break;
+        // cleaning up the function's constants
+        stack.count -= stackDiff;
+        stack.back = &stack.data[stack.count];
     }
 }
 

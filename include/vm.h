@@ -33,7 +33,7 @@ struct VM
 
     Array stack;
 
-    VM(std::vector<Chunk> &);
+    VM(std::vector<Chunk> &, size_t);
     ~VM();
 
     void PrintStack();

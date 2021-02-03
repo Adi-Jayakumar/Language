@@ -19,7 +19,8 @@ struct Compiler
     Chunk *cur;
     Compiler();
 
-    void Compile(std::vector<std::shared_ptr<Stmt>> &s);
+    // returns the index of the 'void Main()' function
+    size_t Compile(std::vector<std::shared_ptr<Stmt>> &s);
     void Disassemble();
 
     size_t ResolveVariableInCur(std::string &name);

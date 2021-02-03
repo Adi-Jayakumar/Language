@@ -7,13 +7,20 @@ Compiler::Compiler()
     cur = &chunks[0];
 }
 
-void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
+size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
-    for (auto &stmt : s)
+    for (size_t i = 0; i < s.size(); i++)
     {
-        stmt->NodeCompile(*this);
+        s[i]->NodeCompile(*this);
+        if (dynamic_cast<FuncDecl *>(s[i].get()))
+        {
+            FuncDecl *asFD = dynamic_cast<FuncDecl *>(s[i].get());
+            if (asFD->ret == 0 && asFD->params.size() == 0 && asFD->name == "Main")
+                return i;
+        }
     }
     cur->CleanUpVariables();
+    return SIZE_MAX;
 }
 
 void Compiler::Disassemble()

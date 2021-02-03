@@ -51,13 +51,13 @@ int main()
               << std::endl;
 
     Compiler c = Compiler();
-    c.Compile(res);
+    size_t mainIndex = c.Compile(res);
     c.Disassemble();
 
     std::cout << std::endl
               << std::endl;
 
-    VM vm = VM(c.chunks);
+    VM vm = VM(c.chunks, mainIndex);
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
