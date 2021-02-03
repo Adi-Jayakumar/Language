@@ -17,7 +17,7 @@ struct Compiler
     // bool isInFunc = false;
     // size_t curArity = -1;
 
-    void CompileError(std::string err);
+    void CompileError(Token loc, std::string err);
 
     Chunk *cur;
     Compiler();
@@ -27,5 +27,6 @@ struct Compiler
     void Disassemble();
 
     size_t ResolveVariableInCur(std::string &name);
+    bool ReolveVariable(std::string &name, size_t &index);
     size_t ResolveFunction(std::string &name);
 };

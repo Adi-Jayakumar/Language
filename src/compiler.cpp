@@ -7,26 +7,29 @@ Compiler::Compiler()
     cur = &chunks[0];
 }
 
-void Compiler::CompileError(std::string err)
+void Compiler::CompileError(Token loc, std::string err)
 {
-    Error e = Error("[COMPILE ERROR] " + err);
+    Error e = Error("[COMPILE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err);
     e.Dump();
 }
 
 size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
+    size_t mainIndex = SIZE_MAX;
     for (size_t i = 0; i < s.size(); i++)
     {
         s[i]->NodeCompile(*this);
-        if (dynamic_cast<FuncDecl *>(s[i].get()))
+        if (dynamic_cast<FuncDecl *>(s[i].get()) != nullptr)
         {
-            FuncDecl *asFD = dynamic_cast<FuncDecl *>(s[i].get());
+            FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
             if (asFD->ret == 0 && asFD->params.size() == 0 && asFD->name == "Main")
-                return i;
+                mainIndex = i;
         }
+        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr)
+            CompileError(s[i]->Loc(), "Only declarations allowed in global region");
     }
     cur->CleanUpVariables();
-    return SIZE_MAX;
+    return mainIndex;
 }
 
 void Compiler::Disassemble()
@@ -51,6 +54,17 @@ void Compiler::Disassemble()
 size_t Compiler::ResolveVariableInCur(std::string &name)
 {
     return cur->ChunkResolveVariable(name);
+}
+
+bool Compiler::ReolveVariable(std::string &name, size_t &index)
+{
+    index = cur->ChunkResolveVariable(name);
+    if (index == SIZE_MAX)
+    {
+        index = chunks[0].ChunkResolveVariable(name);
+        return true;
+    }
+    return false;
 }
 
 size_t Compiler::ResolveFunction(std::string &name)
