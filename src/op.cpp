@@ -16,9 +16,17 @@ std::string ToString(Opcode o)
     {
         return "GET_V";
     }
+    case Opcode::GET_V_GLOBAL:
+    {
+        return "GET_V_GLOBAL";
+    }
     case Opcode::VAR_A:
     {
         return "VAR_A";
+    }
+    case Opcode::VAR_A_GLOBAL:
+    {
+        return "VAR_A_GLOBAL";
     }
     case Opcode::JUMP_IF_FALSE:
     {
@@ -289,14 +297,14 @@ Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary)
     }
     else if (t == TokenID::EQ_EQ)
     {
-        if(l == 3 && r == 3)
+        if (l == 3 && r == 3)
             return Opcode::B_EQ_EQ;
         GET_TYPED_BINARY_OP(l, EQ_EQ, r, o);
         return o;
     }
     else if (t == TokenID::BANG_EQ)
     {
-        if(l == 3 && r == 3)
+        if (l == 3 && r == 3)
             return Opcode::B_BANG_EQ;
         GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
         return o;

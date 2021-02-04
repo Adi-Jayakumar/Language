@@ -6,7 +6,9 @@ enum class Opcode : uint8_t
     POP,
     GET_C,
     VAR_A,
+    VAR_A_GLOBAL,
     GET_V,
+    GET_V_GLOBAL,
 
     JUMP_IF_FALSE,
     JUMP,
