@@ -5,6 +5,7 @@ Compiler::Compiler()
     chunks.push_back(Chunk());
     chunks[0].arity = 0;
     cur = &chunks[0];
+    isFunc = false;
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -16,14 +17,16 @@ void Compiler::CompileError(Token loc, std::string err)
 size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
     size_t mainIndex = SIZE_MAX;
+    size_t numFunctions = 0;
     for (size_t i = 0; i < s.size(); i++)
     {
         s[i]->NodeCompile(*this);
         if (dynamic_cast<FuncDecl *>(s[i].get()) != nullptr)
         {
+            numFunctions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
             if (asFD->ret == 0 && asFD->params.size() == 0 && asFD->name == "Main")
-                mainIndex = i;
+                mainIndex = numFunctions;
         }
         else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr)
             CompileError(s[i]->Loc(), "Only declarations allowed in global region");

@@ -19,6 +19,7 @@ struct Compiler
 
     void CompileError(Token loc, std::string err);
 
+    bool isFunc;
     Chunk *cur;
     Compiler();
 
