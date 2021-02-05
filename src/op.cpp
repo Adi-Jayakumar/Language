@@ -28,6 +28,10 @@ std::string ToString(Opcode o)
     {
         return "VAR_A_GLOBAL";
     }
+    case Opcode::VAR_D_GLOBAL:
+    {
+        return "VAR_D_GLOBAL";
+    }
     case Opcode::JUMP_IF_FALSE:
     {
         return "JUMP_IF_FALSE";

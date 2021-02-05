@@ -7,6 +7,7 @@ enum class Opcode : uint8_t
     GET_C,
     VAR_A,
     VAR_A_GLOBAL,
+    VAR_D_GLOBAL,
     GET_V,
     GET_V_GLOBAL,
 
