@@ -32,6 +32,12 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         c.cur->code.push_back({Opcode::POP, 0});
         c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
     }
+    else
+    {
+        c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(stackIndex)});
+        c.cur->code.push_back({Opcode::POP, 0});
+        c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
@@ -39,6 +45,8 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
     size_t stackIndex = SIZE_MAX;
     if (!c.ResolveVariable(vr->name, stackIndex))
         c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+    else
+        c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
@@ -82,9 +90,13 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     // compile the initialiser
     dv->value->NodeCompile(c);
-
-    // add to the list of variables                 relative stack location
-    c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+    if (c.isFunc)
+    {
+        // add to the list of variables                relative stack location
+        c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+    }
+    else
+        c.cur->code.push_back({Opcode::VAR_D_GLOBAL, 0});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -257,13 +269,14 @@ void FuncDecl::NodeCompile(Compiler &c)
 {
     c.chunks.push_back(Chunk());
     c.cur = &c.chunks.back();
+    c.isFunc = true;
 
     c.cur->arity = params.size() / 2;
 
     NodeCompiler::CompileFuncDecl(this, c);
 
     c.cur->CleanUpVariables();
-
+    c.isFunc = false;
     c.cur = &c.chunks[0];
 }
 
