@@ -26,7 +26,9 @@ struct Compiler
     size_t Compile(std::vector<std::shared_ptr<Stmt>> &s);
     void Disassemble();
 
+    // resolves variables in the current chunk and global variables
+    // returns true if it is a global variable
+    bool ResolveVariable(std::string &name, size_t &index);
     size_t ResolveVariableInCur(std::string &name);
-    bool ReolveVariable(std::string &name, size_t &index);
     size_t ResolveFunction(std::string &name);
 };

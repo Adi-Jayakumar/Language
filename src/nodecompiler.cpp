@@ -1,6 +1,5 @@
 #include "nodecompiler.h"
 
-
 //-----------------EXPRESSIONS---------------------//
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
@@ -26,16 +25,20 @@ void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
     a->val->NodeCompile(c);
-    size_t stackIndex = c.cur->ChunkResolveVariable(a->var->name);
-    c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
-    c.cur->code.push_back({Opcode::POP, 0});
-    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+    size_t stackIndex = SIZE_MAX;
+    if (!c.ResolveVariable(a->var->name, stackIndex))
+    {
+        c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
+        c.cur->code.push_back({Opcode::POP, 0});
+        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    size_t stackIndex = c.cur->ChunkResolveVariable(vr->name);
-    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+    size_t stackIndex = SIZE_MAX;
+    if (!c.ResolveVariable(vr->name, stackIndex))
+        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)

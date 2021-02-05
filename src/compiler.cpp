@@ -56,7 +56,7 @@ size_t Compiler::ResolveVariableInCur(std::string &name)
     return cur->ChunkResolveVariable(name);
 }
 
-bool Compiler::ReolveVariable(std::string &name, size_t &index)
+bool Compiler::ResolveVariable(std::string &name, size_t &index)
 {
     index = cur->ChunkResolveVariable(name);
     if (index == SIZE_MAX)
