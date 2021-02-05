@@ -18,13 +18,11 @@ struct VM
     // instruction pointer
     size_t ip;
 
-    // // Call stack
-    // CallStack cs;
-    CallFrame* cs;
+    // Call stack
+    CallFrame *cs;
 
-    // // current CallFrame
-    // CallFrame curCF;
-    CallFrame* curCF;
+    // current CallFrame
+    CallFrame *curCF;
 
     // current Chunk index
     size_t curChunk;
