@@ -14,6 +14,7 @@ struct VM
     */
 
     std::vector<Chunk> functions;
+    std::vector<CompileConst> globals;
 
     // instruction pointer
     size_t ip;

@@ -96,7 +96,10 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
     }
     else
-        c.cur->code.push_back({Opcode::VAR_D_GLOBAL, 0});
+    {
+        c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+        c.cur->code.push_back({Opcode::VAR_D_GLOBAL, static_cast<uint8_t>(c.cur->vars.size() - 1)});
+    }
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)

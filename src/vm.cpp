@@ -6,8 +6,10 @@ VM::VM(std::vector<Chunk> &_functions, size_t mainIndex)
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
-    curChunk = mainIndex + 1;
-    *curCF = {0, curChunk, 0};
+    curChunk = 0;
+    *curCF = {0, mainIndex, 0};
+    curCF++;
+    *curCF = {0, mainIndex, 0};
 
     ip = 0;
 }
@@ -45,8 +47,9 @@ void VM::ExecuteCurrentChunk()
         return;
     while (curCF != cs - 1)
     {
-        while (ip != functions[curChunk].code.size())
+        while (ip < functions[curChunk].code.size())
         {
+            // std::cout << "cur ins " << ToString(functions[curChunk].code[ip].code) << " " << +functions[curChunk].code[ip].op << std::endl;
             ExecuteInstruction();
             Jump(1);
         }
@@ -54,9 +57,19 @@ void VM::ExecuteCurrentChunk()
         CallFrame *returnCF = curCF;
         curCF--;
 
-        ip = returnCF->retIndex + 1;
-        curChunk = returnCF->retChunk;
+        ip = returnCF->retIndex;
+        if (curChunk != 0)
+            ip++;
 
+        // std::cout << "returnCF retChunk: " << returnCF->retChunk << std::endl;
+        // std::cout << "returnCF retIndex: " << returnCF->retIndex << std::endl;
+        // std::cout << "returnCF valstackmin: " << returnCF->valStackMin << std::endl;
+
+        // std::cout << "ip: " << ip << std::endl;
+        // std::cout << "returning from: " << curChunk << std::endl;
+        curChunk = returnCF->retChunk;
+        // std::cout << "returning to: " << curChunk << std::endl;
+        // std::cout << "cs diff: " << curCF - cs << std::endl;
         size_t stackDiff = stack.count - returnCF->valStackMin;
 
         // cleaning up the function's constants
@@ -118,11 +131,28 @@ void VM::ExecuteInstruction()
         stack[o.op + curCF->valStackMin] = value;
         break;
     }
+    case Opcode::VAR_A_GLOBAL:
+    {
+        globals[o.op] = *stack.back;
+        break;
+    }
+    case Opcode::VAR_D_GLOBAL:
+    {
+        globals.push_back(*stack.back);
+        break;
+    }
     // returns the value of the variable at o.op's location + varOffset
     case Opcode::GET_V:
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
-        // if (curChunk != 1)
+        // if (curChunk != 3)
+        std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
+        stack.push_back(v);
+        break;
+    }
+    case Opcode::GET_V_GLOBAL:
+    {
+        CompileConst v = globals[o.op];
         std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
