@@ -83,6 +83,11 @@ bool DeclaredVar::DoesReturn(TypeID)
     return false;
 }
 
+bool ArrayDecl::DoesReturn(TypeID)
+{
+    return false;
+}
+
 bool Block::DoesReturn(TypeID ret)
 {
     return ReturnChecker::ReturnCheckBlock(this, ret);
