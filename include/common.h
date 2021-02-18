@@ -12,9 +12,9 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::BOOL_L, 3}};
 
 // map from string typenames to uint8_t type ids.
-static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}};
+static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
 
-static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}};
+static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "Array"}};
 
 struct TypeInfo
 {
