@@ -198,7 +198,7 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     if (IsVariableInScope(dv->name))
         TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
 
-    vars.push_back({dv->tId, dv->name, depth});
+    vars.push_back({dv->tId, dv->name, depth, false});
     if (dv->value == nullptr)
         return dv->tId;
     else
@@ -216,11 +216,15 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 
 TypeID TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
 {
+    if (IsVariableInScope(ad->name))
+        TypeError(ad->Loc(), "Variable: '" + ad->name + "' has already been defined");
+
+    vars.push_back({ad->elemType, ad->name, depth, true});
     for (auto &e : ad->init)
     {
         TypeID valType = e->Type(*this);
         if (valType != ad->elemType)
-            TypeError(ad->Loc(), "Cannot declare an array of : " + TypeStringMap.at(ad->elemType) + "s with a: " + TypeStringMap.at(valType));
+            TypeError(ad->Loc(), "Cannot declare an Array<" + TypeStringMap.at(ad->elemType) + "> with a " + TypeStringMap.at(valType));
     }
     return UINT8_MAX;
 }
@@ -284,7 +288,12 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
         i++;
         if (fd->params[i].type == TokenID::IDEN)
             pName = fd->params[i].literal;
-        vars.push_back({pType, pName, depth});
+
+        bool isArray = false;
+        if (fd->params[i].type == TokenID::ARRAY)
+            isArray = true;
+
+        vars.push_back({pType, pName, depth, isArray});
     }
 
     for (auto &s : fd->body)

@@ -190,6 +190,7 @@ void ASTPrinter::PrintArrayDecl(ArrayDecl *ad, std::ostream &out)
         }
         out << ";";
     }
+    out << std::endl;
 }
 
 void ASTPrinter::PrintBlock(Block *b, std::ostream &out)

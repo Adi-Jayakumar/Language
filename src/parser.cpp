@@ -147,7 +147,6 @@ std::shared_ptr<Stmt> Parser::ArrayDeclaration()
 
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
-        std::cout << "RUNING" << std::endl;
         Advance();
         if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
             init.push_back(Expression());
