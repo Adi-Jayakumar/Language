@@ -20,6 +20,7 @@ enum class TokenID : uint8_t
     RETURN,
     COMMA,
     
+    ARRAY,
     WHILE,
 
     // arithmetic operators

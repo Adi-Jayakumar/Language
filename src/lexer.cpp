@@ -211,6 +211,10 @@ bool Lexer::CheckKeyword(Token &tok)
     */
     switch (src[index])
     {
+    case 'A':
+    {
+        return MatchKeyWord("rray", TokenID::ARRAY, tok);
+    }
     case 'b':
     {
         return MatchKeyWord("ool", TokenID::TYPENAME, tok);
