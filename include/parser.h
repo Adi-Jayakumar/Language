@@ -28,6 +28,8 @@ struct Parser
     std::shared_ptr<Stmt> Declaration();
     // parses a variable declaraion
     std::shared_ptr<Stmt> VarDeclaration();
+    // parses an array declaration
+    std::shared_ptr<Stmt> ArrayDeclaration();
     // parses any statement
     std::shared_ptr<Stmt> Statement();
     // parses an if statement

@@ -18,34 +18,34 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("ex/if.txt");
+    // DumpTokens("ex/test.txt");
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    // Parser p = Parser("ex/if.txt");
+    Parser p = Parser("ex/test.txt");
 
-    // std::vector<std::shared_ptr<Stmt>> res = p.Parse();
+    std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    // TypeChecker t = TypeChecker();
-    // for (auto &s : res)
-    //     t.TypeCheck(s);
+    TypeChecker t = TypeChecker();
+    for (auto &s : res)
+        t.TypeCheck(s);
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    // for (auto &s : res)
-    // {
-    //     FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
-    //     if (asFunc && asFunc->ret != 0)
-    //         asFunc->DoesReturn(asFunc->ret);
-    // }
+    for (auto &s : res)
+    {
+        FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
+        if (asFunc && asFunc->ret != 0)
+            asFunc->DoesReturn(asFunc->ret);
+    }
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
     // std::cout << std::endl
     //           << std::endl;

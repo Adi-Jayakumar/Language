@@ -79,6 +79,8 @@ std::shared_ptr<Stmt> Parser::Declaration()
 {
     if (cur.type == TokenID::TYPENAME)
         return VarDeclaration();
+    else if (cur.type == TokenID::ARRAY)
+        return ArrayDeclaration();
     else if (cur.type == TokenID::FUNC)
         return FuncDeclaration();
     else
@@ -111,6 +113,55 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     return std::make_shared<DeclaredVar>(type, name, init, loc);
 }
 
+std::shared_ptr<Stmt> Parser::ArrayDeclaration()
+{
+    Token loc = cur;
+    Check(TokenID::ARRAY, "Expect 'Array' at the beginnig of an array declaration");
+    Advance();
+
+    Check(TokenID::LT, "Expect '<' after 'Array' keyword");
+    Advance();
+
+    Check(TokenID::TYPENAME, "Expect a type name surrounded by angle brackets");
+
+    if (cur.literal == "void")
+        ParseError(loc, "Array elements cannot have void type");
+
+    TypeID elemType = TypeNameMap[cur.literal];
+
+    Advance();
+
+    Check(TokenID::GT, "Expect '>' after Array's element type");
+    Advance();
+
+    Check(TokenID::IDEN, "Expect name after Array<T>");
+    std::string name = cur.literal;
+    Advance();
+
+    Check(TokenID::EQ, "Expect equals after Array<T> [_name_]");
+    Advance();
+
+    Check(TokenID::OPEN_BRACE, "Expect braced initialiser");
+
+    std::vector<std::shared_ptr<Expr>> init;
+
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    {
+        std::cout << "RUNING" << std::endl;
+        Advance();
+        if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
+            init.push_back(Expression());
+    }
+
+    Check(TokenID::CLOSE_BRACE, "Missing '}'");
+    Advance();
+
+    Check(TokenID::SEMI, "Expect ';' after Array declaration");
+    Advance();
+
+    return std::make_shared<ArrayDecl>(elemType, name, init, loc);
+}
+
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
     if (depth > 1)
@@ -132,7 +183,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Advance();
     std::vector<Token> params;
 
-    while (cur.type != TokenID::CLOSE_PAR)
+    while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
         if (cur.type != TokenID::COMMA)
             params.push_back(cur);
@@ -378,7 +429,7 @@ std::shared_ptr<Expr> Parser::FuncCall()
     Advance();
 
     std::vector<std::shared_ptr<Expr>> args;
-    
+
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
         Advance();
