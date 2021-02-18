@@ -50,6 +50,7 @@ struct TypeChecker
     // statment typechecking
     TypeID TypeOfExprStmt(ExprStmt *es);
     TypeID TypeOfDeclaredVar(DeclaredVar *v);
+    TypeID TypeOfArrayDecl(ArrayDecl *ad);
     TypeID TypeOfBlock(Block *b);
     TypeID TypeOfIfStmt(IfStmt *i);
     TypeID TypeOfWhileStmt(WhileStmt *ws);

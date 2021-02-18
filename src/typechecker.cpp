@@ -214,6 +214,17 @@ TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     return UINT8_MAX;
 }
 
+TypeID TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
+{
+    for (auto &e : ad->init)
+    {
+        TypeID valType = e->Type(*this);
+        if (valType != ad->elemType)
+            TypeError(ad->Loc(), "Cannot declare an array of : " + TypeStringMap.at(ad->elemType) + "s with a: " + TypeStringMap.at(valType));
+    }
+    return UINT8_MAX;
+}
+
 TypeID TypeChecker::TypeOfBlock(Block *b)
 {
     depth++;
@@ -337,6 +348,11 @@ TypeID ExprStmt::Type(TypeChecker &t)
 TypeID DeclaredVar::Type(TypeChecker &t)
 {
     return t.TypeOfDeclaredVar(this);
+}
+
+TypeID ArrayDecl::Type(TypeChecker &t)
+{
+    return t.TypeOfArrayDecl(this);
 }
 
 TypeID Block::Type(TypeChecker &t)
