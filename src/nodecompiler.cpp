@@ -102,6 +102,11 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     }
 }
 
+void NodeCompiler::CompileArrayDecl(ArrayDecl *ad, Compiler &c)
+{
+    return;
+}
+
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
     c.cur->depth++;
@@ -251,6 +256,11 @@ void ExprStmt::NodeCompile(Compiler &c)
 void DeclaredVar::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileDeclaredVar(this, c);
+}
+
+void ArrayDecl::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileArrayDecl(this, c);
 }
 
 void Block::NodeCompile(Compiler &c)

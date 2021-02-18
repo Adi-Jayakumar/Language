@@ -21,6 +21,7 @@ namespace NodeCompiler
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);
     void CompileDeclaredVar(DeclaredVar *dv, Compiler &c);
+    void CompileArrayDecl(ArrayDecl *ad, Compiler &c);
     void CompileBlock(Block *b, Compiler &c);
     void CompileIfStmt(IfStmt *i, Compiler &c);
     void CompileWhileStmt(WhileStmt *ws, Compiler &c);
