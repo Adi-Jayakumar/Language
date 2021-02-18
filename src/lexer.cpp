@@ -201,14 +201,6 @@ Token Lexer::LexNumber()
 
 bool Lexer::CheckKeyword(Token &tok)
 {
-    /*
-    keywords handled:
-    - 'true'
-    - 'false'
-    - 'int'
-    - 'double'
-    - 'bool'
-    */
     switch (src[index])
     {
     case 'A':
