@@ -24,6 +24,19 @@ Token DeclaredVar::Loc()
     return loc;
 }
 
+ArrayDecl::ArrayDecl(TypeID _elemType, std::string _name, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
+{
+    elemType = _elemType;
+    name = _name;
+    init = _init;
+    loc = _loc;
+}
+
+Token ArrayDecl::Loc()
+{
+    return loc;
+}
+
 Block::Block(uint8_t _depth, Token _loc)
 {
     depth = _depth;
