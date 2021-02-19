@@ -401,6 +401,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         res = std::make_shared<Literal>(cur);
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_SQ)
+        res = ParseArrayIndex();
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
@@ -440,4 +442,23 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // Advance();
 
     return std::make_shared<FunctionCall>(name, args, cur);
+}
+
+std::shared_ptr<Expr> Parser::ParseArrayIndex()
+{
+    Token loc = cur;
+    std::string name = cur.literal;
+    Check(TokenID::IDEN, "Need varaible name at the beginning of an Array index");
+    Advance();
+
+    Check(TokenID::OPEN_SQ, "Need '[' to access an array");
+    Advance();
+
+    std::shared_ptr<Expr> index = Expression();
+
+    std::cout << "cur1: " << cur << std::endl;
+
+    Check(TokenID::CLOSE_SQ, "Missing ']'");
+
+    return std::make_shared<ArrayIndex>(name, index, loc);
 }
