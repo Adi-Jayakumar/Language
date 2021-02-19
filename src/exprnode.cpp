@@ -122,8 +122,8 @@ TypeID FunctionCall::GetType()
 
 ArrayIndex::ArrayIndex(std::string _name, std::shared_ptr<Expr> _index, Token _loc)
 {
-    name = name;
-    index = index;
+    name = _name;
+    index = _index;
     loc = _loc;
 }
 
