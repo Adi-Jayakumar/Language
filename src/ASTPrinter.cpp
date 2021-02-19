@@ -172,7 +172,7 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     if (v == nullptr)
         out << "null";
     else
-        out << "Variable: " << v->name << " declared with value: '" << v->value.get() << "' has type: " << TypeStringMap.at(v->tId);
+        out << TypeStringMap.at(v->tId) << " " << v->name << " = " << v->value.get();
     out << ";";
 }
 
@@ -310,6 +310,10 @@ void FunctionCall::Print(std::ostream &out)
     ASTPrinter::PrintFunctionCall(this, out);
 }
 
+void ArrayIndex::Print(std::ostream &out)
+{
+    ASTPrinter::PrintArrayIndex(this, out);
+}
 //------------------STATEMENTS---------------------//
 
 void ExprStmt::Print(std::ostream &out)
