@@ -115,12 +115,14 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
         out << "null";
     else
     {
-        out << "<" << TypeStringMap.at(a->typeID) << "> ";
-        out << "Assign: ";
+        a->var->Print(out);
         if (a->val == nullptr)
-            out << "null to" << a->var->name;
+            out << " = null";
         else
-            out << a->val.get() << " to " << a->var->name;
+        {
+            out << " = ";
+            a->val->Print(out);
+        }
     }
 }
 
@@ -130,6 +132,8 @@ void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
         out << "null";
     else
     {
+        if (vr->isArray)
+            out << "Array";
         out << "<" << TypeStringMap.at(vr->typeID) << "> ";
         out << vr->name;
     }
@@ -163,7 +167,7 @@ void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
     else
     {
         es->exp->Print(out);
-        out << ";";
+        out << ";" << std::endl;
     }
 }
 
@@ -173,7 +177,7 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
         out << "null";
     else
         out << TypeStringMap.at(v->tId) << " " << v->name << " = " << v->value.get();
-    out << ";";
+    out << ";" << std::endl;
 }
 
 void ASTPrinter::PrintArrayDecl(ArrayDecl *ad, std::ostream &out)

@@ -91,6 +91,7 @@ struct VarReference : Expr
     std::string name;
     VarReference(Token);
     TypeID typeID = 0;
+    bool isArray = false;
 
     // ~VarReference() override = default;
 
