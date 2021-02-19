@@ -127,7 +127,23 @@ struct FunctionCall : Expr
     std::vector<std::shared_ptr<Expr>> args;
     TypeID typeID = 0;
 
-    FunctionCall(std::string, std::vector<std::shared_ptr<Expr>> &, Token);
+    FunctionCall(std::string, std::vector<std::shared_ptr<Expr>>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeID Type(TypeChecker &t) override;
+    TypeID GetType() override;
+    void NodeCompile(Compiler &c) override;
+};
+
+struct ArrayIndex : Expr
+{
+    Token loc;
+    std::string name;
+    std::shared_ptr<Expr> index;
+    TypeID typeID = 0;
+
+    ArrayIndex(std::string, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

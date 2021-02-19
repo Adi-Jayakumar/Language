@@ -103,7 +103,7 @@ TypeID VarReference::GetType()
     return typeID;
 }
 
-FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> &_args, Token _loc)
+FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
 {
     name = _name;
     args = _args;
@@ -116,6 +116,23 @@ Token FunctionCall::Loc()
 }
 
 TypeID FunctionCall::GetType()
+{
+    return typeID;
+}
+
+ArrayIndex::ArrayIndex(std::string _name, std::shared_ptr<Expr> _index, Token _loc)
+{
+    name = name;
+    index = index;
+    loc = _loc;
+}
+
+Token ArrayIndex::Loc()
+{
+    return loc;
+}
+
+TypeID ArrayIndex::GetType()
 {
     return typeID;
 }
