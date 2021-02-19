@@ -153,6 +153,16 @@ Token Lexer::NextToken()
         res = {TokenID::CLOSE_BRACE, "}", line};
         break;
     }
+    case '[':
+    {
+        res = {TokenID::OPEN_SQ, "[", line};
+        break;
+    }
+    case ']':
+    {
+        res = {TokenID::CLOSE_SQ, "]", line};
+        break;
+    }
     case ',':
     {
         res = {TokenID::COMMA, ",", line};

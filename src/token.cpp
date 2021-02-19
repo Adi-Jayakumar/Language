@@ -117,6 +117,14 @@ std::string ToString(const TokenID &t)
     {
         return "CLOSE_BRACE";
     }
+    case TokenID::OPEN_SQ:
+    {
+        return "OPEN_SQ";
+    }
+    case TokenID::CLOSE_SQ:
+    {
+        return "CLOSE_SQ";
+    }
     case TokenID::IF:
     {
         return "IF";

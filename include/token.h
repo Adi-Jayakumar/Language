@@ -53,6 +53,9 @@ enum class TokenID : uint8_t
     OPEN_BRACE,
     CLOSE_BRACE,
 
+    OPEN_SQ,
+    CLOSE_SQ,
+
     IF,
     ELSE,
 
