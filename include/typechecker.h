@@ -32,8 +32,8 @@ struct TypeChecker
     void TypeError(Token loc, std::string err);
 
     // resolve variables
-    TypeID ResolveVariable(std::string &name);
-    TypeID CheckVariablesInFunction(std::string &name);
+    size_t ResolveVariable(std::string &name, Token loc);
+    size_t CheckVariablesInFunction(std::string &name);
     bool IsVariableInScope(std::string &name);
     void CleanUpVariables();
 
@@ -47,6 +47,7 @@ struct TypeChecker
     TypeID TypeOfAssign(Assign *a);
     TypeID TypeOfVarReference(VarReference *vr);
     TypeID TypeOfFunctionCall(FunctionCall *fc);
+    TypeID TypeOfArrayIndex(ArrayIndex *ai);
 
     // statment typechecking
     TypeID TypeOfExprStmt(ExprStmt *es);

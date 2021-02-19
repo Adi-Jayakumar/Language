@@ -16,24 +16,45 @@ void TypeChecker::TypeCheck(std::shared_ptr<Stmt> &s)
     s->Type(*this);
 }
 
-TypeID TypeChecker::ResolveVariable(std::string &name)
+size_t TypeChecker::ResolveVariable(std::string &name, Token loc)
 {
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    size_t varIndex = SIZE_MAX;
+    if (isInFunc)
     {
-        if (vars[i].name == name)
-            return vars[i].type;
+        varIndex = CheckVariablesInFunction(name);
+        if (varIndex == SIZE_MAX)
+        {
+            for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+                if (vars[i].name == name)
+                {
+                    varIndex = i;
+                    break;
+                }
+        }
     }
-    return UINT8_MAX;
+    else
+    {
+        for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+            if (vars[i].name == name)
+            {
+                varIndex = i;
+                break;
+            }
+    }
+    if (varIndex == SIZE_MAX)
+        TypeError(loc, "Variable '" + name + "' has not been defined yet");
+
+    return varIndex;
 }
 
-TypeID TypeChecker::CheckVariablesInFunction(std::string &name)
+size_t TypeChecker::CheckVariablesInFunction(std::string &name)
 {
     for (size_t i = vars.size() - 1; (int)i >= (int)funcVarBegin; i--)
     {
         if ((vars[i].depth == depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
-            return vars[i].type;
+            return i;
     }
-    return UINT8_MAX;
+    return SIZE_MAX;
 }
 
 bool TypeChecker::IsVariableInScope(std::string &name)
@@ -118,48 +139,27 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    TypeID varType;
-    if (isInFunc)
-    {
-        varType = CheckVariablesInFunction(a->var->name);
-        if (varType == UINT8_MAX)
-            varType = ResolveVariable(a->var->name);
-    }
-    else
-        varType = ResolveVariable(a->var->name);
-
-    if (varType == UINT8_MAX)
-        TypeError(a->var->Loc(), "Variable name: '" + a->var->name + "' has not been defined before");
-
+    size_t varIndex = ResolveVariable(a->var->name, a->Loc());
+    TypeID varType = vars[varIndex].type;
     TypeID valType = a->val->Type(*this);
 
-    if (varType == valType)
-    {
-        a->typeID = varType;
-        return varType;
-    }
-    else
-        TypeError(a->Loc(), "Cannot assign value of type: " + TypeStringMap.at(valType) + " to variable: '" + a->var->name + "' of type: " + TypeStringMap.at(varType));
-    return UINT8_MAX;
+    if (varType != valType)
+        TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[varType]);
+
+    // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
+    a->var->isArray = vars[varIndex].isArray;
+    a->var->typeID = varType;
+    a->typeID = varType;
+
+    return varType;
 }
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    TypeID type;
-    if (isInFunc)
-    {
-        type = CheckVariablesInFunction(vr->name);
-        if (type == UINT8_MAX)
-            type = ResolveVariable(vr->name);
-    }
-    else
-        type = ResolveVariable(vr->name);
-
-    if (type == UINT8_MAX)
-        TypeError(vr->Loc(), "Variable name: '" + vr->name + "' has not been defined before");
-
-    vr->typeID = type;
-    return type;
+    size_t varIndex = ResolveVariable(vr->name, vr->Loc());
+    vr->typeID = vars[varIndex].type;
+    vr->isArray = vars[varIndex].isArray;
+    return vars[varIndex].type;
 }
 
 TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
@@ -179,6 +179,11 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
     fc->typeID = funcs[index].ret;
     return funcs[index].ret;
+}
+
+TypeID TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
+{
+    return 0;
 }
 
 //------------------STATEMENTS---------------------//
@@ -345,6 +350,11 @@ TypeID VarReference::Type(TypeChecker &t)
 TypeID FunctionCall::Type(TypeChecker &t)
 {
     return t.TypeOfFunctionCall(this);
+}
+
+TypeID ArrayIndex::Type(TypeChecker &t)
+{
+    return t.TypeOfArrayIndex(this);
 }
 
 //------------------STATEMENTS---------------------//
