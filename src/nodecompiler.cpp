@@ -66,6 +66,11 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
 
+void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
+{
+    return;
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -244,6 +249,11 @@ void VarReference::NodeCompile(Compiler &c)
 void FunctionCall::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileFunctionCall(this, c);
+}
+
+void ArrayIndex::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileArrayIndex(this, c);
 }
 
 //------------------STATEMENTS---------------------//

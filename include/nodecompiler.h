@@ -17,6 +17,7 @@ namespace NodeCompiler
     void CompileAssign(Assign *a, Compiler &c);
     void CompileVarReference(VarReference *vr, Compiler &c);
     void CompileFunctionCall(FunctionCall *fc, Compiler &c);
+    void CompileArrayIndex(ArrayIndex *ai, Compiler &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);
