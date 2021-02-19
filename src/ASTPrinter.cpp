@@ -153,7 +153,7 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 
 void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
 {
-    out << ai->name << "[";
+    out << "<" << TypeStringMap[ai->typeID] << "> " << ai->name << "[";
     ai->index->Print(out);
     out << "]";
 }

@@ -183,7 +183,19 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
 TypeID TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
-    return 0;
+    size_t varIndex = ResolveVariable(ai->name, ai->Loc());
+
+    if(!vars[varIndex].isArray)
+        TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + TypeStringMap[vars[varIndex].type]);
+
+    TypeID indexType = ai->index->Type(*this);
+
+    if(indexType != 1)
+        TypeError(ai->Loc(), "Index into an array must have type int not " + TypeStringMap[indexType]);
+    
+    ai->typeID = vars[varIndex].type;
+
+    return vars[varIndex].type;
 }
 
 //------------------STATEMENTS---------------------//
