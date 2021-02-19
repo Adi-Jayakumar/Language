@@ -456,8 +456,6 @@ std::shared_ptr<Expr> Parser::ParseArrayIndex()
 
     std::shared_ptr<Expr> index = Expression();
 
-    std::cout << "cur1: " << cur << std::endl;
-
     Check(TokenID::CLOSE_SQ, "Missing ']'");
 
     return std::make_shared<ArrayIndex>(name, index, loc);
