@@ -308,10 +308,10 @@ std::shared_ptr<Expr> Parser::Assignment()
             std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->Loc());
             return std::make_shared<Assign>(u, val, loc);
         }
+        else if(dynamic_cast<ArrayIndex*>(exp.get()) != nullptr)
+            return std::make_shared<Assign>(exp, val, loc);
         else
-        {
             ParseError(cur, "Invalid assignment target");
-        }
     }
     return exp;
 }

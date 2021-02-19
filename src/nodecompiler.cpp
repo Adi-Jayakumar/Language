@@ -26,17 +26,23 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
     a->val->NodeCompile(c);
     size_t stackIndex = SIZE_MAX;
-    if (!c.ResolveVariable(a->var->name, stackIndex))
+
+    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
+
+    if (targetAsVr != nullptr)
     {
-        c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
-        c.cur->code.push_back({Opcode::POP, 0});
-        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
-    }
-    else
-    {
-        c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(stackIndex)});
-        c.cur->code.push_back({Opcode::POP, 0});
-        c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
+        if (!c.ResolveVariable(targetAsVr->name, stackIndex))
+        {
+            c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
+            c.cur->code.push_back({Opcode::POP, 0});
+            c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+        }
+        else
+        {
+            c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(stackIndex)});
+            c.cur->code.push_back({Opcode::POP, 0});
+            c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
+        }
     }
 }
 

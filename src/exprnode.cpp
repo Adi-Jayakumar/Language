@@ -71,9 +71,9 @@ TypeID Binary::GetType()
     return typeID;
 }
 
-Assign::Assign(std::shared_ptr<VarReference> _var, std::shared_ptr<Expr> _val, Token _loc)
+Assign::Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc)
 {
-    var = _var;
+    target = _target;
     val = _val;
     loc = _loc;
 }

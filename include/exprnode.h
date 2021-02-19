@@ -106,11 +106,11 @@ struct VarReference : Expr
 struct Assign : Expr
 {
     Token loc;
-    std::shared_ptr<VarReference> var;
+    std::shared_ptr<Expr> target;
     std::shared_ptr<Expr> val;
     TypeID typeID = 0;
 
-    Assign(std::shared_ptr<VarReference>, std::shared_ptr<Expr>, Token);
+    Assign(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
     // ~Assign() override = default;
 
     Token Loc() override;

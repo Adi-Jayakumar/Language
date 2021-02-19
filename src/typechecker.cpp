@@ -139,19 +139,30 @@ TypeID TypeChecker::TypeOfBinary(Binary *b)
 
 TypeID TypeChecker::TypeOfAssign(Assign *a)
 {
-    size_t varIndex = ResolveVariable(a->var->name, a->Loc());
-    TypeID varType = vars[varIndex].type;
+    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
+
     TypeID valType = a->val->Type(*this);
 
-    if (varType != valType)
-        TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[varType]);
+    if (targetAsVr != nullptr)
+    {
+        size_t varIndex = ResolveVariable(targetAsVr->name, a->Loc());
+        TypeID varType = vars[varIndex].type;
 
-    // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
-    a->var->isArray = vars[varIndex].isArray;
-    a->var->typeID = varType;
-    a->typeID = varType;
+        if (varType != valType)
+            TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[varType]);
 
-    return varType;
+        // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
+        targetAsVr->isArray = vars[varIndex].isArray;
+        targetAsVr->typeID = varType;
+        a->typeID = varType;
+        return varType;
+    }
+
+    ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
+    TypeID targetType = targetAsAi->Type(*this);
+    if (targetType != valType)
+        TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[targetType]);
+    return targetType;
 }
 
 TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
@@ -185,14 +196,14 @@ TypeID TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     size_t varIndex = ResolveVariable(ai->name, ai->Loc());
 
-    if(!vars[varIndex].isArray)
+    if (!vars[varIndex].isArray)
         TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + TypeStringMap[vars[varIndex].type]);
 
     TypeID indexType = ai->index->Type(*this);
 
-    if(indexType != 1)
+    if (indexType != 1)
         TypeError(ai->Loc(), "Index into an array must have type int not " + TypeStringMap[indexType]);
-    
+
     ai->typeID = vars[varIndex].type;
 
     return vars[varIndex].type;
