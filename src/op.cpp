@@ -12,14 +12,6 @@ std::string ToString(Opcode o)
     {
         return "GET_C";
     }
-    case Opcode::GET_V:
-    {
-        return "GET_V";
-    }
-    case Opcode::GET_V_GLOBAL:
-    {
-        return "GET_V_GLOBAL";
-    }
     case Opcode::VAR_A:
     {
         return "VAR_A";
@@ -31,6 +23,26 @@ std::string ToString(Opcode o)
     case Opcode::VAR_D_GLOBAL:
     {
         return "VAR_D_GLOBAL";
+    }
+    case Opcode::GET_V:
+    {
+        return "GET_V";
+    }
+    case Opcode::GET_V_GLOBAL:
+    {
+        return "GET_V_GLOBAL";
+    }
+    case Opcode::ARR_D:
+    {
+        return "ARR_D";
+    }
+    case Opcode::ARR_INDEX:
+    {
+        return "ARR_INDEX";
+    }
+    case Opcode::ARR_SET:
+    {
+        return "ARR_SET";
     }
     case Opcode::JUMP_IF_FALSE:
     {

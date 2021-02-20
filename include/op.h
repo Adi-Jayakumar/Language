@@ -5,11 +5,21 @@ enum class Opcode : uint8_t
 {
     POP,
     GET_C,
+
     VAR_A,
     VAR_A_GLOBAL,
+
     VAR_D_GLOBAL,
+
     GET_V,
     GET_V_GLOBAL,
+
+    // for declaring an array
+    ARR_D,
+    // for getting the item at a particular index
+    ARR_INDEX,
+    // for setting the item at a particular index
+    ARR_SET,
 
     JUMP_IF_FALSE,
     JUMP,
