@@ -39,6 +39,7 @@ struct VM
 
     void SetChunk(size_t);
 
+    void RuntimeError(std::string msg);
     void Jump(size_t jump);
     void ExecuteCurrentChunk();
     void ExecuteInstruction();

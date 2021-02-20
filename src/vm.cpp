@@ -28,12 +28,28 @@ void VM::PrintStack()
 
     CompileConst *cc = (CompileConst *)malloc(stack.count * sizeof(CompileConst));
     memcpy(cc, stack.data, stack.count * sizeof(CompileConst));
+
     std::cout << "index\t|\tvalue" << std::endl;
+
     for (size_t i = stack.count - 1; (int)i >= 0; i--)
     {
         std::cout << i << "\t|\t" << cc[i] << std::endl;
     }
     free(cc);
+}
+
+void VM::RuntimeError(std::string msg)
+{
+    std::cout << "[RUNTIME ERROR] " << msg << std::endl;
+
+    if (stack.count != 0)
+        for (size_t i = 0; i < stack.count; i++)
+        {
+            if (stack.data[i].type == 4)
+                free(stack.data[i].as.arr.data);
+        }
+
+    exit(4);
 }
 
 void VM::Jump(size_t jump)
@@ -113,7 +129,11 @@ void VM::ExecuteInstruction()
     // pops the top value off the stack
     case Opcode::POP:
     {
+
+        if (stack.back->type == 4)
+            free(stack.back->as.arr.data);
         stack.pop_back();
+
         break;
     }
     // pushes the constant at o.op's location + constOffset onto the stack
@@ -146,15 +166,75 @@ void VM::ExecuteInstruction()
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
         // if (curChunk != 3)
-        std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
+        if (v.type != 4)
+            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
     }
     case Opcode::GET_V_GLOBAL:
     {
         CompileConst v = globals[o.op];
-        std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
+        if (v.type != 4)
+            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
+        break;
+    }
+    // populates the array which is at the top of the stack, the values are
+    // in the stack slots below the array
+    case Opcode::ARR_D:
+    {
+        CompileConst arrAsCC = *stack.back;
+
+        CCArray arr = arrAsCC.as.arr;
+        CompileConst *arrStart = stack.back - arr.size;
+
+        for (size_t i = 0; i < arr.size; i++)
+            arr.data[i] = arrStart[i];
+
+        stack.back = arrStart;
+        stack.count -= arr.size + 1;
+
+        stack.push_back(arrAsCC);
+
+        break;
+    }
+    // fetches the value at the index's location (top of the stack) from the array
+    // on the slot one below the index
+    case Opcode::ARR_INDEX:
+    {
+        CompileConst index = *stack.back;
+        stack.pop_back();
+        CompileConst arrayAsCC = *stack.back;
+        stack.pop_back();
+
+        CCArray arr = arrayAsCC.as.arr;
+
+        if (index.as.i > (int)arr.size)
+            RuntimeError("Array index " + std::to_string(index.as.i) + " out of bounds for array of size " + std::to_string(arr.size));
+
+        stack.push_back(arr.data[index.as.i]);
+
+        break;
+    }
+    // sets the index
+    case Opcode::ARR_SET:
+    {
+        CompileConst arrayAsCC = *stack.back;
+        CCArray arr = arrayAsCC.as.arr;
+        stack.pop_back();
+
+        CompileConst index = *stack.back;
+        stack.pop_back();
+
+        CompileConst value = *stack.back;
+        stack.pop_back();
+
+        if (index.as.i > (int)arr.size)
+            RuntimeError("Array index " + std::to_string(index.as.i) + " out of bounds for array of size " + std::to_string(arr.size));
+
+        arr.data[index.as.i] = value;
+
+        stack.push_back(value);
         break;
     }
     // adds the operand to the ip if the value on the top of the stack is not truthy

@@ -46,6 +46,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         return;
     }
 
+    // the value is pushed onto the stack in the handling of the ARR_SET instruction
     ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
     size_t arrLoc;
     c.ResolveVariable(targetAsAi->name, arrLoc);
