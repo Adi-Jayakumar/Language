@@ -94,6 +94,13 @@ CompileConst::CompileConst(bool _b)
     as.b = _b;
 }
 
+CompileConst::CompileConst(size_t _size)
+{
+    type = 4;
+    as.arr.data = (CompileConst *)malloc(_size * sizeof(CompileConst));
+    as.arr.size = _size;
+}
+
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
 {
     switch (cc.type)
@@ -120,6 +127,10 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
         else
             out << "false";
         break;
+    }
+    case 4:
+    {
+        out << "[ARRAY]";
     }
     }
     return out;
