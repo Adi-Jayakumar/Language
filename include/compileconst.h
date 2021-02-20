@@ -32,15 +32,3 @@ std::string ToString(const CompileConst &cc);
 bool IsTruthy(const CompileConst &cc);
 
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc);
-
-// CompileConst operator+(const CompileConst &left, const CompileConst &right);
-// CompileConst operator-(const CompileConst &left, const CompileConst &right);
-// CompileConst operator*(const CompileConst &left, const CompileConst &right);
-// CompileConst operator/(const CompileConst &left, const CompileConst &right);
-
-// CompileConst operator>(const CompileConst &left, const CompileConst &right);
-// CompileConst operator<(const CompileConst &left, const CompileConst &right);
-// CompileConst operator>=(const CompileConst &left, const CompileConst &right);
-// CompileConst operator<=(const CompileConst &left, const CompileConst &right);
-// CompileConst operator==(const CompileConst &left, const CompileConst &right);
-// CompileConst operator!=(const CompileConst &left, const CompileConst &right);
