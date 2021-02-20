@@ -43,7 +43,16 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
             c.cur->code.push_back({Opcode::POP, 0});
             c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
         }
+        return;
     }
+
+    ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
+    size_t arrLoc;
+    c.ResolveVariable(targetAsAi->name, arrLoc);
+
+    targetAsAi->index->NodeCompile(c);
+    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[arrLoc].index});
+    c.cur->code.push_back({Opcode::ARR_SET, 0});
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
@@ -74,7 +83,16 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
-    return;
+    size_t arrLoc;
+    c.ResolveVariable(ai->name, arrLoc);
+
+    if (arrLoc > UINT8_MAX)
+        c.CompileError(ai->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " variables");
+
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(arrLoc)});
+    ai->index->NodeCompile(c);
+
+    c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
 //------------------STATEMENTS---------------------//
@@ -111,11 +129,6 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
         c.cur->code.push_back({Opcode::VAR_D_GLOBAL, static_cast<uint8_t>(c.cur->vars.size() - 1)});
     }
-}
-
-void NodeCompiler::CompileArrayDecl(ArrayDecl *ad, Compiler &c)
-{
-    return;
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -223,6 +236,24 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
         r->retVal->NodeCompile(c);
         c.cur->code.push_back({Opcode::RETURN, 0});
     }
+}
+
+void NodeCompiler::CompileArrayDecl(ArrayDecl *ad, Compiler &c)
+{
+    if (ad->init.size() > UINT8_MAX)
+        c.CompileError(ad->Loc(), "Cannot inline declare an array with more than " + std::to_string(UINT8_MAX) + " elements");
+
+    c.cur->vars.push_back({ad->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+    size_t ctIndex = c.cur->vars.size() - 1;
+
+    CompileConst arr = CompileConst(ad->init.size());
+    c.cur->constants.push_back(arr);
+
+    for (auto &e : ad->init)
+        e->NodeCompile(c);
+
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(ctIndex)});
+    c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ad->init.size())});
 }
 
 //-----------------EXPRESSIONS---------------------//
