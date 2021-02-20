@@ -22,127 +22,102 @@ std::ostream &operator<<(std::ostream &out, Stmt *s)
 
 void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 {
-    if (l == nullptr)
-        out << "null";
-    else
+    out << l->t;
+    switch (l->t.type)
     {
-        out << "<" << TypeStringMap.at(l->typeID) << "> ";
-        switch (l->typeID)
-        {
-        case 1:
-        {
-            out << l->as.i;
-            break;
-        }
-        case 2:
-        {
-            out << l->as.d;
-            break;
-        }
-        case 3:
-        {
-            if (l->as.b)
-                out << "true";
-            else
-                out << "false";
-            break;
-        }
-        }
+    case 1:
+    {
+        out << l->as.i;
+        break;
+    }
+    case 2:
+    {
+        out << l->as.d;
+        break;
+    }
+    case 3:
+    {
+        if (l->as.b)
+            out << "true";
+        else
+            out << "false";
+        break;
+    }
     }
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
 {
-    if (u == nullptr)
-        out << "null";
+    out << u->t;
+    if (u->op.type == TokenID::MINUS)
+        out << " -";
+    else if (u->op.type == TokenID::BANG)
+        out << " !";
     else
-    {
-        out << "<" << TypeStringMap.at(u->typeID) << "> ";
-        if (u->op.type == TokenID::MINUS)
-            out << " -";
-        else if (u->op.type == TokenID::BANG)
-            out << " !";
-        else
-            out << u->op;
-        out << "(";
-        u->right->Print(out);
-        out << ")";
-    }
+        out << u->op;
+    out << "(";
+    u->right->Print(out);
+    out << ")";
 }
 
 void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
 {
-    if (b == nullptr)
-        out << "null";
+    out << b->t;
+    out << "(";
+    b->left->Print(out);
+
+    if (b->op.type == TokenID::PLUS)
+        out << " + ";
+    else if (b->op.type == TokenID::MINUS)
+        out << " - ";
+    else if (b->op.type == TokenID::STAR)
+        out << " * ";
+    else if (b->op.type == TokenID::SLASH)
+        out << " / ";
+    else if (b->op.type == TokenID::GT)
+        out << " > ";
+    else if (b->op.type == TokenID::LT)
+        out << " < ";
+    else if (b->op.type == TokenID::GEQ)
+        out << " >= ";
+    else if (b->op.type == TokenID::LEQ)
+        out << " <= ";
+    else if (b->op.type == TokenID::EQ_EQ)
+        out << " == ";
+    else if (b->op.type == TokenID::BANG_EQ)
+        out << " != ";
     else
-    {
-        out << "<" << TypeStringMap.at(b->typeID) << "> ";
-        out << "(";
-        b->left->Print(out);
+        out << b->op;
 
-        if (b->op.type == TokenID::PLUS)
-            out << " + ";
-        else if (b->op.type == TokenID::MINUS)
-            out << " - ";
-        else if (b->op.type == TokenID::STAR)
-            out << " * ";
-        else if (b->op.type == TokenID::SLASH)
-            out << " / ";
-        else if (b->op.type == TokenID::GT)
-            out << " > ";
-        else if (b->op.type == TokenID::LT)
-            out << " < ";
-        else if (b->op.type == TokenID::GEQ)
-            out << " >= ";
-        else if (b->op.type == TokenID::LEQ)
-            out << " <= ";
-        else if (b->op.type == TokenID::EQ_EQ)
-            out << " == ";
-        else if (b->op.type == TokenID::BANG_EQ)
-            out << " != ";
-        else
-            out << b->op;
+    b->right->Print(out);
 
-        b->right->Print(out);
-
-        out << ")";
-    }
+    out << ")";
 }
 
 void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
 {
-    if (a == nullptr)
-        out << "null";
+    a->target->Print(out);
+    if (a->val == nullptr)
+        out << " = null";
     else
     {
-        a->target->Print(out);
-        if (a->val == nullptr)
-            out << " = null";
-        else
-        {
-            out << " = ";
-            a->val->Print(out);
-        }
+        out << " = ";
+        a->val->Print(out);
     }
 }
 
 void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
 {
-    if (vr == nullptr)
-        out << "null";
-    else
-    {
-        if (vr->isArray)
-            out << "Array";
-        out << "<" << TypeStringMap.at(vr->typeID) << "> ";
-        out << vr->name;
-    }
+
+    if (vr->isArray)
+        out << "Array";
+    out << vr->t;
+    out << vr->name;
 }
 
 void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 {
-    out << "<" << TypeStringMap.at(fc->typeID) << "> ";
-    out << fc->name << "(";
+    out << fc->t << " " << fc->name << "(";
     for (auto &e : fc->args)
     {
         e->Print(out);
@@ -153,7 +128,7 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 
 void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
 {
-    out << "<" << TypeStringMap[ai->typeID] << "> " << ai->name << "[";
+    out << ai->t << ai->name << "[";
     ai->index->Print(out);
     out << "]";
 }
@@ -176,7 +151,7 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     if (v == nullptr)
         out << "null";
     else
-        out << TypeStringMap.at(v->tId) << " " << v->name << " = " << v->value.get();
+        out << v->t << " " << v->name << " = " << v->value.get();
     out << ";" << std::endl;
 }
 
@@ -186,7 +161,7 @@ void ASTPrinter::PrintArrayDecl(ArrayDecl *ad, std::ostream &out)
         out << "null";
     else
     {
-        out << "Array<" << TypeStringMap[ad->elemType] << "> " << ad->name << " = ";
+        out << "Array" << ad->elemType << " " << ad->name << " = ";
         if (ad->init.size() == 0)
             out << "null";
         else
@@ -252,8 +227,7 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 {
-    out << TypeStringMap.at(fd->ret) << " ";
-    out << fd->name << "(";
+    out << fd->ret << " " << fd->name << "(";
     for (const Token &t : fd->params)
     {
         out << t.literal;

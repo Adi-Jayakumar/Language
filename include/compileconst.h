@@ -11,7 +11,7 @@ struct CCArray
 
 struct CompileConst
 {
-    TypeID type;
+    TypeData t;
     union combo
     {
         int i;
@@ -20,7 +20,7 @@ struct CompileConst
         CCArray arr;
     } as;
     CompileConst() = default;
-    CompileConst(TypeID, std::string);
+    CompileConst(TypeData, std::string);
     CompileConst(int);
     CompileConst(double);
     CompileConst(bool);
@@ -33,14 +33,14 @@ bool IsTruthy(const CompileConst &cc);
 
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc);
 
-CompileConst operator+(const CompileConst &left, const CompileConst &right);
-CompileConst operator-(const CompileConst &left, const CompileConst &right);
-CompileConst operator*(const CompileConst &left, const CompileConst &right);
-CompileConst operator/(const CompileConst &left, const CompileConst &right);
+// CompileConst operator+(const CompileConst &left, const CompileConst &right);
+// CompileConst operator-(const CompileConst &left, const CompileConst &right);
+// CompileConst operator*(const CompileConst &left, const CompileConst &right);
+// CompileConst operator/(const CompileConst &left, const CompileConst &right);
 
-CompileConst operator>(const CompileConst &left, const CompileConst &right);
-CompileConst operator<(const CompileConst &left, const CompileConst &right);
-CompileConst operator>=(const CompileConst &left, const CompileConst &right);
-CompileConst operator<=(const CompileConst &left, const CompileConst &right);
-CompileConst operator==(const CompileConst &left, const CompileConst &right);
-CompileConst operator!=(const CompileConst &left, const CompileConst &right);
+// CompileConst operator>(const CompileConst &left, const CompileConst &right);
+// CompileConst operator<(const CompileConst &left, const CompileConst &right);
+// CompileConst operator>=(const CompileConst &left, const CompileConst &right);
+// CompileConst operator<=(const CompileConst &left, const CompileConst &right);
+// CompileConst operator==(const CompileConst &left, const CompileConst &right);
+// CompileConst operator!=(const CompileConst &left, const CompileConst &right);

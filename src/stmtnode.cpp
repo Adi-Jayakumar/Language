@@ -11,9 +11,9 @@ Token ExprStmt::Loc()
     return loc;
 }
 
-DeclaredVar::DeclaredVar(TypeID _tId, std::string _name, std::shared_ptr<Expr> _value, Token _loc)
+DeclaredVar::DeclaredVar(TypeData _t, std::string _name, std::shared_ptr<Expr> _value, Token _loc)
 {
-    tId = _tId;
+    t = _t;
     name = _name;
     value = std::move(_value);
     loc = _loc;
@@ -24,7 +24,7 @@ Token DeclaredVar::Loc()
     return loc;
 }
 
-ArrayDecl::ArrayDecl(TypeID _elemType, std::string _name, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
+ArrayDecl::ArrayDecl(TypeData _elemType, std::string _name, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
 {
     elemType = _elemType;
     name = _name;
@@ -73,7 +73,7 @@ Token WhileStmt::Loc()
     return loc;
 }
 
-FuncDecl::FuncDecl(TypeID _ret, std::string &_name, std::vector<Token> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
+FuncDecl::FuncDecl(TypeData _ret, std::string &_name, std::vector<Token> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
 {
     ret = _ret;
     name = _name;

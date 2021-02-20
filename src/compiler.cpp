@@ -25,7 +25,8 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
         {
             numFunctions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
-            if (asFD->ret == 0 && asFD->params.size() == 0 && asFD->name == "Main")
+            TypeData voidType = {false, 0};
+            if (asFD->ret == voidType && asFD->params.size() == 0 && asFD->name == "Main")
                 mainIndex = numFunctions;
         }
         else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr)

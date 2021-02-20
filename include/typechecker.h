@@ -5,7 +5,7 @@
 
 struct VarID
 {
-    TypeID type;
+    TypeData type;
     std::string name;
     uint8_t depth;
     bool isArray;
@@ -13,9 +13,9 @@ struct VarID
 
 struct FuncID
 {
-    TypeID ret;
+    TypeData ret;
     std::string name;
-    std::vector<TypeID> argtypes;
+    std::vector<TypeData> argtypes;
 };
 
 struct TypeChecker
@@ -38,24 +38,24 @@ struct TypeChecker
     void CleanUpVariables();
 
     // resolve functions
-    TypeID ResolveFunction(std::string &name, std::vector<TypeID> &argtypes);
+    size_t ResolveFunction(std::string &name, std::vector<TypeData> &argtypes);
 
     // expression typechecking
-    TypeID TypeOfLiteral(Literal *l);
-    TypeID TypeOfUnary(Unary *u);
-    TypeID TypeOfBinary(Binary *b);
-    TypeID TypeOfAssign(Assign *a);
-    TypeID TypeOfVarReference(VarReference *vr);
-    TypeID TypeOfFunctionCall(FunctionCall *fc);
-    TypeID TypeOfArrayIndex(ArrayIndex *ai);
+    TypeData TypeOfLiteral(Literal *l);
+    TypeData TypeOfUnary(Unary *u);
+    TypeData TypeOfBinary(Binary *b);
+    TypeData TypeOfAssign(Assign *a);
+    TypeData TypeOfVarReference(VarReference *vr);
+    TypeData TypeOfFunctionCall(FunctionCall *fc);
+    TypeData TypeOfArrayIndex(ArrayIndex *ai);
 
     // statment typechecking
-    TypeID TypeOfExprStmt(ExprStmt *es);
-    TypeID TypeOfDeclaredVar(DeclaredVar *v);
-    TypeID TypeOfArrayDecl(ArrayDecl *ad);
-    TypeID TypeOfBlock(Block *b);
-    TypeID TypeOfIfStmt(IfStmt *i);
-    TypeID TypeOfWhileStmt(WhileStmt *ws);
-    TypeID TypeOfFuncDecl(FuncDecl *fd);
-    TypeID TypeOfReturn(Return *r);
+    TypeData TypeOfExprStmt(ExprStmt *es);
+    TypeData TypeOfDeclaredVar(DeclaredVar *v);
+    TypeData TypeOfArrayDecl(ArrayDecl *ad);
+    TypeData TypeOfBlock(Block *b);
+    TypeData TypeOfIfStmt(IfStmt *i);
+    TypeData TypeOfWhileStmt(WhileStmt *ws);
+    TypeData TypeOfFuncDecl(FuncDecl *fd);
+    TypeData TypeOfReturn(Return *r);
 };

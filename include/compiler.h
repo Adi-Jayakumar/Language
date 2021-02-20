@@ -6,7 +6,7 @@
 struct CTFunc
 {
     std::string name;
-    TypeID ret;
+    TypeData ret;
 };
 
 struct Compiler

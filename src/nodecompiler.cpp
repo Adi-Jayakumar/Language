@@ -4,7 +4,7 @@
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    CompileConst copy = CompileConst(l->typeID, l->Loc().literal);
+    CompileConst copy = CompileConst(l->t, l->Loc().literal);
     c.cur->constants.push_back(copy);
     c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
 }
@@ -12,7 +12,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
     u->right->NodeCompile(c);
-    c.cur->code.push_back({TokenToOpcode(0, u->op.type, u->right->GetType(), true), 1});
+    c.cur->code.push_back({TokenToOpcode({false, 0}, u->op.type, u->right->GetType(), true), 1});
 }
 
 void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
@@ -111,7 +111,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     else
     {
         size_t index = c.ResolveFunction(asFC->name);
-        if (c.funcs[index].ret != 0)
+        if (c.funcs[index].ret.type != 0)
             c.cur->code.push_back({Opcode::POP, 0});
     }
 }

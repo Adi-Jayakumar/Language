@@ -243,29 +243,29 @@ std::string ToString(Opcode o)
     }
 }
 
-#define GET_TYPED_BINARY_OP(l, op, r, ret) \
-    do                                     \
-    {                                      \
-        if (l == 1 && r == 1)              \
-            ret = Opcode::I_##op;          \
-        else if (l == 1 && r == 2)         \
-            ret = Opcode::ID_##op;         \
-        else if (l == 2 && r == 1)         \
-            ret = Opcode::DI_##op;         \
-        else                               \
-            ret = Opcode::D_##op;          \
+#define GET_TYPED_BINARY_OP(l, op, r, ret)   \
+    do                                       \
+    {                                        \
+        if (l.type == 1 && r.type == 1)      \
+            ret = Opcode::I_##op;            \
+        else if (l.type == 1 && r.type == 2) \
+            ret = Opcode::ID_##op;           \
+        else if (l.type == 2 && r.type == 1) \
+            ret = Opcode::DI_##op;           \
+        else                                 \
+            ret = Opcode::D_##op;            \
     } while (false)
 
 #define GET_TYPED_UNARY_OP(op, r, ret) \
     do                                 \
     {                                  \
-        if (r == 1)                    \
+        if (r.type == 1)               \
             ret = Opcode::I_##op;      \
-        else if (r == 2)               \
+        else if (r.type == 2)          \
             ret = Opcode::D_##op;      \
     } while (false)
 
-Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary)
+Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
 {
     Opcode o;
     if (t == TokenID::PLUS)
@@ -313,14 +313,14 @@ Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary)
     }
     else if (t == TokenID::EQ_EQ)
     {
-        if (l == 3 && r == 3)
+        if (l.type == 3 && r.type == 3)
             return Opcode::B_EQ_EQ;
         GET_TYPED_BINARY_OP(l, EQ_EQ, r, o);
         return o;
     }
     else if (t == TokenID::BANG_EQ)
     {
-        if (l == 3 && r == 3)
+        if (l.type == 3 && r.type == 3)
             return Opcode::B_BANG_EQ;
         GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
         return o;

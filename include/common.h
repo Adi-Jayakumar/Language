@@ -11,88 +11,102 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::DOUBLE_L, 2},
     {TokenID::BOOL_L, 3}};
 
-// map from string typenames to uint8_t type ids.
-static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
+struct TypeData
+{
+    bool isArray;
+    TypeID type;
+};
 
-static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "Array"}};
+std::string ToString(const TypeData &td);
+std::ostream &operator<<(std::ostream &out, const TypeData &td);
+bool operator==(const TypeData &left, const TypeData &right);
+bool operator!=(const TypeData &left, const TypeData &right);
 
 struct TypeInfo
 {
-    TypeID left;
+    TypeData left;
     TokenID t;
-    TypeID right;
+    TypeData right;
 };
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);
+
+// map from string typenames to uint8_t type ids.
+// static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
+static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"Array", {false, 4}}};
+static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "Array"}};
 
 struct TypeInfoHasher
 {
     size_t operator()(const TypeInfo &t) const
     {
-        size_t l = static_cast<size_t>(t.left);
-        size_t r = static_cast<size_t>(t.right);
-        size_t tok = static_cast<size_t>(t.t);
-        return (l << 16) | (r << 8) | (tok);
+        std::hash<bool> bHasher;
+        std::hash<TypeID> tHasher;
+        std::hash<uint8_t> u8Hasher;
+        size_t l = bHasher(t.left.isArray) ^ tHasher(t.left.type);
+        size_t r = bHasher(t.right.isArray) ^ tHasher(t.right.type);
+        size_t op = u8Hasher(static_cast<uint8_t>(t.t));
+        return l ^ r ^ op;
     }
 };
 
-static const std::unordered_map<TypeInfo, TypeID, TypeInfoHasher>
+static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
     OperatorMap{
         // binary plus
-        {{1, TokenID::PLUS, 1}, 1},
-        {{1, TokenID::PLUS, 2}, 2},
-        {{2, TokenID::PLUS, 1}, 2},
-        {{2, TokenID::PLUS, 2}, 2},
+        {{{false, 1}, TokenID::PLUS, {false, 1}}, {false, 1}},
+        {{{false, 1}, TokenID::PLUS, {false, 2}}, {false, 2}},
+        {{{false, 2}, TokenID::PLUS, {false, 1}}, {false, 2}},
+        {{{false, 2}, TokenID::PLUS, {false, 2}}, {false, 2}},
         // binary mins
-        {{1, TokenID::MINUS, 1}, 1},
-        {{1, TokenID::MINUS, 2}, 2},
-        {{2, TokenID::MINUS, 1}, 2},
-        {{2, TokenID::MINUS, 2}, 2},
+        {{{false, 1}, TokenID::MINUS, {false, 1}}, {false, 1}},
+        {{{false, 1}, TokenID::MINUS, {false, 2}}, {false, 2}},
+        {{{false, 2}, TokenID::MINUS, {false, 1}}, {false, 2}},
+        {{{false, 2}, TokenID::MINUS, {false, 2}}, {false, 2}},
         // unary minus
-        {{0, TokenID::MINUS, 1}, 1},
-        {{0, TokenID::MINUS, 2}, 2},
+        {{{false, 0}, TokenID::MINUS, {false, 1}}, {false, 1}},
+        {{{false, 0}, TokenID::MINUS, {false, 2}}, {false, 2}},
         // binary mult
-        {{1, TokenID::STAR, 1}, 1},
-        {{1, TokenID::STAR, 2}, 2},
-        {{2, TokenID::STAR, 1}, 2},
-        {{2, TokenID::STAR, 2}, 2},
+        {{{false, 1}, TokenID::STAR, {false, 1}}, {false, 1}},
+        {{{false, 1}, TokenID::STAR, {false, 2}}, {false, 2}},
+        {{{false, 2}, TokenID::STAR, {false, 1}}, {false, 2}},
+        {{{false, 2}, TokenID::STAR, {false, 2}}, {false, 2}},
         // binary div
-        {{1, TokenID::SLASH, 1}, 1},
-        {{1, TokenID::SLASH, 2}, 2},
-        {{2, TokenID::SLASH, 1}, 2},
-        {{2, TokenID::SLASH, 2}, 2},
+        {{{false, 1}, TokenID::SLASH, {false, 1}}, {false, 1}},
+        {{{false, 1}, TokenID::SLASH, {false, 2}}, {false, 2}},
+        {{{false, 2}, TokenID::SLASH, {false, 1}}, {false, 2}},
+        {{{false, 2}, TokenID::SLASH, {false, 2}}, {false, 2}},
         // binary greater than
-        {{1, TokenID::GT, 1}, 3},
-        {{1, TokenID::GT, 2}, 3},
-        {{2, TokenID::GT, 1}, 3},
-        {{2, TokenID::GT, 2}, 3},
+        {{{false, 1}, TokenID::GT, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::GT, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::GT, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::GT, {false, 2}}, {false, 3}},
         // unary less than
-        {{1, TokenID::LT, 1}, 3},
-        {{1, TokenID::LT, 2}, 3},
-        {{2, TokenID::LT, 1}, 3},
-        {{2, TokenID::LT, 2}, 3},
+        {{{false, 1}, TokenID::LT, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::LT, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::LT, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::LT, {false, 2}}, {false, 3}},
         // binary greater than or equal
-        {{1, TokenID::GEQ, 1}, 3},
-        {{1, TokenID::GEQ, 2}, 3},
-        {{2, TokenID::GEQ, 1}, 3},
-        {{2, TokenID::GEQ, 2}, 3},
+        {{{false, 1}, TokenID::GEQ, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::GEQ, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::GEQ, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::GEQ, {false, 2}}, {false, 3}},
         // binary less than or equal
-        {{1, TokenID::LEQ, 1}, 3},
-        {{1, TokenID::LEQ, 2}, 3},
-        {{2, TokenID::LEQ, 1}, 3},
-        {{2, TokenID::LEQ, 2}, 3},
+        {{{false, 1}, TokenID::LEQ, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::LEQ, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::LEQ, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::LEQ, {false, 2}}, {false, 3}},
         // binary eqality
-        {{1, TokenID::EQ_EQ, 1}, 3},
-        {{1, TokenID::EQ_EQ, 2}, 3},
-        {{2, TokenID::EQ_EQ, 1}, 3},
-        {{2, TokenID::EQ_EQ, 2}, 3},
-        {{3, TokenID::EQ_EQ, 3}, 3},
+        {{{false, 1}, TokenID::EQ_EQ, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::EQ_EQ, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::EQ_EQ, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::EQ_EQ, {false, 2}}, {false, 3}},
+        {{{false, 3}, TokenID::EQ_EQ, {false, 3}}, {false, 3}},
         // binary not equality
-        {{1, TokenID::BANG_EQ, 1}, 3},
-        {{1, TokenID::BANG_EQ, 2}, 3},
-        {{2, TokenID::BANG_EQ, 1}, 3},
-        {{2, TokenID::BANG_EQ, 2}, 3},
-        {{3, TokenID::BANG_EQ, 3}, 3},
+        {{{false, 1}, TokenID::BANG_EQ, {false, 1}}, {false, 3}},
+        {{{false, 1}, TokenID::BANG_EQ, {false, 2}}, {false, 3}},
+        {{{false, 2}, TokenID::BANG_EQ, {false, 1}}, {false, 3}},
+        {{{false, 2}, TokenID::BANG_EQ, {false, 2}}, {false, 3}},
+        {{{false, 3}, TokenID::BANG_EQ, {false, 3}}, {false, 3}},
         // unary negation
-        {{0, TokenID::BANG, 3}, 3},
+        {{{false, 0}, TokenID::BANG, {false, 3}}, {false, 3}},
     };

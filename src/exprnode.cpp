@@ -7,19 +7,19 @@ Literal::Literal(Token val)
     {
     case 1:
     {
-        typeID = 1;
+        t = {false, 1};
         as.i = std::stoi(val.literal);
         break;
     }
     case 2:
     {
-        typeID = 2;
+        t = {false, 2};
         as.d = std::stod(val.literal);
         break;
     }
     case 3:
     {
-        typeID = 3;
+        t = {false, 3};
         if (val.literal == "true")
             as.b = true;
         else
@@ -33,9 +33,9 @@ Token Literal::Loc()
     return loc;
 }
 
-TypeID Literal::GetType()
+TypeData Literal::GetType()
 {
-    return typeID;
+    return t;
 }
 
 Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
@@ -49,9 +49,9 @@ Token Unary::Loc()
     return op;
 }
 
-TypeID Unary::GetType()
+TypeData Unary::GetType()
 {
-    return typeID;
+    return t;
 }
 
 Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _right)
@@ -66,9 +66,9 @@ Token Binary::Loc()
     return op;
 }
 
-TypeID Binary::GetType()
+TypeData Binary::GetType()
 {
-    return typeID;
+    return t;
 }
 
 Assign::Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc)
@@ -83,9 +83,9 @@ Token Assign::Loc()
     return loc;
 }
 
-TypeID Assign::GetType()
+TypeData Assign::GetType()
 {
-    return typeID;
+    return t;
 }
 
 VarReference::VarReference(Token _loc)
@@ -98,9 +98,9 @@ Token VarReference::Loc()
     return loc;
 }
 
-TypeID VarReference::GetType()
+TypeData VarReference::GetType()
 {
-    return typeID;
+    return t;
 }
 
 FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
@@ -115,9 +115,9 @@ Token FunctionCall::Loc()
     return loc;
 }
 
-TypeID FunctionCall::GetType()
+TypeData FunctionCall::GetType()
 {
-    return typeID;
+    return t;
 }
 
 ArrayIndex::ArrayIndex(std::string _name, std::shared_ptr<Expr> _index, Token _loc)
@@ -132,7 +132,7 @@ Token ArrayIndex::Loc()
     return loc;
 }
 
-TypeID ArrayIndex::GetType()
+TypeData ArrayIndex::GetType()
 {
-    return typeID;
+    return t;
 }

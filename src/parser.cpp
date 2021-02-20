@@ -92,7 +92,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     Check(TokenID::TYPENAME, "Expect type name at the beginning of a declaration");
     if (cur.literal == "void")
         ParseError(cur, "A variable cannot have 'void' type");
-    uint8_t type = TypeNameMap[cur.literal];
+    TypeData type = TypeNameMap[cur.literal];
 
     Advance();
     std::string name = cur.literal;
@@ -127,7 +127,7 @@ std::shared_ptr<Stmt> Parser::ArrayDeclaration()
     if (cur.literal == "void")
         ParseError(loc, "Array elements cannot have void type");
 
-    TypeID elemType = TypeNameMap[cur.literal];
+    TypeData elemType = {true, TypeNameMap[cur.literal].type};
 
     Advance();
 
@@ -170,7 +170,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Advance();
     Check(TokenID::TYPENAME, "Expect a return type after function declaration");
 
-    TypeID ret = TypeNameMap[cur.literal];
+    TypeData ret = TypeNameMap[cur.literal];
 
     Advance();
     Check(TokenID::IDEN, "Expect name after function declaration");
@@ -308,7 +308,7 @@ std::shared_ptr<Expr> Parser::Assignment()
             std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->Loc());
             return std::make_shared<Assign>(u, val, loc);
         }
-        else if(dynamic_cast<ArrayIndex*>(exp.get()) != nullptr)
+        else if (dynamic_cast<ArrayIndex *>(exp.get()) != nullptr)
             return std::make_shared<Assign>(exp, val, loc);
         else
             ParseError(cur, "Invalid assignment target");

@@ -9,9 +9,9 @@ struct Stmt
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeID Type(TypeChecker &t) = 0;
+    virtual TypeData Type(TypeChecker &t) = 0;
     // determines whether all the node's code paths return the appropriate type
-    virtual bool DoesReturn(TypeID ret) = 0;
+    virtual bool DoesReturn(TypeData ret) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
 };
@@ -25,38 +25,38 @@ struct ExprStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
 struct DeclaredVar : Stmt
 {
-    TypeID tId;
+    TypeData t;
     std::string name;
     std::shared_ptr<Expr> value;
-    DeclaredVar(TypeID, std::string, std::shared_ptr<Expr>, Token);
+    DeclaredVar(TypeData, std::string, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
 struct ArrayDecl : Stmt
 {
-    TypeID elemType;
+    TypeData elemType;
     std::string name;
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
 
-    ArrayDecl(TypeID, std::string, std::vector<std::shared_ptr<Expr>>, Token);
+    ArrayDecl(TypeData, std::string, std::vector<std::shared_ptr<Expr>>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -68,8 +68,8 @@ struct Block : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -82,8 +82,8 @@ struct IfStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -97,24 +97,24 @@ struct WhileStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
 struct FuncDecl : Stmt
 {
-    TypeID ret;
+    TypeData ret;
     std::string name;
     std::vector<Token> params;
     std::vector<std::shared_ptr<Stmt>> body;
 
-    FuncDecl(TypeID, std::string &, std::vector<Token> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    FuncDecl(TypeData, std::string &, std::vector<Token> &, std::vector<std::shared_ptr<Stmt>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -125,7 +125,7 @@ struct Return : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeID Type(TypeChecker &t) override;
-    bool DoesReturn(TypeID ret) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret) override;
     void NodeCompile(Compiler &c) override;
 };

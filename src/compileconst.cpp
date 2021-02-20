@@ -3,7 +3,7 @@
 
 std::string ToString(const CompileConst &cc)
 {
-    switch (cc.type)
+    switch (cc.t.type)
     {
     case 1:
     {
@@ -26,7 +26,7 @@ std::string ToString(const CompileConst &cc)
 
 bool IsTruthy(const CompileConst &cc)
 {
-    switch (cc.type)
+    switch (cc.t.type)
     {
     case 1:
     {
@@ -44,10 +44,10 @@ bool IsTruthy(const CompileConst &cc)
     return false;
 }
 
-CompileConst::CompileConst(TypeID _type, std::string literal)
+CompileConst::CompileConst(TypeData _type, std::string literal)
 {
-    type = _type;
-    switch (type)
+    t = _type;
+    switch (t.type)
     {
     // sentinel null value
     case 0:
@@ -78,32 +78,32 @@ CompileConst::CompileConst(TypeID _type, std::string literal)
 
 CompileConst::CompileConst(int _i)
 {
-    type = 1;
+    t = {false, 1};
     as.i = _i;
 }
 
 CompileConst::CompileConst(double _d)
 {
-    type = 2;
+    t = {false, 2};
     as.d = _d;
 }
 
 CompileConst::CompileConst(bool _b)
 {
-    type = 3;
+    t = {false, 3};
     as.b = _b;
 }
 
 CompileConst::CompileConst(size_t _size)
 {
-    type = 4;
+    t = {true, 4};
     as.arr.data = (CompileConst *)malloc(_size * sizeof(CompileConst));
     as.arr.size = _size;
 }
 
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
 {
-    switch (cc.type)
+    switch (cc.t.type)
     {
     case 0:
     {
@@ -136,390 +136,390 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
     return out;
 }
 
-CompileConst operator+(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i + right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i + right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d + right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d + right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator+(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i + right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i + right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d + right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d + right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator-(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i - right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i - right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d - right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d - right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator-(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i - right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i - right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d - right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d - right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator*(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i * right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i * right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d * right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d * right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator*(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i * right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i * right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d * right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d * right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator/(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i / right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i / right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d / right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d / right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator/(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i / right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i / right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d / right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d / right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator>(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i > right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i > right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d > right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d > right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator>(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i > right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i > right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d > right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d > right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator<(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i < right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i < right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d < right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d < right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator<(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i < right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i < right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d < right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d < right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator>=(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i >= right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i >= right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d >= right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d >= right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator>=(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i >= right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i >= right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d >= right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d >= right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator<=(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i <= right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i <= right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d <= right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d <= right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator<=(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i <= right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i <= right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d <= right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d <= right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator==(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i == right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i == right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d == right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d == right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 3:
-    {
-        return CompileConst(left.as.b == right.as.b);
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator==(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i == right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i == right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d == right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d == right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 3:
+//     {
+//         return CompileConst(left.as.b == right.as.b);
+//     }
+//     }
+//     return DUMMYCC;
+// }
 
-CompileConst operator!=(const CompileConst &left, const CompileConst &right)
-{
-    switch (left.type)
-    {
-    case 1:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.i != right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.i != right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 2:
-    {
-        switch (right.type)
-        {
-        case 1:
-        {
-            return CompileConst(left.as.d != right.as.i);
-        }
-        case 2:
-        {
-            return CompileConst(left.as.d != right.as.d);
-        }
-        }
-        return DUMMYCC;
-    }
-    case 3:
-    {
-        return CompileConst(left.as.b != right.as.b);
-    }
-    }
-    return DUMMYCC;
-}
+// CompileConst operator!=(const CompileConst &left, const CompileConst &right)
+// {
+//     switch (left.type)
+//     {
+//     case 1:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.i != right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.i != right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 2:
+//     {
+//         switch (right.type)
+//         {
+//         case 1:
+//         {
+//             return CompileConst(left.as.d != right.as.i);
+//         }
+//         case 2:
+//         {
+//             return CompileConst(left.as.d != right.as.d);
+//         }
+//         }
+//         return DUMMYCC;
+//     }
+//     case 3:
+//     {
+//         return CompileConst(left.as.b != right.as.b);
+//     }
+//     }
+//     return DUMMYCC;
+// }

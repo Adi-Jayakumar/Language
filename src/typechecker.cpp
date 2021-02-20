@@ -1,5 +1,27 @@
 #include "typechecker.h"
 
+std::string ToString(const TypeData &td)
+{
+    std::string bString = (td.isArray ? "true" : "false");
+    return "<" + bString + ", " + TypeStringMap[td.type] + ">";
+}
+
+std::ostream &operator<<(std::ostream &out, const TypeData &td)
+{
+    out << ToString(td);
+    return out;
+}
+
+bool operator==(const TypeData &left, const TypeData &right)
+{
+    return (left.type == right.type) && (left.isArray == right.isArray);
+}
+
+bool operator!=(const TypeData &left, const TypeData &right)
+{
+    return (left.type != right.type) || (left.isArray != right.isArray);
+}
+
 bool operator==(const TypeInfo &l, const TypeInfo &r)
 {
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
@@ -73,7 +95,7 @@ void TypeChecker::CleanUpVariables()
         vars.pop_back();
 }
 
-TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argtypes)
+size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &argtypes)
 {
     for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
     {
@@ -97,85 +119,82 @@ TypeID TypeChecker::ResolveFunction(std::string &name, std::vector<TypeID> &argt
 
 //-----------------EXPRESSIONS---------------------//
 
-TypeID TypeChecker::TypeOfLiteral(Literal *l)
+TypeData TypeChecker::TypeOfLiteral(Literal *l)
 {
-    return l->typeID;
+    return l->t;
 }
 
-TypeID TypeChecker::TypeOfUnary(Unary *u)
+TypeData TypeChecker::TypeOfUnary(Unary *u)
 {
-    TypeID opType = u->right->Type(*this);
-    TypeInfo info = {0, u->op.type, opType};
+    TypeData opType = u->right->Type(*this);
+    TypeInfo info = {{false, 0}, u->op.type, opType};
 
     if (OperatorMap.find(info) != OperatorMap.end())
     {
-        u->typeID = OperatorMap.at(info);
-        return u->typeID;
+        u->t = OperatorMap.at(info);
+        return u->t;
     }
     else
-        TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + TypeStringMap.at(opType));
+        TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + ToString(opType));
 
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfBinary(Binary *b)
+TypeData TypeChecker::TypeOfBinary(Binary *b)
 {
-    if (b == nullptr || b->left == nullptr || b->right == nullptr)
-        return UINT8_MAX;
-
-    TypeID lType = b->left->Type(*this);
-    TypeID rType = b->right->Type(*this);
+    TypeData lType = b->left->Type(*this);
+    TypeData rType = b->right->Type(*this);
     TypeInfo info = {lType, b->op.type, rType};
 
     if (OperatorMap.find(info) != OperatorMap.end())
     {
-        b->typeID = OperatorMap.at(info);
-        return b->typeID;
+        b->t = OperatorMap.at(info);
+        return b->t;
     }
     else
-        TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + TypeStringMap.at(lType) + " and: " + TypeStringMap.at(rType));
-    return UINT8_MAX;
+        TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + ToString(lType) + " and: " + ToString(rType));
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfAssign(Assign *a)
+TypeData TypeChecker::TypeOfAssign(Assign *a)
 {
     VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
 
-    TypeID valType = a->val->Type(*this);
+    TypeData valType = a->val->Type(*this);
 
     if (targetAsVr != nullptr)
     {
         size_t varIndex = ResolveVariable(targetAsVr->name, a->Loc());
-        TypeID varType = vars[varIndex].type;
+        TypeData varType = vars[varIndex].type;
 
         if (varType != valType)
-            TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[varType]);
+            TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
 
         // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
         targetAsVr->isArray = vars[varIndex].isArray;
-        targetAsVr->typeID = varType;
-        a->typeID = varType;
+        targetAsVr->t = varType;
+        a->t = varType;
         return varType;
     }
 
     ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
-    TypeID targetType = targetAsAi->Type(*this);
+    TypeData targetType = targetAsAi->Type(*this);
     if (targetType != valType)
-        TypeError(a->Loc(), "Cannot assign " + TypeStringMap[valType] + " to variable of type " + TypeStringMap[targetType]);
+        TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
     return targetType;
 }
 
-TypeID TypeChecker::TypeOfVarReference(VarReference *vr)
+TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
 {
     size_t varIndex = ResolveVariable(vr->name, vr->Loc());
-    vr->typeID = vars[varIndex].type;
+    vr->t = vars[varIndex].type;
     vr->isArray = vars[varIndex].isArray;
     return vars[varIndex].type;
 }
 
-TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
+TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 {
-    std::vector<TypeID> argtypes;
+    std::vector<TypeData> argtypes;
 
     for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
@@ -188,61 +207,58 @@ TypeID TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     if (index > UINT8_MAX)
         TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
 
-    fc->typeID = funcs[index].ret;
+    fc->t = funcs[index].ret;
     return funcs[index].ret;
 }
 
-TypeID TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
+TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     size_t varIndex = ResolveVariable(ai->name, ai->Loc());
 
     if (!vars[varIndex].isArray)
-        TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + TypeStringMap[vars[varIndex].type]);
+        TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
 
-    TypeID indexType = ai->index->Type(*this);
+    TypeData indexType = ai->index->Type(*this);
+    TypeData intType = {false, 1};
 
-    if (indexType != 1)
-        TypeError(ai->Loc(), "Index into an array must have type int not " + TypeStringMap[indexType]);
+    if (indexType != intType)
+        TypeError(ai->Loc(), "Index into an array must have type int not " + ToString(indexType));
 
-    ai->typeID = vars[varIndex].type;
+    ai->t = vars[varIndex].type;
+    ai->t.isArray = false;
 
-    return vars[varIndex].type;
+    return ai->t;
 }
 
 //------------------STATEMENTS---------------------//
 
-TypeID TypeChecker::TypeOfExprStmt(ExprStmt *es)
+TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
 {
-    if (es == nullptr || es->exp == nullptr)
-        return 0;
     return es->exp->Type(*this);
 }
 
-TypeID TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
+TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
-    if (dv == nullptr)
-        return UINT8_MAX;
-
     if (IsVariableInScope(dv->name))
         TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
 
-    vars.push_back({dv->tId, dv->name, depth, false});
+    vars.push_back({dv->t, dv->name, depth, false});
     if (dv->value == nullptr)
-        return dv->tId;
+        return dv->t;
     else
     {
-        TypeID varType = dv->tId;
-        TypeID valType = dv->value->Type(*this);
+        TypeData varType = dv->t;
+        TypeData valType = dv->value->Type(*this);
 
         if (valType == varType)
             return valType;
         else
-            TypeError(dv->Loc(), "Cannot assign value of type: " + TypeStringMap.at(valType) + " to variable: '" + dv->name + "' of type: " + TypeStringMap.at(varType));
+            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
     }
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
+TypeData TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
 {
     if (IsVariableInScope(ad->name))
         TypeError(ad->Loc(), "Variable: '" + ad->name + "' has already been defined");
@@ -250,14 +266,14 @@ TypeID TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
     vars.push_back({ad->elemType, ad->name, depth, true});
     for (auto &e : ad->init)
     {
-        TypeID valType = e->Type(*this);
-        if (valType != ad->elemType)
-            TypeError(ad->Loc(), "Cannot declare an Array<" + TypeStringMap.at(ad->elemType) + "> with a " + TypeStringMap.at(valType));
+        TypeData valType = e->Type(*this);
+        if (valType.type != ad->elemType.type)
+            TypeError(ad->Loc(), "Cannot declare an Array<" + ToString(ad->elemType) + "> with a " + ToString(valType));
     }
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfBlock(Block *b)
+TypeData TypeChecker::TypeOfBlock(Block *b)
 {
     depth++;
     if (depth == UINT8_MAX)
@@ -266,35 +282,41 @@ TypeID TypeChecker::TypeOfBlock(Block *b)
         s->Type(*this);
     // CleanUpVariables();
     depth--;
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfIfStmt(IfStmt *i)
+TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
 {
-    if (i->cond->Type(*this) != 3)
+    TypeData boolType = {false, 3};
+
+    if (i->cond->Type(*this) != boolType)
         TypeError(i->Loc(), "Condition of and if statement must have type: bool");
+
     i->thenBranch->Type(*this);
+
     if (i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
-    return UINT8_MAX;
+
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
+TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 {
-    if (ws->cond->Type(*this) != 3)
+    TypeData bType = {false, 3};
+    if (ws->cond->Type(*this) != bType)
         TypeError(ws->Loc(), "Condition of a while statment must have type: bool");
 
     ws->body->Type(*this);
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
+TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
     depth++;
     if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
 
-    std::vector<TypeID> argtypes;
+    std::vector<TypeData> argtypes;
 
     for (auto &t : fd->params)
     {
@@ -309,7 +331,7 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
-        TypeID pType = 0;
+        TypeData pType = {false, 0};
         std::string pName;
         if (fd->params[i].type == TokenID::TYPENAME)
             pType = TypeNameMap[fd->params[i].literal];
@@ -331,93 +353,93 @@ TypeID TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     CleanUpVariables();
     funcVarBegin = 0;
     depth--;
-    return UINT8_MAX;
+    return {false, UINT8_MAX};
 }
 
-TypeID TypeChecker::TypeOfReturn(Return *r)
+TypeData TypeChecker::TypeOfReturn(Return *r)
 {
     if (depth == 0)
         TypeError(r->Loc(), "Cannot return from outside of a function");
     if (r->retVal == nullptr)
-        return 0;
+        return {false, 0};
     return r->retVal->Type(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//
 
-TypeID Literal::Type(TypeChecker &t)
+TypeData Literal::Type(TypeChecker &t)
 {
     return t.TypeOfLiteral(this);
 }
 
-TypeID Unary::Type(TypeChecker &t)
+TypeData Unary::Type(TypeChecker &t)
 {
     return t.TypeOfUnary(this);
 }
 
-TypeID Binary::Type(TypeChecker &t)
+TypeData Binary::Type(TypeChecker &t)
 {
     return t.TypeOfBinary(this);
 }
 
-TypeID Assign::Type(TypeChecker &t)
+TypeData Assign::Type(TypeChecker &t)
 {
     return t.TypeOfAssign(this);
 }
 
-TypeID VarReference::Type(TypeChecker &t)
+TypeData VarReference::Type(TypeChecker &t)
 {
     return t.TypeOfVarReference(this);
 }
 
-TypeID FunctionCall::Type(TypeChecker &t)
+TypeData FunctionCall::Type(TypeChecker &t)
 {
     return t.TypeOfFunctionCall(this);
 }
 
-TypeID ArrayIndex::Type(TypeChecker &t)
+TypeData ArrayIndex::Type(TypeChecker &t)
 {
     return t.TypeOfArrayIndex(this);
 }
 
 //------------------STATEMENTS---------------------//
 
-TypeID ExprStmt::Type(TypeChecker &t)
+TypeData ExprStmt::Type(TypeChecker &t)
 {
     return t.TypeOfExprStmt(this);
 }
 
-TypeID DeclaredVar::Type(TypeChecker &t)
+TypeData DeclaredVar::Type(TypeChecker &t)
 {
     return t.TypeOfDeclaredVar(this);
 }
 
-TypeID ArrayDecl::Type(TypeChecker &t)
+TypeData ArrayDecl::Type(TypeChecker &t)
 {
     return t.TypeOfArrayDecl(this);
 }
 
-TypeID Block::Type(TypeChecker &t)
+TypeData Block::Type(TypeChecker &t)
 {
     return t.TypeOfBlock(this);
 }
 
-TypeID IfStmt::Type(TypeChecker &t)
+TypeData IfStmt::Type(TypeChecker &t)
 {
     return t.TypeOfIfStmt(this);
 }
 
-TypeID WhileStmt::Type(TypeChecker &t)
+TypeData WhileStmt::Type(TypeChecker &t)
 {
     return t.TypeOfWhileStmt(this);
 }
 
-TypeID FuncDecl::Type(TypeChecker &t)
+TypeData FuncDecl::Type(TypeChecker &t)
 {
     return t.TypeOfFuncDecl(this);
 }
 
-TypeID Return::Type(TypeChecker &t)
+TypeData Return::Type(TypeChecker &t)
 {
     return t.TypeOfReturn(this);
 }

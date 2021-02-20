@@ -9,9 +9,9 @@ namespace ReturnChecker
 {
     void ReturnError(Token loc, std::string err);
     // statment return checking
-    bool ReturnCheckBlock(Block *b, TypeID ret);
-    bool ReturnCheckIfStmt(IfStmt *i, TypeID ret);
-    bool ReturnCheckWhileStmt(WhileStmt *ws, TypeID ret);
-    bool ReturnCheckFuncDecl(FuncDecl *fd, TypeID ret);
-    bool ReturnCheckReturn(Return *r, TypeID ret);
+    bool ReturnCheckBlock(Block *b, TypeData ret);
+    bool ReturnCheckIfStmt(IfStmt *i, TypeData ret);
+    bool ReturnCheckWhileStmt(WhileStmt *ws, TypeData ret);
+    bool ReturnCheckFuncDecl(FuncDecl *fd, TypeData ret);
+    bool ReturnCheckReturn(Return *r, TypeData ret);
 } // namespace ReturnChecker

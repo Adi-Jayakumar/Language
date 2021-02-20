@@ -45,7 +45,7 @@ void VM::RuntimeError(std::string msg)
     if (stack.count != 0)
         for (size_t i = 0; i < stack.count; i++)
         {
-            if (stack.data[i].type == 4)
+            if (stack.data[i].t.type == 4)
                 free(stack.data[i].as.arr.data);
         }
 
@@ -130,7 +130,7 @@ void VM::ExecuteInstruction()
     case Opcode::POP:
     {
 
-        if (stack.back->type == 4)
+        if (stack.back->t.type == 4)
             free(stack.back->as.arr.data);
         stack.pop_back();
 
@@ -166,7 +166,7 @@ void VM::ExecuteInstruction()
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
         // if (curChunk != 3)
-        if (v.type != 4)
+        if (v.t.type != 4)
             std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
@@ -174,7 +174,7 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V_GLOBAL:
     {
         CompileConst v = globals[o.op];
-        if (v.type != 4)
+        if (v.t.type != 4)
             std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;

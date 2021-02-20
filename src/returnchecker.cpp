@@ -6,7 +6,7 @@ void ReturnChecker::ReturnError(Token loc, std::string err)
     e.Dump();
 }
 
-bool ReturnChecker::ReturnCheckBlock(Block *b, TypeID ret)
+bool ReturnChecker::ReturnCheckBlock(Block *b, TypeData ret)
 {
     for (auto &s : b->stmts)
     {
@@ -16,13 +16,15 @@ bool ReturnChecker::ReturnCheckBlock(Block *b, TypeID ret)
     return false;
 }
 
-bool ReturnChecker::ReturnCheckIfStmt(IfStmt *is, TypeID ret)
+bool ReturnChecker::ReturnCheckIfStmt(IfStmt *is, TypeData ret)
 {
 
     bool ans = false;
 
     Literal *lCond = dynamic_cast<Literal *>(is->cond.get());
-    if (lCond && lCond->GetType() == 3 && lCond->as.b)
+    TypeData b = {false, 3};
+
+    if (lCond && lCond->GetType() == b && lCond->as.b)
         ans = is->thenBranch->DoesReturn(ret);
 
     if (ans)
@@ -35,15 +37,17 @@ bool ReturnChecker::ReturnCheckIfStmt(IfStmt *is, TypeID ret)
     return is->thenBranch->DoesReturn(ret) && is->elseBranch->DoesReturn(ret);
 }
 
-bool ReturnChecker::ReturnCheckWhileStmt(WhileStmt *ws, TypeID ret)
+bool ReturnChecker::ReturnCheckWhileStmt(WhileStmt *ws, TypeData ret)
 {
     Literal *lCond = dynamic_cast<Literal *>(ws->cond.get());
-    if (lCond && lCond->GetType() == 3 && lCond->as.b)
+    TypeData b = {false, 3};
+
+    if (lCond && lCond->GetType() == b && lCond->as.b)
         return ws->body->DoesReturn(ret);
     return false;
 }
 
-bool ReturnChecker::ReturnCheckFuncDecl(FuncDecl *fd, TypeID ret)
+bool ReturnChecker::ReturnCheckFuncDecl(FuncDecl *fd, TypeData ret)
 {
     bool ans = false;
     for (auto &s : fd->body)
@@ -61,54 +65,56 @@ bool ReturnChecker::ReturnCheckFuncDecl(FuncDecl *fd, TypeID ret)
     return true;
 }
 
-bool ReturnChecker::ReturnCheckReturn(Return *r, TypeID ret)
+bool ReturnChecker::ReturnCheckReturn(Return *r, TypeData ret)
 {
     if (r->retVal != nullptr && r->retVal->GetType() == ret)
         return true;
 
-    std::string retType = (r->retVal != nullptr) ? TypeStringMap.at(ret) : "void";
+    std::string candRetString = (ret.isArray ? ("Array<" + TypeStringMap[ret.type] + ">") : TypeStringMap[ret.type]);
+    TypeData retType = r->retVal->GetType();
+    std::string accRetString = (retType.isArray ? ("Array<" + TypeStringMap[retType.type] + ">") : TypeStringMap[retType.type]);
 
-    ReturnError(r->Loc(), "Type of return value " + retType + " does not match the expected return type " + TypeStringMap.at(ret));
+    ReturnError(r->Loc(), "Type of return value " + candRetString + " does not match the expected return type " + accRetString);
     return false;
 }
 //-------------------------------VISITOR-------------------------------//
 
-bool ExprStmt::DoesReturn(TypeID)
+bool ExprStmt::DoesReturn(TypeData)
 {
     return false;
 }
 
-bool DeclaredVar::DoesReturn(TypeID)
+bool DeclaredVar::DoesReturn(TypeData)
 {
     return false;
 }
 
-bool ArrayDecl::DoesReturn(TypeID)
+bool ArrayDecl::DoesReturn(TypeData)
 {
     return false;
 }
 
-bool Block::DoesReturn(TypeID ret)
+bool Block::DoesReturn(TypeData ret)
 {
     return ReturnChecker::ReturnCheckBlock(this, ret);
 }
 
-bool IfStmt::DoesReturn(TypeID ret)
+bool IfStmt::DoesReturn(TypeData ret)
 {
     return ReturnChecker::ReturnCheckIfStmt(this, ret);
 }
 
-bool WhileStmt::DoesReturn(TypeID ret)
+bool WhileStmt::DoesReturn(TypeData ret)
 {
     return ReturnChecker::ReturnCheckWhileStmt(this, ret);
 }
 
-bool FuncDecl::DoesReturn(TypeID ret)
+bool FuncDecl::DoesReturn(TypeData ret)
 {
     return ReturnChecker::ReturnCheckFuncDecl(this, ret);
 }
 
-bool Return::DoesReturn(TypeID ret)
+bool Return::DoesReturn(TypeData ret)
 {
     return ReturnChecker::ReturnCheckReturn(this, ret);
 }

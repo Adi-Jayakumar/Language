@@ -97,7 +97,7 @@ enum class Opcode : uint8_t
 
 std::string ToString(Opcode o);
 
-Opcode TokenToOpcode(TypeID l, TokenID t, TypeID r, bool isUnary);
+Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);
 
 struct Op
 {
