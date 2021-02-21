@@ -203,6 +203,27 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     return ai->t;
 }
 
+TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)
+{
+    if (ia->size == 0)
+        return {false, 0};
+
+    TypeData first = ia->init[0]->Type(*this);
+
+    for (size_t i = 1; i < ia->init.size(); i++)
+    {
+        TypeData curType = ia->init[i]->Type(*this);
+
+        if (first != curType)
+            TypeError(ia->init[i]->Loc(), "Type of elements must match in an inline array");
+    }
+
+    ia->t = first;
+    ia->t.isArray = true;
+
+    return ia->t;
+}
+
 //------------------STATEMENTS---------------------//
 
 TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
@@ -292,7 +313,6 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
 
-
     funcs.push_back({fd->ret, fd->name, fd->argtypes});
 
     isInFunc = true;
@@ -361,6 +381,11 @@ TypeData FunctionCall::Type(TypeChecker &t)
 TypeData ArrayIndex::Type(TypeChecker &t)
 {
     return t.TypeOfArrayIndex(this);
+}
+
+TypeData InlineArray::Type(TypeChecker &t)
+{
+    return t.TypeOfInlineArray(this);
 }
 
 //------------------STATEMENTS---------------------//

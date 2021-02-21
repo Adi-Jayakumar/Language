@@ -47,6 +47,7 @@ struct TypeChecker
     TypeData TypeOfVarReference(VarReference *vr);
     TypeData TypeOfFunctionCall(FunctionCall *fc);
     TypeData TypeOfArrayIndex(ArrayIndex *ai);
+    TypeData TypeOfInlineArray(InlineArray *ia);
 
     // statment typechecking
     TypeData TypeOfExprStmt(ExprStmt *es);

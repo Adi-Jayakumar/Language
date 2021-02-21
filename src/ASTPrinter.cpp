@@ -130,6 +130,18 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
     out << "]";
 }
 
+void ASTPrinter::PrintInlineArray(InlineArray *ia, std::ostream &out)
+{
+    out << ia->t << " {";
+    for (size_t i = 0; i < ia->init.size(); i++)
+    {
+        ia->init[i]->Print(out);
+        if (i != ia->init.size() - 1)
+            out << ", ";
+    }
+    out << "}";
+}
+
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
@@ -289,6 +301,12 @@ void ArrayIndex::Print(std::ostream &out)
 {
     ASTPrinter::PrintArrayIndex(this, out);
 }
+
+void InlineArray::Print(std::ostream &out)
+{
+    ASTPrinter::PrintInlineArray(this, out);
+}
+
 //------------------STATEMENTS---------------------//
 
 void ExprStmt::Print(std::ostream &out)

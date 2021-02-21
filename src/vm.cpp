@@ -129,9 +129,8 @@ void VM::ExecuteInstruction()
     // pops the top value off the stack
     case Opcode::POP:
     {
-
-        if (stack.back->t.type == 4)
-            free(stack.back->as.arr.data);
+        // if (stack.back->t.type == 4)
+        //     free(stack.back->as.arr.data);
         stack.pop_back();
 
         break;

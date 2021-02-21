@@ -96,6 +96,12 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
+void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
+{
+    for(auto &e : ia->init)
+        e->NodeCompile(c);
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -289,6 +295,11 @@ void FunctionCall::NodeCompile(Compiler &c)
 void ArrayIndex::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileArrayIndex(this, c);
+}
+
+void InlineArray::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileInlineArray(this, c);
 }
 
 //------------------STATEMENTS---------------------//

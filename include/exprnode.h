@@ -6,8 +6,6 @@
 struct Compiler;
 struct TypeChecker;
 
-
-
 struct Expr
 {
     virtual Token Loc() = 0;
@@ -147,6 +145,22 @@ struct ArrayIndex : Expr
     TypeData t = {0, 0};
 
     ArrayIndex(std::string, std::shared_ptr<Expr>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    TypeData GetType() override;
+    void NodeCompile(Compiler &c) override;
+};
+
+struct InlineArray : Expr
+{
+    Token loc;
+    size_t size;
+    std::vector<std::shared_ptr<Expr>> init;
+    TypeData t = {false, 0};
+
+    InlineArray(size_t, std::vector<std::shared_ptr<Expr>> , Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

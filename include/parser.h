@@ -33,8 +33,8 @@ struct Parser
     std::shared_ptr<Stmt> Declaration();
     // parses a variable declaraion
     std::shared_ptr<Stmt> VarDeclaration();
-    // parses an array declaration
-    std::shared_ptr<Stmt> ArrayDeclaration();
+    // // parses an array declaration
+    // std::shared_ptr<Stmt> ArrayDeclaration();
     // parses any statement
     std::shared_ptr<Stmt> Statement();
     // parses an if statement
@@ -47,6 +47,8 @@ struct Parser
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression
     std::shared_ptr<Expr> Expression();
+    // parses an inline array
+    std::shared_ptr<Expr> ParseInlineArray();
     // parses any function call
     std::shared_ptr<Expr> FuncCall();
     // parses an array index expression

@@ -50,8 +50,8 @@ int main()
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
     // Compiler c = Compiler();
     // size_t mainIndex = c.Compile(res);
