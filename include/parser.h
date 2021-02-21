@@ -19,6 +19,11 @@ struct Parser
     void Advance();
     // checks t has same type as cur.type, gives an error
     void Check(TokenID t, std::string err);
+
+
+    // parses a type eg. 'int', 'bool', 'Array<int>', etc...
+    TypeData ParseType();
+
     // parses a file into a list of statements
     std::vector<std::shared_ptr<Stmt>> Parse();
 

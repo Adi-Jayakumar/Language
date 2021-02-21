@@ -128,7 +128,7 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
 
 void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
 {
-    out << ai->t << ai->name << "[";
+    out << ai->t << " " << ai->name << "[";
     ai->index->Print(out);
     out << "]";
 }

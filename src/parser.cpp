@@ -32,6 +32,35 @@ void Parser::Advance()
         next = lex.NextToken();
 }
 
+TypeData Parser::ParseType()
+{
+    if (cur.type == TokenID::TYPENAME)
+    {
+        std::string sType = cur.literal;
+        Advance();
+        return TypeNameMap[sType];
+    }
+    else
+    {
+        Check(TokenID::ARRAY, "Types can only be a default type name or 'Array<T>'");
+        Advance();
+
+        Check(TokenID::LT, "The element type of an array is surrounded by angle brackets");
+        Advance();
+
+        Check(TokenID::TYPENAME, "Need a type name for now");
+        TypeData type = TypeNameMap[cur.literal];
+
+        Advance();
+
+        Check(TokenID::GT, "The element type of an array is surrounded by angle brackets");
+        Advance();
+
+        type.isArray = true;
+        return type;
+    }
+}
+
 std::vector<std::shared_ptr<Stmt>> Parser::Parse()
 {
     std::vector<std::shared_ptr<Stmt>> res;
@@ -116,17 +145,6 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 std::shared_ptr<Stmt> Parser::ArrayDeclaration()
 {
     Token loc = cur;
-    Check(TokenID::ARRAY, "Expect 'Array' at the beginnig of an array declaration");
-    Advance();
-
-    Check(TokenID::LT, "Expect '<' after 'Array' keyword");
-    Advance();
-
-    Check(TokenID::TYPENAME, "Expect a type name surrounded by angle brackets");
-
-    if (cur.literal == "void")
-        ParseError(loc, "Array elements cannot have void type");
-
     TypeData elemType = {true, TypeNameMap[cur.literal].type};
 
     Advance();
@@ -168,11 +186,12 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     Token beg = cur;
     Advance();
-    Check(TokenID::TYPENAME, "Expect a return type after function declaration");
+    // Check(TokenID::TYPENAME, "Expect a return type after function declaration");
 
-    TypeData ret = TypeNameMap[cur.literal];
+    // TypeData ret = TypeNameMap[cur.literal];
+    TypeData ret = ParseType();
 
-    Advance();
+    // Advance();
     Check(TokenID::IDEN, "Expect name after function declaration");
 
     std::string name = cur.literal;
