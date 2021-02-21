@@ -12,7 +12,27 @@ Parser::Parser(const std::string &fPath)
 void Parser::ParseError(Token loc, std::string err)
 {
     Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
-    e.Dump();
+    throw e;
+}
+
+void Parser::PanicMode(std::initializer_list<TokenID> recovery)
+{
+    while (true)
+    {
+        bool recovered = false;
+        for (TokenID cand : recovery)
+        {
+            if (cand == cur.type)
+            {
+                recovered = true;
+                break;
+            }
+        }
+        if (!recovered)
+            Advance();
+        else
+            break;
+    }
 }
 
 void Parser::Check(TokenID t, std::string err)
@@ -20,7 +40,7 @@ void Parser::Check(TokenID t, std::string err)
     if (t != cur.type)
     {
         Error e = Error("[PARSE ERROR] On line " + std::to_string(cur.line) + "\n" + err);
-        e.Dump();
+        throw e;
     }
 }
 
@@ -68,7 +88,19 @@ std::vector<std::shared_ptr<Stmt>> Parser::Parse()
 {
     std::vector<std::shared_ptr<Stmt>> res;
     while (cur.type != TokenID::END)
-        res.push_back(Statement());
+    {
+        try
+        {
+            res.push_back(Statement());
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            PanicMode({TokenID::SEMI, TokenID::END});
+            Advance();
+            std::cerr << e.what() << std::endl;
+        }
+    }
     return res;
 }
 
@@ -165,14 +197,24 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
-        argtypes.push_back(ParseType("Function arguments need types"));
+        try
+        {
+            argtypes.push_back(ParseType("Function arguments need types"));
 
-        Check(TokenID::IDEN, "Arguments in function must have names");
-        paramIdentifiers.push_back(cur.literal);
+            Check(TokenID::IDEN, "Arguments in function must have names");
+            paramIdentifiers.push_back(cur.literal);
 
-        Advance();
-        if (cur.type == TokenID::COMMA)
             Advance();
+            if (cur.type == TokenID::COMMA)
+                Advance();
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            PanicMode({TokenID::COMMA, TokenID::END});
+            Advance();
+            std::cerr << e.what() << std::endl;
+        }
     }
 
     Advance();
@@ -186,7 +228,17 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
-        body.push_back(Statement());
+        try
+        {
+            body.push_back(Statement());
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            PanicMode({TokenID::SEMI, TokenID::END});
+            Advance();
+            std::cerr << e.what() << std::endl;
+        }
     }
 
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
@@ -205,10 +257,20 @@ std::shared_ptr<Block> Parser::ParseBlock()
     std::shared_ptr<Block> result = std::make_shared<Block>(depth, cur);
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
-        if (cur.type == TokenID::OPEN_BRACE)
-            result->stmts.push_back(ParseBlock());
-        else
-            result->stmts.push_back(Statement());
+        try
+        {
+            if (cur.type == TokenID::OPEN_BRACE)
+                result->stmts.push_back(ParseBlock());
+            else
+                result->stmts.push_back(Statement());
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            PanicMode({TokenID::SEMI, TokenID::END});
+            Advance();
+            std::cerr << e.what() << std::endl;
+        }
     }
 
     if (cur.type == TokenID::CLOSE_BRACE)
@@ -407,7 +469,7 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         res = ParseArrayInitialiser();
     }
     else
-        ParseError(cur, "[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
+        ParseError(cur, "Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
     Advance();
     return res;
 }

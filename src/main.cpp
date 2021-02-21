@@ -26,6 +26,10 @@ int main()
     Parser p = Parser("ex/test.txt");
 
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
+
+    if (p.hadError)
+        exit(2);
+
     // for (auto &s : res)
     //     std::cout << s.get() << std::endl;
 

@@ -1,12 +1,16 @@
 #pragma once
-#include <string>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 
-struct Error
+struct Error : public std::exception
 {
     std::string msg;
     Error(std::string s);
+    const char *what() const throw()
+    {
+        return msg.c_str();
+    }
     void Dump();
 };
 

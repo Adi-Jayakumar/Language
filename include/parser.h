@@ -10,10 +10,12 @@ struct Parser
     Token next;
 
     uint8_t depth;
+    bool hadError = false;
 
     Parser(const std::string &fPath);
 
     void ParseError(Token loc, std::string err);
+    void PanicMode(std::initializer_list<TokenID> recovery);
 
     // updates the previous and current tokens
     void Advance();
