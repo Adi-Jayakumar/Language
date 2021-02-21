@@ -153,3 +153,20 @@ TypeData InlineArray::GetType()
 {
     return t;
 }
+
+DynamicAllocArray::DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc)
+{
+    t = _t;
+    size = _size;
+    loc = _loc;
+}
+
+Token DynamicAllocArray::Loc()
+{
+    return loc;
+}
+
+TypeData DynamicAllocArray::GetType()
+{
+    return t;
+}

@@ -19,6 +19,7 @@ namespace NodeCompiler
     void CompileFunctionCall(FunctionCall *fc, Compiler &c);
     void CompileArrayIndex(ArrayIndex *ai, Compiler &c);
     void CompileInlineArray(InlineArray *ia, Compiler &c);
+    void CompileDynamicAllocArray(DynamicAllocArray* da, Compiler &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);

@@ -8,6 +8,7 @@ struct TypeChecker;
 
 struct Expr
 {
+    TypeData t = {false, 0};
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
@@ -31,7 +32,6 @@ std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
 */
 struct Literal : Expr
 {
-    TypeData t = {0, 0};
     Token loc;
     union combo
     {
@@ -54,7 +54,6 @@ struct Unary : Expr
 {
     Token op;
     std::shared_ptr<Expr> right;
-    TypeData t = {0, 0};
 
     Unary(Token, std::shared_ptr<Expr>);
     // ~Unary() override = default;
@@ -72,7 +71,6 @@ struct Binary : Expr
     std::shared_ptr<Expr> left;
     Token op;
     std::shared_ptr<Expr> right;
-    TypeData t = {0, 0};
 
     Binary(std::shared_ptr<Expr>, Token, std::shared_ptr<Expr>);
     // ~Binary() override = default;
@@ -90,7 +88,6 @@ struct VarReference : Expr
     Token loc;
     std::string name;
     VarReference(Token);
-    TypeData t = {0, 0};
     bool isArray = false;
 
     // ~VarReference() override = default;
@@ -108,7 +105,6 @@ struct Assign : Expr
     Token loc;
     std::shared_ptr<Expr> target;
     std::shared_ptr<Expr> val;
-    TypeData t = {0, 0};
 
     Assign(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
     // ~Assign() override = default;
@@ -126,7 +122,6 @@ struct FunctionCall : Expr
     Token loc;
     std::string name;
     std::vector<std::shared_ptr<Expr>> args;
-    TypeData t = {0, 0};
 
     FunctionCall(std::string, std::vector<std::shared_ptr<Expr>>, Token);
 
@@ -142,7 +137,6 @@ struct ArrayIndex : Expr
     Token loc;
     std::string name;
     std::shared_ptr<Expr> index;
-    TypeData t = {0, 0};
 
     ArrayIndex(std::string, std::shared_ptr<Expr>, Token);
 
@@ -158,9 +152,22 @@ struct InlineArray : Expr
     Token loc;
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
-    TypeData t = {false, 0};
 
-    InlineArray(size_t, std::vector<std::shared_ptr<Expr>> , Token);
+    InlineArray(size_t, std::vector<std::shared_ptr<Expr>>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    TypeData GetType() override;
+    void NodeCompile(Compiler &c) override;
+};
+
+struct DynamicAllocArray : Expr
+{
+    Token loc;
+    std::shared_ptr<Expr> size;
+
+    DynamicAllocArray(TypeData, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

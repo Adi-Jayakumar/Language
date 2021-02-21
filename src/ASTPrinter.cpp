@@ -142,6 +142,13 @@ void ASTPrinter::PrintInlineArray(InlineArray *ia, std::ostream &out)
     out << "}";
 }
 
+void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out)
+{
+    out << da->t << "[";
+    da->size->Print(out);
+    out << "]";
+}
+
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
@@ -281,6 +288,11 @@ void ArrayIndex::Print(std::ostream &out)
 void InlineArray::Print(std::ostream &out)
 {
     ASTPrinter::PrintInlineArray(this, out);
+}
+
+void DynamicAllocArray::Print(std::ostream &out)
+{
+    ASTPrinter::PrintDynamicAllocArray(this, out);
 }
 
 //------------------STATEMENTS---------------------//

@@ -224,6 +224,11 @@ TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)
     return ia->t;
 }
 
+TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
+{
+    return da->t;
+}
+
 //------------------STATEMENTS---------------------//
 
 TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
@@ -368,6 +373,11 @@ TypeData ArrayIndex::Type(TypeChecker &t)
 TypeData InlineArray::Type(TypeChecker &t)
 {
     return t.TypeOfInlineArray(this);
+}
+
+TypeData DynamicAllocArray::Type(TypeChecker &t)
+{
+    return t.TypeOfDynamicAllocArray(this);
 }
 
 //------------------STATEMENTS---------------------//

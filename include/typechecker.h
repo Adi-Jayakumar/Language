@@ -48,6 +48,7 @@ struct TypeChecker
     TypeData TypeOfFunctionCall(FunctionCall *fc);
     TypeData TypeOfArrayIndex(ArrayIndex *ai);
     TypeData TypeOfInlineArray(InlineArray *ia);
+    TypeData TypeOfDynamicAllocArray(DynamicAllocArray *da);
 
     // statment typechecking
     TypeData TypeOfExprStmt(ExprStmt *es);

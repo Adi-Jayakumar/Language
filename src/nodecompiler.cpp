@@ -117,6 +117,11 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
     c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
 }
 
+void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
+{
+    // DO STUFF
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -294,6 +299,11 @@ void ArrayIndex::NodeCompile(Compiler &c)
 void InlineArray::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileInlineArray(this, c);
+}
+
+void DynamicAllocArray::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileDynamicAllocArray(this, c);
 }
 
 //------------------STATEMENTS---------------------//
