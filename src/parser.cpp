@@ -109,12 +109,8 @@ std::shared_ptr<Stmt> Parser::Statement()
 
 std::shared_ptr<Stmt> Parser::Declaration()
 {
-    // if (cur.type == TokenID::TYPENAME)
-    //     return VarDeclaration();
     if (cur.type == TokenID::TYPENAME || cur.type == TokenID::ARRAY)
         return VarDeclaration();
-    // else if (cur.type == TokenID::ARRAY)
-    //     return ArrayDeclaration();
     else if (cur.type == TokenID::FUNC)
         return FuncDeclaration();
     else
@@ -126,6 +122,8 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     TypeData type = ParseType("Expect type name at the beginning of a variable decaration");
     if (type.type == 0)
         ParseError(cur, "A variable cannot have 'void' type");
+
+    Check(TokenID::IDEN, "Expect identifier after type name of a variable declaration");
 
     std::string name = cur.literal;
     Token loc = cur;
@@ -404,9 +402,9 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         Advance();
         return std::make_shared<VarReference>(loc);
     }
-    else if (cur.type == TokenID::OPEN_BRACE)
+    else if (cur.type == TokenID::OPEN_BRACE || cur.type == TokenID::ARRAY)
     {
-        res = ParseInlineArray();
+        res = ParseArrayInitialiser();
     }
     else
         ParseError(cur, "[PARSE ERROR]: Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
@@ -453,20 +451,34 @@ std::shared_ptr<Expr> Parser::ParseArrayIndex()
     return std::make_shared<ArrayIndex>(name, index, loc);
 }
 
-std::shared_ptr<Expr> Parser::ParseInlineArray()
+std::shared_ptr<Expr> Parser::ParseArrayInitialiser()
 {
-    Check(TokenID::OPEN_BRACE, "Expect braced initialiser");
     Token loc = cur;
-
-    std::vector<std::shared_ptr<Expr>> init;
-
-    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    if (cur.type == TokenID::OPEN_BRACE)
     {
-        Advance();
-        if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
-            init.push_back(Expression());
-    }
+        std::vector<std::shared_ptr<Expr>> init;
 
-    Check(TokenID::CLOSE_BRACE, "Missing '}'");
-    return std::make_shared<InlineArray>(init.size(), init, loc);
+        while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+        {
+            Advance();
+            if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
+                init.push_back(Expression());
+        }
+
+        Check(TokenID::CLOSE_BRACE, "Missing '}'");
+        return std::make_shared<InlineArray>(init.size(), init, loc);
+    }
+    else
+    {
+        Check(TokenID::ARRAY, "Expect 'Array' at the beginning of dynamically allocated array");
+        TypeData arrT = ParseType("Dynamically allocated array is declared with a type name");
+
+        Check(TokenID::OPEN_SQ, "Expect size of dynamically allocated array wrapped in square brackets");
+        Advance();
+
+        std::shared_ptr<Expr> size = Expression();
+
+        Check(TokenID::CLOSE_SQ, "Missing ']'");
+        return std::make_shared<DynamicAllocArray>(arrT, size, loc);
+    }
 }

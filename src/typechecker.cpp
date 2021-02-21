@@ -229,7 +229,7 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
     TypeData sizeType = da->size->Type(*this);
     TypeData intType = {false, 1};
 
-    if(sizeType != intType)
+    if (sizeType != intType)
         TypeError(da->Loc(), "Size of dynamically allocated array must have type int");
 
     return da->t;
@@ -258,7 +258,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         if (valType == varType)
             return valType;
         else
-            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
+            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(varType) + " to variable: '" + dv->name + "' of type: " + ToString(valType));
     }
     return {false, UINT8_MAX};
 }

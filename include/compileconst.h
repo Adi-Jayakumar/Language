@@ -26,6 +26,7 @@ struct CompileConst
     CompileConst(bool);
     // array case
     CompileConst(size_t);
+    CompileConst(CCArray);
 };
 
 std::string ToString(const CompileConst &cc);

@@ -101,6 +101,12 @@ CompileConst::CompileConst(size_t _size)
     as.arr.size = _size;
 }
 
+CompileConst::CompileConst(CCArray _arr)
+{
+    t = {true, 4};
+    as.arr = _arr;
+}
+
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
 {
     switch (cc.t.type)

@@ -165,7 +165,7 @@ void VM::ExecuteInstruction()
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
         // if (curChunk != 3)
-        if (v.t.type != 4)
+        if (v.t.type != 4 && curChunk == 2)
             std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
@@ -173,7 +173,7 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V_GLOBAL:
     {
         CompileConst v = globals[o.op];
-        if (v.t.type != 4)
+        if (v.t.type != 4 && curChunk == 2)
             std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
@@ -206,11 +206,23 @@ void VM::ExecuteInstruction()
 
         CCArray arr = arrayAsCC.as.arr;
 
-        if (index.as.i > (int)arr.size)
+        if (index.as.i >= (int)arr.size)
             RuntimeError("Array index " + std::to_string(index.as.i) + " out of bounds for array of size " + std::to_string(arr.size));
 
         stack.push_back(arr.data[index.as.i]);
 
+        break;
+    }
+    // Allocates an array whose size is the top value on the stack and pushes
+    // the allocated array onto the stack
+    case Opcode::ARR_ALLOC:
+    {
+        CompileConst size = *stack.back;
+        stack.pop_back();
+        CCArray arr;
+        arr.data = (CompileConst *)malloc(size.as.i * sizeof(CompileConst));
+        arr.size = size.as.i;
+        stack.push_back(CompileConst(CompileConst(arr)));
         break;
     }
     // sets the index

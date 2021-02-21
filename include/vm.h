@@ -6,12 +6,6 @@
 
 struct VM
 {
-    /*
-        When executing multiple Chunks the codes GET_V and
-        VAR_D provide relative 'addresses' of where their
-        variables should go/are so we update this offset
-        everytime we switch Chunks
-    */
 
     std::vector<Chunk> functions;
     std::vector<CompileConst> globals;
