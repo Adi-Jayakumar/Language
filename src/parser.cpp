@@ -11,7 +11,7 @@ Parser::Parser(const std::string &fPath)
 
 void Parser::ParseError(Token loc, std::string err)
 {
-    Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
+    Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err + "\n");
     throw e;
 }
 
@@ -38,10 +38,7 @@ void Parser::PanicMode(std::initializer_list<TokenID> recovery)
 void Parser::Check(TokenID t, std::string err)
 {
     if (t != cur.type)
-    {
-        Error e = Error("[PARSE ERROR] On line " + std::to_string(cur.line) + "\n" + err);
-        throw e;
-    }
+        ParseError(cur, err);
 }
 
 void Parser::Advance()
@@ -178,7 +175,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
     if (depth > 1)
-        Check(TokenID::END, "Cannot declare function inside nested scope");
+        ParseError(cur, "Cannot declare function inside nested scope");
 
     Token beg = cur;
     Advance();

@@ -9,7 +9,7 @@ struct Parser
     Token cur;
     Token next;
 
-    uint8_t depth;
+    uint8_t depth = 1;
     bool hadError = false;
 
     Parser(const std::string &fPath);
