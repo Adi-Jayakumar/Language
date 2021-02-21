@@ -226,6 +226,12 @@ TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 {
+    TypeData sizeType = da->size->Type(*this);
+    TypeData intType = {false, 1};
+
+    if(sizeType != intType)
+        TypeError(da->Loc(), "Size of dynamically allocated array must have type int");
+
     return da->t;
 }
 

@@ -119,7 +119,8 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 {
-    // DO STUFF
+    da->size->NodeCompile(c);
+    c.cur->code.push_back({Opcode::ARR_ALLOC, 0});
 }
 
 //------------------STATEMENTS---------------------//

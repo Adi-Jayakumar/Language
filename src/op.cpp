@@ -44,6 +44,10 @@ std::string ToString(Opcode o)
     {
         return "ARR_SET";
     }
+    case Opcode::ARR_ALLOC:
+    {
+        return "ARR_ALLOC";
+    }
     case Opcode::JUMP_IF_FALSE:
     {
         return "JUMP_IF_FALSE";

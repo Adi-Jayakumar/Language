@@ -20,6 +20,7 @@ enum class Opcode : uint8_t
     ARR_INDEX,
     // for setting the item at a particular index
     ARR_SET,
+    ARR_ALLOC,
 
     JUMP_IF_FALSE,
     JUMP,
