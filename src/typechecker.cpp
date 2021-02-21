@@ -1,32 +1,5 @@
 #include "typechecker.h"
 
-std::string ToString(const TypeData &td)
-{
-    std::string bString = (td.isArray ? "true" : "false");
-    return "<" + bString + ", " + TypeStringMap[td.type] + ">";
-}
-
-std::ostream &operator<<(std::ostream &out, const TypeData &td)
-{
-    out << ToString(td);
-    return out;
-}
-
-bool operator==(const TypeData &left, const TypeData &right)
-{
-    return (left.type == right.type) && (left.isArray == right.isArray);
-}
-
-bool operator!=(const TypeData &left, const TypeData &right)
-{
-    return (left.type != right.type) || (left.isArray != right.isArray);
-}
-
-bool operator==(const TypeInfo &l, const TypeInfo &r)
-{
-    return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
-}
-
 void TypeChecker::TypeError(Token loc, std::string err)
 {
     Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + "\n" + err);

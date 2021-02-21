@@ -145,12 +145,8 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
 std::shared_ptr<Stmt> Parser::ArrayDeclaration()
 {
     Token loc = cur;
-    TypeData elemType = {true, TypeNameMap[cur.literal].type};
-
-    Advance();
-
-    Check(TokenID::GT, "Expect '>' after Array's element type");
-    Advance();
+    Check(TokenID::ARRAY, "Array declaration starts with Array<T>");
+    TypeData elemType = ParseType();
 
     Check(TokenID::IDEN, "Expect name after Array<T>");
     std::string name = cur.literal;

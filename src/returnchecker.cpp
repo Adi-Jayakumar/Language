@@ -70,9 +70,9 @@ bool ReturnChecker::ReturnCheckReturn(Return *r, TypeData ret)
     if (r->retVal != nullptr && r->retVal->GetType() == ret)
         return true;
 
-    std::string candRetString = (ret.isArray ? ("Array<" + TypeStringMap[ret.type] + ">") : TypeStringMap[ret.type]);
+    std::string accRetString = ToString(ret);
     TypeData retType = r->retVal->GetType();
-    std::string accRetString = (retType.isArray ? ("Array<" + TypeStringMap[retType.type] + ">") : TypeStringMap[retType.type]);
+    std::string candRetString = ToString(retType);
 
     ReturnError(r->Loc(), "Type of return value " + candRetString + " does not match the expected return type " + accRetString);
     return false;

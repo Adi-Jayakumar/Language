@@ -161,7 +161,7 @@ void ASTPrinter::PrintArrayDecl(ArrayDecl *ad, std::ostream &out)
         out << "null";
     else
     {
-        out << "Array" << ad->elemType << " " << ad->name << " = ";
+        out << ad->elemType << " " << ad->name << " = ";
         if (ad->init.size() == 0)
             out << "null";
         else

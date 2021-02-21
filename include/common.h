@@ -34,7 +34,7 @@ bool operator==(const TypeInfo &l, const TypeInfo &r);
 // map from string typenames to uint8_t type ids.
 // static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
 static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"Array", {false, 4}}};
-static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "Array"}};
+static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}};
 
 struct TypeInfoHasher
 {
