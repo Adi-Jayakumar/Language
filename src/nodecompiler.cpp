@@ -98,8 +98,23 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 
 void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
 {
-    for(auto &e : ia->init)
+    if (ia->size > UINT8_MAX)
+        c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
+
+    CompileConst arr = CompileConst(ia->size);
+    c.cur->constants.push_back(arr);
+
+    size_t arrStackLoc = c.cur->constants.size() - 1;
+
+    if (arrStackLoc > UINT8_MAX)
+        c.CompileError(ia->Loc(), "Too many variables");
+
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(arrStackLoc)});
+
+    for (auto &e : ia->init)
         e->NodeCompile(c);
+
+    c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
 }
 
 //------------------STATEMENTS---------------------//
@@ -126,16 +141,13 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     // compile the initialiser
     dv->value->NodeCompile(c);
-    if (c.isFunc)
-    {
-        // add to the list of variables                relative stack location
-        c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
-    }
-    else
-    {
-        c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+
+    // add to the list of variables
+    c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+
+    // check if it is a global variable
+    if (!c.isFunc)
         c.cur->code.push_back({Opcode::VAR_D_GLOBAL, static_cast<uint8_t>(c.cur->vars.size() - 1)});
-    }
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)

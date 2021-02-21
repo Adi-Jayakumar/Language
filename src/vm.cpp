@@ -182,7 +182,7 @@ void VM::ExecuteInstruction()
     // in the stack slots below the array
     case Opcode::ARR_D:
     {
-        CompileConst arrAsCC = *stack.back;
+        CompileConst arrAsCC = stack.back[-o.op];
 
         CCArray arr = arrAsCC.as.arr;
         CompileConst *arrStart = stack.back - arr.size;
@@ -190,10 +190,8 @@ void VM::ExecuteInstruction()
         for (size_t i = 0; i < arr.size; i++)
             arr.data[i] = arrStart[i];
 
-        stack.back = arrStart;
-        stack.count -= arr.size + 1;
-
-        stack.push_back(arrAsCC);
+        stack.back = arrStart - 1;
+        stack.count -= arr.size;
 
         break;
     }
