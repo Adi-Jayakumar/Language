@@ -73,25 +73,13 @@ Token WhileStmt::Loc()
     return loc;
 }
 
-FuncDecl::FuncDecl(TypeData _ret, std::string &_name, std::vector<Token> &_params, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
+FuncDecl::FuncDecl(TypeData _ret, std::string &_name, std::vector<TypeData> &_argtypes, std::vector<std::string> &_pIdens, std::vector<std::shared_ptr<Stmt>> &_body, Token _loc)
 {
     ret = _ret;
     name = _name;
 
-    for (size_t i = 0; i < _params.size(); i++)
-    {
-        if (_params[i].type == TokenID::TYPENAME)
-            argtypes.push_back(TypeNameMap[_params[i].literal]);
-        else if (_params[i].type == TokenID::ARRAY)
-        {
-            i += 2;
-            TypeData arrT = TypeNameMap[_params[i].literal];
-            arrT.isArray = true;
-            argtypes.push_back(arrT);
-        }
-        else if (_params[i].type == TokenID::IDEN)
-            paramIdentifiers.push_back(_params[i].literal);
-    }
+    argtypes = _argtypes;
+    paramIdentifiers = _pIdens;
 
     body = _body;
     loc = _loc;

@@ -185,12 +185,8 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     Token beg = cur;
     Advance();
-    // Check(TokenID::TYPENAME, "Expect a return type after function declaration");
-
-    // TypeData ret = TypeNameMap[cur.literal];
     TypeData ret = ParseType("Invalid return type");
 
-    // Advance();
     Check(TokenID::IDEN, "Expect name after function declaration");
 
     std::string name = cur.literal;
@@ -198,13 +194,20 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Advance();
     Check(TokenID::OPEN_PAR, "Expect argument list after function declaration");
     Advance();
-    std::vector<Token> params;
+
+    std::vector<TypeData> argtypes;
+    std::vector<std::string> paramIdentifiers;
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
-        if (cur.type != TokenID::COMMA)
-            params.push_back(cur);
+        argtypes.push_back(ParseType("Function arguments need types"));
+        
+        Check(TokenID::IDEN, "Arguments in function must have names");
+        paramIdentifiers.push_back(cur.literal);
+
         Advance();
+        if(cur.type == TokenID::COMMA)
+            Advance();
     }
 
     Advance();
@@ -224,7 +227,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     depth--;
     Advance();
-    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, beg);
+    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, argtypes, paramIdentifiers, body, beg);
     return func;
 }
 

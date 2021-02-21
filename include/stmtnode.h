@@ -110,7 +110,7 @@ struct FuncDecl : Stmt
     std::vector<std::string> paramIdentifiers;
     std::vector<std::shared_ptr<Stmt>> body;
 
-    FuncDecl(TypeData, std::string &, std::vector<Token> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
