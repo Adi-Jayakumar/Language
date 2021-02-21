@@ -8,7 +8,6 @@ struct VarID
     TypeData type;
     std::string name;
     uint8_t depth;
-    bool isArray;
 };
 
 struct FuncID

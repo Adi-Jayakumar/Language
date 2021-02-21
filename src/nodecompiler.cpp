@@ -200,25 +200,22 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
-    if (fd->params.size() > UINT8_MAX)
+    if (fd->argtypes.size() > UINT8_MAX)
         c.CompileError(fd->Loc(), "Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
 
     c.funcs.push_back({fd->name, fd->ret});
     size_t numVars = 0;
 
-    for (size_t i = 0; i < fd->params.size(); i++)
+    for (size_t i = 0; i < fd->argtypes.size(); i++)
     {
-        if (fd->params[i].type == TokenID::IDEN)
-        {
-            CTVarID arg;
-            arg.name = fd->params[i].literal;
-            arg.depth = c.cur->depth;
-            arg.index = c.cur->vars.size();
+        CTVarID arg;
+        arg.name = fd->paramIdentifiers[i];
+        arg.depth = c.cur->depth;
+        arg.index = c.cur->vars.size();
 
-            c.cur->vars.push_back(arg);
-            // c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
-            numVars++;
-        }
+        c.cur->vars.push_back(arg);
+        // c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
+        numVars++;
     }
 
     for (auto &s : fd->body)
@@ -332,7 +329,7 @@ void FuncDecl::NodeCompile(Compiler &c)
     c.cur = &c.chunks.back();
     c.isFunc = true;
 
-    c.cur->arity = params.size() / 2;
+    c.cur->arity = argtypes.size();
 
     NodeCompiler::CompileFuncDecl(this, c);
 

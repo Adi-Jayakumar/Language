@@ -26,8 +26,8 @@ int main()
     Parser p = Parser("ex/test.txt");
 
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
     std::cout << std::endl
               << std::endl;
@@ -39,23 +39,23 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    for (auto &s : res)
-    {
-        FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
-        TypeData voidType = {false, 0};
-        if (asFunc && asFunc->ret != voidType)
-            asFunc->DoesReturn(asFunc->ret);
-    }
+    // for (auto &s : res)
+    // {
+    //     FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
+    //     TypeData voidType = {false, 0};
+    //     if (asFunc && asFunc->ret != voidType)
+    //         asFunc->DoesReturn(asFunc->ret);
+    // }
 
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    Compiler c = Compiler();
-    size_t mainIndex = c.Compile(res);
-    c.Disassemble();
+    // Compiler c = Compiler();
+    // size_t mainIndex = c.Compile(res);
+    // c.Disassemble();
 
     // std::cout << std::endl
     //           << std::endl;

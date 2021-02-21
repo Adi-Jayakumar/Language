@@ -144,7 +144,7 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
             TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
 
         // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
-        targetAsVr->isArray = vars[varIndex].isArray;
+        targetAsVr->isArray = vars[varIndex].type.isArray;
         targetAsVr->t = varType;
         a->t = varType;
         return varType;
@@ -161,7 +161,7 @@ TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
 {
     size_t varIndex = ResolveVariable(vr->name, vr->Loc());
     vr->t = vars[varIndex].type;
-    vr->isArray = vars[varIndex].isArray;
+    vr->isArray = vars[varIndex].type.isArray;
     return vars[varIndex].type;
 }
 
@@ -188,7 +188,7 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     size_t varIndex = ResolveVariable(ai->name, ai->Loc());
 
-    if (!vars[varIndex].isArray)
+    if (!vars[varIndex].type.isArray)
         TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
 
     TypeData indexType = ai->index->Type(*this);
@@ -215,7 +215,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     if (IsVariableInScope(dv->name))
         TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
 
-    vars.push_back({dv->t, dv->name, depth, false});
+    vars.push_back({dv->t, dv->name, depth});
     if (dv->value == nullptr)
         return dv->t;
     else
@@ -236,7 +236,10 @@ TypeData TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
     if (IsVariableInScope(ad->name))
         TypeError(ad->Loc(), "Variable: '" + ad->name + "' has already been defined");
 
-    vars.push_back({ad->elemType, ad->name, depth, true});
+    TypeData arrT = ad->elemType;
+    arrT.isArray = true;
+
+    vars.push_back({arrT, ad->name, depth});
     for (auto &e : ad->init)
     {
         TypeData valType = e->Type(*this);
@@ -289,35 +292,20 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
 
-    std::vector<TypeData> argtypes;
 
-    for (auto &t : fd->params)
-    {
-        if (t.type == TokenID::TYPENAME)
-            argtypes.push_back(TypeNameMap[t.literal]);
-    }
-
-    funcs.push_back({fd->ret, fd->name, argtypes});
+    funcs.push_back({fd->ret, fd->name, fd->argtypes});
 
     isInFunc = true;
     funcVarBegin = vars.size();
 
-    for (size_t i = 0; i < fd->params.size(); i++)
+    if (fd->argtypes.size() != fd->paramIdentifiers.size())
     {
-        TypeData pType = {false, 0};
-        std::string pName;
-        if (fd->params[i].type == TokenID::TYPENAME)
-            pType = TypeNameMap[fd->params[i].literal];
-        i++;
-        if (fd->params[i].type == TokenID::IDEN)
-            pName = fd->params[i].literal;
-
-        bool isArray = false;
-        if (fd->params[i].type == TokenID::ARRAY)
-            isArray = true;
-
-        vars.push_back({pType, pName, depth, isArray});
+        std::cout << "SOMETHING WENT WRONG HERE" << std::endl;
+        exit(14);
     }
+
+    for (size_t j = 0; j < fd->argtypes.size(); j++)
+        vars.push_back({fd->argtypes[j], fd->paramIdentifiers[j], depth});
 
     for (auto &s : fd->body)
         s->Type(*this);

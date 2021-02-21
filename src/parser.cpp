@@ -32,7 +32,7 @@ void Parser::Advance()
         next = lex.NextToken();
 }
 
-TypeData Parser::ParseType()
+TypeData Parser::ParseType(std::string err)
 {
     if (cur.type == TokenID::TYPENAME)
     {
@@ -40,7 +40,7 @@ TypeData Parser::ParseType()
         Advance();
         return TypeNameMap[sType];
     }
-    else
+    else if(cur.type == TokenID::ARRAY)
     {
         Check(TokenID::ARRAY, "Types can only be a default type name or 'Array<T>'");
         Advance();
@@ -59,6 +59,9 @@ TypeData Parser::ParseType()
         type.isArray = true;
         return type;
     }
+    ParseError(cur, err);
+    // never reaches here, just to silence compiler warnings
+    return {false, UINT8_MAX};
 }
 
 std::vector<std::shared_ptr<Stmt>> Parser::Parse()
@@ -146,7 +149,7 @@ std::shared_ptr<Stmt> Parser::ArrayDeclaration()
 {
     Token loc = cur;
     Check(TokenID::ARRAY, "Array declaration starts with Array<T>");
-    TypeData elemType = ParseType();
+    TypeData elemType = ParseType("Invalid array declaration");
 
     Check(TokenID::IDEN, "Expect name after Array<T>");
     std::string name = cur.literal;
@@ -185,7 +188,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     // Check(TokenID::TYPENAME, "Expect a return type after function declaration");
 
     // TypeData ret = TypeNameMap[cur.literal];
-    TypeData ret = ParseType();
+    TypeData ret = ParseType("Invalid return type");
 
     // Advance();
     Check(TokenID::IDEN, "Expect name after function declaration");

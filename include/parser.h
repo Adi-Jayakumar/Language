@@ -22,7 +22,7 @@ struct Parser
 
 
     // parses a type eg. 'int', 'bool', 'Array<int>', etc...
-    TypeData ParseType();
+    TypeData ParseType(std::string err);
 
     // parses a file into a list of statements
     std::vector<std::shared_ptr<Stmt>> Parse();

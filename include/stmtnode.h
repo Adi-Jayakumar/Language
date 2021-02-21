@@ -106,7 +106,8 @@ struct FuncDecl : Stmt
 {
     TypeData ret;
     std::string name;
-    std::vector<Token> params;
+    std::vector<TypeData> argtypes;
+    std::vector<std::string> paramIdentifiers;
     std::vector<std::shared_ptr<Stmt>> body;
 
     FuncDecl(TypeData, std::string &, std::vector<Token> &, std::vector<std::shared_ptr<Stmt>> &, Token);

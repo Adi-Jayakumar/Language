@@ -77,7 +77,22 @@ FuncDecl::FuncDecl(TypeData _ret, std::string &_name, std::vector<Token> &_param
 {
     ret = _ret;
     name = _name;
-    params = _params;
+
+    for (size_t i = 0; i < _params.size(); i++)
+    {
+        if (_params[i].type == TokenID::TYPENAME)
+            argtypes.push_back(TypeNameMap[_params[i].literal]);
+        else if (_params[i].type == TokenID::ARRAY)
+        {
+            i += 2;
+            TypeData arrT = TypeNameMap[_params[i].literal];
+            arrT.isArray = true;
+            argtypes.push_back(arrT);
+        }
+        else if (_params[i].type == TokenID::IDEN)
+            paramIdentifiers.push_back(_params[i].literal);
+    }
+
     body = _body;
     loc = _loc;
 }

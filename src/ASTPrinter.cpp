@@ -108,9 +108,6 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
 
 void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
 {
-
-    if (vr->isArray)
-        out << "Array";
     out << vr->t;
     out << vr->name;
 }
@@ -228,14 +225,14 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
 {
     out << fd->ret << " " << fd->name << "(";
-    for (const Token &t : fd->params)
+
+    for (size_t i = 0; i < fd->argtypes.size(); i++)
     {
-        out << t.literal;
-        if (t.type == TokenID::TYPENAME)
-            out << " ";
-        else
+        out << fd->argtypes[i] << " " << fd->paramIdentifiers[i];
+        if (i != fd->argtypes.size() - 1)
             out << ", ";
     }
+
     out << ")" << std::endl;
     out << "{" << std::endl;
     for (auto &s : fd->body)
