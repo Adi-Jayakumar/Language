@@ -145,39 +145,6 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     return std::make_shared<DeclaredVar>(type, name, init, loc);
 }
 
-// std::shared_ptr<Stmt> Parser::ArrayDeclaration()
-// {
-//     Token loc = cur;
-//     Check(TokenID::ARRAY, "Array declaration starts with Array<T>");
-//     TypeData elemType = ParseType("Invalid array declaration");
-
-//     Check(TokenID::IDEN, "Expect name after Array<T>");
-//     std::string name = cur.literal;
-//     Advance();
-
-//     Check(TokenID::EQ, "Expect equals after Array<T> [_name_]");
-//     Advance();
-
-//     Check(TokenID::OPEN_BRACE, "Expect braced initialiser");
-
-//     std::vector<std::shared_ptr<Expr>> init;
-
-//     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
-//     {
-//         Advance();
-//         if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
-//             init.push_back(Expression());
-//     }
-
-//     Check(TokenID::CLOSE_BRACE, "Missing '}'");
-//     Advance();
-
-//     Check(TokenID::SEMI, "Expect ';' after Array declaration");
-//     Advance();
-
-//     return std::make_shared<ArrayDecl>(elemType, name, init, loc);
-// }
-
 std::shared_ptr<Stmt> Parser::FuncDeclaration()
 {
     if (depth > 1)

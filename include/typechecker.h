@@ -52,7 +52,6 @@ struct TypeChecker
     // statment typechecking
     TypeData TypeOfExprStmt(ExprStmt *es);
     TypeData TypeOfDeclaredVar(DeclaredVar *v);
-    TypeData TypeOfArrayDecl(ArrayDecl *ad);
     TypeData TypeOfBlock(Block *b);
     TypeData TypeOfIfStmt(IfStmt *i);
     TypeData TypeOfWhileStmt(WhileStmt *ws);

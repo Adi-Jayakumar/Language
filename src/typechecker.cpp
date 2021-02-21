@@ -252,24 +252,6 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     return {false, UINT8_MAX};
 }
 
-TypeData TypeChecker::TypeOfArrayDecl(ArrayDecl *ad)
-{
-    if (IsVariableInScope(ad->name))
-        TypeError(ad->Loc(), "Variable: '" + ad->name + "' has already been defined");
-
-    TypeData arrT = ad->elemType;
-    arrT.isArray = true;
-
-    vars.push_back({arrT, ad->name, depth});
-    for (auto &e : ad->init)
-    {
-        TypeData valType = e->Type(*this);
-        if (valType.type != ad->elemType.type)
-            TypeError(ad->Loc(), "Cannot declare an Array<" + ToString(ad->elemType) + "> with a " + ToString(valType));
-    }
-    return {false, UINT8_MAX};
-}
-
 TypeData TypeChecker::TypeOfBlock(Block *b)
 {
     depth++;
@@ -398,11 +380,6 @@ TypeData ExprStmt::Type(TypeChecker &t)
 TypeData DeclaredVar::Type(TypeChecker &t)
 {
     return t.TypeOfDeclaredVar(this);
-}
-
-TypeData ArrayDecl::Type(TypeChecker &t)
-{
-    return t.TypeOfArrayDecl(this);
 }
 
 TypeData Block::Type(TypeChecker &t)

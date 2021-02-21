@@ -16,7 +16,6 @@ namespace ASTPrinter
     // statment printing
     void PrintExprStmt(ExprStmt *es, std::ostream &out);
     void PrintDeclaredVar(DeclaredVar *v, std::ostream &out);
-    void PrintArrayDecl(ArrayDecl *ad, std::ostream &out);
     void PrintBlock(Block *b, std::ostream &out);
     void PrintIfStmt(IfStmt *i, std::ostream &out);
     void PrintWhileStmt(WhileStmt *ws, std::ostream &out);

@@ -44,22 +44,6 @@ struct DeclaredVar : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct ArrayDecl : Stmt
-{
-    TypeData elemType;
-    std::string name;
-    size_t size;
-    std::vector<std::shared_ptr<Expr>> init;
-
-    ArrayDecl(TypeData, std::string, std::vector<std::shared_ptr<Expr>>, Token);
-
-    Token Loc() override;
-    void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
-    void NodeCompile(Compiler &c) override;
-};
-
 struct Block : Stmt
 {
     uint8_t depth;

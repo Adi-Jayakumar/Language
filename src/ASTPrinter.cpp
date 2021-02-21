@@ -164,30 +164,6 @@ void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
     out << ";" << std::endl;
 }
 
-void ASTPrinter::PrintArrayDecl(ArrayDecl *ad, std::ostream &out)
-{
-    if (ad == nullptr)
-        out << "null";
-    else
-    {
-        out << ad->elemType << " " << ad->name << " = ";
-        if (ad->init.size() == 0)
-            out << "null";
-        else
-        {
-            out << "{";
-            for (auto &e : ad->init)
-            {
-                e->Print(out);
-                out << ", ";
-            }
-            out << "}";
-        }
-        out << ";";
-    }
-    out << std::endl;
-}
-
 void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
 {
     if (b == nullptr)
@@ -317,11 +293,6 @@ void ExprStmt::Print(std::ostream &out)
 void DeclaredVar::Print(std::ostream &out)
 {
     ASTPrinter::PrintDeclaredVar(this, out);
-}
-
-void ArrayDecl::Print(std::ostream &out)
-{
-    ASTPrinter::PrintArrayDecl(this, out);
 }
 
 void Block::Print(std::ostream &out)

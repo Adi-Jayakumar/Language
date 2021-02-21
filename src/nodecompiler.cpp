@@ -242,24 +242,6 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
     }
 }
 
-void NodeCompiler::CompileArrayDecl(ArrayDecl *ad, Compiler &c)
-{
-    if (ad->init.size() > UINT8_MAX)
-        c.CompileError(ad->Loc(), "Cannot inline declare an array with more than " + std::to_string(UINT8_MAX) + " elements");
-
-    c.cur->vars.push_back({ad->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
-    size_t ctIndex = c.cur->vars.size() - 1;
-
-    CompileConst arr = CompileConst(ad->init.size());
-    c.cur->constants.push_back(arr);
-
-    for (auto &e : ad->init)
-        e->NodeCompile(c);
-
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(ctIndex)});
-    c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ad->init.size())});
-}
-
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::NodeCompile(Compiler &c)
@@ -312,11 +294,6 @@ void ExprStmt::NodeCompile(Compiler &c)
 void DeclaredVar::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileDeclaredVar(this, c);
-}
-
-void ArrayDecl::NodeCompile(Compiler &c)
-{
-    NodeCompiler::CompileArrayDecl(this, c);
 }
 
 void Block::NodeCompile(Compiler &c)
