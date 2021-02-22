@@ -6,7 +6,6 @@
 
 struct VM
 {
-
     std::vector<Chunk> functions;
     std::vector<CompileConst> globals;
 
@@ -38,5 +37,6 @@ struct VM
     void ExecuteCurrentChunk();
     void ExecuteInstruction();
 
-    void NativeFunction(size_t index);
+    void NativePrint(CompileConst* args, int arity);
+    
 };

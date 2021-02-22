@@ -72,6 +72,9 @@ int main()
     size_t mainIndex = c.Compile(res);
     c.Disassemble();
 
+    if (c.hadError)
+        exit(5);
+
     std::cout << std::endl
               << std::endl;
 

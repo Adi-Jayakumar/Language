@@ -164,17 +164,13 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V:
     {
         CompileConst v = stack[o.op + curCF->valStackMin];
-        // if (curChunk != 3)
-        if (v.t.type != 4 && curChunk == 2)
-            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
     }
+    // pushes the global variable at o.op's location
     case Opcode::GET_V_GLOBAL:
     {
         CompileConst v = globals[o.op];
-        if (v.t.type != 4 && curChunk == 2)
-            std::cout << "chunk: " << curChunk << " val: " << v << std::endl;
         stack.push_back(v);
         break;
     }
@@ -185,7 +181,7 @@ void VM::ExecuteInstruction()
         CompileConst arrAsCC = stack.back[-o.op];
 
         CCArray arr = arrAsCC.as.arr;
-        CompileConst *arrStart = stack.back - arr.size;
+        CompileConst *arrStart = stack.back - arr.size + 1;
 
         for (size_t i = 0; i < arr.size; i++)
             arr.data[i] = arrStart[i];
@@ -202,6 +198,8 @@ void VM::ExecuteInstruction()
         CompileConst index = *stack.back;
         stack.pop_back();
         CompileConst arrayAsCC = *stack.back;
+        if (arrayAsCC.t.type == 0)
+            RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
         CCArray arr = arrayAsCC.as.arr;
@@ -229,6 +227,8 @@ void VM::ExecuteInstruction()
     case Opcode::ARR_SET:
     {
         CompileConst arrayAsCC = *stack.back;
+        if (arrayAsCC.t.type == 0)
+            RuntimeError("Cannot set an index of an uninitialised array");
         CCArray arr = arrayAsCC.as.arr;
         stack.pop_back();
 
@@ -309,7 +309,27 @@ void VM::ExecuteInstruction()
 
         break;
     }
-        // ADDITIONS: adds the last 2 things on the stack
+    case Opcode::NATIVE_CALL:
+    {
+        CompileConst arityAsCC = *stack.back;
+        stack.pop_back();
+        CompileConst *args = stack.back - arityAsCC.as.i + 1;
+
+        switch (o.op)
+        {
+        case 0:
+        {
+            NativePrint(args, arityAsCC.as.i);
+        }
+        default:
+        {
+            break;
+        }
+        }
+
+        break;
+    }
+    // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
         TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
@@ -644,4 +664,15 @@ void VM::ExecuteInstruction()
         break;
     }
     }
+}
+
+void VM::NativePrint(CompileConst *args, int arity)
+{
+    for (size_t i = 0; i < (size_t)arity; i++)
+        std::cout << args[i];
+
+    std::cout << std::endl;
+
+    for (size_t j = 0; j < (size_t)arity; j++)
+        stack.pop_back();
 }
