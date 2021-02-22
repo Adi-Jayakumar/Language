@@ -2,6 +2,8 @@
 #include "exprnode.h"
 #include <vector>
 
+struct ReturnChecker;
+
 struct Stmt
 {
     Token loc;
@@ -11,7 +13,7 @@ struct Stmt
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeData Type(TypeChecker &t) = 0;
     // determines whether all the node's code paths return the appropriate type
-    virtual bool DoesReturn(TypeData ret) = 0;
+    virtual bool DoesReturn(TypeData ret, ReturnChecker &rc) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
 };
@@ -26,7 +28,7 @@ struct ExprStmt : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -40,7 +42,7 @@ struct DeclaredVar : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -53,7 +55,7 @@ struct Block : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -67,7 +69,7 @@ struct IfStmt : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -82,7 +84,7 @@ struct WhileStmt : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -99,7 +101,7 @@ struct FuncDecl : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
 
@@ -111,6 +113,6 @@ struct Return : Stmt
     Token Loc() override;
     void Print(std::ostream &out) override;
     TypeData Type(TypeChecker &t) override;
-    bool DoesReturn(TypeData ret) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
