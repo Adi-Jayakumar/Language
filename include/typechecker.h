@@ -23,7 +23,7 @@ struct TypeChecker
     bool isInFunc = false;
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;
-    std::vector<FuncID> funcs;
+    std::vector<FuncID> funcs{{{false, 0}, "Print", {{false, 0}}}};
 
     bool hadError = false;
 
@@ -38,6 +38,10 @@ struct TypeChecker
     bool IsVariableInScope(std::string &name);
     void CleanUpVariables();
 
+    // matches native functions' arguments
+    bool MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied);
+    // resolve native functions
+    size_t ResolveNativeFunctions(std::string &name, std::vector<TypeData> &argTypes);
     // resolve functions
     size_t ResolveFunction(std::string &name, std::vector<TypeData> &argtypes);
 

@@ -68,8 +68,51 @@ void TypeChecker::CleanUpVariables()
         vars.pop_back();
 }
 
+bool TypeChecker::MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied)
+{
+    if (actual.size() == 0 && supplied.size() != 0)
+        return false;
+
+    TypeData voidType = {false, 0};
+    if (actual.size() == 1 && actual[0] == voidType && supplied.size() > 0)
+        return true;
+
+    if (actual.size() != supplied.size())
+        return false;
+
+    bool areSame = true;
+    for (size_t i = 0; i < actual.size(); i++)
+    {
+        if (actual[i] != supplied[i])
+        {
+            areSame = false;
+            break;
+        }
+    }
+
+    return areSame;
+}
+
+size_t TypeChecker::ResolveNativeFunctions(std::string &name, std::vector<TypeData> &argtypes)
+{
+    size_t index = SIZE_MAX;
+    for (size_t i = 0; i < funcs.size(); i++)
+    {
+        if (NativeFunctions.find(funcs[i].name) == NativeFunctions.end())
+            break;
+
+        if (funcs[i].name == name && MatchNativeArguments(funcs[i].argtypes, argtypes))
+            index = i;
+    }
+    return index;
+}
+
 size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &argtypes)
 {
+    size_t isNative = TypeChecker::ResolveNativeFunctions(name, argtypes);
+    if (isNative != SIZE_MAX)
+        return isNative;
+
     for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
     {
         if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
@@ -87,7 +130,7 @@ size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &ar
                 return i;
         }
     }
-    return UINT8_MAX;
+    return SIZE_MAX;
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -184,7 +227,7 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
     size_t index = ResolveFunction(fc->name, argtypes);
 
-    if (index == UINT8_MAX)
+    if (index == SIZE_MAX)
         TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
 
     if (index > UINT8_MAX)
@@ -332,6 +375,9 @@ TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 
 TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 {
+    if (ResolveFunction(fd->name, fd->argtypes) != SIZE_MAX)
+        TypeError(fd->Loc(), "Function '" + fd->name + "' has already been defined");
+
     depth++;
     if (funcs.size() > UINT8_MAX)
         TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));

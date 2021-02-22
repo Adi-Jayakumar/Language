@@ -1,6 +1,7 @@
 #pragma once
 #include "token.h"
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 typedef uint8_t TypeID;
@@ -35,6 +36,8 @@ bool operator==(const TypeInfo &l, const TypeInfo &r);
 // static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
 static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"Array", {false, 4}}};
 static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}};
+
+static std::unordered_set<std::string> NativeFunctions{"Print"};
 
 struct TypeInfoHasher
 {
