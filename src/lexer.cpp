@@ -47,7 +47,7 @@ Token Lexer::NextToken()
         else
         {
             std::string name;
-            while (isalpha(src[index]))
+            while (isalnum(src[index]))
             {
                 name += src[index];
                 index++;
