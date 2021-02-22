@@ -13,6 +13,7 @@ struct Compiler
 {
     std::vector<Chunk> chunks;
     std::vector<CTFunc> funcs;
+    bool hadError = false;
 
     // bool isInFunc = false;
     // size_t curArity = -1;

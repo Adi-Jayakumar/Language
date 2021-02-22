@@ -10,8 +10,8 @@ Compiler::Compiler()
 
 void Compiler::CompileError(Token loc, std::string err)
 {
-    Error e = Error("[COMPILE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err);
-    e.Dump();
+    Error e = Error("[COMPILE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
+    throw e;
 }
 
 size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)

@@ -77,7 +77,17 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         c.CompileError(fc->Loc(), "Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
 
     for (std::shared_ptr<Expr> &e : fc->args)
-        e->NodeCompile(c);
+    {
+        try
+        {
+            e->NodeCompile(c);
+        }
+        catch (const std::exception &e)
+        {
+            c.hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
 
     c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
 }
@@ -112,7 +122,17 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
     c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(arrStackLoc)});
 
     for (auto &e : ia->init)
-        e->NodeCompile(c);
+    {
+        try
+        {
+            e->NodeCompile(c);
+        }
+        catch (const std::exception &e)
+        {
+            c.hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
 
     c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
 }
@@ -159,8 +179,20 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
     c.cur->depth++;
+
     for (std::shared_ptr<Stmt> &s : b->stmts)
-        s->NodeCompile(c);
+    {
+        try
+        {
+            s->NodeCompile(c);
+        }
+        catch (const std::exception &e)
+        {
+            c.hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
     c.cur->CleanUpVariables();
     c.cur->depth--;
 }
@@ -244,7 +276,15 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     for (auto &s : fd->body)
     {
-        s->NodeCompile(c);
+        try
+        {
+            s->NodeCompile(c);
+        }
+        catch (const std::exception &e)
+        {
+            c.hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
     }
 }
 
