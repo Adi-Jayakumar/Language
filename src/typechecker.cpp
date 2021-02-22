@@ -2,8 +2,8 @@
 
 void TypeChecker::TypeError(Token loc, std::string err)
 {
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + "\n" + err);
-    e.Dump();
+    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + '\n' + err + '\n');
+    throw e;
 }
 
 void TypeChecker::TypeCheck(std::shared_ptr<Stmt> &s)
@@ -170,7 +170,17 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     std::vector<TypeData> argtypes;
 
     for (auto &e : fc->args)
-        argtypes.push_back(e->Type(*this));
+    {
+        try
+        {
+            argtypes.push_back(e->Type(*this));
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
 
     size_t index = ResolveFunction(fc->name, argtypes);
 
@@ -212,10 +222,18 @@ TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)
 
     for (size_t i = 1; i < ia->init.size(); i++)
     {
-        TypeData curType = ia->init[i]->Type(*this);
+        try
+        {
+            TypeData curType = ia->init[i]->Type(*this);
 
-        if (first != curType)
-            TypeError(ia->init[i]->Loc(), "Type of elements must match in an inline array");
+            if (first != curType)
+                TypeError(ia->init[i]->Loc(), "Type of elements must match in an inline array");
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
     }
 
     ia->t = first;
@@ -266,10 +284,22 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 TypeData TypeChecker::TypeOfBlock(Block *b)
 {
     depth++;
+
     if (depth == UINT8_MAX)
         TypeError(b->Loc(), "Exceeded maximum number of nested blocks: " + std::to_string(UINT8_MAX));
+
     for (std::shared_ptr<Stmt> &s : b->stmts)
-        s->Type(*this);
+    {
+        try
+        {
+            s->Type(*this);
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
     // CleanUpVariables();
     depth--;
     return {false, UINT8_MAX};
@@ -321,7 +351,17 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
         vars.push_back({fd->argtypes[j], fd->paramIdentifiers[j], depth});
 
     for (auto &s : fd->body)
-        s->Type(*this);
+    {
+        try
+        {
+            s->Type(*this);
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
 
     isInFunc = false;
     CleanUpVariables();

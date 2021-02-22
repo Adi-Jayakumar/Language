@@ -40,6 +40,9 @@ int main()
     for (auto &s : res)
         t.TypeCheck(s);
 
+    if (t.hadError)
+        exit(3);
+
     std::cout << std::endl
               << std::endl;
 

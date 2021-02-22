@@ -25,6 +25,8 @@ struct TypeChecker
     std::vector<VarID> vars;
     std::vector<FuncID> funcs;
 
+    bool hadError = false;
+
     TypeChecker() = default;
     void TypeCheck(std::shared_ptr<Stmt> &s);
 
