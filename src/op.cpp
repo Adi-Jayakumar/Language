@@ -68,6 +68,10 @@ std::string ToString(Opcode o)
     {
         return "RETURN";
     }
+    case Opcode::NATIVE_CALL:
+    {
+        return "NATIVE_CALL";
+    }
     case Opcode::I_ADD:
     {
         return "I_ADD";

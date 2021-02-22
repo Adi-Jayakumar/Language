@@ -136,7 +136,18 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
     }
     case 4:
     {
-        out << "[ARRAY]";
+        CCArray arr = cc.as.arr;
+        out << "{";
+
+        for(size_t i = 0; i < arr.size; i++)
+        {
+            out << arr.data[i];
+            
+            if(i != arr.size - 1)
+                out << ", ";
+        }
+
+        out << "}";
     }
     }
     return out;

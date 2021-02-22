@@ -71,12 +71,15 @@ bool Compiler::ResolveVariable(std::string &name, size_t &index)
     return false;
 }
 
-size_t Compiler::ResolveFunction(std::string &name)
+size_t Compiler::ResolveFunction(std::string &name, bool &isNative)
 {
     for (size_t i = 0; i < funcs.size(); i++)
     {
         if (funcs[i].name == name)
+        {
+            isNative = NativeFunctions.find(name) != NativeFunctions.end();
             return i;
+        }
     }
     return SIZE_MAX;
 }

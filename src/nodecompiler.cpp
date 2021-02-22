@@ -67,8 +67,9 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
-
-    size_t index = c.ResolveFunction(fc->name);
+    bool isNative = false;
+    size_t index = c.ResolveFunction(fc->name, isNative);
+    std::cout << "Function index: " << index << std::endl;
 
     if (index > UINT8_MAX)
         c.CompileError(fc->Loc(), "Too many functions");
@@ -89,7 +90,15 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         }
     }
 
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1)});
+    if (!isNative)
+        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1 - NativeFunctions.size())});
+    else
+    {
+        CompileConst arityAsCC = CompileConst(static_cast<int>(fc->args.size()));
+        c.cur->constants.push_back(arityAsCC);
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
+        c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(index)});
+    }
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
@@ -157,7 +166,8 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
     else
     {
-        size_t index = c.ResolveFunction(asFC->name);
+        bool isNative;
+        size_t index = c.ResolveFunction(asFC->name, isNative);
         if (c.funcs[index].ret.type != 0)
             c.cur->code.push_back({Opcode::POP, 0});
     }
@@ -166,10 +176,49 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     // compile the initialiser
-    dv->value->NodeCompile(c);
+    if (dv->value != nullptr)
+        dv->value->NodeCompile(c);
+    else
+    {
+        TypeData dvType = dv->t;
+        CompileConst def;
+        if (dvType.isArray)
+            def = CompileConst({false, 0}, "");
+        else
+        {
+            switch (dvType.type)
+            {
+                case 1:
+                {
+                    def = CompileConst((int)0);
+                    break;
+                }
+                case 2:
+                {
+                    def = CompileConst((double)0);
+                    break;
+                }
+                case 3:
+                {
+                    def = CompileConst(false);
+                    break;
+                }
+                default:
+                {
+                    def = CompileConst({false, 0}, "");
+                    break;
+                }
+            }
+        }
+        c.cur->constants.push_back(def);
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
+    }
 
     // add to the list of variables
     c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+
+    if (c.cur->vars.size() > UINT8_MAX)
+        c.CompileError(dv->Loc(), "Too many variables");
 
     // check if it is a global variable
     if (!c.isFunc)

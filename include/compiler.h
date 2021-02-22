@@ -12,7 +12,7 @@ struct CTFunc
 struct Compiler
 {
     std::vector<Chunk> chunks;
-    std::vector<CTFunc> funcs;
+    std::vector<CTFunc> funcs{{"Print", {false, 0}}};
     bool hadError = false;
 
     // bool isInFunc = false;
@@ -32,5 +32,5 @@ struct Compiler
     // returns true if it is a global variable
     bool ResolveVariable(std::string &name, size_t &index);
     size_t ResolveVariableInCur(std::string &name);
-    size_t ResolveFunction(std::string &name);
+    size_t ResolveFunction(std::string &name, bool &isNative);
 };

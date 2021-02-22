@@ -28,6 +28,7 @@ enum class Opcode : uint8_t
 
     CALL_F,
     RETURN,
+    NATIVE_CALL,
 
     // ADDITION
     I_ADD,
