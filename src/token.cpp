@@ -21,6 +21,10 @@ std::string ToString(const TokenID &t)
     {
         return "BOOL_L";
     }
+    case TokenID::STRING_L:
+    {
+        return "STRING_L";
+    }
     case TokenID::IDEN:
     {
         return "IDEN";

@@ -168,11 +168,30 @@ Token Lexer::NextToken()
         res = {TokenID::COMMA, ",", line};
         break;
     }
+    case '"':
+    {
+        size_t start = index + 1;
+        size_t end = start;
+
+        while (src[end] != '"' && end != src.length() - 1)
+            end++;
+
+        if (end == src.length())
+        {
+            Error e = Error("[LEX ERROR] On line: " + std::to_string(line) + "\nMissing '\"'");
+            throw e;
+        }
+
+        index = end;
+
+        res = {TokenID::STRING_L, src.substr(start, end - start), line};
+        break;
+    }
     default:
     {
         size_t lineSize = LineSize();
         Error e = Error("[LEX ERROR]: Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
-        e.Dump();
+        throw e;
         break;
     }
     }
@@ -240,6 +259,10 @@ bool Lexer::CheckKeyword(Token &tok)
     case 'r':
     {
         return MatchKeyWord("eturn", TokenID::RETURN, tok);
+    }
+    case 's':
+    {
+        return MatchKeyWord("tring", TokenID::TYPENAME, tok);
     }
     case 't':
     {
