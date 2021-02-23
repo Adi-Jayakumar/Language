@@ -22,6 +22,8 @@ struct Lexer
 
     size_t LineSize();
 
+    void LexError(std::string msg);
+
     // lexes the token starting from where the current character is
     Token NextToken();
 

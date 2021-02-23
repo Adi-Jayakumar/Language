@@ -14,6 +14,12 @@ Lexer::Lexer(const std::string &fPath)
     src = IO::GetSrcString(fPath);
 }
 
+void Lexer::LexError(std::string msg)
+{
+    Error e = Error("\n[LEX ERROR]: On line " + std::to_string(line) + "\n" + msg + "\n");
+    throw e;
+}
+
 size_t Lexer::LineSize()
 {
     size_t l = 0;
@@ -177,21 +183,41 @@ Token Lexer::NextToken()
             end++;
 
         if (end == src.length())
-        {
-            Error e = Error("[LEX ERROR] On line: " + std::to_string(line) + "\nMissing '\"'");
-            throw e;
-        }
+            LexError("Missing '\"'");
 
         index = end;
 
         res = {TokenID::STRING_L, src.substr(start, end - start), line};
         break;
     }
+    case '\'':
+    {
+        size_t start = index + 1;
+        size_t end = start;
+
+        while (src[end] != '\'' && end != src.length() - 1)
+            end++;
+
+        if (end == src.length())
+            LexError("Missing '\''");
+
+        index = end;
+
+        std::string literal = src.substr(start, end - start);
+
+        if (literal.size() > 1)
+        {
+            // to be made more advanced in time
+            LexError("Invalid character literal");
+        }
+
+        res = {TokenID::CHAR_L, literal, line};
+        break;
+    }
     default:
     {
         size_t lineSize = LineSize();
-        Error e = Error("[LEX ERROR]: Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
-        throw e;
+        LexError("Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
         break;
     }
     }
@@ -239,6 +265,10 @@ bool Lexer::CheckKeyword(Token &tok)
     case 'b':
     {
         return MatchKeyWord("ool", TokenID::TYPENAME, tok);
+    }
+    case 'c':
+    {
+        return MatchKeyWord("har", TokenID::TYPENAME, tok);
     }
     case 'd':
     {

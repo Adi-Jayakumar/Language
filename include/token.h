@@ -10,6 +10,7 @@ enum class TokenID : uint8_t
     DOUBLE_L,
     BOOL_L,
     STRING_L,
+    CHAR_L,
 
     // identifier
     IDEN,
