@@ -11,7 +11,8 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::INT_L, 1},
     {TokenID::DOUBLE_L, 2},
     {TokenID::BOOL_L, 3},
-    {TokenID::STRING_L, 4}};
+    {TokenID::STRING_L, 4},
+    {TokenID::CHAR_L, 5}};
 
 struct TypeData
 {
@@ -35,8 +36,8 @@ bool operator==(const TypeInfo &l, const TypeInfo &r);
 
 // map from string typenames to uint8_t type ids.
 // static std::unordered_map<std::string, TypeID> TypeNameMap{{"void", 0}, {"int", 1}, {"double", 2}, {"bool", 3}, {"Array", 4}};
-static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}};
-static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "string"}};
+static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}, {"char", {false, 5}}};
+static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "string"}, {5, "char"}};
 
 static std::unordered_set<std::string> NativeFunctions{"Print"};
 

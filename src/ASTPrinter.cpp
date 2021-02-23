@@ -24,7 +24,9 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 {
     out << l->t;
     if (l->t.type == 4)
-        out << "\"" << l->loc.literal << "\"";
+        out << " \"" << l->loc.literal << "\"";
+    else if (l->t.type == 5)
+        out << " \'" << l->loc.literal << "\'";
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
@@ -44,7 +46,7 @@ void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
 void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
 {
     out << b->t;
-    out << "(";
+    out << " (";
     b->left->Print(out);
 
     if (b->op.type == TokenID::PLUS)
@@ -89,8 +91,7 @@ void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
 
 void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
 {
-    out << vr->t;
-    out << vr->name;
+    out << vr->t << " " << vr->name;
 }
 
 void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)

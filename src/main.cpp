@@ -23,18 +23,18 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    // Parser p = Parser("ex/test.txt");
+    Parser p = Parser("ex/test.txt");
 
-    // std::vector<std::shared_ptr<Stmt>> res = p.Parse();
+    std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
-    // if (p.hadError)
-    //     exit(2);
+    if (p.hadError)
+        exit(2);
 
-    // // for (auto &s : res)
-    // //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
-    // // std::cout << std::endl
-    // //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
     // TypeChecker t = TypeChecker();
     // for (auto &s : res)
