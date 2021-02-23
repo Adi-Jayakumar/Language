@@ -23,27 +23,8 @@ std::ostream &operator<<(std::ostream &out, Stmt *s)
 void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
 {
     out << l->t;
-    switch (l->t.type)
-    {
-    case 1:
-    {
-        out << l->as.i;
-        break;
-    }
-    case 2:
-    {
-        out << l->as.d;
-        break;
-    }
-    case 3:
-    {
-        if (l->as.b)
-            out << "true";
-        else
-            out << "false";
-        break;
-    }
-    }
+    if (l->t.type == 4)
+        out << "\"" << l->loc.literal << "\"";
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
