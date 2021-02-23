@@ -3,29 +3,8 @@
 Literal::Literal(Token val)
 {
     loc = val;
-    switch (DefaultTypeMap.at(val.type))
-    {
-    case 1:
-    {
-        t = {false, 1};
-        as.i = std::stoi(val.literal);
-        break;
-    }
-    case 2:
-    {
-        t = {false, 2};
-        as.d = std::stod(val.literal);
-        break;
-    }
-    case 3:
-    {
-        t = {false, 3};
-        if (val.literal == "true")
-            as.b = true;
-        else
-            as.b = false;
-    }
-    }
+    TypeID type = DefaultTypeMap.at(val.type);
+    t = {false, type};
 }
 
 Token Literal::Loc()

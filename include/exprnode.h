@@ -2,6 +2,7 @@
 #include "common.h"
 #include "token.h"
 #include <memory>
+#include <cstring>
 
 struct Compiler;
 struct TypeChecker;
@@ -33,12 +34,6 @@ std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
 struct Literal : Expr
 {
     Token loc;
-    union combo
-    {
-        int i;
-        double d;
-        bool b;
-    } as;
     Literal(Token);
     // ~Literal() override = default;
 
