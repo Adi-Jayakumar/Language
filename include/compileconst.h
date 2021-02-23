@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include <cstring>
 
 struct CompileConst;
 
@@ -7,6 +8,12 @@ struct CCArray
 {
     size_t size;
     CompileConst *data;
+};
+
+struct CCString
+{
+    size_t len;
+    char *data;
 };
 
 struct CompileConst
@@ -18,6 +25,7 @@ struct CompileConst
         double d;
         bool b;
         CCArray arr;
+        CCString str;
     } as;
     CompileConst() = default;
     CompileConst(TypeData, std::string);
@@ -25,8 +33,12 @@ struct CompileConst
     CompileConst(double);
     CompileConst(bool);
     // array case
-    CompileConst(size_t);
+    CompileConst(TypeData&, size_t);
     CompileConst(CCArray);
+    // string case
+    CompileConst(std::string);
+    CompileConst(char *);
+    CompileConst(CCString);
 };
 
 std::string ToString(const CompileConst &cc);

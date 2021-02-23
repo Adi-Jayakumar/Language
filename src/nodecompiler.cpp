@@ -120,7 +120,9 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
     if (ia->size > UINT8_MAX)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
-    CompileConst arr = CompileConst(ia->size);
+    TypeData arrT = ia->GetType();
+    CompileConst arr = CompileConst(arrT, ia->size);
+
     c.cur->constants.push_back(arr);
 
     size_t arrStackLoc = c.cur->constants.size() - 1;
@@ -188,26 +190,26 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         {
             switch (dvType.type)
             {
-                case 1:
-                {
-                    def = CompileConst((int)0);
-                    break;
-                }
-                case 2:
-                {
-                    def = CompileConst((double)0);
-                    break;
-                }
-                case 3:
-                {
-                    def = CompileConst(false);
-                    break;
-                }
-                default:
-                {
-                    def = CompileConst({false, 0}, "");
-                    break;
-                }
+            case 1:
+            {
+                def = CompileConst((int)0);
+                break;
+            }
+            case 2:
+            {
+                def = CompileConst((double)0);
+                break;
+            }
+            case 3:
+            {
+                def = CompileConst(false);
+                break;
+            }
+            default:
+            {
+                def = CompileConst({false, 0}, "");
+                break;
+            }
             }
         }
         c.cur->constants.push_back(def);

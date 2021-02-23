@@ -20,6 +20,10 @@ std::string ToString(const CompileConst &cc)
         else
             return "false";
     }
+        // case 4:
+        // {
+        //     return std::string(cc.as.str.data);
+        // }
     }
     return "";
 }
@@ -73,6 +77,21 @@ CompileConst::CompileConst(TypeData _type, std::string literal)
             as.b = false;
         break;
     }
+    case 4:
+    {
+        t = {false, 4};
+        size_t stringLen = literal.size();
+        const char *asPtr = literal.c_str();
+
+        CCString str;
+
+        str.len = stringLen;
+        str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+        strcpy(str.data, asPtr);
+
+        as.str = str;
+        break;
+    }
     }
 }
 
@@ -94,9 +113,9 @@ CompileConst::CompileConst(bool _b)
     as.b = _b;
 }
 
-CompileConst::CompileConst(size_t _size)
+CompileConst::CompileConst(TypeData &_type, size_t _size)
 {
-    t = {true, 0};
+    t = _type;
     as.arr.data = (CompileConst *)malloc(_size * sizeof(CompileConst));
     as.arr.size = _size;
 }
@@ -107,47 +126,103 @@ CompileConst::CompileConst(CCArray _arr)
     as.arr = _arr;
 }
 
+CompileConst::CompileConst(std::string _str)
+{
+    t = {false, 4};
+    size_t stringLen = _str.size();
+    const char *asPtr = _str.c_str();
+
+    CCString str;
+
+    str.len = stringLen;
+    str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+    strcpy(str.data, asPtr);
+
+    as.str = str;
+}
+
+CompileConst::CompileConst(char *_str)
+{
+    t = {false, 4};
+    size_t stringLen = strlen(_str);
+
+    CCString str;
+
+    str.len = stringLen;
+    str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+    strcpy(str.data, _str);
+
+    as.str = str;
+}
+
+CompileConst::CompileConst(CCString _str)
+{
+    t = {false, 4};
+    as.str = _str;
+}
+
+#define PRINT_ARRAY()                     \
+    CCArray arr = cc.as.arr;              \
+    out << "{";                           \
+                                          \
+    for (size_t i = 0; i < arr.size; i++) \
+    {                                     \
+        out << arr.data[i];               \
+                                          \
+        if (i != arr.size - 1)            \
+            out << ", ";                  \
+    }                                     \
+                                          \
+    out << "}"
+
 std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
 {
     switch (cc.t.type)
     {
-    case 0:
-    {
-        out << "null";
-        break;
-    }
     case 1:
     {
-        out << cc.as.i;
+        if (cc.t.isArray)
+        {
+            PRINT_ARRAY();
+        }
+        else
+            out << cc.as.i;
         break;
     }
     case 2:
     {
-        out << cc.as.d;
+        if (cc.t.isArray)
+        {
+            PRINT_ARRAY();
+        }
+        else
+            out << cc.as.d;
         break;
     }
     case 3:
     {
-        if (cc.as.b)
-            out << "true";
+        if (cc.t.isArray)
+        {
+            PRINT_ARRAY();
+        }
         else
-            out << "false";
+        {
+            if (cc.as.b)
+                out << "true";
+            else
+                out << "false";
+        }
         break;
     }
     case 4:
     {
-        CCArray arr = cc.as.arr;
-        out << "{";
-
-        for(size_t i = 0; i < arr.size; i++)
+        if (cc.t.isArray)
         {
-            out << arr.data[i];
-            
-            if(i != arr.size - 1)
-                out << ", ";
+            PRINT_ARRAY();
         }
-
-        out << "}";
+        else
+            out << "\"" << cc.as.str.data << "\"";
+        break;
     }
     }
     return out;

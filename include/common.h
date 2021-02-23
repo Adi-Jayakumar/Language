@@ -15,8 +15,8 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
 
 struct TypeData
 {
-    bool isArray;
-    TypeID type;
+    bool isArray = false;
+    TypeID type = 0;
 };
 
 std::string ToString(const TypeData &td);
