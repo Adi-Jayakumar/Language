@@ -96,14 +96,14 @@ CompileConst::CompileConst(bool _b)
 
 CompileConst::CompileConst(size_t _size)
 {
-    t = {true, 4};
+    t = {true, 0};
     as.arr.data = (CompileConst *)malloc(_size * sizeof(CompileConst));
     as.arr.size = _size;
 }
 
 CompileConst::CompileConst(CCArray _arr)
 {
-    t = {true, 4};
+    t = {true, 0};
     as.arr = _arr;
 }
 
