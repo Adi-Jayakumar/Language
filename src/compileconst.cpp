@@ -221,7 +221,7 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
             PRINT_ARRAY();
         }
         else
-            out << "\"" << cc.as.str.data << "\"";
+            out << cc.as.str.data;
         break;
     }
     }
