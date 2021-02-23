@@ -3,7 +3,7 @@
 std::string ToString(const TypeData &td)
 {
     std::string aString = (td.isArray ? "Array" : "");
-    return aString + "<" + TypeStringMap[td.type] + "> ";
+    return aString + "<" + TypeStringMap[td.type] + ">";
 }
 
 std::ostream &operator<<(std::ostream &out, const TypeData &td)
