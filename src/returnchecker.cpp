@@ -32,7 +32,7 @@ bool ReturnChecker::ReturnCheckIfStmt(IfStmt *is, TypeData ret)
     Literal *lCond = dynamic_cast<Literal *>(is->cond.get());
     TypeData b = {false, 3};
 
-    if (lCond && lCond->GetType() == b && lCond->as.b)
+    if (lCond && lCond->GetType() == b && lCond->Loc().literal == "true")
         ans = is->thenBranch->DoesReturn(ret, *this);
 
     if (ans)
@@ -49,7 +49,7 @@ bool ReturnChecker::ReturnCheckWhileStmt(WhileStmt *ws, TypeData ret)
     Literal *lCond = dynamic_cast<Literal *>(ws->cond.get());
     TypeData b = {false, 3};
 
-    if (lCond && lCond->GetType() == b && lCond->as.b)
+    if (lCond && lCond->GetType() == b && lCond->Loc().literal == "true")
         return ws->body->DoesReturn(ret, *this);
     return false;
 }
