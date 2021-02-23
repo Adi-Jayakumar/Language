@@ -162,5 +162,5 @@ std::ostream &operator<<(std::ostream &out, const Token &t)
 
 bool IsLiteral(const Token &t)
 {
-    return (t.type == TokenID::INT_L) || (t.type == TokenID::DOUBLE_L) || (t.type == TokenID::BOOL_L);
+    return (t.type == TokenID::INT_L) || (t.type == TokenID::DOUBLE_L) || (t.type == TokenID::BOOL_L) || (t.type == TokenID::STRING_L);
 }
