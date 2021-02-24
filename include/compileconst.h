@@ -28,7 +28,7 @@ struct CompileConst
         CCString str;
         char c;
     } as;
-    
+
     CompileConst() = default;
     CompileConst(TypeData, std::string);
     CompileConst(int);

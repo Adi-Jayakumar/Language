@@ -13,6 +13,7 @@ VM::VM(std::vector<Chunk> &_functions, size_t mainIndex)
 
     ip = 0;
 }
+
 VM::~VM()
 {
     delete[] cs;
@@ -36,6 +37,16 @@ void VM::PrintStack()
         std::cout << i << "\t|\t" << cc[i] << std::endl;
     }
     free(cc);
+}
+
+CompileConst *VM::Allocate(size_t size)
+{
+    return (CompileConst *)malloc(size * sizeof(CompileConst));
+}
+
+char *VM::StringAllocate(size_t size)
+{
+    return (char *)malloc(size * sizeof(char));
 }
 
 void VM::RuntimeError(std::string msg)
@@ -204,7 +215,7 @@ void VM::ExecuteInstruction()
 
         CCArray arr = arrayAsCC.as.arr;
 
-        if (index.as.i >= (int)arr.size)
+        if (index.as.i >= (int)arr.size || index.as.i < 0)
             RuntimeError("Array index " + std::to_string(index.as.i) + " out of bounds for array of size " + std::to_string(arr.size));
 
         stack.push_back(arr.data[index.as.i]);
@@ -217,8 +228,12 @@ void VM::ExecuteInstruction()
     {
         CompileConst size = *stack.back;
         stack.pop_back();
+
+        if (size.as.i < 0)
+            RuntimeError("Cannot have a negative size for a dynamically allocated array size");
+
         CCArray arr;
-        arr.data = (CompileConst *)malloc(size.as.i * sizeof(CompileConst));
+        arr.data = Allocate(size.as.i);
         arr.size = size.as.i;
         stack.push_back(CompileConst(CompileConst(arr)));
         break;
@@ -320,6 +335,7 @@ void VM::ExecuteInstruction()
         case 0:
         {
             NativePrint(args, arityAsCC.as.i);
+            break;
         }
         default:
         {
@@ -357,11 +373,26 @@ void VM::ExecuteInstruction()
     }
     case Opcode::S_ADD:
     {
+        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        CCString lStr = left.as.str;
+        CCString rStr = right.as.str;
+
+        size_t newStrSize = lStr.len + rStr.len;
+
+        char *concat = StringAllocate(newStrSize + 1);
+        strcpy(concat, lStr.data);
+
+        char *next = concat + lStr.len;
+        strcpy(next, rStr.data);
+
+        CCString concatStr = {newStrSize, concat};
+
+        stack.push_back(CompileConst(concatStr));
         break;
     }
-        // SUBTRACTIONS: subtracts the last 2 things on the stack
-        // if o.op is 1 then is a unary negation (only the case
-        // for I_SUB and D_SUB obviously)
+    // SUBTRACTIONS: subtracts the last 2 things on the stack
+    // if o.op is 1 then is a unary negation (only the case
+    // for I_SUB and D_SUB obviously)
     case Opcode::I_SUB:
     {
         CompileConst right = *stack.back;
@@ -374,10 +405,7 @@ void VM::ExecuteInstruction()
             stack.push_back(BINARY_I_OP(left, -, right));
         }
         else
-        {
             stack.push_back(UNARY_I_OP(-, right));
-        }
-
         break;
     }
     case Opcode::DI_SUB:

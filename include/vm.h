@@ -32,11 +32,13 @@ struct VM
 
     void SetChunk(size_t);
 
+    CompileConst *Allocate(size_t);
+    char *StringAllocate(size_t);
+
     void RuntimeError(std::string msg);
     void Jump(size_t jump);
     void ExecuteCurrentChunk();
     void ExecuteInstruction();
 
-    void NativePrint(CompileConst* args, int arity);
-    
+    void NativePrint(CompileConst *args, int arity);
 };
