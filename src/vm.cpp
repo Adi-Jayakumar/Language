@@ -355,6 +355,10 @@ void VM::ExecuteInstruction()
 
         break;
     }
+    case Opcode::S_ADD:
+    {
+        break;
+    }
         // SUBTRACTIONS: subtracts the last 2 things on the stack
         // if o.op is 1 then is a unary negation (only the case
         // for I_SUB and D_SUB obviously)

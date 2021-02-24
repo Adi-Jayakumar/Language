@@ -35,6 +35,8 @@ enum class Opcode : uint8_t
     DI_ADD,
     ID_ADD,
     D_ADD,
+    // string concatenation
+    S_ADD,
 
     // SUBTRACTION
     I_SUB,

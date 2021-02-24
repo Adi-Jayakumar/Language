@@ -88,6 +88,10 @@ std::string ToString(Opcode o)
     {
         return "D_ADD";
     }
+    case Opcode::S_ADD:
+    {
+        return "S_ADD";
+    }
     case Opcode::I_SUB:
     {
         return "I_SUB";
@@ -278,6 +282,9 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
     Opcode o;
     if (t == TokenID::PLUS)
     {
+        if (l.type == 4 && r.type == 4)
+            return Opcode::S_ADD;
+
         GET_TYPED_BINARY_OP(l, ADD, r, o);
         return o;
     }
