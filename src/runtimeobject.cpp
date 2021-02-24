@@ -202,6 +202,11 @@ RuntimeObject::RuntimeObject(char c)
 
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 {
+    out << "[GCSTATE]: " << ToString(cc.state) << " ";
+
+    if (cc.state == GCSate::FREED)
+        return out;
+
     switch (cc.t.type)
     {
     case 1:

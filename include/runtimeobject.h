@@ -23,6 +23,9 @@ enum class GCSate
     FREED,
 };
 
+std::string ToString(const GCSate &gcs);
+std::ostream &operator<<(std::ostream &out, const GCSate &gcs);
+
 struct RuntimeObject
 {
     GCSate state;

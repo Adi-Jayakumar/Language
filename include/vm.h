@@ -37,7 +37,7 @@ struct VM
 
     void RuntimeError(std::string msg);
     void Jump(size_t jump);
-    void ExecuteCurrentChunk();
+    void ExecuteProgram();
     void ExecuteInstruction();
 
     void NativePrint(RuntimeObject *args, int arity);
@@ -46,7 +46,8 @@ struct VM
 // garbage collector for VM
 namespace GC
 {
-    void MarkObject(const RuntimeObject &rto);
+    void MarkObject(RuntimeObject &);
+    void FreeObject(RuntimeObject &);
     void MarkRoots(VM *vm);
     void FreeUnMarked(VM *vm);
     void GarbageCollect(VM *vm);

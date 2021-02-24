@@ -82,7 +82,7 @@ int main()
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
-    vm.ExecuteCurrentChunk();
+    vm.ExecuteProgram();
 
     auto t2 = std::chrono::high_resolution_clock::now();
 

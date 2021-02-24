@@ -68,7 +68,7 @@ void VM::Jump(size_t jump)
     ip += jump;
 }
 
-void VM::ExecuteCurrentChunk()
+void VM::ExecuteProgram()
 {
     if (curChunk == SIZE_MAX)
         return;
@@ -76,8 +76,12 @@ void VM::ExecuteCurrentChunk()
     {
         while (ip < functions[curChunk].code.size())
         {
-            // std::cout << "cur ins " << ToString(functions[curChunk].code[ip].code) << " " << +functions[curChunk].code[ip].op << std::endl;
             ExecuteInstruction();
+            if (functions[curChunk].code[ip].code == Opcode::S_ADD)
+            {
+                GC::GarbageCollect(this);
+                return;
+            }
             Jump(1);
         }
 
@@ -88,15 +92,7 @@ void VM::ExecuteCurrentChunk()
         if (curChunk != 0)
             ip++;
 
-        // std::cout << "returnCF retChunk: " << returnCF->retChunk << std::endl;
-        // std::cout << "returnCF retIndex: " << returnCF->retIndex << std::endl;
-        // std::cout << "returnCF valstackmin: " << returnCF->valStackMin << std::endl;
-
-        // std::cout << "ip: " << ip << std::endl;
-        // std::cout << "returning from: " << curChunk << std::endl;
         curChunk = returnCF->retChunk;
-        // std::cout << "returning to: " << curChunk << std::endl;
-        // std::cout << "cs diff: " << curCF - cs << std::endl;
         size_t stackDiff = stack.count - returnCF->valStackMin;
 
         // cleaning up the function's constants
