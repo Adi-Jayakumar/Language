@@ -26,19 +26,26 @@ struct CompileConst
         bool b;
         CCArray arr;
         CCString str;
+        char c;
     } as;
+    
     CompileConst() = default;
     CompileConst(TypeData, std::string);
     CompileConst(int);
     CompileConst(double);
     CompileConst(bool);
+
     // array case
-    CompileConst(TypeData&, size_t);
+    CompileConst(TypeData &, size_t);
     CompileConst(CCArray);
+
     // string case
     CompileConst(std::string);
     CompileConst(char *);
     CompileConst(CCString);
+
+    // char case
+    CompileConst(char);
 };
 
 std::string ToString(const CompileConst &cc);

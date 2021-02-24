@@ -20,10 +20,14 @@ std::string ToString(const CompileConst &cc)
         else
             return "false";
     }
-        // case 4:
-        // {
-        //     return std::string(cc.as.str.data);
-        // }
+    case 4:
+    {
+        return std::string(cc.as.str.data);
+    }
+    case 5:
+    {
+        return std::to_string(cc.as.c);
+    }
     }
     return "";
 }
@@ -79,7 +83,6 @@ CompileConst::CompileConst(TypeData _type, std::string literal)
     }
     case 4:
     {
-        t = {false, 4};
         size_t stringLen = literal.size();
         const char *asPtr = literal.c_str();
 
@@ -90,6 +93,12 @@ CompileConst::CompileConst(TypeData _type, std::string literal)
         strcpy(str.data, asPtr);
 
         as.str = str;
+        break;
+    }
+    case 5:
+    {
+        // temporary until escaped chars implemented
+        as.c = literal[0];
         break;
     }
     }
@@ -161,6 +170,12 @@ CompileConst::CompileConst(CCString _str)
     as.str = _str;
 }
 
+CompileConst::CompileConst(char c)
+{
+    t = {false, 5};
+    as.c = c;
+}
+
 #define PRINT_ARRAY()                     \
     CCArray arr = cc.as.arr;              \
     out << "{";                           \
@@ -223,6 +238,15 @@ std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
         else
             out << cc.as.str.data;
         break;
+    }
+    case 5:
+    {
+        if (cc.t.isArray)
+        {
+            PRINT_ARRAY();
+        }
+        else
+            out << cc.as.c;
     }
     }
     return out;
