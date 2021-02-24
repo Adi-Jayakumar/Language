@@ -114,4 +114,6 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{{false, 3}, TokenID::BANG_EQ, {false, 3}}, {false, 3}},
         // unary negation
         {{{false, 0}, TokenID::BANG, {false, 3}}, {false, 3}},
+        // string concatenation
+        {{{false, 4}, TokenID::PLUS, {false, 4}}, {false, 4}},
     };

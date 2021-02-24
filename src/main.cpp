@@ -68,9 +68,9 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    Compiler c = Compiler();
-    size_t mainIndex = c.Compile(res);
-    c.Disassemble();
+    // Compiler c = Compiler();
+    // size_t mainIndex = c.Compile(res);
+    // c.Disassemble();
 
     // if (c.hadError)
     //     exit(5);
