@@ -4,13 +4,13 @@
 
 struct RuntimeObject;
 
-struct CCArray
+struct RTArray
 {
     size_t size;
     RuntimeObject *data;
 };
 
-struct CCString
+struct RTString
 {
     size_t len;
     char *data;
@@ -32,8 +32,8 @@ struct RuntimeObject
         int i;
         double d;
         bool b;
-        CCArray arr;
-        CCString str;
+        RTArray arr;
+        RTString str;
         char c;
     } as;
 
@@ -45,12 +45,12 @@ struct RuntimeObject
 
     // array case
     RuntimeObject(TypeData &, size_t);
-    RuntimeObject(CCArray);
+    RuntimeObject(RTArray);
 
     // string case
     RuntimeObject(std::string);
     RuntimeObject(char *);
-    RuntimeObject(CCString);
+    RuntimeObject(RTString);
 
     // char case
     RuntimeObject(char);

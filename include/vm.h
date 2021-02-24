@@ -1,6 +1,6 @@
 #pragma once
 #include "callstack.h"
-#include "compileconst.h"
+#include "runtimeobject.h"
 #include "compiler.h"
 #include "stack.h"
 
@@ -46,6 +46,7 @@ struct VM
 // garbage collector for VM
 namespace GC
 {
+    void MarkObject(const RuntimeObject &rto);
     void MarkRoots(VM *vm);
     void FreeUnMarked(VM *vm);
     void GarbageCollect(VM *vm);

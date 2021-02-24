@@ -1,5 +1,5 @@
 #pragma once
-#include "compileconst.h"
+#include "runtimeobject.h"
 #include "op.h"
 
 struct CTVarID

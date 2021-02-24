@@ -191,7 +191,7 @@ void VM::ExecuteInstruction()
     {
         RuntimeObject arrAsCC = stack.back[-o.op];
 
-        CCArray arr = arrAsCC.as.arr;
+        RTArray arr = arrAsCC.as.arr;
         RuntimeObject *arrStart = stack.back - arr.size + 1;
 
         for (size_t i = 0; i < arr.size; i++)
@@ -213,7 +213,7 @@ void VM::ExecuteInstruction()
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
-        CCArray arr = arrayAsCC.as.arr;
+        RTArray arr = arrayAsCC.as.arr;
 
         if (index.as.i >= (int)arr.size || index.as.i < 0)
             RuntimeError("Array index " + std::to_string(index.as.i) + " out of bounds for array of size " + std::to_string(arr.size));
@@ -232,7 +232,7 @@ void VM::ExecuteInstruction()
         if (size.as.i < 0)
             RuntimeError("Cannot have a negative size for a dynamically allocated array size");
 
-        CCArray arr;
+        RTArray arr;
         arr.data = Allocate(size.as.i);
         arr.size = size.as.i;
         stack.push_back(RuntimeObject(RuntimeObject(arr)));
@@ -244,7 +244,7 @@ void VM::ExecuteInstruction()
         RuntimeObject arrayAsCC = *stack.back;
         if (arrayAsCC.t.type == 0)
             RuntimeError("Cannot set an index of an uninitialised array");
-        CCArray arr = arrayAsCC.as.arr;
+        RTArray arr = arrayAsCC.as.arr;
         stack.pop_back();
 
         RuntimeObject index = *stack.back;
@@ -374,8 +374,8 @@ void VM::ExecuteInstruction()
     case Opcode::S_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        CCString lStr = left.as.str;
-        CCString rStr = right.as.str;
+        RTString lStr = left.as.str;
+        RTString rStr = right.as.str;
 
         size_t newStrSize = lStr.len + rStr.len;
 
@@ -385,7 +385,7 @@ void VM::ExecuteInstruction()
         char *next = concat + lStr.len;
         strcpy(next, rStr.data);
 
-        CCString concatStr = {newStrSize, concat};
+        RTString concatStr = {newStrSize, concat};
 
         stack.push_back(RuntimeObject(concatStr));
         break;

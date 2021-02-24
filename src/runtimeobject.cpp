@@ -1,4 +1,4 @@
-#include "compileconst.h"
+#include "runtimeobject.h"
 #define DUMMYCC RuntimeObject(255, "") // to silence compiler warnings -- never returned due to typechecking
 
 std::string ToString(const RuntimeObject &cc)
@@ -87,7 +87,7 @@ RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
         size_t stringLen = literal.size();
         const char *asPtr = literal.c_str();
 
-        CCString str;
+        RTString str;
 
         str.len = stringLen;
         str.data = (char *)malloc((stringLen + 1) * sizeof(char));
@@ -134,7 +134,7 @@ RuntimeObject::RuntimeObject(TypeData &_type, size_t _size)
     as.arr.size = _size;
 }
 
-RuntimeObject::RuntimeObject(CCArray _arr)
+RuntimeObject::RuntimeObject(RTArray _arr)
 {
     state = GCSate::UNMARKED;
     t = {true, 0};
@@ -148,7 +148,7 @@ RuntimeObject::RuntimeObject(std::string _str)
     size_t stringLen = _str.size();
     const char *asPtr = _str.c_str();
 
-    CCString str;
+    RTString str;
 
     str.len = stringLen;
     str.data = (char *)malloc((stringLen + 1) * sizeof(char));
@@ -163,7 +163,7 @@ RuntimeObject::RuntimeObject(char *_str)
     t = {false, 4};
     size_t stringLen = strlen(_str);
 
-    CCString str;
+    RTString str;
 
     str.len = stringLen;
     str.data = (char *)malloc((stringLen + 1) * sizeof(char));
@@ -172,7 +172,7 @@ RuntimeObject::RuntimeObject(char *_str)
     as.str = str;
 }
 
-RuntimeObject::RuntimeObject(CCString _str)
+RuntimeObject::RuntimeObject(RTString _str)
 {
     state = GCSate::UNMARKED;
     t = {false, 4};
@@ -187,7 +187,7 @@ RuntimeObject::RuntimeObject(char c)
 }
 
 #define PRINT_ARRAY()                     \
-    CCArray arr = cc.as.arr;              \
+    RTArray arr = cc.as.arr;              \
     out << "{";                           \
                                           \
     for (size_t i = 0; i < arr.size; i++) \

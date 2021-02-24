@@ -1,5 +1,5 @@
 #pragma once
-#include "compileconst.h"
+#include "runtimeobject.h"
 #include <cstring>
 
 #define DEF_SIZE 512U

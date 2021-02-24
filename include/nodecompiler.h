@@ -1,6 +1,7 @@
 #pragma once
 #include "ASTPrinter.h"
 #include "compiler.h"
+#include "runtimeobject.h"
 
 namespace NodeCompiler
 {
@@ -8,7 +9,6 @@ namespace NodeCompiler
     static const std::unordered_map<std::string, TypeID> NativeReturn{
         {"Print", 0},
     };
-
 
     // expression compiling
     void CompileLiteral(Literal *l, Compiler &c);
@@ -19,7 +19,7 @@ namespace NodeCompiler
     void CompileFunctionCall(FunctionCall *fc, Compiler &c);
     void CompileArrayIndex(ArrayIndex *ai, Compiler &c);
     void CompileInlineArray(InlineArray *ia, Compiler &c);
-    void CompileDynamicAllocArray(DynamicAllocArray* da, Compiler &c);
+    void CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);
