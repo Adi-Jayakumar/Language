@@ -1,7 +1,7 @@
 #include "compileconst.h"
-#define DUMMYCC CompileConst(255, "") // to silence compiler warnings -- never returned due to typechecking
+#define DUMMYCC RuntimeObject(255, "") // to silence compiler warnings -- never returned due to typechecking
 
-std::string ToString(const CompileConst &cc)
+std::string ToString(const RuntimeObject &cc)
 {
     switch (cc.t.type)
     {
@@ -32,7 +32,7 @@ std::string ToString(const CompileConst &cc)
     return "";
 }
 
-bool IsTruthy(const CompileConst &cc)
+bool IsTruthy(const RuntimeObject &cc)
 {
     switch (cc.t.type)
     {
@@ -52,8 +52,9 @@ bool IsTruthy(const CompileConst &cc)
     return false;
 }
 
-CompileConst::CompileConst(TypeData _type, std::string literal)
+RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
 {
+    state = GCSate::UNMARKED;
     t = _type;
     switch (t.type)
     {
@@ -104,39 +105,45 @@ CompileConst::CompileConst(TypeData _type, std::string literal)
     }
 }
 
-CompileConst::CompileConst(int _i)
+RuntimeObject::RuntimeObject(int _i)
 {
+    state = GCSate::UNMARKED;
     t = {false, 1};
     as.i = _i;
 }
 
-CompileConst::CompileConst(double _d)
+RuntimeObject::RuntimeObject(double _d)
 {
+    state = GCSate::UNMARKED;
     t = {false, 2};
     as.d = _d;
 }
 
-CompileConst::CompileConst(bool _b)
+RuntimeObject::RuntimeObject(bool _b)
 {
+    state = GCSate::UNMARKED;
     t = {false, 3};
     as.b = _b;
 }
 
-CompileConst::CompileConst(TypeData &_type, size_t _size)
+RuntimeObject::RuntimeObject(TypeData &_type, size_t _size)
 {
+    state = GCSate::UNMARKED;
     t = _type;
-    as.arr.data = (CompileConst *)malloc(_size * sizeof(CompileConst));
+    as.arr.data = (RuntimeObject *)malloc(_size * sizeof(RuntimeObject));
     as.arr.size = _size;
 }
 
-CompileConst::CompileConst(CCArray _arr)
+RuntimeObject::RuntimeObject(CCArray _arr)
 {
+    state = GCSate::UNMARKED;
     t = {true, 0};
     as.arr = _arr;
 }
 
-CompileConst::CompileConst(std::string _str)
+RuntimeObject::RuntimeObject(std::string _str)
 {
+    state = GCSate::UNMARKED;
     t = {false, 4};
     size_t stringLen = _str.size();
     const char *asPtr = _str.c_str();
@@ -150,8 +157,9 @@ CompileConst::CompileConst(std::string _str)
     as.str = str;
 }
 
-CompileConst::CompileConst(char *_str)
+RuntimeObject::RuntimeObject(char *_str)
 {
+    state = GCSate::UNMARKED;
     t = {false, 4};
     size_t stringLen = strlen(_str);
 
@@ -164,14 +172,16 @@ CompileConst::CompileConst(char *_str)
     as.str = str;
 }
 
-CompileConst::CompileConst(CCString _str)
+RuntimeObject::RuntimeObject(CCString _str)
 {
+    state = GCSate::UNMARKED;
     t = {false, 4};
     as.str = _str;
 }
 
-CompileConst::CompileConst(char c)
+RuntimeObject::RuntimeObject(char c)
 {
+    state = GCSate::UNMARKED;
     t = {false, 5};
     as.c = c;
 }
@@ -190,7 +200,7 @@ CompileConst::CompileConst(char c)
                                           \
     out << "}"
 
-std::ostream &operator<<(std::ostream &out, const CompileConst &cc)
+std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 {
     switch (cc.t.type)
     {

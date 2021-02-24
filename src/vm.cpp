@@ -27,8 +27,8 @@ void VM::SetChunk(size_t n)
 void VM::PrintStack()
 {
 
-    CompileConst *cc = (CompileConst *)malloc(stack.count * sizeof(CompileConst));
-    memcpy(cc, stack.data, stack.count * sizeof(CompileConst));
+    RuntimeObject *cc = (RuntimeObject *)malloc(stack.count * sizeof(RuntimeObject));
+    memcpy(cc, stack.data, stack.count * sizeof(RuntimeObject));
 
     std::cout << "index\t|\tvalue" << std::endl;
 
@@ -39,9 +39,9 @@ void VM::PrintStack()
     free(cc);
 }
 
-CompileConst *VM::Allocate(size_t size)
+RuntimeObject *VM::Allocate(size_t size)
 {
-    return (CompileConst *)malloc(size * sizeof(CompileConst));
+    return (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
 }
 
 char *VM::StringAllocate(size_t size)
@@ -106,25 +106,25 @@ void VM::ExecuteCurrentChunk()
 }
 
 #define BINARY_I_OP(l, op, r) \
-    CompileConst(l.as.i op r.as.i)
+    RuntimeObject(l.as.i op r.as.i)
 
 #define BINARY_DI_OP(l, op, r) \
-    CompileConst(l.as.d op r.as.i)
+    RuntimeObject(l.as.d op r.as.i)
 
 #define BINARY_ID_OP(l, op, r) \
-    CompileConst(l.as.i op r.as.d)
+    RuntimeObject(l.as.i op r.as.d)
 
 #define BINARY_D_OP(l, op, r) \
-    CompileConst(l.as.d op r.as.d)
+    RuntimeObject(l.as.d op r.as.d)
 
 #define UNARY_I_OP(op, r) \
-    CompileConst(op r.as.i)
+    RuntimeObject(op r.as.i)
 
 #define UNARY_D_OP(op, r) \
-    CompileConst(op r.as.d)
+    RuntimeObject(op r.as.d)
 
 #define UNARY_B_OP(op, r) \
-    CompileConst(op r.as.b)
+    RuntimeObject(op r.as.b)
 
 #define TAKE_LEFT_RIGHT(left, right, stack) \
     right = *stack.back;                    \
@@ -149,7 +149,7 @@ void VM::ExecuteInstruction()
     // pushes the constant at o.op's location + constOffset onto the stack
     case Opcode::GET_C:
     {
-        CompileConst c = functions[curChunk].constants[o.op];
+        RuntimeObject c = functions[curChunk].constants[o.op];
         stack.push_back(c);
         break;
     }
@@ -157,7 +157,7 @@ void VM::ExecuteInstruction()
     // the operand to the value currently at the top of the stack
     case Opcode::VAR_A:
     {
-        CompileConst value = *stack.back;
+        RuntimeObject value = *stack.back;
         stack[o.op + curCF->valStackMin] = value;
         break;
     }
@@ -174,14 +174,14 @@ void VM::ExecuteInstruction()
     // returns the value of the variable at o.op's location + varOffset
     case Opcode::GET_V:
     {
-        CompileConst v = stack[o.op + curCF->valStackMin];
+        RuntimeObject v = stack[o.op + curCF->valStackMin];
         stack.push_back(v);
         break;
     }
     // pushes the global variable at o.op's location
     case Opcode::GET_V_GLOBAL:
     {
-        CompileConst v = globals[o.op];
+        RuntimeObject v = globals[o.op];
         stack.push_back(v);
         break;
     }
@@ -189,10 +189,10 @@ void VM::ExecuteInstruction()
     // in the stack slots below the array
     case Opcode::ARR_D:
     {
-        CompileConst arrAsCC = stack.back[-o.op];
+        RuntimeObject arrAsCC = stack.back[-o.op];
 
         CCArray arr = arrAsCC.as.arr;
-        CompileConst *arrStart = stack.back - arr.size + 1;
+        RuntimeObject *arrStart = stack.back - arr.size + 1;
 
         for (size_t i = 0; i < arr.size; i++)
             arr.data[i] = arrStart[i];
@@ -206,9 +206,9 @@ void VM::ExecuteInstruction()
     // on the slot one below the index
     case Opcode::ARR_INDEX:
     {
-        CompileConst index = *stack.back;
+        RuntimeObject index = *stack.back;
         stack.pop_back();
-        CompileConst arrayAsCC = *stack.back;
+        RuntimeObject arrayAsCC = *stack.back;
         if (arrayAsCC.t.type == 0)
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
@@ -226,7 +226,7 @@ void VM::ExecuteInstruction()
     // the allocated array onto the stack
     case Opcode::ARR_ALLOC:
     {
-        CompileConst size = *stack.back;
+        RuntimeObject size = *stack.back;
         stack.pop_back();
 
         if (size.as.i < 0)
@@ -235,22 +235,22 @@ void VM::ExecuteInstruction()
         CCArray arr;
         arr.data = Allocate(size.as.i);
         arr.size = size.as.i;
-        stack.push_back(CompileConst(CompileConst(arr)));
+        stack.push_back(RuntimeObject(RuntimeObject(arr)));
         break;
     }
     // sets the index
     case Opcode::ARR_SET:
     {
-        CompileConst arrayAsCC = *stack.back;
+        RuntimeObject arrayAsCC = *stack.back;
         if (arrayAsCC.t.type == 0)
             RuntimeError("Cannot set an index of an uninitialised array");
         CCArray arr = arrayAsCC.as.arr;
         stack.pop_back();
 
-        CompileConst index = *stack.back;
+        RuntimeObject index = *stack.back;
         stack.pop_back();
 
-        CompileConst value = *stack.back;
+        RuntimeObject value = *stack.back;
         stack.pop_back();
 
         if (index.as.i > (int)arr.size)
@@ -310,7 +310,7 @@ void VM::ExecuteInstruction()
         curChunk = returnCF->retChunk;
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
-        CompileConst retVal;
+        RuntimeObject retVal;
 
         if (o.op == 0)
             retVal = *stack.back;
@@ -326,9 +326,9 @@ void VM::ExecuteInstruction()
     }
     case Opcode::NATIVE_CALL:
     {
-        CompileConst arityAsCC = *stack.back;
+        RuntimeObject arityAsCC = *stack.back;
         stack.pop_back();
-        CompileConst *args = stack.back - arityAsCC.as.i + 1;
+        RuntimeObject *args = stack.back - arityAsCC.as.i + 1;
 
         switch (o.op)
         {
@@ -348,32 +348,32 @@ void VM::ExecuteInstruction()
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, +, right));
         break;
     }
     case Opcode::DI_ADD:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, +, right));
         break;
     }
     case Opcode::ID_ADD:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, +, right));
         break;
     }
     case Opcode::D_ADD:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, +, right));
 
         break;
     }
     case Opcode::S_ADD:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         CCString lStr = left.as.str;
         CCString rStr = right.as.str;
 
@@ -387,7 +387,7 @@ void VM::ExecuteInstruction()
 
         CCString concatStr = {newStrSize, concat};
 
-        stack.push_back(CompileConst(concatStr));
+        stack.push_back(RuntimeObject(concatStr));
         break;
     }
     // SUBTRACTIONS: subtracts the last 2 things on the stack
@@ -395,11 +395,11 @@ void VM::ExecuteInstruction()
     // for I_SUB and D_SUB obviously)
     case Opcode::I_SUB:
     {
-        CompileConst right = *stack.back;
+        RuntimeObject right = *stack.back;
         stack.pop_back();
         if (o.op == 0)
         {
-            CompileConst left = *stack.back;
+            RuntimeObject left = *stack.back;
             stack.pop_back();
 
             stack.push_back(BINARY_I_OP(left, -, right));
@@ -411,25 +411,25 @@ void VM::ExecuteInstruction()
     case Opcode::DI_SUB:
     {
         // DI_SUB cannot be a unary operation
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, -, right));
         break;
     }
     case Opcode::ID_SUB:
     {
         // ID_SUB cannot be a unary operation
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, -, right));
         break;
     }
     case Opcode::D_SUB:
     {
-        CompileConst right = *stack.back;
+        RuntimeObject right = *stack.back;
         stack.pop_back();
 
         if (o.op == 0)
         {
-            CompileConst left = *stack.back;
+            RuntimeObject left = *stack.back;
             stack.pop_back();
 
             stack.push_back(BINARY_D_OP(left, -, right));
@@ -442,28 +442,28 @@ void VM::ExecuteInstruction()
     // multiplies the last 2 things on the stack
     case Opcode::I_MUL:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, *, right));
 
         break;
     }
     case Opcode::DI_MUL:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, *, right));
 
         break;
     }
     case Opcode::ID_MUL:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, *, right));
 
         break;
     }
     case Opcode::D_MUL:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, *, right));
 
         break;
@@ -471,28 +471,28 @@ void VM::ExecuteInstruction()
     // divides the last 2 things on the stack
     case Opcode::I_DIV:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, /, right));
 
         break;
     }
     case Opcode::DI_DIV:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, /, right));
 
         break;
     }
     case Opcode::ID_DIV:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, /, right));
 
         break;
     }
     case Opcode::D_DIV:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, /, right));
 
         break;
@@ -500,28 +500,28 @@ void VM::ExecuteInstruction()
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::I_GT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, >, right));
 
         break;
     }
     case Opcode::DI_GT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, >, right));
 
         break;
     }
     case Opcode::ID_GT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, >, right));
 
         break;
     }
     case Opcode::D_GT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, >, right));
 
         break;
@@ -529,28 +529,28 @@ void VM::ExecuteInstruction()
     // does a less than comparison on the last 2 things on the stack
     case Opcode::I_LT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, <, right));
 
         break;
     }
     case Opcode::DI_LT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, <, right));
 
         break;
     }
     case Opcode::ID_LT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, <, right));
 
         break;
     }
     case Opcode::D_LT:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, <, right));
 
         break;
@@ -558,28 +558,28 @@ void VM::ExecuteInstruction()
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::I_GEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, >=, right));
 
         break;
     }
     case Opcode::DI_GEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, >=, right));
 
         break;
     }
     case Opcode::ID_GEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, >=, right));
 
         break;
     }
     case Opcode::D_GEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, >=, right));
 
         break;
@@ -587,28 +587,28 @@ void VM::ExecuteInstruction()
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::I_LEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, <=, right));
 
         break;
     }
     case Opcode::DI_LEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, <=, right));
 
         break;
     }
     case Opcode::ID_LEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, <=, right));
 
         break;
     }
     case Opcode::D_LEQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, <=, right));
 
         break;
@@ -616,76 +616,76 @@ void VM::ExecuteInstruction()
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, ==, right));
 
         break;
     }
     case Opcode::DI_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, ==, right));
 
         break;
     }
     case Opcode::ID_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, ==, right));
 
         break;
     }
     case Opcode::D_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, ==, right));
 
         break;
     }
     case Opcode::B_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
-        stack.push_back(CompileConst(left.as.b == right.as.b));
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
+        stack.push_back(RuntimeObject(left.as.b == right.as.b));
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::I_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_I_OP(left, !=, right));
 
         break;
     }
     case Opcode::DI_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_DI_OP(left, !=, right));
 
         break;
     }
     case Opcode::ID_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_ID_OP(left, !=, right));
 
         break;
     }
     case Opcode::D_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         stack.push_back(BINARY_D_OP(left, !=, right));
 
         break;
     }
     case Opcode::B_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(CompileConst left, CompileConst right, stack);
-        stack.push_back(CompileConst(left.as.b != right.as.b));
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
+        stack.push_back(RuntimeObject(left.as.b != right.as.b));
         break;
     }
     case Opcode::BANG:
     {
-        CompileConst right = *stack.back;
+        RuntimeObject right = *stack.back;
         stack.pop_back();
 
         stack.push_back(UNARY_B_OP(!, right));
@@ -698,7 +698,7 @@ void VM::ExecuteInstruction()
     }
 }
 
-void VM::NativePrint(CompileConst *args, int arity)
+void VM::NativePrint(RuntimeObject *args, int arity)
 {
     for (size_t i = 0; i < (size_t)arity; i++)
         std::cout << args[i];

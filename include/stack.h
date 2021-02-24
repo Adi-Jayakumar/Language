@@ -9,13 +9,13 @@
 struct Array
 {
     size_t count;
-    CompileConst *data;
-    CompileConst *back;
+    RuntimeObject *data;
+    RuntimeObject *back;
 
     Array();
     ~Array();
-    CompileConst &operator[](const size_t index);
-    void push_back(CompileConst cc);
+    RuntimeObject &operator[](const size_t index);
+    void push_back(RuntimeObject cc);
     void pop_back();
 
 private:

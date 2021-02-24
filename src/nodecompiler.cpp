@@ -4,7 +4,7 @@
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    CompileConst copy = CompileConst(l->t, l->Loc().literal);
+    RuntimeObject copy = RuntimeObject(l->t, l->Loc().literal);
     c.cur->constants.push_back(copy);
     c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
 }
@@ -93,7 +93,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1 - NativeFunctions.size())});
     else
     {
-        CompileConst arityAsCC = CompileConst(static_cast<int>(fc->args.size()));
+        RuntimeObject arityAsCC = RuntimeObject(static_cast<int>(fc->args.size()));
         c.cur->constants.push_back(arityAsCC);
         c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
         c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(index)});
@@ -120,7 +120,7 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
     TypeData arrT = ia->GetType();
-    CompileConst arr = CompileConst(arrT, ia->size);
+    RuntimeObject arr = RuntimeObject(arrT, ia->size);
 
     c.cur->constants.push_back(arr);
 
@@ -182,31 +182,31 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     else
     {
         TypeData dvType = dv->t;
-        CompileConst def;
+        RuntimeObject def;
         if (dvType.isArray)
-            def = CompileConst({false, 0}, "");
+            def = RuntimeObject({false, 0}, "");
         else
         {
             switch (dvType.type)
             {
             case 1:
             {
-                def = CompileConst((int)0);
+                def = RuntimeObject((int)0);
                 break;
             }
             case 2:
             {
-                def = CompileConst((double)0);
+                def = RuntimeObject((double)0);
                 break;
             }
             case 3:
             {
-                def = CompileConst(false);
+                def = RuntimeObject(false);
                 break;
             }
             default:
             {
-                def = CompileConst({false, 0}, "");
+                def = RuntimeObject({false, 0}, "");
                 break;
             }
             }

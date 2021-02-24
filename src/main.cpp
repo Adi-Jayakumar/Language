@@ -30,11 +30,11 @@ int main()
     if (p.hadError)
         exit(2);
 
-    for (auto &s : res)
-        std::cout << s.get() << std::endl;
+    // for (auto &s : res)
+    //     std::cout << s.get() << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
     TypeChecker t = TypeChecker();
     for (auto &s : res)

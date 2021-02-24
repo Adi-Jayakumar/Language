@@ -2,7 +2,7 @@
 
 Array::Array()
 {
-    data = (CompileConst *)malloc(DEF_SIZE * sizeof(CompileConst));
+    data = (RuntimeObject *)malloc(DEF_SIZE * sizeof(RuntimeObject));
     count = 0;
     capacity = DEF_SIZE;
     back = data;
@@ -13,7 +13,7 @@ Array::~Array()
     free(data);
 }
 
-void Array::push_back(CompileConst cc)
+void Array::push_back(RuntimeObject cc)
 {
     if (count < capacity)
     {
@@ -23,8 +23,8 @@ void Array::push_back(CompileConst cc)
     else
     {
         capacity *= GROW_FAC;
-        CompileConst *more = (CompileConst *)malloc(capacity * sizeof(CompileConst));
-        memcpy(more, data, count * sizeof(CompileConst));
+        RuntimeObject *more = (RuntimeObject *)malloc(capacity * sizeof(RuntimeObject));
+        memcpy(more, data, count * sizeof(RuntimeObject));
         free(data);
         data = more;
         data[count] = cc;
@@ -38,7 +38,7 @@ void Array::pop_back()
     back = &data[count - 1];
 }
 
-CompileConst &Array::operator[](const size_t index)
+RuntimeObject &Array::operator[](const size_t index)
 {
     return data[index];
 }

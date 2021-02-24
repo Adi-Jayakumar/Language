@@ -2,12 +2,12 @@
 #include "common.h"
 #include <cstring>
 
-struct CompileConst;
+struct RuntimeObject;
 
 struct CCArray
 {
     size_t size;
-    CompileConst *data;
+    RuntimeObject *data;
 };
 
 struct CCString
@@ -16,8 +16,16 @@ struct CCString
     char *data;
 };
 
-struct CompileConst
+enum class GCSate
 {
+    UNMARKED,
+    MARKED,
+    FREED,
+};
+
+struct RuntimeObject
+{
+    GCSate state;
     TypeData t;
     union combo
     {
@@ -29,26 +37,26 @@ struct CompileConst
         char c;
     } as;
 
-    CompileConst() = default;
-    CompileConst(TypeData, std::string);
-    CompileConst(int);
-    CompileConst(double);
-    CompileConst(bool);
+    RuntimeObject() = default;
+    RuntimeObject(TypeData, std::string);
+    RuntimeObject(int);
+    RuntimeObject(double);
+    RuntimeObject(bool);
 
     // array case
-    CompileConst(TypeData &, size_t);
-    CompileConst(CCArray);
+    RuntimeObject(TypeData &, size_t);
+    RuntimeObject(CCArray);
 
     // string case
-    CompileConst(std::string);
-    CompileConst(char *);
-    CompileConst(CCString);
+    RuntimeObject(std::string);
+    RuntimeObject(char *);
+    RuntimeObject(CCString);
 
     // char case
-    CompileConst(char);
+    RuntimeObject(char);
 };
 
-std::string ToString(const CompileConst &cc);
-bool IsTruthy(const CompileConst &cc);
+std::string ToString(const RuntimeObject &cc);
+bool IsTruthy(const RuntimeObject &cc);
 
-std::ostream &operator<<(std::ostream &out, const CompileConst &cc);
+std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc);

@@ -7,7 +7,7 @@
 struct VM
 {
     std::vector<Chunk> functions;
-    std::vector<CompileConst> globals;
+    std::vector<RuntimeObject> globals;
 
     // instruction pointer
     size_t ip;
@@ -21,7 +21,7 @@ struct VM
     // current Chunk index
     size_t curChunk;
 
-    std::vector<CompileConst> constants;
+    std::vector<RuntimeObject> constants;
 
     Array stack;
 
@@ -32,7 +32,7 @@ struct VM
 
     void SetChunk(size_t);
 
-    CompileConst *Allocate(size_t);
+    RuntimeObject *Allocate(size_t);
     char *StringAllocate(size_t);
 
     void RuntimeError(std::string msg);
@@ -40,5 +40,13 @@ struct VM
     void ExecuteCurrentChunk();
     void ExecuteInstruction();
 
-    void NativePrint(CompileConst *args, int arity);
+    void NativePrint(RuntimeObject *args, int arity);
 };
+
+// garbage collector for VM
+namespace GC
+{
+    void MarkRoots(VM *vm);
+    void FreeUnMarked(VM *vm);
+    void GarbageCollect(VM *vm);
+} // namespace GC
