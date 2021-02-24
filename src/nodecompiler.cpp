@@ -69,7 +69,6 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     bool isNative = false;
     size_t index = c.ResolveFunction(fc->name, isNative);
-    std::cout << "Function index: " << index << std::endl;
 
     if (index > UINT8_MAX)
         c.CompileError(fc->Loc(), "Too many functions");
