@@ -77,11 +77,6 @@ void VM::ExecuteProgram()
         while (ip < functions[curChunk].code.size())
         {
             ExecuteInstruction();
-            if (functions[curChunk].code[ip].code == Opcode::S_ADD)
-            {
-                GC::GarbageCollect(this);
-                return;
-            }
             Jump(1);
         }
 

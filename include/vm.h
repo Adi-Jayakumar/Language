@@ -1,7 +1,7 @@
 #pragma once
 #include "callstack.h"
-#include "runtimeobject.h"
 #include "compiler.h"
+#include "runtimeobject.h"
 #include "stack.h"
 
 struct VM
