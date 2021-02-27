@@ -6,7 +6,7 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
-    curChunk = 0;
+    curFunc = 0;
     *curCF = {0, mainIndex, 0};
     curCF++;
     *curCF = {0, mainIndex, 0};
@@ -17,30 +17,37 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 VM::~VM()
 {
     delete[] cs;
-}
-
-void VM::SetChunk(size_t n)
-{
-    curChunk = n;
+#ifndef GC_STRESS_TEST
+    for (RuntimeFunction &rtf : functions)
+    {
+        for (RuntimeObject &rto : rtf.values)
+            GC::FreeObject(&rto);
+    }
+    for (size_t i = 0; i < RTAllocValues.count; i++)
+        GC::DestroyObject(RTAllocValues[i]);
+#endif
 }
 
 void VM::PrintStack()
 {
     std::cout << "index\t|\tvalue" << std::endl;
-
     for (size_t i = stack.count - 1; (int)i >= 0; i--)
-    {
         std::cout << i << "\t|\t" << *stack[i] << std::endl;
-    }
 }
 
 RuntimeObject *VM::Allocate(size_t size)
 {
+#ifdef GC_STRESS_TEST
+    GC::GarbageCollect(this);
+#endif
     return (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
 }
 
 char *VM::StringAllocate(size_t size)
 {
+#ifdef GC_STRESS_TEST
+    GC::GarbageCollect(this);
+#endif
     return (char *)malloc(size * sizeof(char));
 }
 
@@ -57,11 +64,11 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteProgram()
 {
-    if (curChunk == SIZE_MAX)
+    if (curFunc == SIZE_MAX)
         return;
     while (curCF != cs - 1)
     {
-        while (ip < functions[curChunk].code.size())
+        while (ip < functions[curFunc].code.size())
         {
             ExecuteInstruction();
             Jump(1);
@@ -71,10 +78,10 @@ void VM::ExecuteProgram()
         curCF--;
 
         ip = returnCF->retIndex;
-        if (curChunk != 0)
+        if (curFunc != 0)
             ip++;
 
-        curChunk = returnCF->retChunk;
+        curFunc = returnCF->retChunk;
         size_t stackDiff = stack.count - returnCF->valStackMin;
 
         // cleaning up the function's constants
@@ -112,17 +119,18 @@ void VM::ExecuteProgram()
 
 void VM::ExecuteInstruction()
 {
-    Op o = functions[curChunk].code[ip];
+    Op o = functions[curFunc].code[ip];
     switch (o.code)
     {
     case Opcode::POP:
     {
+        stack.back->state = GCSate::UNMARKED;
         stack.pop_back();
         break;
     }
     case Opcode::GET_C:
     {
-        stack.push_back(&functions[curChunk].values[o.op]);
+        stack.push_back(&functions[curFunc].values[o.op]);
         break;
     }
     case Opcode::VAR_A:
@@ -174,7 +182,6 @@ void VM::ExecuteInstruction()
             RuntimeError("Array index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.arr.size));
 
         stack.push_back(&array->as.arr.data[index->as.i]);
-
         break;
     }
     case Opcode::ARR_SET:
@@ -194,7 +201,9 @@ void VM::ExecuteInstruction()
             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
 
         array->as.arr.data[i] = value;
-        stack.push_back_copy(value);
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, value);
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ARR_ALLOC:
@@ -206,7 +215,9 @@ void VM::ExecuteInstruction()
         if (arraySize <= 0)
             RuntimeError("Dynamically allocated array must be declared with a size greater than 0");
 
-        stack.push_back_copy(RuntimeObject({true, 1}, static_cast<size_t>(arraySize)));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject({true, 1}, static_cast<size_t>(arraySize)));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::JUMP_IF_FALSE:
@@ -236,9 +247,9 @@ void VM::ExecuteInstruction()
             RuntimeError("CallStack overflow.");
         }
 
-        *curCF = {ip, curChunk, stack.count - functions[o.op].arity};
+        *curCF = {ip, curFunc, stack.count - functions[o.op].arity};
 
-        curChunk = o.op;
+        curFunc = o.op;
         ip = -1;
         break;
     }
@@ -248,7 +259,7 @@ void VM::ExecuteInstruction()
         curCF--;
 
         ip = returnCF->retIndex;
-        curChunk = returnCF->retChunk;
+        curFunc = returnCF->retChunk;
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
         RuntimeObject *retVal;
@@ -263,7 +274,6 @@ void VM::ExecuteInstruction()
 
         if (o.op == 0)
             stack.push_back(retVal);
-
         break;
     }
     case Opcode::NATIVE_CALL:
@@ -289,26 +299,33 @@ void VM::ExecuteInstruction()
     case Opcode::I_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, +, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, +, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, +, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, +, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, +, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, +, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, +, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, +, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::S_ADD:
@@ -327,7 +344,9 @@ void VM::ExecuteInstruction()
 
         RTString concatStr = {newStrSize, concat};
 
-        stack.push_back_copy(RuntimeObject(concatStr));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject(concatStr));
+        RTAllocValues.push_back(copy);
         break;
     }
     // SUBTRACTIONS: subtracts the last 2 things on the stack
@@ -342,24 +361,34 @@ void VM::ExecuteInstruction()
             RuntimeObject left = *stack.back;
             stack.pop_back();
 
-            stack.push_back_copy(BINARY_I_OP(left, -, right));
+            RuntimeObject *copy = Allocate(1);
+            stack.push_back_copy(copy, BINARY_I_OP(left, -, right));
+            RTAllocValues.push_back(copy);
         }
         else
-            stack.push_back_copy(UNARY_I_OP(-, right));
+        {
+            RuntimeObject *copy = Allocate(1);
+            stack.push_back_copy(copy, UNARY_I_OP(-, right));
+            RTAllocValues.push_back(copy);
+        }
         break;
     }
     case Opcode::DI_SUB:
     {
         // DI_SUB cannot be a unary operation
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, -, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, -, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_SUB:
     {
         // ID_SUB cannot be a unary operation
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, -, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, -, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_SUB:
@@ -372,255 +401,296 @@ void VM::ExecuteInstruction()
             RuntimeObject left = *stack.back;
             stack.pop_back();
 
-            stack.push_back_copy(BINARY_D_OP(left, -, right));
+            RuntimeObject *copy = Allocate(1);
+            stack.push_back_copy(copy, BINARY_D_OP(left, -, right));
+            RTAllocValues.push_back(copy);
         }
         else
-            stack.push_back_copy(UNARY_D_OP(-, right));
-
+        {
+            RuntimeObject *copy = Allocate(1);
+            stack.push_back_copy(copy, UNARY_D_OP(-, right));
+            RTAllocValues.push_back(copy);
+        }
         break;
     }
     // multiplies the last 2 things on the stack
     case Opcode::I_MUL:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, *, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, *, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_MUL:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, *, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, *, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_MUL:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, *, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, *, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_MUL:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, *, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, *, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // divides the last 2 things on the stack
     case Opcode::I_DIV:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, /, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, /, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_DIV:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, /, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, /, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_DIV:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, /, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, /, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_DIV:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, /, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, /, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::I_GT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, >, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, >, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_GT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, >, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, >, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_GT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, >, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, >, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_GT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, >, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, >, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does a less than comparison on the last 2 things on the stack
     case Opcode::I_LT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, <, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, <, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_LT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, <, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, <, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_LT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, <, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, <, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_LT:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, <, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, <, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::I_GEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, >=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, >=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_GEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, >=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, >=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_GEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, >=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, >=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_GEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, >=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, >=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::I_LEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, <=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, <=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_LEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, <=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, <=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_LEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, <=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, <=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_LEQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, <=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, <=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, ==, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, ==, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, ==, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, ==, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, ==, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, ==, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, ==, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, ==, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::B_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(RuntimeObject(left.as.b == right.as.b));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject(left.as.b == right.as.b));
+        RTAllocValues.push_back(copy);
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::I_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_I_OP(left, !=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_I_OP(left, !=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::DI_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_DI_OP(left, !=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_DI_OP(left, !=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::ID_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_ID_OP(left, !=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_ID_OP(left, !=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::D_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(BINARY_D_OP(left, !=, right));
-
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, BINARY_D_OP(left, !=, right));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::B_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
-        stack.push_back_copy(RuntimeObject(left.as.b != right.as.b));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject(left.as.b != right.as.b));
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::BANG:
@@ -628,7 +698,10 @@ void VM::ExecuteInstruction()
         RuntimeObject right = *stack.back;
         stack.pop_back();
 
-        stack.push_back_copy(UNARY_B_OP(!, right));
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, UNARY_B_OP(!, right));
+        RTAllocValues.push_back(copy);
+        break;
     }
     // Does nothing
     case Opcode::NONE:

@@ -16,7 +16,10 @@ struct Array
     ~Array();
     RuntimeObject *operator[](const size_t index);
     void push_back(RuntimeObject *cc);
-    void push_back_copy(RuntimeObject rto);
+    // returns a pointer to the copy so that the VM
+    // can add the pointer to the copy to the Array of
+    // runtime allocated objects
+    void push_back_copy(RuntimeObject *, RuntimeObject);
     void pop_back();
     void pop_N(size_t n);
 

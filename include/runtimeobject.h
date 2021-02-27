@@ -59,6 +59,8 @@ struct RuntimeObject
     RuntimeObject(char);
 };
 
+void CopyRTO(RuntimeObject *, const RuntimeObject&);
+
 std::string ToString(const RuntimeObject &cc);
 bool IsTruthy(const RuntimeObject &cc);
 

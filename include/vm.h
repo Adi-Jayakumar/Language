@@ -18,19 +18,18 @@ struct VM
     // current CallFrame
     CallFrame *curCF;
 
-    // current Chunk index
-    size_t curChunk;
+    // current function index
+    size_t curFunc;
 
     std::vector<RuntimeObject> constants;
 
     Array stack;
+    Array RTAllocValues;
 
     VM(std::vector<RuntimeFunction> &, size_t);
     ~VM();
 
     void PrintStack();
-
-    void SetChunk(size_t);
 
     RuntimeObject *Allocate(size_t);
     char *StringAllocate(size_t);
@@ -43,11 +42,17 @@ struct VM
     void NativePrint(int arity);
 };
 
+#define GC_DEBUG_OUTPUT
+// #define GC_STRESS_TEST
 // garbage collector for VM
 namespace GC
 {
-    void MarkObject(RuntimeObject &);
-    void FreeObject(RuntimeObject &);
+    void MarkObject(RuntimeObject *);
+    // frees any memory owned by the RTO pointed to
+    void FreeObject(RuntimeObject *);
+    // frees any memory owned by the RTO pointed to and memory
+    // pointed to
+    void DestroyObject(RuntimeObject *);
     void MarkRoots(VM *vm);
     void FreeUnMarked(VM *vm);
     void GarbageCollect(VM *vm);

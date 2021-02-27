@@ -33,11 +33,12 @@ void Array::push_back(RuntimeObject *cc)
     count++;
 }
 
-void Array::push_back_copy(RuntimeObject rto)
+void Array::push_back_copy(RuntimeObject *copy, RuntimeObject rto)
 {
     if (count < capacity)
     {
-        data[count] = new RuntimeObject(rto);
+        CopyRTO(copy, rto);
+        data[count] = copy;
         back = data[count];
     }
     else
@@ -47,7 +48,8 @@ void Array::push_back_copy(RuntimeObject rto)
         memcpy(more, data, count * sizeof(RuntimeObject *));
         free(data);
         data = more;
-        data[count] = new RuntimeObject(rto);
+        CopyRTO(copy, rto);
+        data[count] = copy;
         back = data[count];
     }
     count++;

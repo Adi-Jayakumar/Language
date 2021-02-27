@@ -29,57 +29,77 @@ std::ostream &operator<<(std::ostream &out, const GCSate &gcs)
     return out;
 }
 
-// void GC::MarkObject(RuntimeObject &rto)
-// {
-//     rto.state = GCSate::MARKED;
+void GC::MarkObject(RuntimeObject *rto)
+{
 
-//     if (rto.t.isArray)
-//     {
-//         for (size_t i = 0; i < rto.as.arr.size; i++)
-//             MarkObject(rto.as.arr.data[i]);
-//     }
-// }
+#ifdef GC_DEBUG_OUTPUT
+    std::cout << "Marking " << *rto << std::endl;
+#endif
 
-// void GC::FreeObject(RuntimeObject &rto)
-// {
-//     rto.state = GCSate::FREED;
+    rto->state = GCSate::MARKED;
 
-//     if (rto.t.isArray)
-//     {
-//         RTArray *arr = &rto.as.arr;
+    if (rto->t.isArray)
+    {
+        for (size_t i = 0; i < rto->as.arr.size; i++)
+            MarkObject(&rto->as.arr.data[i]);
+    }
+}
 
-//         for (size_t i = 0; i < arr->size; i++)
-//             FreeObject(arr->data[i]);
-//     }
-//     else
-//     {
-//         if (rto.t.type == 4)
-//         {
-//             RTString *str = &rto.as.str;
-//             free(str->data);
-//         }
-//     }
-// }
+void GC::FreeObject(RuntimeObject *rto)
+{
 
-// void GC::MarkRoots(VM *vm)
-// {
-//     for (size_t i = 0; i < vm->stack.count; i++)
-//         MarkObject(vm->stack[i]);
-// }
+#ifdef GC_DEBUG_OUTPUT
+    std::cout << "Freeing " << *rto << std::endl;
+#endif
 
-// void GC::FreeUnMarked(VM *vm)
-// {
-//     Chunk *cur = &vm->functions[vm->curChunk];
+    rto->state = GCSate::FREED;
 
-//     for (size_t i = 0; i < cur->constants.size(); i++)
-//     {
-//         if (cur->constants[i].state == GCSate::UNMARKED)
-//             FreeObject(cur->constants[i]);
-//     }
-// }
+    if (rto->t.isArray)
+    {
+        RTArray *arr = &rto->as.arr;
 
-// void GC::GarbageCollect(VM *vm)
-// {
-//     MarkRoots(vm);
-//     FreeUnMarked(vm);
-// }
+        for (size_t i = 0; i < arr->size; i++)
+            FreeObject(&arr->data[i]);
+    }
+    else if (rto->t.type == 4)
+    {
+        RTString *str = &rto->as.str;
+        free(str->data);
+    }
+}
+
+void GC::DestroyObject(RuntimeObject *rto)
+{
+    if (rto->state != GCSate::FREED)
+        FreeObject(rto);
+    free(rto);
+}
+
+void GC::MarkRoots(VM *vm)
+{
+    for (size_t i = 0; i < vm->stack.count; i++)
+        MarkObject(vm->stack[i]);
+}
+
+void GC::FreeUnMarked(VM *vm)
+{
+    RuntimeFunction *cur = &vm->functions[vm->curFunc];
+
+    for (size_t i = 0; i < cur->values.size(); i++)
+    {
+        if (cur->values[i].state == GCSate::UNMARKED)
+            FreeObject(&cur->values[i]);
+    }
+
+    for(size_t j = 0; j < vm->RTAllocValues.count; j++)
+    {
+        if(vm->RTAllocValues[j]->state == GCSate::UNMARKED)
+            FreeObject(vm->RTAllocValues[j]);
+    }
+}
+
+void GC::GarbageCollect(VM *vm)
+{
+    MarkRoots(vm);
+    FreeUnMarked(vm);
+}

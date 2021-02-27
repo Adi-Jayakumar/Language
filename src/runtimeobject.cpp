@@ -54,7 +54,7 @@ bool IsTruthy(const RuntimeObject &cc)
 
 RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = _type;
     switch (t.type)
     {
@@ -107,28 +107,28 @@ RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
 
 RuntimeObject::RuntimeObject(int _i)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 1};
     as.i = _i;
 }
 
 RuntimeObject::RuntimeObject(double _d)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 2};
     as.d = _d;
 }
 
 RuntimeObject::RuntimeObject(bool _b)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 3};
     as.b = _b;
 }
 
 RuntimeObject::RuntimeObject(TypeData _type, size_t _size)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = _type;
     as.arr.data = (RuntimeObject *)malloc(_size * sizeof(RuntimeObject));
     as.arr.size = _size;
@@ -136,14 +136,14 @@ RuntimeObject::RuntimeObject(TypeData _type, size_t _size)
 
 RuntimeObject::RuntimeObject(RTArray _arr)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {true, 1};
     as.arr = _arr;
 }
 
 RuntimeObject::RuntimeObject(std::string _str)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 4};
     size_t stringLen = _str.size();
     const char *asPtr = _str.c_str();
@@ -159,7 +159,7 @@ RuntimeObject::RuntimeObject(std::string _str)
 
 RuntimeObject::RuntimeObject(char *_str)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 4};
     size_t stringLen = strlen(_str);
 
@@ -174,16 +174,23 @@ RuntimeObject::RuntimeObject(char *_str)
 
 RuntimeObject::RuntimeObject(RTString _str)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 4};
     as.str = _str;
 }
 
 RuntimeObject::RuntimeObject(char c)
 {
-    state = GCSate::UNMARKED;
+    state = GCSate::MARKED;
     t = {false, 5};
     as.c = c;
+}
+
+void CopyRTO(RuntimeObject* copy, const RuntimeObject &rto)
+{
+    copy->state = rto.state;
+    copy->t = rto.t;
+    copy->as = rto.as;
 }
 
 #define PRINT_ARRAY()                         \
