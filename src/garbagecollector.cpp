@@ -79,6 +79,9 @@ void GC::MarkRoots(VM *vm)
 {
     for (size_t i = 0; i < vm->stack.count; i++)
         MarkObject(vm->stack[i]);
+    
+    for (size_t j = 0; j < vm->RTAllocValues.count; j++)
+        MarkObject(vm->RTAllocValues[j]);
 }
 
 void GC::FreeUnMarked(VM *vm)

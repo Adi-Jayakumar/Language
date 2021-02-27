@@ -42,7 +42,7 @@ struct VM
     void NativePrint(int arity);
 };
 
-#define GC_DEBUG_OUTPUT
+// #define GC_DEBUG_OUTPUT
 // #define GC_STRESS_TEST
 // garbage collector for VM
 namespace GC

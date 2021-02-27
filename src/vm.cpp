@@ -37,17 +37,13 @@ void VM::PrintStack()
 
 RuntimeObject *VM::Allocate(size_t size)
 {
-#ifdef GC_STRESS_TEST
     GC::GarbageCollect(this);
-#endif
     return (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
 }
 
 char *VM::StringAllocate(size_t size)
 {
-#ifdef GC_STRESS_TEST
     GC::GarbageCollect(this);
-#endif
     return (char *)malloc(size * sizeof(char));
 }
 
@@ -242,10 +238,7 @@ void VM::ExecuteInstruction()
         curCF++;
 
         if (curCF == &cs[STACK_MAX - 1])
-        {
-            std::cout << (curCF - &cs[0]) << std::endl;
-            RuntimeError("CallStack overflow.");
-        }
+            RuntimeError("CallStack overflow. Used: " + std::to_string(curCF - &cs[0]) + " callstacks");
 
         *curCF = {ip, curFunc, stack.count - functions[o.op].arity};
 
@@ -268,8 +261,6 @@ void VM::ExecuteInstruction()
             retVal = stack.back;
 
         // cleaning up the function's constants
-        // stack.count -= stackDiff;
-        // stack.back = stack.data[stack.count];
         stack.pop_N(stackDiff);
 
         if (o.op == 0)
@@ -289,9 +280,7 @@ void VM::ExecuteInstruction()
             break;
         }
         default:
-        {
             break;
-        }
         }
         break;
     }
@@ -717,6 +706,5 @@ void VM::NativePrint(int arity)
         std::cout << *stack[stack.count - arity + i];
 
     std::cout << std::endl;
-
     stack.pop_N((size_t)arity);
 }
