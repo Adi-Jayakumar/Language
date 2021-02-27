@@ -34,7 +34,6 @@ size_t Chunk::ChunkResolveVariable(std::string &name)
 
 void Chunk::CleanUpVariables()
 {
-    // while (!vars.empty() && vars.back().depth == depth)
     for (size_t i = vars.size() - 1; (int)i >= 0; i--)
     {
         if (vars[i].depth == depth)

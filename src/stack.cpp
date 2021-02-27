@@ -56,14 +56,13 @@ void Array::push_back_copy(RuntimeObject rto)
 void Array::pop_back()
 {
     count--;
-    // std::cout << count << std::endl;
     back = count > 0 ? data[count - 1] : data[0];
 }
 
 void Array::pop_N(size_t n)
 {
     count -= n;
-    back = data[count - 1];
+    back = count > 0 ? data[count - 1] : data[0];
 }
 
 RuntimeObject *Array::operator[](const size_t index)
