@@ -47,7 +47,7 @@ struct RuntimeObject
     RuntimeObject(bool);
 
     // array case
-    RuntimeObject(TypeData &, size_t);
+    RuntimeObject(TypeData , size_t);
     RuntimeObject(RTArray);
 
     // string case

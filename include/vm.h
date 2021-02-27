@@ -40,7 +40,7 @@ struct VM
     void ExecuteProgram();
     void ExecuteInstruction();
 
-    void NativePrint(RuntimeObject *args, int arity);
+    void NativePrint(int arity);
 };
 
 // garbage collector for VM

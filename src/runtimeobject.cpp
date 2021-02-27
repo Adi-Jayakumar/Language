@@ -126,7 +126,7 @@ RuntimeObject::RuntimeObject(bool _b)
     as.b = _b;
 }
 
-RuntimeObject::RuntimeObject(TypeData &_type, size_t _size)
+RuntimeObject::RuntimeObject(TypeData _type, size_t _size)
 {
     state = GCSate::UNMARKED;
     t = _type;
@@ -137,7 +137,7 @@ RuntimeObject::RuntimeObject(TypeData &_type, size_t _size)
 RuntimeObject::RuntimeObject(RTArray _arr)
 {
     state = GCSate::UNMARKED;
-    t = {true, 0};
+    t = {true, 1};
     as.arr = _arr;
 }
 
@@ -186,19 +186,22 @@ RuntimeObject::RuntimeObject(char c)
     as.c = c;
 }
 
-#define PRINT_ARRAY()                     \
-    RTArray arr = cc.as.arr;              \
-    out << "{";                           \
-                                          \
-    for (size_t i = 0; i < arr.size; i++) \
-    {                                     \
-        out << arr.data[i];               \
-                                          \
-        if (i != arr.size - 1)            \
-            out << ", ";                  \
-    }                                     \
-                                          \
-    out << "}"
+#define PRINT_ARRAY()                         \
+    do                                        \
+    {                                         \
+        RTArray arr = cc.as.arr;              \
+        out << "{";                           \
+                                              \
+        for (size_t i = 0; i < arr.size; i++) \
+        {                                     \
+            out << arr.data[i];               \
+                                              \
+            if (i != arr.size - 1)            \
+                out << ", ";                  \
+        }                                     \
+                                              \
+        out << "}";                           \
+    } while (false)
 
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 {
@@ -207,12 +210,16 @@ std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 
     switch (cc.t.type)
     {
+    case 0:
+    {
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        break;
+    }
     case 1:
     {
         if (cc.t.isArray)
-        {
             PRINT_ARRAY();
-        }
         else
             out << cc.as.i;
         break;
@@ -220,9 +227,7 @@ std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
     case 2:
     {
         if (cc.t.isArray)
-        {
             PRINT_ARRAY();
-        }
         else
             out << cc.as.d;
         break;
@@ -230,9 +235,7 @@ std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
     case 3:
     {
         if (cc.t.isArray)
-        {
             PRINT_ARRAY();
-        }
         else
         {
             if (cc.as.b)
@@ -245,9 +248,7 @@ std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
     case 4:
     {
         if (cc.t.isArray)
-        {
             PRINT_ARRAY();
-        }
         else
             out << cc.as.str.data;
         break;
@@ -255,11 +256,10 @@ std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
     case 5:
     {
         if (cc.t.isArray)
-        {
             PRINT_ARRAY();
-        }
         else
             out << cc.as.c;
+        break;
     }
     }
     return out;

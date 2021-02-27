@@ -9,14 +9,16 @@
 struct Array
 {
     size_t count;
-    RuntimeObject *data;
+    RuntimeObject **data;
     RuntimeObject *back;
 
     Array();
     ~Array();
-    RuntimeObject &operator[](const size_t index);
-    void push_back(RuntimeObject cc);
+    RuntimeObject *operator[](const size_t index);
+    void push_back(RuntimeObject *cc);
+    void push_back_copy(RuntimeObject rto);
     void pop_back();
+    void pop_N(size_t n);
 
 private:
     size_t capacity;

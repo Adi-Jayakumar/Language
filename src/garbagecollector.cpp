@@ -29,57 +29,57 @@ std::ostream &operator<<(std::ostream &out, const GCSate &gcs)
     return out;
 }
 
-void GC::MarkObject(RuntimeObject &rto)
-{
-    rto.state = GCSate::MARKED;
+// void GC::MarkObject(RuntimeObject &rto)
+// {
+//     rto.state = GCSate::MARKED;
 
-    if (rto.t.isArray)
-    {
-        for (size_t i = 0; i < rto.as.arr.size; i++)
-            MarkObject(rto.as.arr.data[i]);
-    }
-}
+//     if (rto.t.isArray)
+//     {
+//         for (size_t i = 0; i < rto.as.arr.size; i++)
+//             MarkObject(rto.as.arr.data[i]);
+//     }
+// }
 
-void GC::FreeObject(RuntimeObject &rto)
-{
-    rto.state = GCSate::FREED;
+// void GC::FreeObject(RuntimeObject &rto)
+// {
+//     rto.state = GCSate::FREED;
 
-    if (rto.t.isArray)
-    {
-        RTArray *arr = &rto.as.arr;
+//     if (rto.t.isArray)
+//     {
+//         RTArray *arr = &rto.as.arr;
 
-        for (size_t i = 0; i < arr->size; i++)
-            FreeObject(arr->data[i]);
-    }
-    else
-    {
-        if (rto.t.type == 4)
-        {
-            RTString *str = &rto.as.str;
-            free(str->data);
-        }
-    }
-}
+//         for (size_t i = 0; i < arr->size; i++)
+//             FreeObject(arr->data[i]);
+//     }
+//     else
+//     {
+//         if (rto.t.type == 4)
+//         {
+//             RTString *str = &rto.as.str;
+//             free(str->data);
+//         }
+//     }
+// }
 
-void GC::MarkRoots(VM *vm)
-{
-    for (size_t i = 0; i < vm->stack.count; i++)
-        MarkObject(vm->stack[i]);
-}
+// void GC::MarkRoots(VM *vm)
+// {
+//     for (size_t i = 0; i < vm->stack.count; i++)
+//         MarkObject(vm->stack[i]);
+// }
 
-void GC::FreeUnMarked(VM *vm)
-{
-    Chunk *cur = &vm->functions[vm->curChunk];
+// void GC::FreeUnMarked(VM *vm)
+// {
+//     Chunk *cur = &vm->functions[vm->curChunk];
 
-    for (size_t i = 0; i < cur->constants.size(); i++)
-    {
-        if (cur->constants[i].state == GCSate::UNMARKED)
-            FreeObject(cur->constants[i]);
-    }
-}
+//     for (size_t i = 0; i < cur->constants.size(); i++)
+//     {
+//         if (cur->constants[i].state == GCSate::UNMARKED)
+//             FreeObject(cur->constants[i]);
+//     }
+// }
 
-void GC::GarbageCollect(VM *vm)
-{
-    MarkRoots(vm);
-    FreeUnMarked(vm);
-}
+// void GC::GarbageCollect(VM *vm)
+// {
+//     MarkRoots(vm);
+//     FreeUnMarked(vm);
+// }
