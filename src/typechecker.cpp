@@ -68,13 +68,38 @@ void TypeChecker::CleanUpVariables()
         vars.pop_back();
 }
 
+bool TypeChecker::IsTruthy(const TypeData &cond)
+{
+    if(cond.isArray)
+        return false;
+    
+    return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
+}
+
+bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
+{
+    if(varType.isArray != valType.isArray)
+        return false;
+    
+    if(varType.type == 1 && valType.type == 2)
+        return true;
+    else if (varType.type == 2 && valType.type == 1)
+        return true;
+    return varType == valType;
+}
+
+
 bool TypeChecker::MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied)
 {
     if (actual.size() == 0 && supplied.size() != 0)
         return false;
 
-    TypeData voidType = {false, 0};
-    if (actual.size() == 1 && actual[0] == voidType && supplied.size() > 0)
+    TypeData matchMoreThanOne = {true, 0};
+    if (actual.size() == 1 && actual[0] == matchMoreThanOne && supplied.size() > 0)
+        return true;
+
+    TypeData matchOne = {false, 0};
+    if (supplied.size() == 1 && actual.size() == 1 && actual[0] == matchOne)
         return true;
 
     if (actual.size() != supplied.size())
@@ -183,19 +208,20 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
         size_t varIndex = ResolveVariable(targetAsVr->name, a->Loc());
         TypeData varType = vars[varIndex].type;
 
-        if (varType != valType)
+        if (!CanAssign(varType, valType))
             TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
 
-        // std::cout << "assign varIndex isarray: " << vars[varIndex].isArray << std::endl;
-        targetAsVr->isArray = vars[varIndex].type.isArray;
+        targetAsVr->isArray = varType.isArray;
         targetAsVr->t = varType;
+        a->val->t =  varType;
         a->t = varType;
+
         return varType;
     }
 
     ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
     TypeData targetType = targetAsAi->Type(*this);
-    if (targetType != valType)
+    if (!CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
     return targetType;
 }
@@ -323,10 +349,10 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         TypeData varType = dv->t;
         TypeData valType = dv->value->Type(*this);
 
-        if (valType == varType)
-            return valType;
-        else
+        if (!CanAssign(valType, varType))
             TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(varType) + " to variable: '" + dv->name + "' of type: " + ToString(valType));
+
+        dv->value->t = varType;
     }
     return {false, UINT8_MAX};
 }
@@ -357,10 +383,8 @@ TypeData TypeChecker::TypeOfBlock(Block *b)
 
 TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
 {
-    TypeData boolType = {false, 3};
-
-    if (i->cond->Type(*this) != boolType)
-        TypeError(i->Loc(), "Condition of and if statement must have type: bool");
+    if (!IsTruthy(i->cond->Type(*this)))
+        TypeError(i->Loc(), "Condition of and if statement must be 'turthy'");
 
     i->thenBranch->Type(*this);
 
@@ -372,9 +396,8 @@ TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
 
 TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 {
-    TypeData bType = {false, 3};
-    if (ws->cond->Type(*this) != bType)
-        TypeError(ws->Loc(), "Condition of a while statment must have type: bool");
+    if (!IsTruthy(ws->cond->Type(*this)))
+        TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
 
     ws->body->Type(*this);
     return {false, UINT8_MAX};

@@ -57,9 +57,9 @@ void GC::FreeObject(RuntimeObject *rto)
     if (rto->t.isArray)
     {
         RTArray *arr = &rto->as.arr;
-
         for (size_t i = 0; i < arr->size; i++)
             FreeObject(&arr->data[i]);
+        free(arr->data);
     }
     else if (rto->t.type == 4)
     {
@@ -70,8 +70,19 @@ void GC::FreeObject(RuntimeObject *rto)
 
 void GC::DestroyObject(RuntimeObject *rto)
 {
+#ifdef GC_DEBUG_OUTPUT
+    std::cout << "Destroying " << *rto << std::endl;
+#endif
     if (rto->state != GCSate::FREED)
+    {
+        if (rto->t.isArray)
+        {
+            RTArray *arr = &rto->as.arr;
+            for (size_t i = 0; i < arr->size; i++)
+                DestroyObject(&arr->data[i]);
+        }
         FreeObject(rto);
+    }
     free(rto);
 }
 
@@ -79,7 +90,7 @@ void GC::MarkRoots(VM *vm)
 {
     for (size_t i = 0; i < vm->stack.count; i++)
         MarkObject(vm->stack[i]);
-    
+
     for (size_t j = 0; j < vm->RTAllocValues.count; j++)
         MarkObject(vm->RTAllocValues[j]);
 }
@@ -94,9 +105,9 @@ void GC::FreeUnMarked(VM *vm)
             FreeObject(&cur->values[i]);
     }
 
-    for(size_t j = 0; j < vm->RTAllocValues.count; j++)
+    for (size_t j = 0; j < vm->RTAllocValues.count; j++)
     {
-        if(vm->RTAllocValues[j]->state == GCSate::UNMARKED)
+        if (vm->RTAllocValues[j]->state == GCSate::UNMARKED)
             FreeObject(vm->RTAllocValues[j]);
     }
 }

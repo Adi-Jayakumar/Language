@@ -227,7 +227,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::JUMP_IF_FALSE:
     {
-        if (!stack.back->as.b)
+        if (!IsTruthy(*stack.back))
             ip += o.op;
         stack.pop_back();
         break;

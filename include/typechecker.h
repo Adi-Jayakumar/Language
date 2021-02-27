@@ -23,7 +23,7 @@ struct TypeChecker
     bool isInFunc = false;
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;
-    std::vector<FuncID> funcs{{{false, 0}, "Print", {{false, 0}}}};
+    std::vector<FuncID> funcs{{{false, 0}, "Print", {{true, 0}}}};
 
     bool hadError = false;
 
@@ -37,6 +37,14 @@ struct TypeChecker
     size_t CheckVariablesInFunction(std::string &name);
     bool IsVariableInScope(std::string &name);
     void CleanUpVariables();
+
+
+    // returns true if that type can potentially be 'truthy'
+    bool IsTruthy(const TypeData &cond);
+
+    // returns true if the type valType can be assigned to a variable of type
+    // var type
+    bool CanAssign(const TypeData &varType, const TypeData &valType);
 
     // matches native functions' arguments
     bool MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied);

@@ -28,7 +28,7 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
     else if (l->t.type == 5)
         out << " \'" << l->loc.literal << "\'";
     else
-        out << l->loc.literal << std::endl;
+        out << l->loc.literal;
 }
 
 void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
