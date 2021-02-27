@@ -1,6 +1,6 @@
 #include "vm.h"
 
-VM::VM(std::vector<Chunk> &_functions, size_t mainIndex)
+VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 {
     functions = _functions;
 
@@ -122,7 +122,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::GET_C:
     {
-        stack.push_back(&functions[curChunk].constants[o.op]);
+        stack.push_back(&functions[curChunk].values[o.op]);
         break;
     }
     case Opcode::VAR_A:

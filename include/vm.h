@@ -1,12 +1,12 @@
 #pragma once
 #include "callstack.h"
-#include "compiler.h"
+#include "runtimefunc.h"
 #include "runtimeobject.h"
 #include "stack.h"
 
 struct VM
 {
-    std::vector<Chunk> functions;
+    std::vector<RuntimeFunction> functions;
     std::vector<RuntimeObject> globals;
 
     // instruction pointer
@@ -25,7 +25,7 @@ struct VM
 
     Array stack;
 
-    VM(std::vector<Chunk> &, size_t);
+    VM(std::vector<RuntimeFunction> &, size_t);
     ~VM();
 
     void PrintStack();

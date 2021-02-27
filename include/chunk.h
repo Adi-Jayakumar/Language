@@ -1,6 +1,6 @@
 #pragma once
-#include "runtimeobject.h"
 #include "op.h"
+#include "runtimeobject.h"
 
 struct CTVarID
 {

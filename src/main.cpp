@@ -1,4 +1,5 @@
 #include "ASTPrinter.h"
+#include "compiler.h"
 #include "parser.h"
 #include "returnchecker.h"
 #include "typechecker.h"
@@ -78,7 +79,12 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    VM vm = VM(c.chunks, mainIndex);
+    std::vector<RuntimeFunction> rf;
+
+    for (const auto &ch : c.chunks)
+        rf.push_back(RuntimeFunction(ch));
+
+    VM vm = VM(rf, mainIndex);
 
     auto t1 = std::chrono::high_resolution_clock::now();
 
