@@ -12,7 +12,7 @@ struct CTFunc
 struct Compiler
 {
     std::vector<Chunk> chunks;
-    std::vector<CTFunc> funcs{{"Print", {false, 0}}};
+    std::vector<CTFunc> funcs{{"Print", {false, 0}}, {"ToString", {false, 4}}};
     bool hadError = false;
 
     // bool isInFunc = false;

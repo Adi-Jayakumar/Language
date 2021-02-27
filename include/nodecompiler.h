@@ -5,11 +5,6 @@
 
 namespace NodeCompiler
 {
-
-    static const std::unordered_map<std::string, TypeID> NativeReturn{
-        {"Print", 0},
-    };
-
     // expression compiling
     void CompileLiteral(Literal *l, Compiler &c);
     void CompileUnary(Unary *u, Compiler &c);

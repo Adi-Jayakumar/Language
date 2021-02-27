@@ -23,7 +23,7 @@ struct TypeChecker
     bool isInFunc = false;
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;
-    std::vector<FuncID> funcs{{{false, 0}, "Print", {{true, 0}}}};
+    std::vector<FuncID> funcs{{{false, 0}, "Print", {{true, 0}}}, {{false, 4}, "ToString", {{false, 0}}}};
 
     bool hadError = false;
 

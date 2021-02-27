@@ -79,32 +79,32 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    std::vector<RuntimeFunction> rf;
+    // std::vector<RuntimeFunction> rf;
 
-    for (const auto &ch : c.chunks)
-        rf.push_back(RuntimeFunction(ch));
+    // for (const auto &ch : c.chunks)
+    //     rf.push_back(RuntimeFunction(ch));
 
-    VM vm = VM(rf, mainIndex);
+    // VM vm = VM(rf, mainIndex);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    // auto t1 = std::chrono::high_resolution_clock::now();
 
-    vm.ExecuteProgram();
+    // vm.ExecuteProgram();
 
-    auto t2 = std::chrono::high_resolution_clock::now();
+    // auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    // std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::cout << "Size of stack: " << vm.stack.count << std::endl;
+    // std::cout << "Size of stack: " << vm.stack.count << std::endl;
 
-    if (vm.stack.count != 0)
-    {
-        for (size_t i = 0; i < vm.stack.count; i++)
-        {
-            std::cout << vm.stack.data[i] << std::endl;
-        }
-    }
+    // if (vm.stack.count != 0)
+    // {
+    //     for (size_t i = 0; i < vm.stack.count; i++)
+    //     {
+    //         std::cout << vm.stack.data[i] << std::endl;
+    //     }
+    // }
 }
