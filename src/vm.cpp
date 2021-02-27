@@ -174,10 +174,19 @@ void VM::ExecuteInstruction()
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
-        if (index->as.i >= (int)array->as.arr.size || index->as.i < 0)
+        int size = array->t.isArray ? (int)array->as.arr.size : (int)array->as.str.len;
+
+        if (index->as.i >= (int)size || index->as.i < 0)
             RuntimeError("Array index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.arr.size));
 
-        stack.push_back(&array->as.arr.data[index->as.i]);
+        if (array->t.isArray)
+            stack.push_back(&array->as.arr.data[index->as.i]);
+        else
+        {
+            RuntimeObject *copy = Allocate(1);
+            stack.push_back_copy(copy, RuntimeObject(array->as.str.data[index->as.i]));
+            RTAllocValues.push_back(copy);
+        }
         break;
     }
     case Opcode::ARR_SET:

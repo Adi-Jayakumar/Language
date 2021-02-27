@@ -241,7 +241,7 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     size_t varIndex = ResolveVariable(ai->name, ai->Loc());
 
-    if (!vars[varIndex].type.isArray)
+    if (!vars[varIndex].type.isArray && vars[varIndex].type.type != 4)
         TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
 
     TypeData indexType = ai->index->Type(*this);
@@ -250,10 +250,17 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     if (indexType != intType)
         TypeError(ai->Loc(), "Index into an array must have type int not " + ToString(indexType));
 
-    ai->t = vars[varIndex].type;
-    ai->t.isArray = false;
-
-    return ai->t;
+    if (vars[varIndex].type.isArray)
+    {
+        ai->t = vars[varIndex].type;
+        ai->t.isArray = false;
+        return ai->t;
+    }
+    else
+    {
+        ai->t = {false, 5};
+        return {false, 5};
+    }
 }
 
 TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)

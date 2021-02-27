@@ -186,7 +186,7 @@ RuntimeObject::RuntimeObject(char c)
     as.c = c;
 }
 
-void CopyRTO(RuntimeObject* copy, const RuntimeObject &rto)
+void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
     copy->state = rto.state;
     copy->t = rto.t;
