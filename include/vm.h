@@ -39,7 +39,9 @@ struct VM
     void ExecuteProgram();
     void ExecuteInstruction();
 
-    void NativePrint(int arity);
+    // native functions
+    void NativePrint(int arity);    // opcode: 0
+    void NativeToString(int); // opcode: 1
 };
 
 // #define GC_DEBUG_OUTPUT

@@ -1,35 +1,85 @@
 #include "runtimeobject.h"
 #define DUMMYCC RuntimeObject(255, "") // to silence compiler warnings -- never returned due to typechecking
 
+#define PRINT_ARRAY()                          \
+    do                                         \
+    {                                          \
+        RTArray arr = cc.as.arr;               \
+        out = out + "{";                       \
+                                               \
+        for (size_t i = 0; i < arr.size; i++)  \
+        {                                      \
+            out = out + ToString(arr.data[i]); \
+                                               \
+            if (i != arr.size - 1)             \
+                out = out + ", ";              \
+        }                                      \
+                                               \
+        out = out + "}";                       \
+    } while (false)
+
 std::string ToString(const RuntimeObject &cc)
 {
+    if (cc.state == GCSate::FREED)
+        return "";
+
+    std::string out;
+
     switch (cc.t.type)
     {
+    case 0:
+    {
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        break;
+    }
     case 1:
     {
-        return std::to_string(cc.as.i);
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        else
+            out = out + std::to_string(cc.as.i);
+        break;
     }
     case 2:
     {
-        return std::to_string(cc.as.d);
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        else
+            out = out + std::to_string(cc.as.d);
+        break;
     }
     case 3:
     {
-        if (cc.as.b)
-            return "true";
+        if (cc.t.isArray)
+            PRINT_ARRAY();
         else
-            return "false";
+        {
+            if (cc.as.b)
+                out = out + "true";
+            else
+                out = out + "false";
+        }
+        break;
     }
     case 4:
     {
-        return std::string(cc.as.str.data);
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        else
+            out = out + cc.as.str.data;
+        break;
     }
     case 5:
     {
-        return std::to_string(cc.as.c);
+        if (cc.t.isArray)
+            PRINT_ARRAY();
+        else
+            out = out + cc.as.c;
+        break;
     }
     }
-    return "";
+    return out;
 }
 
 bool IsTruthy(const RuntimeObject &cc)
@@ -193,81 +243,8 @@ void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
     copy->as = rto.as;
 }
 
-#define PRINT_ARRAY()                         \
-    do                                        \
-    {                                         \
-        RTArray arr = cc.as.arr;              \
-        out << "{";                           \
-                                              \
-        for (size_t i = 0; i < arr.size; i++) \
-        {                                     \
-            out << arr.data[i];               \
-                                              \
-            if (i != arr.size - 1)            \
-                out << ", ";                  \
-        }                                     \
-                                              \
-        out << "}";                           \
-    } while (false)
-
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 {
-    if (cc.state == GCSate::FREED)
-        return out;
-
-    switch (cc.t.type)
-    {
-    case 0:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        break;
-    }
-    case 1:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out << cc.as.i;
-        break;
-    }
-    case 2:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out << cc.as.d;
-        break;
-    }
-    case 3:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-        {
-            if (cc.as.b)
-                out << "true";
-            else
-                out << "false";
-        }
-        break;
-    }
-    case 4:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out << cc.as.str.data;
-        break;
-    }
-    case 5:
-    {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out << cc.as.c;
-        break;
-    }
-    }
+    out << ToString(cc);
     return out;
 }

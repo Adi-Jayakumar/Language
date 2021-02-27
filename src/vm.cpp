@@ -288,6 +288,10 @@ void VM::ExecuteInstruction()
             NativePrint(arityAsCC.as.i);
             break;
         }
+        case 1:
+        {
+            NativeToString(arityAsCC.as.i);
+        }
         default:
             break;
         }
@@ -716,4 +720,13 @@ void VM::NativePrint(int arity)
 
     std::cout << std::endl;
     stack.pop_N((size_t)arity);
+}
+
+void VM::NativeToString(int)
+{
+    RuntimeObject rtstr = RuntimeObject(ToString(*stack.back).data());
+    stack.pop_back();
+    RuntimeObject *copy = Allocate(1);
+    stack.push_back_copy(copy, rtstr);
+    RTAllocValues.push_back(copy);
 }
