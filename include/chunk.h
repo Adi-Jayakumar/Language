@@ -13,7 +13,7 @@ struct Chunk
 {
     uint8_t arity;
     std::vector<Op> code;
-    std::vector<RuntimeObject> constants;
+    std::vector<RuntimeObject> values;
     std::vector<CTVarID> vars;
     uint8_t depth = 1;
     Chunk() = default;

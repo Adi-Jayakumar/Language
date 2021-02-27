@@ -5,8 +5,8 @@
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     RuntimeObject copy = RuntimeObject(l->t, l->Loc().literal);
-    c.cur->constants.push_back(copy);
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
+    c.cur->values.push_back(copy);
+    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
@@ -94,8 +94,8 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     else
     {
         RuntimeObject arityAsCC = RuntimeObject(static_cast<int>(fc->args.size()));
-        c.cur->constants.push_back(arityAsCC);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
+        c.cur->values.push_back(arityAsCC);
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
         c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(index)});
     }
 }
@@ -122,9 +122,9 @@ void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
     TypeData arrT = ia->GetType();
     RuntimeObject arr = RuntimeObject(arrT, ia->size);
 
-    c.cur->constants.push_back(arr);
+    c.cur->values.push_back(arr);
 
-    size_t arrStackLoc = c.cur->constants.size() - 1;
+    size_t arrStackLoc = c.cur->values.size() - 1;
 
     if (arrStackLoc > UINT8_MAX)
         c.CompileError(ia->Loc(), "Too many variables");
@@ -211,8 +211,8 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
             }
             }
         }
-        c.cur->constants.push_back(def);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->constants.size() - 1)});
+        c.cur->values.push_back(def);
+        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
     }
 
     // add to the list of variables

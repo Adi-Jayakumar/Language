@@ -4,5 +4,5 @@ RuntimeFunction::RuntimeFunction(const Chunk &c)
 {
     arity = c.arity;
     code = c.code;
-    values = c.constants;
+    values = c.values;
 }

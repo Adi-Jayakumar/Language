@@ -7,7 +7,7 @@ void Chunk::PrintCode()
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
         {
-            std::cout << " '" << constants[o.op] << "' at index: " << +o.op;
+            std::cout << " '" << values[o.op] << "' at index: " << +o.op;
         }
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
         {
