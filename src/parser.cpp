@@ -142,6 +142,8 @@ std::shared_ptr<Stmt> Parser::Declaration()
         return VarDeclaration();
     else if (cur.type == TokenID::FUNC)
         return FuncDeclaration();
+    else if (cur.type == TokenID::STRUCT)
+        return ParseStructDecl();
     else
         return ExpressionStatement();
 }
@@ -243,6 +245,44 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Advance();
     std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, argtypes, paramIdentifiers, body, beg);
     return func;
+}
+
+std::shared_ptr<Stmt> Parser::ParseStructDecl()
+{
+    if (depth >= 1)
+        ParseError(cur, "Struct declarations are only allowed in the global region");
+
+    Token loc = cur;
+    Check(TokenID::STRUCT, "Struct declaration must begin with 'struct'");
+    Advance();
+
+    Check(TokenID::TYPENAME, "Struct declaration must be 'struct' followed by a type name");
+    std::string name = cur.literal;
+    Advance();
+
+    Check(TokenID::OPEN_BRACE, "Expect an open brace after struct declaration");
+    Advance();
+
+    std::vector<std::shared_ptr<Stmt>> decls;
+
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    {
+        try
+        {
+            decls.push_back(VarDeclaration());
+        }
+        catch (const std::exception &e)
+        {
+            hadError = true;
+            PanicMode({TokenID::SEMI, TokenID::END});
+            Advance();
+            std::cerr << e.what() << std::endl;
+        }
+    }
+
+    Check(TokenID::CLOSE_BRACE, "Missing close brace");
+    Advance();
+    return std::make_shared<StructDecl>(name, decls, loc);
 }
 
 // ----------------------STATEMENTS----------------------- //

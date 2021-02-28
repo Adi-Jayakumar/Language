@@ -236,7 +236,7 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
 {
     out << "struct " << sd->name << "\n{";
     for (auto &d : sd->decls)
-        out << "\t" << d << std::endl;
+        out << "\t" << d;
     out << "}";
 }
 

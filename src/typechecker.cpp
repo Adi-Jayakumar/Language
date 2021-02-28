@@ -543,3 +543,8 @@ TypeData Return::Type(TypeChecker &t)
 {
     return t.TypeOfReturn(this);
 }
+
+TypeData StructDecl::Type(TypeChecker &t)
+{
+    return t.TypeOfStructDecl(this);
+}
