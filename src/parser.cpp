@@ -55,7 +55,7 @@ TypeData Parser::ParseType(std::string err)
     {
         std::string sType = cur.literal;
         Advance();
-        return TypeNameMap[sType];
+        return GetTypeNameMap()[sType];
     }
     else if (cur.type == TokenID::ARRAY)
     {
@@ -66,7 +66,7 @@ TypeData Parser::ParseType(std::string err)
         Advance();
 
         Check(TokenID::TYPENAME, "Need a type name for now");
-        TypeData type = TypeNameMap[cur.literal];
+        TypeData type = GetTypeNameMap()[cur.literal];
 
         Advance();
 

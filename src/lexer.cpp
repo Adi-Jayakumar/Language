@@ -63,8 +63,13 @@ Token Lexer::NextToken()
                         j++;
                     }
                 }
-                TypeNameMap[name] = {false, NumTypes++};
-                TypeStringMap[NumTypes] = name;
+
+                if (NumTypes + 1 > UINT8_MAX)
+                    LexError("Too many struct declarations");
+
+                GetTypeStringMap()[NumTypes + 1] = name;
+                GetTypeNameMap()[name] = {false, static_cast<TypeID>(NumTypes + 1)};
+                NumTypes++;
             }
             return t;
         }
@@ -77,7 +82,7 @@ Token Lexer::NextToken()
                 index++;
             }
             // used for when custom types are added in the form of classes
-            if (TypeNameMap.find(name) != TypeNameMap.end())
+            if (GetTypeNameMap().find(name) != GetTypeNameMap().end())
                 return {TokenID::TYPENAME, name, line};
             else
                 return {TokenID::IDEN, name, line};

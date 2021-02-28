@@ -1,9 +1,21 @@
 #include "common.h"
 
+std::unordered_map<std::string, TypeData> &GetTypeNameMap()
+{
+    static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}, {"char", {false, 5}}};
+    return TypeNameMap;
+}
+
+std::unordered_map<TypeID, std::string> &GetTypeStringMap()
+{
+    static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "string"}, {5, "char"}};
+    return TypeStringMap;
+}
+
 std::string ToString(const TypeData &td)
 {
     std::string aString = (td.isArray ? "Array" : "");
-    return aString + "<" + TypeStringMap[td.type] + ">";
+    return aString + "<" + GetTypeStringMap()[td.type] + ">";
 }
 
 std::ostream &operator<<(std::ostream &out, const TypeData &td)
