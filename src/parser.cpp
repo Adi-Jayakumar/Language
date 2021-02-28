@@ -565,7 +565,7 @@ std::shared_ptr<Expr> Parser::ParseArrayInitialiser()
         }
 
         Check(TokenID::CLOSE_BRACE, "Missing '}'");
-        return std::make_shared<InlineArray>(init.size(), init, loc);
+        return std::make_shared<BracedInitialiser>(init.size(), init, loc);
     }
     else
     {

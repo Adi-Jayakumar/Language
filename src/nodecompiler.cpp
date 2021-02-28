@@ -115,7 +115,7 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
-void NodeCompiler::CompileInlineArray(InlineArray *ia, Compiler &c)
+void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
 {
     if (ia->size > UINT8_MAX)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
@@ -393,9 +393,9 @@ void ArrayIndex::NodeCompile(Compiler &c)
     NodeCompiler::CompileArrayIndex(this, c);
 }
 
-void InlineArray::NodeCompile(Compiler &c)
+void BracedInitialiser::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileInlineArray(this, c);
+    NodeCompiler::CompileBracedInitialiser(this, c);
 }
 
 void DynamicAllocArray::NodeCompile(Compiler &c)

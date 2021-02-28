@@ -19,7 +19,7 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("ex/test.txt");
+    // DumpTokens("ex/test.txt");
 
     std::cout << std::endl
               << std::endl;

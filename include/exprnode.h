@@ -1,8 +1,8 @@
 #pragma once
 #include "common.h"
 #include "token.h"
-#include <memory>
 #include <cstring>
+#include <memory>
 
 struct Compiler;
 struct TypeChecker;
@@ -142,13 +142,13 @@ struct ArrayIndex : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct InlineArray : Expr
+struct BracedInitialiser : Expr
 {
     Token loc;
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
 
-    InlineArray(size_t, std::vector<std::shared_ptr<Expr>>, Token);
+    BracedInitialiser(size_t, std::vector<std::shared_ptr<Expr>>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

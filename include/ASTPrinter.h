@@ -11,7 +11,7 @@ namespace ASTPrinter
     void PrintVarReference(VarReference *vr, std::ostream &out);
     void PrintFunctionCall(FunctionCall *fc, std::ostream &out);
     void PrintArrayIndex(ArrayIndex *ai, std::ostream &out);
-    void PrintInlineArray(InlineArray *ia, std::ostream &out);
+    void PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out);
     void PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out);
 
     // statment printing

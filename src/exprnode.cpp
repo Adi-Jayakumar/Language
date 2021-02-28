@@ -116,19 +116,19 @@ TypeData ArrayIndex::GetType()
     return t;
 }
 
-InlineArray::InlineArray(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
+BracedInitialiser::BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
 {
     size = _size;
     init = _init;
     loc = _loc;
 }
 
-Token InlineArray::Loc()
+Token BracedInitialiser::Loc()
 {
     return loc;
 }
 
-TypeData InlineArray::GetType()
+TypeData BracedInitialiser::GetType()
 {
     return t;
 }

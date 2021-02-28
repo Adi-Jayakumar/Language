@@ -13,7 +13,7 @@ namespace NodeCompiler
     void CompileVarReference(VarReference *vr, Compiler &c);
     void CompileFunctionCall(FunctionCall *fc, Compiler &c);
     void CompileArrayIndex(ArrayIndex *ai, Compiler &c);
-    void CompileInlineArray(InlineArray *ia, Compiler &c);
+    void CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c);
     void CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c);
 
     // statement compiling

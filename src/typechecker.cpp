@@ -70,24 +70,23 @@ void TypeChecker::CleanUpVariables()
 
 bool TypeChecker::IsTruthy(const TypeData &cond)
 {
-    if(cond.isArray)
+    if (cond.isArray)
         return false;
-    
+
     return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
 }
 
 bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
 {
-    if(varType.isArray != valType.isArray)
+    if (varType.isArray != valType.isArray)
         return false;
-    
-    if(varType.type == 1 && valType.type == 2)
+
+    if (varType.type == 1 && valType.type == 2)
         return true;
     else if (varType.type == 2 && valType.type == 1)
         return true;
     return varType == valType;
 }
-
 
 bool TypeChecker::MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied)
 {
@@ -213,7 +212,7 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
 
         targetAsVr->isArray = varType.isArray;
         targetAsVr->t = varType;
-        a->val->t =  varType;
+        a->val->t = varType;
         a->t = varType;
 
         return varType;
@@ -289,7 +288,7 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     }
 }
 
-TypeData TypeChecker::TypeOfInlineArray(InlineArray *ia)
+TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *ia)
 {
     if (ia->size == 0)
         return {false, 0};
@@ -497,9 +496,9 @@ TypeData ArrayIndex::Type(TypeChecker &t)
     return t.TypeOfArrayIndex(this);
 }
 
-TypeData InlineArray::Type(TypeChecker &t)
+TypeData BracedInitialiser::Type(TypeChecker &t)
 {
-    return t.TypeOfInlineArray(this);
+    return t.TypeOfBracedInitialiser(this);
 }
 
 TypeData DynamicAllocArray::Type(TypeChecker &t)

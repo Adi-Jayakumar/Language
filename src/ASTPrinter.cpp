@@ -114,7 +114,7 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
     out << "]";
 }
 
-void ASTPrinter::PrintInlineArray(InlineArray *ia, std::ostream &out)
+void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out)
 {
     out << ia->t << " {";
     for (size_t i = 0; i < ia->init.size(); i++)
@@ -277,9 +277,9 @@ void ArrayIndex::Print(std::ostream &out)
     ASTPrinter::PrintArrayIndex(this, out);
 }
 
-void InlineArray::Print(std::ostream &out)
+void BracedInitialiser::Print(std::ostream &out)
 {
-    ASTPrinter::PrintInlineArray(this, out);
+    ASTPrinter::PrintBracedInitialiser(this, out);
 }
 
 void DynamicAllocArray::Print(std::ostream &out)

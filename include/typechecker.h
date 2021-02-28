@@ -60,7 +60,7 @@ struct TypeChecker
     TypeData TypeOfVarReference(VarReference *vr);
     TypeData TypeOfFunctionCall(FunctionCall *fc);
     TypeData TypeOfArrayIndex(ArrayIndex *ai);
-    TypeData TypeOfInlineArray(InlineArray *ia);
+    TypeData TypeOfBracedInitialiser(BracedInitialiser *ia);
     TypeData TypeOfDynamicAllocArray(DynamicAllocArray *da);
 
     // statment typechecking
