@@ -34,7 +34,7 @@ size_t Lexer::LineSize()
 
 Token Lexer::NextToken()
 {
-    SkipWhiteSpace();
+    SkipWhiteSpace(index);
 
     if (index == src.length())
         return {TokenID::END, "", line};
@@ -48,6 +48,24 @@ Token Lexer::NextToken()
         if (CheckKeyword(t))
         {
             index += t.literal.length();
+
+            if (t.type == TokenID::STRUCT)
+            {
+                size_t j = index;
+                SkipWhiteSpace(j);
+
+                std::string name;
+                if (isalpha(src[j]))
+                {
+                    while (isalnum(src[j]))
+                    {
+                        name += src[j];
+                        j++;
+                    }
+                }
+                TypeNameMap[name] = {false, NumTypes++};
+                TypeStringMap[NumTypes] = name;
+            }
             return t;
         }
         else
@@ -226,13 +244,13 @@ Token Lexer::NextToken()
     return res;
 }
 
-void Lexer::SkipWhiteSpace()
+void Lexer::SkipWhiteSpace(size_t &i)
 {
-    while (isspace(src[index]))
+    while (isspace(src[i]))
     {
-        if (src[index] == '\n')
+        if (src[i] == '\n')
             line++;
-        index++;
+        i++;
     }
 }
 
@@ -292,7 +310,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 's':
     {
-        return MatchKeyWord("tring", TokenID::TYPENAME, tok);
+        return MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
     }
     case 't':
     {

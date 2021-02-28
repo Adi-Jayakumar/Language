@@ -1,10 +1,10 @@
 #pragma once
+#include "common.h"
 #include "perror.h"
 #include "token.h"
 #include <fstream>
 #include <streambuf>
 #include <string>
-#include "common.h"
 
 namespace IO
 {
@@ -17,6 +17,8 @@ struct Lexer
     size_t line;
     std::string src;
 
+    TypeID NumTypes = 5;
+
     Lexer(){};
     Lexer(const std::string &fPath);
 
@@ -27,7 +29,7 @@ struct Lexer
     // lexes the token starting from where the current character is
     Token NextToken();
 
-    void SkipWhiteSpace();
+    void SkipWhiteSpace(size_t &i);
     Token LexLiteral();
 
     Token LexNumber();

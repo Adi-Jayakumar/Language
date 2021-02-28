@@ -24,6 +24,7 @@ enum class TokenID : uint8_t
     
     ARRAY,
     WHILE,
+    STRUCT,
 
     // arithmetic operators
     PLUS,
