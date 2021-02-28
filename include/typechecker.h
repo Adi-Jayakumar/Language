@@ -38,7 +38,6 @@ struct TypeChecker
     bool IsVariableInScope(std::string &name);
     void CleanUpVariables();
 
-
     // returns true if that type can potentially be 'truthy'
     bool IsTruthy(const TypeData &cond);
 
@@ -72,4 +71,5 @@ struct TypeChecker
     TypeData TypeOfWhileStmt(WhileStmt *ws);
     TypeData TypeOfFuncDecl(FuncDecl *fd);
     TypeData TypeOfReturn(Return *r);
+    TypeData TypeOfStructDecl(StructDecl *sd);
 };

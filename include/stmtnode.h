@@ -116,3 +116,16 @@ struct Return : Stmt
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
+
+struct StructDecl : Stmt
+{
+    std::string name;
+    std::vector<std::shared_ptr<Stmt>> decls;
+    StructDecl(std::string &, std::vector<std::shared_ptr<Stmt>> &, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
+    void NodeCompile(Compiler &c) override;
+};

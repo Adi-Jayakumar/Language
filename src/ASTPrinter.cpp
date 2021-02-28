@@ -232,6 +232,14 @@ void ASTPrinter::PrintReturn(Return *r, std::ostream &out)
     return;
 }
 
+void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
+{
+    out << "struct " << sd->name << "\n{";
+    for (auto &d : sd->decls)
+        out << "\t" << d << std::endl;
+    out << "}";
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)
@@ -314,4 +322,9 @@ void FuncDecl::Print(std::ostream &out)
 void Return::Print(std::ostream &out)
 {
     ASTPrinter::PrintReturn(this, out);
+}
+
+void StructDecl::Print(std::ostream &out)
+{
+    ASTPrinter::PrintStructDecl(this, out);
 }

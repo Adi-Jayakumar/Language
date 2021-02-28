@@ -455,6 +455,11 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
     return r->retVal->Type(*this);
 }
 
+TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
+{
+    return {false, UINT8_MAX};
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeData Literal::Type(TypeChecker &t)

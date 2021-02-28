@@ -351,6 +351,11 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
     }
 }
 
+void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
+{
+    return;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::NodeCompile(Compiler &c)
@@ -443,4 +448,9 @@ void FuncDecl::NodeCompile(Compiler &c)
 void Return::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileReturn(this, c);
+}
+
+void StructDecl::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileStructDecl(this, c);
 }

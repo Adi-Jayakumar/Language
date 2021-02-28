@@ -87,3 +87,15 @@ Token Return::Loc()
 {
     return loc;
 }
+
+StructDecl::StructDecl(std::string &_name, std::vector<std::shared_ptr<Stmt>> &_decls, Token _loc)
+{
+    name = _name;
+    decls = _decls;
+    loc = _loc;
+}
+
+Token StructDecl::Loc()
+{
+    return loc;
+}

@@ -126,3 +126,8 @@ bool Return::DoesReturn(TypeData ret, ReturnChecker &rc)
 {
     return rc.ReturnCheckReturn(this, ret);
 }
+
+bool StructDecl::DoesReturn(TypeData, ReturnChecker &)
+{
+    return false;
+}
