@@ -116,7 +116,8 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
 
 void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out)
 {
-    out << ia->t << " {";
+    std::string open = ia->isStruct ? " struct{" : "{";
+    out << ia->t << open;
     for (size_t i = 0; i < ia->init.size(); i++)
     {
         ia->init[i]->Print(out);

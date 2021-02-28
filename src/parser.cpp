@@ -501,9 +501,9 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         Advance();
         return std::make_shared<VarReference>(loc);
     }
-    else if (cur.type == TokenID::OPEN_BRACE || cur.type == TokenID::ARRAY)
+    else if (cur.type == TokenID::OPEN_BRACE || cur.type == TokenID::ARRAY || cur.type == TokenID::STRUCT)
     {
-        res = ParseArrayInitialiser();
+        res = ParseBracedInitialiser();
     }
     else
         ParseError(cur, "Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
@@ -550,9 +550,16 @@ std::shared_ptr<Expr> Parser::ParseArrayIndex()
     return std::make_shared<ArrayIndex>(name, index, loc);
 }
 
-std::shared_ptr<Expr> Parser::ParseArrayInitialiser()
+std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
 {
     Token loc = cur;
+    bool isStruct = false;
+
+    if (cur.type == TokenID::STRUCT)
+    {
+        isStruct = true;
+        Advance();
+    }
     if (cur.type == TokenID::OPEN_BRACE)
     {
         std::vector<std::shared_ptr<Expr>> init;
@@ -565,7 +572,7 @@ std::shared_ptr<Expr> Parser::ParseArrayInitialiser()
         }
 
         Check(TokenID::CLOSE_BRACE, "Missing '}'");
-        return std::make_shared<BracedInitialiser>(init.size(), init, loc);
+        return std::make_shared<BracedInitialiser>(init.size(), init, isStruct, loc);
     }
     else
     {

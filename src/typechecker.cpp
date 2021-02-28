@@ -293,16 +293,12 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *ia)
     if (ia->size == 0)
         return {false, 0};
 
-    TypeData first = ia->init[0]->Type(*this);
-
-    for (size_t i = 1; i < ia->init.size(); i++)
+    std::vector<TypeData> types;
+    for (auto &e : ia->init)
     {
         try
         {
-            TypeData curType = ia->init[i]->Type(*this);
-
-            if (first != curType)
-                TypeError(ia->init[i]->Loc(), "Type of elements must match in an inline array");
+            types.push_back(e->Type(*this));
         }
         catch (const std::exception &e)
         {
@@ -310,11 +306,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *ia)
             std::cerr << e.what() << std::endl;
         }
     }
-
-    ia->t = first;
-    ia->t.isArray = true;
-
-    return ia->t;
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
@@ -456,6 +448,26 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
 
 TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 {
+    StructID s;
+    for (auto &d : sd->decls)
+    {
+        try
+        {
+            d->Type(*this);
+            DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
+
+            if (asDV == nullptr)
+                TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
+
+            s.members.push_back(asDV->t);
+        }
+        catch (std::exception &e)
+        {
+            hadError = true;
+            std::cerr << e.what() << std::endl;
+        }
+    }
+    structTypes.push_back(s);
     return {false, 0};
 }
 

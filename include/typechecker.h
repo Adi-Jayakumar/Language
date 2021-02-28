@@ -17,6 +17,11 @@ struct FuncID
     std::vector<TypeData> argtypes;
 };
 
+struct StructID
+{
+    std::vector<TypeData> members;
+};
+
 struct TypeChecker
 {
     uint8_t depth;
@@ -24,6 +29,7 @@ struct TypeChecker
     size_t funcVarBegin = 0;
     std::vector<VarID> vars;
     std::vector<FuncID> funcs{{{false, 0}, "Print", {{true, 0}}}, {{false, 4}, "ToString", {{false, 0}}}};
+    std::vector<StructID> structTypes;
 
     bool hadError = false;
 

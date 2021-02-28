@@ -146,9 +146,10 @@ struct BracedInitialiser : Expr
 {
     Token loc;
     size_t size;
+    bool isStruct;
     std::vector<std::shared_ptr<Expr>> init;
 
-    BracedInitialiser(size_t, std::vector<std::shared_ptr<Expr>>, Token);
+    BracedInitialiser(size_t, std::vector<std::shared_ptr<Expr>>, bool, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

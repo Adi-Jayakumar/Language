@@ -116,11 +116,12 @@ TypeData ArrayIndex::GetType()
     return t;
 }
 
-BracedInitialiser::BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
+BracedInitialiser::BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, bool _isStruct, Token _loc)
 {
     size = _size;
     init = _init;
     loc = _loc;
+    isStruct = _isStruct;
 }
 
 Token BracedInitialiser::Loc()

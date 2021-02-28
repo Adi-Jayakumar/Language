@@ -50,7 +50,7 @@ struct Parser
     // parses any expression
     std::shared_ptr<Expr> Expression();
     // parses an inline array
-    std::shared_ptr<Expr> ParseArrayInitialiser();
+    std::shared_ptr<Expr> ParseBracedInitialiser();
     // parses any function call
     std::shared_ptr<Expr> FuncCall();
     // parses an array index expression
