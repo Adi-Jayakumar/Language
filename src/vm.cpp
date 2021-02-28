@@ -21,10 +21,14 @@ VM::~VM()
     for (RuntimeFunction &rtf : functions)
     {
         for (RuntimeObject &rto : rtf.values)
-            GC::FreeObject(&rto);
+        {
+            if (rto.state != GCSate::FREED)
+                GC::FreeObject(&rto);
+        }
     }
     for (size_t i = 0; i < RTAllocValues.count; i++)
         GC::DestroyObject(RTAllocValues[i]);
+
 #endif
 }
 

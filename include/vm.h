@@ -44,7 +44,7 @@ struct VM
     void NativeToString(int); // opcode: 1
 };
 
-// #define GC_DEBUG_OUTPUT
+#define GC_DEBUG_OUTPUT
 // #define GC_STRESS_TEST
 // garbage collector for VM
 namespace GC
