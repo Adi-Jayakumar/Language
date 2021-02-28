@@ -177,7 +177,7 @@ TypeData TypeChecker::TypeOfUnary(Unary *u)
     else
         TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + ToString(opType));
 
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfBinary(Binary *b)
@@ -193,7 +193,7 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     }
     else
         TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + ToString(lType) + " and: " + ToString(rType));
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfAssign(Assign *a)
@@ -353,7 +353,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 
         dv->value->t = varType;
     }
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfBlock(Block *b)
@@ -377,7 +377,7 @@ TypeData TypeChecker::TypeOfBlock(Block *b)
     }
     // CleanUpVariables();
     depth--;
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
@@ -390,7 +390,7 @@ TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
     if (i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
 
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
@@ -399,7 +399,7 @@ TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
         TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
 
     ws->body->Type(*this);
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
@@ -442,7 +442,7 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     CleanUpVariables();
     funcVarBegin = 0;
     depth--;
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfReturn(Return *r)
@@ -456,7 +456,7 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
 
 TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 {
-    return {false, UINT8_MAX};
+    return {false, 0};
 }
 
 //-----------------EXPRESSIONS---------------------//
