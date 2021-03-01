@@ -21,6 +21,7 @@ struct StructID
 {
     TypeData type;
     std::vector<TypeData> members;
+    std::unordered_map<std::string, TypeData> nameTypes;
 };
 
 struct TypeChecker

@@ -321,30 +321,42 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
         }
     }
 
-    if (!bi->isStruct)
+    TypeData voidType = {false, 0};
+    if (bi->t == voidType)
     {
-        for (size_t i = 1; i < types.size(); i++)
+        TypeData first = bi->init[0]->Type(*this);
+        for (size_t i = 0; i < bi->init.size(); i++)
         {
-            if (!CanAssign(types[i], types[0]))
-                TypeError(bi->init[i]->Loc(), "All types in a braced initialised must be assignable to one another");
+            if (!CanAssign(first, bi->init[i]->Type(*this)))
+                TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
         }
-        bi->t = types[0];
+        bi->t = first;
         bi->t.isArray = true;
         return bi->t;
     }
     else
     {
-        for (size_t j = 0; j < structTypes.size(); j++)
+        TypeData toComapre = bi->t;
+        if (bi->t.isArray)
+            toComapre.isArray = false;
+        else
         {
-            if (MatchInitialiserToStruct(structTypes[j].members, types))
+            if(bi->t.type < NUM_DEF_TYPES)
+                TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t));
+
+            for(size_t i = 0; i < structTypes.size(); i++)
             {
-                bi->t = structTypes[j].type;
-                return structTypes[j].type;
+                if(structTypes[i].type == bi->t && MatchInitialiserToStruct(structTypes[i].members, types))
+                    return structTypes[i].type;
             }
         }
 
-        TypeError(bi->Loc(), "Braced initialiser for struct matches no declared struct");
-        return {false, 0};
+        for (size_t i = 0; i < bi->init.size(); i++)
+        {
+            if (!CanAssign(toComapre, bi->init[i]->Type(*this)))
+                TypeError(bi->init[i]->Loc(), "Type of expression " + ToString(bi->init[i]->t) + " in a braced initialiser must be assignable to the type specified at its beginning " + ToString(bi->t));
+        }
+        return bi->t;
     }
 }
 
@@ -507,6 +519,7 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
                 TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
 
             s.members.push_back(asDV->t);
+            s.nameTypes[asDV->name] = asDV->t;
         }
         catch (std::exception &e)
         {

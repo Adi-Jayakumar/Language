@@ -6,6 +6,8 @@
 
 typedef uint8_t TypeID;
 
+#define NUM_DEF_TYPES 6U
+
 // map from literal TokenIDs to
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::INT_L, 1},

@@ -34,40 +34,40 @@ int main()
     for (auto &s : res)
         std::cout << s.get() << std::endl;
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    // TypeChecker t = TypeChecker();
-    // for (auto &s : res)
-    // {
-    //     t.TypeCheck(s);
-    // }
+    TypeChecker t = TypeChecker();
+    for (auto &s : res)
+    {
+        t.TypeCheck(s);
+    }
 
-    // if (t.hadError)
-    //     exit(3);
+    if (t.hadError)
+        exit(3);
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    // ReturnChecker rc;
-    // for (auto &s : res)
-    // {
-    //     FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
-    //     TypeData voidType = {false, 0};
-    //     if (asFunc && asFunc->ret != voidType)
-    //     {
-    //         asFunc->DoesReturn(asFunc->ret, rc);
-    //     }
-    // }
+    ReturnChecker rc;
+    for (auto &s : res)
+    {
+        FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
+        TypeData voidType = {false, 0};
+        if (asFunc && asFunc->ret != voidType)
+        {
+            asFunc->DoesReturn(asFunc->ret, rc);
+        }
+    }
 
-    // if (rc.hadError)
-    //     exit(4);
+    if (rc.hadError)
+        exit(4);
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
     // Compiler c = Compiler();
     // size_t mainIndex = c.Compile(res);
