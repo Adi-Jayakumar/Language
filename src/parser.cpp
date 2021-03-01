@@ -374,7 +374,23 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
-    return Assignment();
+    return ParseFieldAccess();
+}
+
+std::shared_ptr<Expr> Parser::ParseFieldAccess()
+{
+    std::shared_ptr<Expr> left = Assignment();
+    Token loc = cur;
+
+    while (cur.type == TokenID::DOT)
+    {
+        Advance();
+        std::shared_ptr<Expr> right = Assignment();
+        left = std::make_shared<FieldAccess>(left, right, loc);
+        loc = cur;
+    }
+
+    return left;
 }
 
 std::shared_ptr<Expr> Parser::Assignment()

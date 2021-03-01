@@ -22,7 +22,6 @@ struct Parser
     // checks t has same type as cur.type, gives an error
     void Check(TokenID t, std::string err);
 
-
     // parses a type eg. 'int', 'bool', 'Array<int>', etc...
     TypeData ParseType(std::string err);
 
@@ -49,6 +48,8 @@ struct Parser
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses any expression
     std::shared_ptr<Expr> Expression();
+    // parses any field access
+    std::shared_ptr<Expr> ParseFieldAccess();
     // parses an inline array
     std::shared_ptr<Expr> ParseBracedInitialiser();
     // parses any function call
