@@ -134,6 +134,14 @@ void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out
     out << "]";
 }
 
+void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
+{
+    out << fa->t << " ";
+    fa->accessor->Print(out);
+    out << ".";
+    fa->accessee->Print(out);
+}
+
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
@@ -286,6 +294,11 @@ void BracedInitialiser::Print(std::ostream &out)
 void DynamicAllocArray::Print(std::ostream &out)
 {
     ASTPrinter::PrintDynamicAllocArray(this, out);
+}
+
+void FieldAccess::Print(std::ostream &out)
+{
+    ASTPrinter::PrintFieldAccess(this, out);
 }
 
 //------------------STATEMENTS---------------------//

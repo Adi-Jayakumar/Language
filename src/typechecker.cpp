@@ -359,6 +359,11 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
     return da->t;
 }
 
+TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
+{
+    return {false, 0};
+}
+
 //------------------STATEMENTS---------------------//
 
 TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
@@ -561,6 +566,11 @@ TypeData BracedInitialiser::Type(TypeChecker &t)
 TypeData DynamicAllocArray::Type(TypeChecker &t)
 {
     return t.TypeOfDynamicAllocArray(this);
+}
+
+TypeData FieldAccess::Type(TypeChecker &t)
+{
+    return t.TypeOfFieldAccess(this);
 }
 
 //------------------STATEMENTS---------------------//

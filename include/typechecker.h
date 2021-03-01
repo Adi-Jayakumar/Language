@@ -71,6 +71,7 @@ struct TypeChecker
     TypeData TypeOfArrayIndex(ArrayIndex *ai);
     TypeData TypeOfBracedInitialiser(BracedInitialiser *ia);
     TypeData TypeOfDynamicAllocArray(DynamicAllocArray *da);
+    TypeData TypeOfFieldAccess(FieldAccess *fa);
 
     // statment typechecking
     TypeData TypeOfExprStmt(ExprStmt *es);

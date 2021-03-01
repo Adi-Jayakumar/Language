@@ -154,6 +154,11 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
     c.cur->code.push_back({Opcode::ARR_ALLOC, 0});
 }
 
+void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
+{
+    return;
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -401,6 +406,11 @@ void BracedInitialiser::NodeCompile(Compiler &c)
 void DynamicAllocArray::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileDynamicAllocArray(this, c);
+}
+
+void FieldAccess::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileFieldAccess(this, c);
 }
 
 //------------------STATEMENTS---------------------//

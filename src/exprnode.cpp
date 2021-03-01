@@ -150,3 +150,20 @@ TypeData DynamicAllocArray::GetType()
 {
     return t;
 }
+
+FieldAccess::FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc)
+{
+    accessor = _accessor;
+    accessee = _accessee;
+    loc = _loc;
+}
+
+Token FieldAccess::Loc()
+{
+    return loc;
+}
+
+TypeData FieldAccess::GetType()
+{
+    return t;
+}

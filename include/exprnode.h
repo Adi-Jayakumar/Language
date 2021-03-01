@@ -171,3 +171,18 @@ struct DynamicAllocArray : Expr
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
+
+struct FieldAccess : Expr
+{
+    Token loc;
+    std::shared_ptr<Expr> accessor;
+    std::shared_ptr<Expr> accessee;
+
+    FieldAccess(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    TypeData GetType() override;
+    void NodeCompile(Compiler &c) override;
+};
