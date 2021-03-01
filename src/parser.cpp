@@ -517,10 +517,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         Advance();
         return std::make_shared<VarReference>(loc);
     }
-    else if (cur.type == TokenID::OPEN_BRACE || cur.type == TokenID::ARRAY || cur.type == TokenID::STRUCT)
-    {
+    else if (cur.type == TokenID::TYPENAME || cur.type == TokenID::ARRAY || cur.type == TokenID::OPEN_BRACE)
         res = ParseBracedInitialiser();
-    }
     else
         ParseError(cur, "Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
     Advance();
@@ -569,38 +567,32 @@ std::shared_ptr<Expr> Parser::ParseArrayIndex()
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
 {
     Token loc = cur;
-    bool isStruct = false;
+    TypeData type = {false, 0};
 
-    if (cur.type == TokenID::STRUCT)
+    if (cur.type != TokenID::OPEN_BRACE)
+        type = ParseType("Malformed type in brace initialiser");
+
+    if (cur.type == TokenID::OPEN_SQ)
     {
-        isStruct = true;
         Advance();
-    }
-    if (cur.type == TokenID::OPEN_BRACE)
-    {
-        std::vector<std::shared_ptr<Expr>> init;
-
-        while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
-        {
-            Advance();
-            if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
-                init.push_back(Expression());
-        }
-
-        Check(TokenID::CLOSE_BRACE, "Missing '}'");
-        return std::make_shared<BracedInitialiser>(init.size(), init, isStruct, loc);
-    }
-    else
-    {
-        Check(TokenID::ARRAY, "Expect 'Array' at the beginning of dynamically allocated array");
-        TypeData arrT = ParseType("Dynamically allocated array is declared with a type name");
-
-        Check(TokenID::OPEN_SQ, "Expect size of dynamically allocated array wrapped in square brackets");
-        Advance();
-
-        std::shared_ptr<Expr> size = Expression();
-
+        std::shared_ptr<Expr> index = Expression();
         Check(TokenID::CLOSE_SQ, "Missing ']'");
-        return std::make_shared<DynamicAllocArray>(arrT, size, loc);
+        return std::make_shared<DynamicAllocArray>(type, index, loc);
     }
+
+    Check(TokenID::OPEN_BRACE, "Braced initialiser starts with a type name and an open brace");
+    // Advance();
+    std::vector<std::shared_ptr<Expr>> init;
+
+    while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
+    {
+        Advance();
+        if (cur.type != TokenID::COMMA && cur.type != TokenID::CLOSE_BRACE)
+            init.push_back(Expression());
+    }
+
+    Check(TokenID::CLOSE_BRACE, "Missing close brace");
+    std::shared_ptr<Expr> res = std::make_shared<BracedInitialiser>(init.size(), init, loc);
+    res->t = type;
+    return res;
 }
