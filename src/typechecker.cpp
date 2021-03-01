@@ -157,6 +157,20 @@ size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &ar
     return SIZE_MAX;
 }
 
+bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
+{
+    if (member.size() != init.size())
+        return false;
+
+    for (size_t i = 0; i < member.size(); i++)
+    {
+        if (!CanAssign(member[i], init[i]))
+            return false;
+    }
+
+    return true;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeData TypeChecker::TypeOfLiteral(Literal *l)
@@ -288,13 +302,13 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     }
 }
 
-TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *ia)
+TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
 {
-    if (ia->size == 0)
+    if (bi->size == 0)
         return {false, 0};
 
     std::vector<TypeData> types;
-    for (auto &e : ia->init)
+    for (auto &e : bi->init)
     {
         try
         {
@@ -306,7 +320,32 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *ia)
             std::cerr << e.what() << std::endl;
         }
     }
-    return {false, 0};
+
+    if (!bi->isStruct)
+    {
+        for (size_t i = 1; i < types.size(); i++)
+        {
+            if (!CanAssign(types[i], types[0]))
+                TypeError(bi->init[i]->Loc(), "All types in a braced initialised must be assignable to one another");
+        }
+        bi->t = types[0];
+        bi->t.isArray = true;
+        return bi->t;
+    }
+    else
+    {
+        for (size_t j = 0; j < structTypes.size(); j++)
+        {
+            if (MatchInitialiserToStruct(structTypes[j].members, types))
+            {
+                bi->t = structTypes[j].type;
+                return structTypes[j].type;
+            }
+        }
+
+        TypeError(bi->Loc(), "Braced initialiser for struct matches no declared struct");
+        return {false, 0};
+    }
 }
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
@@ -341,7 +380,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         TypeData valType = dv->value->Type(*this);
 
         if (!CanAssign(valType, varType))
-            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(varType) + " to variable: '" + dv->name + "' of type: " + ToString(valType));
+            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
 
         dv->value->t = varType;
     }
@@ -448,7 +487,10 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
 
 TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 {
+    depth++;
+
     StructID s;
+    s.type = GetTypeNameMap()[sd->name];
     for (auto &d : sd->decls)
     {
         try
@@ -468,6 +510,9 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
         }
     }
     structTypes.push_back(s);
+
+    CleanUpVariables();
+    depth--;
     return {false, 0};
 }
 

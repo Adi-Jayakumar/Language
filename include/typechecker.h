@@ -19,6 +19,7 @@ struct FuncID
 
 struct StructID
 {
+    TypeData type;
     std::vector<TypeData> members;
 };
 
@@ -57,6 +58,8 @@ struct TypeChecker
     size_t ResolveNativeFunctions(std::string &name, std::vector<TypeData> &argTypes);
     // resolve functions
     size_t ResolveFunction(std::string &name, std::vector<TypeData> &argtypes);
+    // determines whether the initialiser matches that struct
+    bool MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init);
 
     // expression typechecking
     TypeData TypeOfLiteral(Literal *l);
