@@ -21,6 +21,7 @@ enum class TokenID : uint8_t
     // return keyword
     RETURN,
     COMMA,
+    DOT,
     
     ARRAY,
     WHILE,

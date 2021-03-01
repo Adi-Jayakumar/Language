@@ -45,6 +45,10 @@ std::string ToString(const TokenID &t)
     {
         return "COMMA";
     }
+    case TokenID::DOT:
+    {
+        return "DOT";
+    }
     case TokenID::ARRAY:
     {
         return "ARRAY";

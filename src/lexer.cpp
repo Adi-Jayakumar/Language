@@ -197,6 +197,11 @@ Token Lexer::NextToken()
         res = {TokenID::COMMA, ",", line};
         break;
     }
+    case '.':
+    {
+        res = {TokenID::DOT, ".", line};
+        break;
+    }
     case '"':
     {
         size_t start = index + 1;
