@@ -17,7 +17,7 @@ struct Lexer
     size_t line;
     std::string src;
 
-    TypeID NumTypes = 5;
+    TypeID NumTypes = 6;
 
     Lexer(){};
     Lexer(const std::string &fPath);

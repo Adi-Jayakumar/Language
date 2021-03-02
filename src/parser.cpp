@@ -395,8 +395,10 @@ std::shared_ptr<Expr> Parser::Assignment()
         }
         else if (dynamic_cast<ArrayIndex *>(exp.get()) != nullptr)
             return std::make_shared<Assign>(exp, val, loc);
+        else if (dynamic_cast<BracedInitialiser *>(val.get()) != nullptr)
+            return std::make_shared<Assign>(exp, val, loc);
         else
-            ParseError(cur, "Invalid assignment target");
+            ParseError(cur, "Invalid assignment target/value");
     }
     return exp;
 }
@@ -498,7 +500,7 @@ std::shared_ptr<Expr> Parser::ParseFieldAccess()
 std::shared_ptr<Expr> Parser::LiteralNode()
 {
     std::shared_ptr<Expr> res = nullptr;
-    if (IsLiteral(cur))
+    if (cur.type == TokenID::NULL_T || IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();

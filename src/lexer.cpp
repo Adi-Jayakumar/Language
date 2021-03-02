@@ -314,6 +314,10 @@ bool Lexer::CheckKeyword(Token &tok)
     {
         return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
     }
+    case 'n':
+    {
+        return MatchKeyWord("ull", TokenID::NULL_T, tok);
+    }
     case 'r':
     {
         return MatchKeyWord("eturn", TokenID::RETURN, tok);

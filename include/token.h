@@ -22,6 +22,7 @@ enum class TokenID : uint8_t
     RETURN,
     COMMA,
     DOT,
+    NULL_T,
     
     ARRAY,
     WHILE,

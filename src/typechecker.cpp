@@ -81,7 +81,9 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
     if (varType.isArray != valType.isArray)
         return false;
 
-    if (varType.type == 1 && valType.type == 2)
+    if (varType.type == 6 || valType.type == 6)
+        return true;
+    else if (varType.type == 1 && valType.type == 2)
         return true;
     else if (varType.type == 2 && valType.type == 1)
         return true;
@@ -242,10 +244,15 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
         return varType;
     }
 
-    ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
-    TypeData targetType = targetAsAi->Type(*this);
+    // ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
+    // TypeData targetType = targetAsAi->Type(*this);
+    // if (!CanAssign(targetType, valType))
+    //     TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
+
+    TypeData targetType = a->target->Type(*this);
     if (!CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
+
     return targetType;
 }
 
@@ -354,6 +361,8 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
             toComapre.isArray = false;
         else
         {
+            std::cout << "braced init type " << bi->t << std::endl;
+            std::cout << "braced init lit " << bi->t.isArray << " " << +bi->t.type << std::endl;
             if (bi->t.type < NUM_DEF_TYPES)
                 TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
 
