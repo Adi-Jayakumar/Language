@@ -374,23 +374,7 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
-    return ParseFieldAccess();
-}
-
-std::shared_ptr<Expr> Parser::ParseFieldAccess()
-{
-    std::shared_ptr<Expr> left = Assignment();
-    Token loc = cur;
-
-    while (cur.type == TokenID::DOT)
-    {
-        Advance();
-        std::shared_ptr<Expr> right = Assignment();
-        left = std::make_shared<FieldAccess>(left, right, loc);
-        loc = cur;
-    }
-
-    return left;
+    return Assignment();
 }
 
 std::shared_ptr<Expr> Parser::Assignment()
@@ -492,7 +476,23 @@ std::shared_ptr<Expr> Parser::UnaryOp()
         return right;
     }
 
-    return LiteralNode();
+    return ParseFieldAccess();
+}
+
+std::shared_ptr<Expr> Parser::ParseFieldAccess()
+{
+    std::shared_ptr<Expr> left = LiteralNode();
+    Token loc = cur;
+
+    while (cur.type == TokenID::DOT)
+    {
+        Advance();
+        std::shared_ptr<Expr> right = LiteralNode();
+        left = std::make_shared<FieldAccess>(left, right, loc);
+        loc = cur;
+    }
+
+    return left;
 }
 
 std::shared_ptr<Expr> Parser::LiteralNode()
@@ -514,13 +514,13 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     else if (cur.type == TokenID::IDEN)
     {
         Token loc = cur;
-        Advance();
-        return std::make_shared<VarReference>(loc);
+        res = std::make_shared<VarReference>(loc);
     }
     else if (cur.type == TokenID::TYPENAME || cur.type == TokenID::ARRAY || cur.type == TokenID::OPEN_BRACE)
         res = ParseBracedInitialiser();
     else
         ParseError(cur, "Misplaced token on line: " + std::to_string(cur.line) + "\nToken: '" + cur.literal + "'");
+
     Advance();
     return res;
 }

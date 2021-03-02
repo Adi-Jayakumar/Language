@@ -171,6 +171,16 @@ bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, 
     return true;
 }
 
+size_t TypeChecker::FindStruct(const TypeData &structT)
+{
+    for (size_t i = 0; i < structTypes.size(); i++)
+    {
+        if (structTypes[i].type == structT)
+            return i;
+    }
+    return SIZE_MAX;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeData TypeChecker::TypeOfLiteral(Literal *l)
@@ -307,6 +317,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     if (bi->size == 0)
         return {false, 0};
 
+    // getting types of braced initialiser
     std::vector<TypeData> types;
     for (auto &e : bi->init)
     {
@@ -322,6 +333,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     }
 
     TypeData voidType = {false, 0};
+    // if not declared with a type checks to see if it is an array
     if (bi->t == voidType)
     {
         TypeData first = bi->init[0]->Type(*this);
@@ -334,6 +346,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
         bi->t.isArray = true;
         return bi->t;
     }
+    // otherwise checks to see if elements match the required type
     else
     {
         TypeData toComapre = bi->t;
@@ -341,12 +354,12 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
             toComapre.isArray = false;
         else
         {
-            if(bi->t.type < NUM_DEF_TYPES)
-                TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t));
+            if (bi->t.type < NUM_DEF_TYPES)
+                TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
 
-            for(size_t i = 0; i < structTypes.size(); i++)
+            for (size_t i = 0; i < structTypes.size(); i++)
             {
-                if(structTypes[i].type == bi->t && MatchInitialiserToStruct(structTypes[i].members, types))
+                if (structTypes[i].type == bi->t && MatchInitialiserToStruct(structTypes[i].members, types))
                     return structTypes[i].type;
             }
         }
@@ -373,6 +386,35 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 
 TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
 {
+    TypeData accessorType = fa->accessor->Type(*this);
+    std::cout << "accessor type " << accessorType << std::endl;
+
+    size_t structIndex = FindStruct(accessorType);
+
+    if (structIndex == SIZE_MAX)
+        TypeError(fa->Loc(), "Type " + ToString(accessorType) + " cannot be accesed into");
+
+    StructID s = structTypes[structIndex];
+
+    depth++;
+
+    for (const auto &kv : s.nameTypes)
+        vars.push_back({kv.second, kv.first, depth});
+
+    try
+    {
+        TypeData accesseeType = fa->accessee->Type(*this);
+        std::cout << "accessee type " << accesseeType << std::endl;
+        fa->t = accesseeType;
+        CleanUpVariables();
+        return accesseeType;
+    }
+    catch (const std::exception &e)
+    {
+        hadError = true;
+        std::cerr << "Invalid struct field access:" << std::endl
+                  << e.what() << std::endl;
+    }
     return {false, 0};
 }
 

@@ -61,6 +61,8 @@ struct TypeChecker
     size_t ResolveFunction(std::string &name, std::vector<TypeData> &argtypes);
     // determines whether the initialiser matches that struct
     bool MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init);
+    // find struct
+    size_t FindStruct(const TypeData &structT);
 
     // expression typechecking
     TypeData TypeOfLiteral(Literal *l);
