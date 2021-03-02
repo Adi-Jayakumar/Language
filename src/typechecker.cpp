@@ -244,11 +244,6 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
         return varType;
     }
 
-    // ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
-    // TypeData targetType = targetAsAi->Type(*this);
-    // if (!CanAssign(targetType, valType))
-    //     TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
-
     TypeData targetType = a->target->Type(*this);
     if (!CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
