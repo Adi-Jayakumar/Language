@@ -38,7 +38,7 @@ void GC::MarkObject(RuntimeObject *rto)
 
     rto->state = GCSate::MARKED;
 
-    if (rto->t.isArray)
+    if (rto->t == RuntimeType::ARRAY)
     {
         for (size_t i = 0; i < rto->as.arr.size; i++)
             MarkObject(&rto->as.arr.data[i]);
@@ -53,14 +53,14 @@ void GC::FreeObject(RuntimeObject *rto)
 
     rto->state = GCSate::FREED;
 
-    if (rto->t.isArray)
+    if (rto->t == RuntimeType::ARRAY)
     {
         RTArray *arr = &rto->as.arr;
         for (size_t i = 0; i < arr->size; i++)
             FreeObject(&arr->data[i]);
         free(arr->data);
     }
-    else if (rto->t.type == 4)
+    else if (rto->t == RuntimeType::STRING)
     {
         RTString *str = &rto->as.str;
         free(str->data);
@@ -74,7 +74,7 @@ void GC::DestroyObject(RuntimeObject *rto)
 #endif
     if (rto->state != GCSate::FREED)
     {
-        if (rto->t.isArray)
+        if (rto->t == RuntimeType::ARRAY)
         {
             RTArray *arr = &rto->as.arr;
             for (size_t i = 0; i < arr->size; i++)

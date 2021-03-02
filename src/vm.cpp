@@ -41,13 +41,13 @@ void VM::PrintStack()
 
 RuntimeObject *VM::Allocate(size_t size)
 {
-    GC::GarbageCollect(this);
+    // GC::GarbageCollect(this);
     return (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
 }
 
 char *VM::StringAllocate(size_t size)
 {
-    GC::GarbageCollect(this);
+    // GC::GarbageCollect(this);
     return (char *)malloc(size * sizeof(char));
 }
 
@@ -174,16 +174,16 @@ void VM::ExecuteInstruction()
         stack.pop_back();
         RuntimeObject *array = stack.back;
 
-        if (array->t.type == 0)
+        if (array->t == RuntimeType::NULL_T)
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
-        int size = array->t.isArray ? (int)array->as.arr.size : (int)array->as.str.len;
+        int size = (array->t == RuntimeType::ARRAY) ? (int)array->as.arr.size : (int)array->as.str.len;
 
         if (index->as.i >= (int)size || index->as.i < 0)
             RuntimeError("Array index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.arr.size));
 
-        if (array->t.isArray)
+        if (array->t == RuntimeType::ARRAY)
             stack.push_back(&array->as.arr.data[index->as.i]);
         else
         {
@@ -225,7 +225,7 @@ void VM::ExecuteInstruction()
             RuntimeError("Dynamically allocated array must be declared with a size greater than 0");
 
         RuntimeObject *copy = Allocate(1);
-        stack.push_back_copy(copy, RuntimeObject({true, 1}, static_cast<size_t>(arraySize)));
+        stack.push_back_copy(copy, RuntimeObject(RuntimeType::ARRAY, static_cast<size_t>(arraySize)));
         RTAllocValues.push_back(copy);
         break;
     }

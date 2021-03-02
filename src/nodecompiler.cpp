@@ -1,10 +1,44 @@
 #include "nodecompiler.h"
 
+RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
+{
+    if (t.isArray)
+        return RuntimeType::ARRAY;
+
+    switch (t.type)
+    {
+    case 0:
+    {
+        return RuntimeType::NULL_T;
+    }
+    case 1:
+    {
+        return RuntimeType::INT;
+    }
+    case 2:
+    {
+        return RuntimeType::DOUBLE;
+    }
+    case 3:
+    {
+        return RuntimeType::BOOL;
+    }
+    case 4:
+    {
+        return RuntimeType::STRING;
+    }
+    default:
+    {
+        return RuntimeType::STRUCT;
+    }
+    }
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    RuntimeObject copy = RuntimeObject(l->t, l->Loc().literal);
+    RuntimeObject copy = RuntimeObject(TypeDataToRuntimeType(l->t), l->Loc().literal);
     c.cur->values.push_back(copy);
     c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
 }
@@ -69,7 +103,6 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     bool isNative = false;
     size_t index = c.ResolveFunction(fc->name, isNative);
-    std::cout << "Function index: " << index << std::endl;
 
     if (index > UINT8_MAX)
         c.CompileError(fc->Loc(), "Too many functions");
@@ -120,8 +153,7 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
     if (ia->size > UINT8_MAX)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
-    TypeData arrT = ia->GetType();
-    RuntimeObject arr = RuntimeObject(arrT, ia->size);
+    RuntimeObject arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
 
     c.cur->values.push_back(arr);
 
@@ -190,7 +222,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         TypeData dvType = dv->t;
         RuntimeObject def;
         if (dvType.isArray)
-            def = RuntimeObject({false, 0}, "");
+            def = RuntimeObject(RuntimeType::NULL_T, "");
         else
         {
             switch (dvType.type)
@@ -212,7 +244,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
             }
             default:
             {
-                def = RuntimeObject({false, 0}, "");
+                def = RuntimeObject(RuntimeType::NULL_T, "");
                 break;
             }
             }

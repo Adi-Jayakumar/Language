@@ -4,7 +4,7 @@
 #define PRINT_ARRAY()                          \
     do                                         \
     {                                          \
-        RTArray arr = cc.as.arr;               \
+        RTArray arr = rto.as.arr;              \
         out = out + "{";                       \
                                                \
         for (size_t i = 0; i < arr.size; i++)  \
@@ -18,113 +18,148 @@
         out = out + "}";                       \
     } while (false)
 
-std::string ToString(const RuntimeObject &cc)
+std::string ToString(const RuntimeObject &rto)
 {
-    if (cc.state == GCSate::FREED)
-        return "";
+    if (rto.state == GCSate::FREED)
+        return "FREED";
 
-    std::string out;
+    switch (rto.t)
+    {
+    case RuntimeType::NULL_T:
+    {
+        return "NULL_T";
+    }
+    case RuntimeType::INT:
+    {
+        return std::to_string(rto.as.i);
+    }
+    case RuntimeType::DOUBLE:
+    {
+        return std::to_string(rto.as.d);
+    }
+    case RuntimeType::BOOL:
+    {
+        return rto.as.b ? "true" : "false";
+    }
+    case RuntimeType::ARRAY:
+    {
+        std::string out;
+        PRINT_ARRAY();
+        return out;
+        break;
+    }
+    case RuntimeType::STRING:
+    {
+        return std::string(rto.as.str.data, rto.as.str.len);
+    }
+    case RuntimeType::CHAR:
+    {
+        std::string out = "";
+        out += rto.as.c;
+        return out;
+    }
+    case RuntimeType::STRUCT:
+    {
+        return "STRUCT";
+    }
+    }
+    // should never be reached
+    return "";
+}
 
-    switch (cc.t.type)
+std::string ToString(const RuntimeType &rtt)
+{
+    switch (rtt)
     {
-    case 0:
+    case RuntimeType::NULL_T:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        break;
+        return "NULL_T";
     }
-    case 1:
+    case RuntimeType::INT:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out = out + std::to_string(cc.as.i);
-        break;
+        return "INT";
     }
-    case 2:
+    case RuntimeType::DOUBLE:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out = out + std::to_string(cc.as.d);
-        break;
+        return "DOUBLE";
     }
-    case 3:
+    case RuntimeType::BOOL:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-        {
-            if (cc.as.b)
-                out = out + "true";
-            else
-                out = out + "false";
-        }
-        break;
+        return "BOOL";
     }
-    case 4:
+    case RuntimeType::ARRAY:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out = out + cc.as.str.data;
-        break;
+        return "ARRAY";
     }
-    case 5:
+    case RuntimeType::STRING:
     {
-        if (cc.t.isArray)
-            PRINT_ARRAY();
-        else
-            out = out + cc.as.c;
-        break;
+        return "STRING";
+    }
+    case RuntimeType::CHAR:
+    {
+        return "CHAR";
+    }
+    case RuntimeType::STRUCT:
+    {
+        return "STRUCT";
     }
     }
+    // should never be reached
+    return "UNKNOWN RuntimeType";
+}
+
+std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt)
+{
+    out << ToString(rtt);
     return out;
 }
 
 bool IsTruthy(const RuntimeObject &cc)
 {
-    switch (cc.t.type)
+    switch (cc.t)
     {
-    case 1:
+    case RuntimeType::INT:
     {
         return cc.as.i;
     }
-    case 2:
+    case RuntimeType::DOUBLE:
     {
         return cc.as.d;
     }
-    case 3:
+    case RuntimeType::BOOL:
     {
         return cc.as.b;
     }
+    default:
+    {
+        return false;
     }
-    return false;
+    }
 }
 
-RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
+RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
 {
     state = GCSate::MARKED;
     t = _type;
-    switch (t.type)
+    switch (t)
     {
     // sentinel null value
-    case 0:
+    case RuntimeType::NULL_T:
     {
         as.i = 0;
         break;
     }
-    case 1:
+    case RuntimeType::INT:
     {
         as.i = std::stoi(literal);
         break;
     }
-    case 2:
+    case RuntimeType::DOUBLE:
     {
         as.d = std::stod(literal);
         break;
     }
-    case 3:
+    case RuntimeType::BOOL:
     {
         if (literal == "true")
             as.b = true;
@@ -132,7 +167,7 @@ RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
             as.b = false;
         break;
     }
-    case 4:
+    case RuntimeType::STRING:
     {
         size_t stringLen = literal.size();
         const char *asPtr = literal.c_str();
@@ -146,10 +181,14 @@ RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
         as.str = str;
         break;
     }
-    case 5:
+    case RuntimeType::CHAR:
     {
         // temporary until escaped chars implemented
         as.c = literal[0];
+        break;
+    }
+    default:
+    {
         break;
     }
     }
@@ -158,25 +197,25 @@ RuntimeObject::RuntimeObject(TypeData _type, std::string literal)
 RuntimeObject::RuntimeObject(int _i)
 {
     state = GCSate::MARKED;
-    t = {false, 1};
+    t = RuntimeType::INT;
     as.i = _i;
 }
 
 RuntimeObject::RuntimeObject(double _d)
 {
     state = GCSate::MARKED;
-    t = {false, 2};
+    t = RuntimeType::DOUBLE;
     as.d = _d;
 }
 
 RuntimeObject::RuntimeObject(bool _b)
 {
     state = GCSate::MARKED;
-    t = {false, 3};
+    t = RuntimeType::BOOL;
     as.b = _b;
 }
 
-RuntimeObject::RuntimeObject(TypeData _type, size_t _size)
+RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
 {
     state = GCSate::MARKED;
     t = _type;
@@ -187,14 +226,14 @@ RuntimeObject::RuntimeObject(TypeData _type, size_t _size)
 RuntimeObject::RuntimeObject(RTArray _arr)
 {
     state = GCSate::MARKED;
-    t = {true, 1};
+    t = RuntimeType::ARRAY;
     as.arr = _arr;
 }
 
 RuntimeObject::RuntimeObject(std::string _str)
 {
     state = GCSate::MARKED;
-    t = {false, 4};
+    t = RuntimeType::STRING;
     size_t stringLen = _str.size();
     const char *asPtr = _str.c_str();
 
@@ -210,7 +249,7 @@ RuntimeObject::RuntimeObject(std::string _str)
 RuntimeObject::RuntimeObject(char *_str)
 {
     state = GCSate::MARKED;
-    t = {false, 4};
+    t = RuntimeType::STRING;
     size_t stringLen = strlen(_str);
 
     RTString str;
@@ -225,14 +264,14 @@ RuntimeObject::RuntimeObject(char *_str)
 RuntimeObject::RuntimeObject(RTString _str)
 {
     state = GCSate::MARKED;
-    t = {false, 4};
+    t = RuntimeType::STRING;
     as.str = _str;
 }
 
 RuntimeObject::RuntimeObject(char c)
 {
     state = GCSate::MARKED;
-    t = {false, 5};
+    t = RuntimeType::CHAR;
     as.c = c;
 }
 
