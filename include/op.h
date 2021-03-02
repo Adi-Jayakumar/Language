@@ -6,6 +6,7 @@ enum class Opcode : uint8_t
     POP,
     GET_C,
 
+    // variables
     VAR_A,
     VAR_A_GLOBAL,
 
@@ -14,21 +15,24 @@ enum class Opcode : uint8_t
     GET_V,
     GET_V_GLOBAL,
 
-    // for declaring an array
+    // arrays
     ARR_D,
-    // for getting the item at a particular index
     ARR_INDEX,
-    // for setting the item at a particular index
     ARR_SET,
     ARR_ALLOC,
 
+    // conditonals
     JUMP_IF_FALSE,
     JUMP,
     LOOP,
 
+    // functions
     CALL_F,
     RETURN,
     NATIVE_CALL,
+
+    // structs
+    STRUCT_MEMBER,
 
     // ADDITION
     I_ADD,

@@ -43,3 +43,12 @@ void Chunk::CleanUpVariables()
         }
     }
 }
+
+void Chunk::CleanUpVariablesNoPOP()
+{
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        if (vars[i].depth == depth)
+            vars.pop_back();
+    }
+}

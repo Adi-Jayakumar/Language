@@ -9,14 +9,18 @@ struct CTFunc
     TypeData ret;
 };
 
+struct CTStruct
+{
+    std::vector<std::string> members;
+    TypeData type;
+};
+
 struct Compiler
 {
     std::vector<Chunk> chunks;
     std::vector<CTFunc> funcs{{"Print", {false, 0}}, {"ToString", {false, 4}}};
+    std::vector<CTStruct> structs;
     bool hadError = false;
-
-    // bool isInFunc = false;
-    // size_t curArity = -1;
 
     void CompileError(Token loc, std::string err);
 
@@ -33,4 +37,5 @@ struct Compiler
     bool ResolveVariable(std::string &name, size_t &index);
     size_t ResolveVariableInCur(std::string &name);
     size_t ResolveFunction(std::string &name, bool &isNative);
+    size_t ResolveStruct(const TypeData &type);
 };

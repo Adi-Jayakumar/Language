@@ -72,6 +72,10 @@ std::string ToString(Opcode o)
     {
         return "NATIVE_CALL";
     }
+    case Opcode::STRUCT_MEMBER:
+    {
+        return "STRUCT_MEMBER";
+    }
     case Opcode::I_ADD:
     {
         return "I_ADD";

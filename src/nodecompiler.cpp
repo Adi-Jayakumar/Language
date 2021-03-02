@@ -7,10 +7,6 @@ RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
 
     switch (t.type)
     {
-    case 0:
-    {
-        return RuntimeType::NULL_T;
-    }
     case 1:
     {
         return RuntimeType::INT;
@@ -26,6 +22,10 @@ RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
     case 4:
     {
         return RuntimeType::STRING;
+    }
+    case 6:
+    {
+        return RuntimeType::NULL_T;
     }
     default:
     {
@@ -69,7 +69,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         {
             c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
             c.cur->code.push_back({Opcode::POP, 0});
-            c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+            c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
         }
         else
         {
@@ -82,19 +82,23 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
     // the value is pushed onto the stack in the handling of the ARR_SET instruction
     ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
-    size_t arrLoc;
-    c.ResolveVariable(targetAsAi->name, arrLoc);
+    if (targetAsAi != nullptr)
+    {
+        Opcode curArrInst = c.cur->arrayInst;
+        c.cur->arrayInst = Opcode::ARR_SET;
+        a->target->NodeCompile(c);
+        c.cur->arrayInst = curArrInst;
+        return;
+    }
 
-    targetAsAi->index->NodeCompile(c);
-    c.cur->code.push_back({Opcode::GET_V, c.cur->vars[arrLoc].index});
-    c.cur->code.push_back({Opcode::ARR_SET, 0});
+    a->target->NodeCompile(c);
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     size_t stackIndex = SIZE_MAX;
     if (!c.ResolveVariable(vr->name, stackIndex))
-        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex)});
+        c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
     else
         c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
 }
@@ -142,10 +146,10 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     if (arrLoc > UINT8_MAX)
         c.CompileError(ai->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " variables");
 
-    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(arrLoc)});
+    c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(arrLoc - c.cur->varOffset)});
     ai->index->NodeCompile(c);
 
-    c.cur->code.push_back({Opcode::ARR_INDEX, 0});
+    c.cur->code.push_back({c.cur->arrayInst, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
@@ -188,7 +192,36 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
-    return;
+    size_t index = c.ResolveStruct(fa->accessor->t);
+
+    if (index == SIZE_MAX)
+        c.CompileError(fa->Loc(), "Can only access into a struct");
+
+    CTStruct s = c.structs[index];
+
+    fa->accessor->NodeCompile(c);
+
+    c.cur->depth++;
+    uint8_t curVarOffset = c.cur->varOffset;
+    c.cur->varOffset = c.cur->vars.size();
+
+    Opcode curAccessInst = c.cur->accessInst;
+    // handles the popping of the struct being accessed
+    c.cur->accessInst = Opcode::STRUCT_MEMBER;
+
+    for (const auto &member : s.members)
+    {
+        if (c.cur->vars.size() > UINT8_MAX)
+            c.CompileError(fa->Loc(), "Too many variables");
+        c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+    }
+
+    fa->accessee->NodeCompile(c);
+
+    c.cur->CleanUpVariablesNoPOP();
+    c.cur->depth--;
+    c.cur->varOffset = curVarOffset;
+    c.cur->accessInst = curAccessInst;
 }
 
 //------------------STATEMENTS---------------------//
@@ -390,7 +423,16 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
-    return;
+    CTStruct s;
+    s.type = GetTypeNameMap()[sd->name];
+
+    for (size_t i = 0; i < sd->decls.size(); i++)
+    {
+        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
+        s.members.push_back(asDV->name);
+    }
+
+    c.structs.push_back(s);
 }
 
 //-----------------EXPRESSIONS---------------------//

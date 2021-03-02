@@ -25,11 +25,10 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
         {
             numFunctions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
-            TypeData voidType = {false, 0};
-            if (asFD->ret == voidType && asFD->argtypes.size() == 0 && asFD->name == "Main")
+            if (asFD->argtypes.size() == 0 && asFD->name == "Main")
                 mainIndex = numFunctions;
         }
-        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr)
+        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr)
             CompileError(s[i]->Loc(), "Only declarations allowed in global region");
     }
     cur->CleanUpVariables();
@@ -78,6 +77,18 @@ size_t Compiler::ResolveFunction(std::string &name, bool &isNative)
         if (funcs[i].name == name)
         {
             isNative = NativeFunctions.find(name) != NativeFunctions.end();
+            return i;
+        }
+    }
+    return SIZE_MAX;
+}
+
+size_t Compiler::ResolveStruct(const TypeData &type)
+{
+    for (size_t i = 0; i < structs.size(); i++)
+    {
+        if (structs[i].type == type)
+        {
             return i;
         }
     }
