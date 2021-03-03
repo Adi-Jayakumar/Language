@@ -80,6 +80,10 @@ std::string ToString(Opcode o)
     {
         return "STRUCT_D";
     }
+    case Opcode::STRUCT_MEMBER_SET:
+    {
+        return "STRUCT_MEMBER_SET";
+    }
     case Opcode::I_ADD:
     {
         return "I_ADD";

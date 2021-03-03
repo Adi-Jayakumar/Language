@@ -34,6 +34,7 @@ enum class Opcode : uint8_t
     // structs
     STRUCT_MEMBER,
     STRUCT_D,
+    STRUCT_MEMBER_SET,
 
     // ADDITION
     I_ADD,

@@ -195,14 +195,14 @@ void VM::ExecuteInstruction()
     }
     case Opcode::ARR_SET:
     {
+        RuntimeObject index = *stack.back;
+        stack.pop_back();
+        int i = index.as.i;
+
         RuntimeObject *array = stack.back;
         stack.pop_back();
 
         size_t arraySize = array->as.arr.size;
-
-        RuntimeObject index = *stack.back;
-        stack.pop_back();
-        int i = index.as.i;
 
         RuntimeObject value = *stack.back;
         stack.pop_back();
@@ -316,6 +316,10 @@ void VM::ExecuteInstruction()
             emptyStruct->as.strct[i] = *stack[stack.count - o.op + i];
 
         stack.pop_N(o.op);
+        break;
+    }
+    case Opcode::STRUCT_MEMBER_SET:
+    {
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack
