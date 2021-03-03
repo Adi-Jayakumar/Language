@@ -304,7 +304,6 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER:
     {
         RuntimeObject *strct = stack.back;
-        stack.pop_back();
         stack.push_back(&strct->as.strct[o.op]);
         break;
     }
@@ -320,6 +319,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::STRUCT_MEMBER_SET:
     {
+        RuntimeObject *strct = stack.back;
+        stack.pop_back();
+
+        RuntimeObject val = *stack.back;
+
+        strct->as.strct[o.op] = val;
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack
