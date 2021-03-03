@@ -356,8 +356,6 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
             toComapre.isArray = false;
         else
         {
-            std::cout << "braced init type " << bi->t << std::endl;
-            std::cout << "braced init lit " << bi->t.isArray << " " << +bi->t.type << std::endl;
             if (bi->t.type < NUM_DEF_TYPES)
                 TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
 
@@ -391,7 +389,6 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
 {
     TypeData accessorType = fa->accessor->Type(*this);
-    std::cout << "accessor type " << accessorType << std::endl;
 
     size_t structIndex = FindStruct(accessorType);
 
@@ -408,7 +405,6 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
     try
     {
         TypeData accesseeType = fa->accessee->Type(*this);
-        std::cout << "accessee type " << accesseeType << std::endl;
         fa->t = accesseeType;
         CleanUpVariables();
         return accesseeType;
