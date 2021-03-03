@@ -308,6 +308,16 @@ void VM::ExecuteInstruction()
         stack.push_back(&strct->as.strct[o.op]);
         break;
     }
+    case Opcode::STRUCT_D:
+    {
+        RuntimeObject *emptyStruct = stack[stack.count - o.op - 1];
+
+        for (size_t i = 0; i < o.op; i++)
+            emptyStruct->as.strct[i] = *stack[stack.count - o.op + i];
+
+        stack.pop_N(o.op);
+        break;
+    }
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
