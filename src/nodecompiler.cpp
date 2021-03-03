@@ -157,7 +157,13 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
     if (ia->size > UINT8_MAX)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
-    RuntimeObject arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
+    RuntimeObject arr;
+
+    if (ia->GetType().isArray)
+        arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
+    else
+        arr = RuntimeObject((RuntimeObject *)malloc(ia->init.size() * sizeof(RuntimeObject)));
+        
     c.cur->values.push_back(arr);
     size_t arrStackLoc = c.cur->values.size() - 1;
 
