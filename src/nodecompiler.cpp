@@ -62,7 +62,6 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     size_t stackIndex = SIZE_MAX;
 
     VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
-
     if (targetAsVr != nullptr)
     {
         if (!c.ResolveVariable(targetAsVr->name, stackIndex))
@@ -91,7 +90,15 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         return;
     }
 
-    a->target->NodeCompile(c);
+    FieldAccess *asFA = dynamic_cast<FieldAccess *>(a->target.get());
+    if (asFA != nullptr)
+    {
+        asFA->accessor->NodeCompile(c);
+        Opcode curaccessInst = c.cur->accessInst;
+        c.cur->accessInst = Opcode::STRUCT_MEMBER_SET;
+        a->target->NodeCompile(c);
+        c.cur->accessInst = curaccessInst;
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
@@ -163,7 +170,7 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
         arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
     else
         arr = RuntimeObject((RuntimeObject *)malloc(ia->init.size() * sizeof(RuntimeObject)));
-        
+
     c.cur->values.push_back(arr);
     size_t arrStackLoc = c.cur->values.size() - 1;
 
@@ -205,15 +212,18 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
     CTStruct s = c.structs[index];
 
-    fa->accessor->NodeCompile(c);
+    // no need to compile the accessor since that is compiled when the FieldAccess node is 
+    // first encountered in the parse tree
+    Opcode curAccessInst = c.cur->accessInst;
+
+    if (c.cur->accessInst != Opcode::STRUCT_MEMBER_SET)
+        c.cur->accessInst = Opcode::STRUCT_MEMBER;
 
     c.cur->depth++;
     uint8_t curVarOffset = c.cur->varOffset;
     c.cur->varOffset = c.cur->vars.size();
 
-    Opcode curAccessInst = c.cur->accessInst;
     // handles the popping of the struct being accessed
-    c.cur->accessInst = Opcode::STRUCT_MEMBER;
 
     for (const auto &member : s.members)
     {
@@ -224,10 +234,11 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
     fa->accessee->NodeCompile(c);
 
+    c.cur->accessInst = curAccessInst;
+
     c.cur->CleanUpVariablesNoPOP();
     c.cur->depth--;
     c.cur->varOffset = curVarOffset;
-    c.cur->accessInst = curAccessInst;
 }
 
 //------------------STATEMENTS---------------------//

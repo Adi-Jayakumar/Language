@@ -22,6 +22,7 @@ struct Chunk
     // used select the proper access instruction e. GET_V, STRUCT_MEMBER, etc.
     Opcode accessInst = Opcode::GET_V;
     Opcode arrayInst = Opcode::ARR_INDEX;
+    Opcode structInst = Opcode::STRUCT_MEMBER;
 
     Chunk() = default;
     ~Chunk() = default;
