@@ -139,7 +139,6 @@ bool IsTruthy(const RuntimeObject &cc)
 
 RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
 {
-    state = GCSate::MARKED;
     t = _type;
     switch (t)
     {
@@ -196,28 +195,24 @@ RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
 
 RuntimeObject::RuntimeObject(int _i)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::INT;
     as.i = _i;
 }
 
 RuntimeObject::RuntimeObject(double _d)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::DOUBLE;
     as.d = _d;
 }
 
 RuntimeObject::RuntimeObject(bool _b)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::BOOL;
     as.b = _b;
 }
 
 RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
 {
-    state = GCSate::MARKED;
     t = _type;
     as.arr.data = (RuntimeObject *)malloc(_size * sizeof(RuntimeObject));
     as.arr.size = _size;
@@ -225,14 +220,12 @@ RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
 
 RuntimeObject::RuntimeObject(RTArray _arr)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::ARRAY;
     as.arr = _arr;
 }
 
 RuntimeObject::RuntimeObject(std::string _str)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::STRING;
     size_t stringLen = _str.size();
     const char *asPtr = _str.c_str();
@@ -248,7 +241,6 @@ RuntimeObject::RuntimeObject(std::string _str)
 
 RuntimeObject::RuntimeObject(char *_str)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::STRING;
     size_t stringLen = strlen(_str);
 
@@ -263,16 +255,20 @@ RuntimeObject::RuntimeObject(char *_str)
 
 RuntimeObject::RuntimeObject(RTString _str)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::STRING;
     as.str = _str;
 }
 
 RuntimeObject::RuntimeObject(char c)
 {
-    state = GCSate::MARKED;
     t = RuntimeType::CHAR;
     as.c = c;
+}
+
+RuntimeObject::RuntimeObject(RuntimeObject* _strct)
+{
+    t = RuntimeType::STRUCT;
+    as.strct = _strct;
 }
 
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)

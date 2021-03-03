@@ -43,7 +43,7 @@ std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
 
 struct RuntimeObject
 {
-    GCSate state;
+    GCSate state = GCSate::MARKED;
     RuntimeType t;
     union combo
     {
@@ -52,6 +52,7 @@ struct RuntimeObject
         bool b;
         RTArray arr;
         RTString str;
+        RuntimeObject *strct;
         char c;
     } as;
 
@@ -72,6 +73,9 @@ struct RuntimeObject
 
     // char case
     RuntimeObject(char);
+
+    // struct case
+    RuntimeObject(RuntimeObject *);
 };
 
 void CopyRTO(RuntimeObject *, const RuntimeObject &);
