@@ -550,6 +550,8 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
 
 TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 {
+    if (sd->decls.size() > UINT8_MAX)
+        TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
     depth++;
 
     StructID s;

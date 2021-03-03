@@ -158,9 +158,7 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
         c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
     RuntimeObject arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
-
     c.cur->values.push_back(arr);
-
     size_t arrStackLoc = c.cur->values.size() - 1;
 
     if (arrStackLoc > UINT8_MAX)
@@ -180,8 +178,10 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
             std::cerr << e.what() << std::endl;
         }
     }
-
-    c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
+    if (ia->GetType().isArray)
+        c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
+    else
+        c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(ia->size)});
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
