@@ -68,7 +68,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         {
             c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
             c.cur->code.push_back({Opcode::POP, 0});
-            c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
+            c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
         }
         else
         {
@@ -83,21 +83,10 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
     if (targetAsAi != nullptr)
     {
-        Opcode curArrInst = c.cur->arrayInst;
-        c.cur->arrayInst = Opcode::ARR_SET;
+        c.cur->isAssign = true;
         a->target->NodeCompile(c);
-        c.cur->arrayInst = curArrInst;
+        c.cur->isAssign = false;
         return;
-    }
-
-    FieldAccess *asFA = dynamic_cast<FieldAccess *>(a->target.get());
-    if (asFA != nullptr)
-    {
-        asFA->accessor->NodeCompile(c);
-        Opcode curaccessInst = c.cur->accessInst;
-        c.cur->accessInst = Opcode::STRUCT_MEMBER_SET;
-        a->target->NodeCompile(c);
-        c.cur->accessInst = curaccessInst;
     }
 }
 
@@ -105,7 +94,7 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     size_t stackIndex = SIZE_MAX;
     if (!c.ResolveVariable(vr->name, stackIndex))
-        c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
+        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
     else
         c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
 }
@@ -153,10 +142,10 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     if (arrLoc > UINT8_MAX)
         c.CompileError(ai->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " variables");
 
-    c.cur->code.push_back({c.cur->accessInst, static_cast<uint8_t>(arrLoc - c.cur->varOffset)});
+    c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(arrLoc - c.cur->varOffset)});
     ai->index->NodeCompile(c);
 
-    c.cur->code.push_back({c.cur->arrayInst, 0});
+    c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
@@ -205,40 +194,6 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
-    size_t index = c.ResolveStruct(fa->accessor->t);
-
-    if (index == SIZE_MAX)
-        c.CompileError(fa->Loc(), "Can only access into a struct");
-
-    CTStruct s = c.structs[index];
-
-    // no need to compile the accessor since that is compiled when the FieldAccess node is 
-    // first encountered in the parse tree
-    Opcode curAccessInst = c.cur->accessInst;
-
-    if (c.cur->accessInst != Opcode::STRUCT_MEMBER_SET)
-        c.cur->accessInst = Opcode::STRUCT_MEMBER;
-
-    c.cur->depth++;
-    uint8_t curVarOffset = c.cur->varOffset;
-    c.cur->varOffset = c.cur->vars.size();
-
-    // handles the popping of the struct being accessed
-
-    for (const auto &member : s.members)
-    {
-        if (c.cur->vars.size() > UINT8_MAX)
-            c.CompileError(fa->Loc(), "Too many variables");
-        c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
-    }
-
-    fa->accessee->NodeCompile(c);
-
-    c.cur->accessInst = curAccessInst;
-
-    c.cur->CleanUpVariablesNoPOP();
-    c.cur->depth--;
-    c.cur->varOffset = curVarOffset;
 }
 
 //------------------STATEMENTS---------------------//

@@ -304,6 +304,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER:
     {
         RuntimeObject *strct = stack.back;
+        // std::cout << "Perhaps acc struct member? " << strct->as.strct[0].as.strct[1] << std::endl;
         stack.push_back(&strct->as.strct[o.op]);
         break;
     }
@@ -320,11 +321,28 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER_SET:
     {
         RuntimeObject *strct = stack.back;
+
+        // std::cout << std::endl
+        //           << std::endl;
+        // std::cout << "pre pop:" << std::endl;
+        // PrintStack();
+        // std::cout << std::endl
+        //           << std::endl;
+
         stack.pop_back();
 
-        RuntimeObject val = *stack.back;
+        // std::cout << std::endl
+        //           << std::endl;
+        // std::cout << "post pop:" << std::endl;
+        // PrintStack();
+        // std::cout << std::endl
+        //           << std::endl;
 
-        strct->as.strct[o.op] = val;
+        // RuntimeObject val = *stack.back;
+        // std::cout << "val 0 " << val.as.strct[0] << std::endl;
+        // std::cout << "val 1" << val.as.strct[1] << std::endl;
+
+        strct->as.strct[o.op] = *stack.back;
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack

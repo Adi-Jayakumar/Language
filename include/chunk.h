@@ -19,10 +19,7 @@ struct Chunk
     uint8_t depth = 1;
     // used to calculate the offsets for struct member accesses
     uint8_t varOffset = 0;
-    // used select the proper access instruction e. GET_V, STRUCT_MEMBER, etc.
-    Opcode accessInst = Opcode::GET_V;
-    Opcode arrayInst = Opcode::ARR_INDEX;
-    Opcode structInst = Opcode::STRUCT_MEMBER;
+    bool isAssign = false;
 
     Chunk() = default;
     ~Chunk() = default;

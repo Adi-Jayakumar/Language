@@ -135,10 +135,11 @@ void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out
 
 void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
 {
-    out << fa->t << " ";
+    out << fa->t << " (";
     fa->accessor->Print(out);
     out << ".";
     fa->accessee->Print(out);
+    out << ")";
 }
 
 //------------------STATEMENTS---------------------//
