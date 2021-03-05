@@ -65,6 +65,8 @@ void GC::FreeObject(RuntimeObject *rto)
         RTString *str = &rto->as.str;
         free(str->data);
     }
+    else if (rto->t == RuntimeType::STRUCT)
+        free(rto->as.strct);
 }
 
 void GC::DestroyObject(RuntimeObject *rto)
