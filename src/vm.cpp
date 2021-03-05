@@ -81,12 +81,15 @@ void VM::ExecuteProgram()
         if (curFunc != 0)
             ip++;
 
-        curFunc = returnCF->retChunk;
-        size_t stackDiff = stack.count - returnCF->valStackMin;
+        if (curCF != cs - 1)
+        {
+            curFunc = returnCF->retChunk;
+            size_t stackDiff = stack.count - returnCF->valStackMin;
 
-        // cleaning up the function's constants
-        stack.count -= stackDiff;
-        stack.back = stack[stack.count];
+            // cleaning up the function's constants
+            stack.count -= stackDiff;
+            stack.back = stack[stack.count];
+        }
     }
 }
 
@@ -304,7 +307,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER:
     {
         RuntimeObject *strct = stack.back;
-        // std::cout << "Perhaps acc struct member? " << strct->as.strct[0].as.strct[1] << std::endl;
+        stack.pop_back();
         stack.push_back(&strct->as.strct[o.op]);
         break;
     }
@@ -321,27 +324,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER_SET:
     {
         RuntimeObject *strct = stack.back;
-
-        // std::cout << std::endl
-        //           << std::endl;
-        // std::cout << "pre pop:" << std::endl;
-        // PrintStack();
-        // std::cout << std::endl
-        //           << std::endl;
-
         stack.pop_back();
-
-        // std::cout << std::endl
-        //           << std::endl;
-        // std::cout << "post pop:" << std::endl;
-        // PrintStack();
-        // std::cout << std::endl
-        //           << std::endl;
-
-        // RuntimeObject val = *stack.back;
-        // std::cout << "val 0 " << val.as.strct[0] << std::endl;
-        // std::cout << "val 1" << val.as.strct[1] << std::endl;
-
         strct->as.strct[o.op] = *stack.back;
         break;
     }
