@@ -7,6 +7,7 @@ struct CTVarID
     std::string name;
     uint8_t depth;
     uint8_t index;
+    bool isStructMember = false;
 };
 
 struct Chunk

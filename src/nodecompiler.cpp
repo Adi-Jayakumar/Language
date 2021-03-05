@@ -88,13 +88,31 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         c.cur->isAssign = false;
         return;
     }
+
+    FieldAccess *targetAsFA = dynamic_cast<FieldAccess *>(a->target.get());
+    if (targetAsFA != nullptr)
+    {
+        c.cur->isAssign = true;
+        targetAsFA->NodeCompile(c);
+        c.cur->isAssign = false;
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     size_t stackIndex = SIZE_MAX;
     if (!c.ResolveVariable(vr->name, stackIndex))
-        c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
+    {
+        Opcode inst = Opcode::GET_V;
+        if (c.cur->vars[stackIndex].isStructMember)
+        {
+            inst = Opcode::STRUCT_MEMBER;
+            if (c.cur->isAssign)
+                inst = Opcode::STRUCT_MEMBER_SET;
+        }
+
+        c.cur->code.push_back({inst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
+    }
     else
         c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
 }
@@ -194,6 +212,38 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
+    size_t index = c.ResolveStruct(fa->accessor->t);
+
+    if (index == SIZE_MAX)
+        c.CompileError(fa->Loc(), "Can only access into a struct");
+
+    CTStruct s = c.structs[index];
+
+    bool curIsAssign = c.cur->isAssign;
+    c.cur->isAssign = false;
+
+    fa->accessor->NodeCompile(c);
+
+    c.cur->isAssign = curIsAssign;
+
+    c.cur->depth++;
+    uint8_t curVarOffset = c.cur->varOffset;
+    c.cur->varOffset = c.cur->vars.size();
+
+    // handles the popping of the struct being accessed
+
+    for (const auto &member : s.members)
+    {
+        if (c.cur->vars.size() > UINT8_MAX)
+            c.CompileError(fa->Loc(), "Too many variables");
+        c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size()), true});
+    }
+
+    fa->accessee->NodeCompile(c);
+
+    c.cur->CleanUpVariablesNoPOP();
+    c.cur->depth--;
+    c.cur->varOffset = curVarOffset;
 }
 
 //------------------STATEMENTS---------------------//
