@@ -290,29 +290,24 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
-    // size_t varIndex = ResolveVariable(ai->name, ai->Loc());
+    TypeData nameT = ai->name->Type(*this);
+    std::cout << "nameT " << nameT << std::endl;
 
-    // if (!vars[varIndex].type.isArray && vars[varIndex].type.type != 4)
-    //     TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
+    TypeData stringT = {false, 4};
 
-    // TypeData indexType = ai->index->Type(*this);
-    // TypeData intType = {false, 1};
+    if (!nameT.isArray && nameT != stringT)
+        TypeError(ai->Loc(), "Cannot index into object of type " + ToString(nameT));
 
-    // if (indexType != intType)
-    //     TypeError(ai->Loc(), "Index into an array must have type int not " + ToString(indexType));
+    if (nameT.isArray)
+    {
+        ai->t = nameT;
+        ai->t.isArray = false;
+    }
 
-    // if (vars[varIndex].type.isArray)
-    // {
-    //     ai->t = vars[varIndex].type;
-    //     ai->t.isArray = false;
-    //     return ai->t;
-    // }
-    // else
-    // {
-    //     ai->t = {false, 5};
-    //     return {false, 5};
-    // }
-    return {false, 0};
+    if(nameT == stringT)
+        ai->t = {false, 5};
+
+    return ai->t;
 }
 
 TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
