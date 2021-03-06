@@ -176,7 +176,7 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
     if (ia->GetType().isArray)
         arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
     else
-        arr = RuntimeObject((RuntimeObject *)malloc(ia->init.size() * sizeof(RuntimeObject)));
+        arr = RuntimeObject(RuntimeType::STRUCT, ia->size);
 
     c.cur->values.push_back(arr);
     size_t arrStackLoc = c.cur->values.size() - 1;
