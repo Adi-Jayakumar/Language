@@ -154,16 +154,9 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
-    // size_t arrLoc;
-    // c.ResolveVariable(ai->name, arrLoc);
-
-    // if (arrLoc > UINT8_MAX)
-    //     c.CompileError(ai->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " variables");
-
-    // c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(arrLoc - c.cur->varOffset)});
-    // ai->index->NodeCompile(c);
-
-    // c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
+    ai->name->NodeCompile(c);
+    ai->index->NodeCompile(c);
+    c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
