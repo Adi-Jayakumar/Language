@@ -248,6 +248,26 @@ void VM::ExecuteInstruction()
     }
     case Opcode::STRING_SET:
     {
+        RuntimeObject index = *stack.back;
+        stack.pop_back();
+        int i = index.as.i;
+
+        RuntimeObject *str = stack.back;
+        stack.pop_back();
+
+        size_t strSize = str->as.str.len;
+
+        RuntimeObject value = *stack.back;
+        stack.pop_back();
+
+        if (i >= (int)strSize || i < 0)
+            RuntimeError("String index " + std::to_string(i) + " out of bounds for string of size " + std::to_string(strSize));
+
+        str->as.str.data[i] = value.as.c;
+
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, value);
+        RTAllocValues.push_back(copy);
         break;
     }
     case Opcode::JUMP_IF_FALSE:
