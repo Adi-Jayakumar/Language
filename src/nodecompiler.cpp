@@ -465,15 +465,8 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
         s.members.push_back(asDV->name);
         s.init.push_back(asDV->value);
-
-        size_t strct = c.ResolveStruct(asDV->t);
-        if (strct != SIZE_MAX)
-            s.isNull = s.isNull || (c.structs[strct].isNull);
-        else
-            s.isNull = s.isNull || (s.init[i] == nullptr);
+        s.isNull = s.isNull || (s.init[i] == nullptr);
     }
-
-    std::cout << "isnull " << s.type << " " << s.isNull << std::endl;
 
     c.structs.push_back(s);
 }
