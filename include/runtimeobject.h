@@ -50,9 +50,9 @@ struct RuntimeObject
         int i;
         double d;
         bool b;
+        // also for structs
         RTArray arr;
         RTString str;
-        RuntimeObject *strct;
         char c;
     } as;
 
@@ -73,9 +73,6 @@ struct RuntimeObject
 
     // char case
     RuntimeObject(char);
-
-    // struct case
-    RuntimeObject(RuntimeObject *);
 };
 
 void CopyRTO(RuntimeObject *, const RuntimeObject &);

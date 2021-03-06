@@ -46,7 +46,6 @@ std::string ToString(const RuntimeObject &rto)
         std::string out;
         PRINT_ARRAY();
         return out;
-        break;
     }
     case RuntimeType::STRING:
     {
@@ -60,7 +59,9 @@ std::string ToString(const RuntimeObject &rto)
     }
     case RuntimeType::STRUCT:
     {
-        return "STRUCT";
+        std::string out;
+        PRINT_ARRAY();
+        return out;
     }
     }
     // should never be reached
@@ -263,12 +264,6 @@ RuntimeObject::RuntimeObject(char c)
 {
     t = RuntimeType::CHAR;
     as.c = c;
-}
-
-RuntimeObject::RuntimeObject(RuntimeObject* _strct)
-{
-    t = RuntimeType::STRUCT;
-    as.strct = _strct;
 }
 
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
