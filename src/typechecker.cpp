@@ -291,7 +291,6 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     TypeData nameT = ai->name->Type(*this);
-    std::cout << "nameT " << nameT << std::endl;
 
     TypeData stringT = {false, 4};
 
