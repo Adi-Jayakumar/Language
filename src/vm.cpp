@@ -182,19 +182,12 @@ void VM::ExecuteInstruction()
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
-        int size = (array->t == RuntimeType::ARRAY) ? (int)array->as.arr.size : (int)array->as.str.len;
+        int size = (int)array->as.arr.size;
 
         if (index->as.i >= (int)size || index->as.i < 0)
             RuntimeError("Array index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.arr.size));
 
-        if (array->t == RuntimeType::ARRAY)
-            stack.push_back(&array->as.arr.data[index->as.i]);
-        else
-        {
-            RuntimeObject *copy = Allocate(1);
-            stack.push_back_copy(copy, RuntimeObject(array->as.str.data[index->as.i]));
-            RTAllocValues.push_back(copy);
-        }
+        stack.push_back(&array->as.arr.data[index->as.i]);
         break;
     }
     case Opcode::ARR_SET:
@@ -231,6 +224,30 @@ void VM::ExecuteInstruction()
         RuntimeObject *copy = Allocate(1);
         stack.push_back_copy(copy, RuntimeObject(RuntimeType::ARRAY, static_cast<size_t>(arraySize)));
         RTAllocValues.push_back(copy);
+        break;
+    }
+    case Opcode::STRING_INDEX:
+    {
+        RuntimeObject *index = stack.back;
+        stack.pop_back();
+        RuntimeObject *array = stack.back;
+
+        if (array->t == RuntimeType::NULL_T)
+            RuntimeError("Cannot index into an uninitialised array");
+        stack.pop_back();
+
+        int size = (int)array->as.str.len;
+
+        if (index->as.i >= (int)size || index->as.i < 0)
+            RuntimeError("String index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.str.len));
+
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject(array->as.str.data[index->as.i]));
+        RTAllocValues.push_back(copy);
+        break;
+    }
+    case Opcode::STRING_SET:
+    {
         break;
     }
     case Opcode::JUMP_IF_FALSE:

@@ -156,7 +156,10 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
     ai->name->NodeCompile(c);
     ai->index->NodeCompile(c);
-    c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
+    if (ai->name->GetType().isArray)
+        c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
+    else
+        c.cur->isAssign ? c.cur->code.push_back({Opcode::STRING_SET, 0}) : c.cur->code.push_back({Opcode::STRING_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)

@@ -21,6 +21,9 @@ enum class Opcode : uint8_t
     ARR_SET,
     ARR_ALLOC,
 
+    STRING_INDEX,
+    STRING_SET,
+
     // conditonals
     JUMP_IF_FALSE,
     JUMP,
