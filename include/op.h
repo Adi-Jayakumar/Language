@@ -90,6 +90,7 @@ enum class Opcode : uint8_t
     D_LEQ,
 
     // EQ_EQ,
+    N_EQ_EQ,
     I_EQ_EQ,
     DI_EQ_EQ,
     ID_EQ_EQ,
@@ -97,6 +98,7 @@ enum class Opcode : uint8_t
     B_EQ_EQ,
 
     // BANG_EQ,
+    N_BANG_EQ,
     I_BANG_EQ,
     DI_BANG_EQ,
     ID_BANG_EQ,

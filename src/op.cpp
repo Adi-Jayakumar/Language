@@ -224,6 +224,10 @@ std::string ToString(Opcode o)
     {
         return "D_LEQ";
     }
+    case Opcode::N_EQ_EQ:
+    {
+        return "N_EQ_EQ";
+    }
     case Opcode::I_EQ_EQ:
     {
         return "I_EQ_EQ";
@@ -243,6 +247,10 @@ std::string ToString(Opcode o)
     case Opcode::B_EQ_EQ:
     {
         return "B_BANG_EQ";
+    }
+    case Opcode::N_BANG_EQ:
+    {
+        return "N_BANG_EQ";
     }
     case Opcode::I_BANG_EQ:
     {
@@ -350,6 +358,8 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
     {
         if (l.type == 3 && r.type == 3)
             return Opcode::B_EQ_EQ;
+        else if (l.type == 6 || r.type == 6)
+            return Opcode::N_EQ_EQ;
         GET_TYPED_BINARY_OP(l, EQ_EQ, r, o);
         return o;
     }
@@ -357,6 +367,8 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
     {
         if (l.type == 3 && r.type == 3)
             return Opcode::B_BANG_EQ;
+        else if (l.type == 6 || r.type == 6)
+            return Opcode::N_BANG_EQ;
         GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
         return o;
     }

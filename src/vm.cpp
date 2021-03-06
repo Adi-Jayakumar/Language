@@ -645,6 +645,13 @@ void VM::ExecuteInstruction()
         stack.push_back_copy(copy, BINARY_D_OP(left, <=, right));
         break;
     }
+    case Opcode::N_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject((left.t == RuntimeType::NULL_T) && (right.t == RuntimeType::NULL_T)));
+        break;
+    }
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
@@ -679,6 +686,13 @@ void VM::ExecuteInstruction()
         TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
         RuntimeObject *copy = Allocate(1);
         stack.push_back_copy(copy, RuntimeObject(left.as.b == right.as.b));
+        break;
+    }
+    case Opcode::N_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(RuntimeObject left, RuntimeObject right, stack);
+        RuntimeObject *copy = Allocate(1);
+        stack.push_back_copy(copy, RuntimeObject((left.t != RuntimeType::NULL_T) || (right.t != RuntimeType::NULL_T)));
         break;
     }
     // does an inequality check on the last 2 things on the stack
