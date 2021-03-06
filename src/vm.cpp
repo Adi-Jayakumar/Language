@@ -26,6 +26,7 @@ VM::~VM()
                 GC::FreeObject(&rto);
         }
     }
+
     for (size_t i = 0; i < RTAllocValues.count; i++)
         GC::DestroyObject(RTAllocValues[i]);
 
@@ -308,7 +309,7 @@ void VM::ExecuteInstruction()
     {
         RuntimeObject *strct = stack.back;
         stack.pop_back();
-        stack.push_back(&strct->as.strct[o.op]);
+        stack.push_back(&strct->as.arr.data[o.op]);
         break;
     }
     case Opcode::STRUCT_D:
@@ -316,7 +317,7 @@ void VM::ExecuteInstruction()
         RuntimeObject *emptyStruct = stack[stack.count - o.op - 1];
 
         for (size_t i = 0; i < o.op; i++)
-            emptyStruct->as.strct[i] = *stack[stack.count - o.op + i];
+            emptyStruct->as.arr.data[i] = *stack[stack.count - o.op + i];
 
         stack.pop_N(o.op);
         break;
@@ -325,7 +326,7 @@ void VM::ExecuteInstruction()
     {
         RuntimeObject *strct = stack.back;
         stack.pop_back();
-        strct->as.strct[o.op] = *stack.back;
+        strct->as.arr.data[o.op] = *stack.back;
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack

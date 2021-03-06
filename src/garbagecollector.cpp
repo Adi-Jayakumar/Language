@@ -47,17 +47,18 @@ void GC::MarkObject(RuntimeObject *rto)
 
 void GC::FreeObject(RuntimeObject *rto)
 {
+    if (rto->state == GCSate::FREED)
+        return;
+
 #ifdef GC_DEBUG_OUTPUT
-    std::cout << "Freeing " << *rto << std::endl;
+    std::cout << "Freeing " << rto << std::endl;
 #endif
 
     rto->state = GCSate::FREED;
 
-    if (rto->t == RuntimeType::ARRAY)
+    if (rto->t == RuntimeType::ARRAY || rto->t == RuntimeType::STRUCT)
     {
         RTArray *arr = &rto->as.arr;
-        for (size_t i = 0; i < arr->size; i++)
-            FreeObject(&arr->data[i]);
         free(arr->data);
     }
     else if (rto->t == RuntimeType::STRING)
@@ -65,8 +66,10 @@ void GC::FreeObject(RuntimeObject *rto)
         RTString *str = &rto->as.str;
         free(str->data);
     }
-    else if (rto->t == RuntimeType::STRUCT)
-        free(rto->as.strct);
+
+#ifdef GC_DEBUG_OUTPUT
+    std::cout << "Finished freeing " << rto << std::endl;
+#endif
 }
 
 void GC::DestroyObject(RuntimeObject *rto)
