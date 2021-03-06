@@ -291,11 +291,16 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
     TypeData nameT = ai->name->Type(*this);
-
     TypeData stringT = {false, 4};
 
     if (!nameT.isArray && nameT != stringT)
         TypeError(ai->Loc(), "Cannot index into object of type " + ToString(nameT));
+
+    TypeData idxT = ai->index->Type(*this);
+    TypeData intT = {false, 1};
+
+    if(idxT != intT)
+        TypeError(ai->Loc(), "Index into string/array must be of type int not " + ToString(idxT));
 
     if (nameT.isArray)
     {
