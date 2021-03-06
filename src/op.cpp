@@ -52,6 +52,10 @@ std::string ToString(Opcode o)
     {
         return "STRING_INDEX";
     }
+    case Opcode::STRING_SET:
+    {
+        return "STRING_SET";
+    }
     case Opcode::JUMP_IF_FALSE:
     {
         return "JUMP_IF_FALSE";

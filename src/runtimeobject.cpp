@@ -53,9 +53,7 @@ std::string ToString(const RuntimeObject &rto)
     }
     case RuntimeType::CHAR:
     {
-        std::string out = "";
-        out += rto.as.c;
-        return out;
+        return std::string{rto.as.c};
     }
     case RuntimeType::STRUCT:
     {
