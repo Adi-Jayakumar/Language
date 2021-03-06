@@ -55,7 +55,7 @@ struct Parser
     // parses any function call
     std::shared_ptr<Expr> FuncCall();
     // parses an array index expression
-    std::shared_ptr<Expr> ParseArrayIndex();
+    std::shared_ptr<Expr> ParseArrayIndex(std::shared_ptr<Expr>);
     // parses any assignment
     std::shared_ptr<Expr> Assignment();
     // parses a series of == or != operations

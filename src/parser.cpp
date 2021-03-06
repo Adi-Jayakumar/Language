@@ -362,7 +362,6 @@ std::shared_ptr<Stmt> Parser::WhileStatement()
 std::shared_ptr<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
-
     std::shared_ptr<Expr> exp = Expression();
 
     Check(TokenID::SEMI, "Missing ';'");
@@ -471,7 +470,6 @@ std::shared_ptr<Expr> Parser::Product()
 
 std::shared_ptr<Expr> Parser::UnaryOp()
 {
-
     if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
         Token loc = cur;
@@ -480,7 +478,28 @@ std::shared_ptr<Expr> Parser::UnaryOp()
         return right;
     }
 
-    return ParseFieldAccess();
+    return ParseArrayIndex(ParseFieldAccess());
+}
+
+std::shared_ptr<Expr> Parser::ParseArrayIndex(std::shared_ptr<Expr> name)
+{
+    if (cur.type == TokenID::OPEN_SQ)
+    {
+        Token loc = cur;
+        Advance();
+
+        std::shared_ptr<Expr> idx = Expression();
+        Check(TokenID::CLOSE_SQ, "Missing ']'");
+        Advance();
+
+        std::shared_ptr<Expr> res = std::make_shared<ArrayIndex>(name, idx, loc);
+
+        if (cur.type != TokenID::OPEN_SQ)
+            return res;
+        else
+            return ParseArrayIndex(res);
+    }
+    return name;
 }
 
 std::shared_ptr<Expr> Parser::ParseFieldAccess()
@@ -506,8 +525,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         res = std::make_shared<Literal>(cur);
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
-    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_SQ)
-        res = ParseArrayIndex();
+    // else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_SQ)
+    //     res = ParseArrayIndex();
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
@@ -546,26 +565,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
     }
 
     Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
-    // Advance();
 
     return std::make_shared<FunctionCall>(name, args, cur);
-}
-
-std::shared_ptr<Expr> Parser::ParseArrayIndex()
-{
-    Token loc = cur;
-    std::string name = cur.literal;
-    Check(TokenID::IDEN, "Need varaible name at the beginning of an Array index");
-    Advance();
-
-    Check(TokenID::OPEN_SQ, "Need '[' to access an array");
-    Advance();
-
-    std::shared_ptr<Expr> index = Expression();
-
-    Check(TokenID::CLOSE_SQ, "Missing ']'");
-
-    return std::make_shared<ArrayIndex>(name, index, loc);
 }
 
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()

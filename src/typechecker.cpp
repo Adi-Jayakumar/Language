@@ -290,28 +290,29 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 {
-    size_t varIndex = ResolveVariable(ai->name, ai->Loc());
+    // size_t varIndex = ResolveVariable(ai->name, ai->Loc());
 
-    if (!vars[varIndex].type.isArray && vars[varIndex].type.type != 4)
-        TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
+    // if (!vars[varIndex].type.isArray && vars[varIndex].type.type != 4)
+    //     TypeError(ai->Loc(), "Cannot index into variable '" + ai->name + "' since it is of type " + ToString(vars[varIndex].type));
 
-    TypeData indexType = ai->index->Type(*this);
-    TypeData intType = {false, 1};
+    // TypeData indexType = ai->index->Type(*this);
+    // TypeData intType = {false, 1};
 
-    if (indexType != intType)
-        TypeError(ai->Loc(), "Index into an array must have type int not " + ToString(indexType));
+    // if (indexType != intType)
+    //     TypeError(ai->Loc(), "Index into an array must have type int not " + ToString(indexType));
 
-    if (vars[varIndex].type.isArray)
-    {
-        ai->t = vars[varIndex].type;
-        ai->t.isArray = false;
-        return ai->t;
-    }
-    else
-    {
-        ai->t = {false, 5};
-        return {false, 5};
-    }
+    // if (vars[varIndex].type.isArray)
+    // {
+    //     ai->t = vars[varIndex].type;
+    //     ai->t.isArray = false;
+    //     return ai->t;
+    // }
+    // else
+    // {
+    //     ai->t = {false, 5};
+    //     return {false, 5};
+    // }
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)

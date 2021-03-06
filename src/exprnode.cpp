@@ -99,7 +99,7 @@ TypeData FunctionCall::GetType()
     return t;
 }
 
-ArrayIndex::ArrayIndex(std::string _name, std::shared_ptr<Expr> _index, Token _loc)
+ArrayIndex::ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc)
 {
     name = _name;
     index = _index;

@@ -130,10 +130,10 @@ struct FunctionCall : Expr
 struct ArrayIndex : Expr
 {
     Token loc;
-    std::string name;
+    std::shared_ptr<Expr> name;
     std::shared_ptr<Expr> index;
 
-    ArrayIndex(std::string, std::shared_ptr<Expr>, Token);
+    ArrayIndex(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
