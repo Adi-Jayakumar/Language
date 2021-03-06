@@ -275,37 +275,49 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     else
     {
         TypeData dvType = dv->t;
-        RuntimeObject def;
-        if (dvType.isArray)
-            def = RuntimeObject(RuntimeType::NULL_T, "");
+        size_t strct = c.ResolveStruct(dvType);
+
+        if (strct != SIZE_MAX && !c.structs[strct].isNull)
+        {
+            CTStruct s = c.structs[strct];
+            for (auto &val : s.init)
+                val->NodeCompile(c);
+            c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(s.init.size())});
+        }
         else
         {
-            switch (dvType.type)
-            {
-            case 1:
-            {
-                def = RuntimeObject((int)0);
-                break;
-            }
-            case 2:
-            {
-                def = RuntimeObject((double)0);
-                break;
-            }
-            case 3:
-            {
-                def = RuntimeObject(false);
-                break;
-            }
-            default:
-            {
+            RuntimeObject def;
+            if (dvType.isArray)
                 def = RuntimeObject(RuntimeType::NULL_T, "");
-                break;
+            else
+            {
+                switch (dvType.type)
+                {
+                case 1:
+                {
+                    def = RuntimeObject((int)0);
+                    break;
+                }
+                case 2:
+                {
+                    def = RuntimeObject((double)0);
+                    break;
+                }
+                case 3:
+                {
+                    def = RuntimeObject(false);
+                    break;
+                }
+                default:
+                {
+                    def = RuntimeObject(RuntimeType::NULL_T, "");
+                    break;
+                }
+                }
             }
-            }
+            c.cur->values.push_back(def);
+            c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
         }
-        c.cur->values.push_back(def);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
     }
 
     // add to the list of variables
@@ -413,7 +425,6 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
         arg.index = c.cur->vars.size();
 
         c.cur->vars.push_back(arg);
-        // c.cur->code.push_back({Opcode::VAR_D, static_cast<uint8_t>(numVars), static_cast<uint8_t>(c.cur->vars.size() - 1)});
         numVars++;
     }
 
@@ -447,12 +458,22 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
     CTStruct s;
     s.type = GetTypeNameMap()[sd->name];
+    s.isNull = false;
 
     for (size_t i = 0; i < sd->decls.size(); i++)
     {
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
         s.members.push_back(asDV->name);
+        s.init.push_back(asDV->value);
+
+        size_t strct = c.ResolveStruct(asDV->t);
+        if (strct != SIZE_MAX)
+            s.isNull = s.isNull || (c.structs[strct].isNull);
+        else
+            s.isNull = s.isNull || (s.init[i] == nullptr);
     }
+
+    std::cout << "isnull " << s.type << " " << s.isNull << std::endl;
 
     c.structs.push_back(s);
 }

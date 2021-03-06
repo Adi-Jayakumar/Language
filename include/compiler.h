@@ -12,7 +12,9 @@ struct CTFunc
 struct CTStruct
 {
     std::vector<std::string> members;
+    std::vector<std::shared_ptr<Expr>> init;
     TypeData type;
+    bool isNull;
 };
 
 struct Compiler
