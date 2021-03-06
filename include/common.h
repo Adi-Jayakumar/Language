@@ -57,6 +57,10 @@ struct TypeInfoHasher
     }
 };
 
+bool CheckBinaryOperatorUse(const TypeInfo &);
+TypeData GetBinaryOperatorType(const TypeInfo &);
+bool CheckUnaryOperatorUse(const TypeInfo &);
+
 static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
     OperatorMap{
         // binary plus

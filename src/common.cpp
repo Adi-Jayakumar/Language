@@ -38,3 +38,36 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
 {
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
 }
+
+bool CheckBinaryOperatorUse(const TypeInfo &ti)
+{
+    TypeData nullT = {false, 6};
+
+    if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
+    {
+        if (ti.left == nullT)
+            return true;
+        else if (ti.right == nullT)
+            return true;
+    }
+    return OperatorMap.find(ti) != OperatorMap.end();
+}
+
+TypeData GetBinaryOperatorType(const TypeInfo &ti)
+{
+    TypeData nullT = {false, 6};
+
+    if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
+    {
+        if (ti.left == nullT)
+            return {false, 3};
+        else if (ti.right == nullT)
+            return {false, 3};
+    }
+    return OperatorMap.at(ti);
+}
+
+bool CheckUnaryOperatorUse(const TypeInfo &ti)
+{
+    return OperatorMap.find(ti) != OperatorMap.end();
+}

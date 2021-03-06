@@ -195,7 +195,7 @@ TypeData TypeChecker::TypeOfUnary(Unary *u)
     TypeData opType = u->right->Type(*this);
     TypeInfo info = {{false, 0}, u->op.type, opType};
 
-    if (OperatorMap.find(info) != OperatorMap.end())
+    if (CheckUnaryOperatorUse(info))
     {
         u->t = OperatorMap.at(info);
         return u->t;
@@ -212,9 +212,9 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     TypeData rType = b->right->Type(*this);
     TypeInfo info = {lType, b->op.type, rType};
 
-    if (OperatorMap.find(info) != OperatorMap.end())
+    if (CheckBinaryOperatorUse(info))
     {
-        b->t = OperatorMap.at(info);
+        b->t = GetBinaryOperatorType(info);
         return b->t;
     }
     else
