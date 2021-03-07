@@ -299,16 +299,16 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     TypeData idxT = ai->index->Type(*this);
     TypeData intT = {false, 1};
 
-    if(idxT != intT)
+    if (idxT != intT)
         TypeError(ai->Loc(), "Index into string/array must be of type int not " + ToString(idxT));
 
     if (nameT.isArray)
     {
         ai->t = nameT;
-        ai->t.isArray = false;
+        ai->t.isArray--;
     }
 
-    if(nameT == stringT)
+    if (nameT == stringT)
         ai->t = {false, 5};
 
     return ai->t;
@@ -345,7 +345,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
                 TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
         }
         bi->t = first;
-        bi->t.isArray = true;
+        bi->t.isArray++;
         return bi->t;
     }
     // otherwise checks to see if elements match the required type
@@ -353,7 +353,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     {
         TypeData toComapre = bi->t;
         if (bi->t.isArray)
-            toComapre.isArray = false;
+            toComapre.isArray--;
         else
         {
             if (bi->t.type < NUM_DEF_TYPES)
@@ -361,8 +361,13 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
 
             for (size_t i = 0; i < structTypes.size(); i++)
             {
-                if (structTypes[i].type == bi->t && MatchInitialiserToStruct(structTypes[i].members, types))
-                    return structTypes[i].type;
+                if (structTypes[i].type == bi->t)
+                {
+                    if (MatchInitialiserToStruct(structTypes[i].members, types))
+                        return structTypes[i].type;
+                    else
+                        TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
+                }
             }
         }
 
