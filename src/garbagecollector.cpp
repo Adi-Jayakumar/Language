@@ -51,7 +51,7 @@ void GC::FreeObject(RuntimeObject *rto)
         return;
 
 #ifdef GC_DEBUG_OUTPUT
-    std::cout << "Freeing " << rto << std::endl;
+    std::cout << "Freeing " << *rto << std::endl;
 #endif
 
     rto->state = GCSate::FREED;

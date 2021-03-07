@@ -130,7 +130,8 @@ void VM::ExecuteInstruction()
     {
     case Opcode::POP:
     {
-        stack.back->state = GCSate::UNMARKED;
+        if (stack.back->state != GCSate::FREED)
+            stack.back->state = GCSate::UNMARKED;
         stack.pop_back();
         break;
     }
@@ -142,6 +143,7 @@ void VM::ExecuteInstruction()
     case Opcode::VAR_A:
     {
         *stack[o.op + curCF->valStackMin] = *stack.back;
+        stack.back->state = GCSate::FREED;
         break;
     }
     case Opcode::VAR_A_GLOBAL:
@@ -343,7 +345,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER:
     {
         RuntimeObject *strct = stack.back;
-        if(strct->t == RuntimeType::NULL_T)
+        if (strct->t == RuntimeType::NULL_T)
             RuntimeError("Cannot access into a null struct");
         stack.pop_back();
         stack.push_back(&strct->as.arr.data[o.op]);
@@ -362,7 +364,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER_SET:
     {
         RuntimeObject *strct = stack.back;
-        if(strct->t == RuntimeType::NULL_T)
+        if (strct->t == RuntimeType::NULL_T)
             RuntimeError("Cannot set a member of a null struct");
         stack.pop_back();
         strct->as.arr.data[o.op] = *stack.back;
