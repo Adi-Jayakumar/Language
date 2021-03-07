@@ -14,8 +14,8 @@ std::unordered_map<TypeID, std::string> &GetTypeStringMap()
 
 std::string ToString(const TypeData &td)
 {
-    std::string aString = (td.isArray ? "Array" : "");
-    return aString + "<" + GetTypeStringMap()[td.type] + ">";
+    std::string aString = (td.isArray ? "Array<" + std::to_string(td.isArray) + ", " : "<");
+    return aString + GetTypeStringMap()[td.type] + ">";
 }
 
 std::ostream &operator<<(std::ostream &out, const TypeData &td)

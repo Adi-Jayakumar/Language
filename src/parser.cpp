@@ -65,15 +65,32 @@ TypeData Parser::ParseType(std::string err)
         Check(TokenID::LT, "The element type of an array is surrounded by angle brackets");
         Advance();
 
-        Check(TokenID::TYPENAME, "Need a type name for now");
-        TypeData type = GetTypeNameMap()[cur.literal];
+        int dim = 1;
+        TypeData type;
+        if (cur.type == TokenID::INT_L)
+        {
+            dim = std::stoi(cur.literal);
+            if (dim < 1)
+                ParseError(cur, "Multi dimensional array's dimension must be a positive int literal");
+            Advance();
 
+            Check(TokenID::COMMA, "Expect comma seperating dimension and type name");
+            Advance();
+
+            Check(TokenID::TYPENAME, "Expect type name in multi dimensional array type");
+            type = GetTypeNameMap()[cur.literal];
+            Advance();
+        }
+        else
+        {
+            Check(TokenID::TYPENAME, "1 dimensional array requires type name");
+            type = GetTypeNameMap()[cur.literal];
+            Advance();
+        }
+
+        Check(TokenID::GT, "Missing '>'");
         Advance();
-
-        Check(TokenID::GT, "The element type of an array is surrounded by angle brackets");
-        Advance();
-
-        type.isArray = true;
+        type.isArray = dim;
         return type;
     }
     ParseError(cur, err);

@@ -19,7 +19,7 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
 
 struct TypeData
 {
-    bool isArray = false;
+    size_t isArray = 0;
     TypeID type = 0;
 };
 
@@ -47,11 +47,11 @@ struct TypeInfoHasher
 {
     size_t operator()(const TypeInfo &t) const
     {
-        std::hash<bool> bHasher;
+        std::hash<size_t> stHasher;
         std::hash<TypeID> tHasher;
         std::hash<uint8_t> u8Hasher;
-        size_t l = bHasher(t.left.isArray) ^ tHasher(t.left.type);
-        size_t r = bHasher(t.right.isArray) ^ tHasher(t.right.type);
+        size_t l = stHasher(t.left.isArray) ^ tHasher(t.left.type);
+        size_t r = stHasher(t.right.isArray) ^ tHasher(t.right.type);
         size_t op = u8Hasher(static_cast<uint8_t>(t.t));
         return l ^ r ^ op;
     }
