@@ -59,6 +59,8 @@ struct TypeChecker
     size_t ResolveNativeFunctions(std::string &name, std::vector<TypeData> &argTypes);
     // resolve functions
     size_t ResolveFunction(std::string &name, std::vector<TypeData> &argtypes);
+    // matches a struct by the TypeData
+    size_t ResolveStruct(const TypeData &td);
     // determines whether the initialiser matches that struct
     bool MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init);
     // find struct

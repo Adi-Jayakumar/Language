@@ -159,6 +159,16 @@ size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &ar
     return SIZE_MAX;
 }
 
+size_t TypeChecker::ResolveStruct(const TypeData &td)
+{
+    for (size_t i = 0; i < structTypes.size(); i++)
+    {
+        if (structTypes[i].type == td)
+            return i;
+    }
+    return SIZE_MAX;
+}
+
 bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
 {
     if (member.size() != init.size())
@@ -351,25 +361,28 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     // otherwise checks to see if elements match the required type
     else
     {
-        TypeData toComapre = bi->t;
-        if (bi->t.isArray)
-            toComapre.isArray--;
-        else
+        if (!bi->t.isArray)
         {
             if (bi->t.type < NUM_DEF_TYPES)
                 TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
 
-            for (size_t i = 0; i < structTypes.size(); i++)
+            size_t strctNum = ResolveStruct(bi->t);
+            if (strctNum == SIZE_MAX)
+                TypeError(bi->Loc(), "Expect valid struct name in front of braced initialiser");
+
+            if (MatchInitialiserToStruct(structTypes[strctNum].members, types))
             {
-                if (structTypes[i].type == bi->t)
-                {
-                    if (MatchInitialiserToStruct(structTypes[i].members, types))
-                        return structTypes[i].type;
-                    else
-                        TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
-                }
+                for (size_t j = 0; j < bi->init.size(); j++)
+                    bi->init[j]->t = structTypes[strctNum].members[j];
+
+                return structTypes[strctNum].type;
             }
+            else
+                TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
         }
+
+        TypeData toComapre = bi->t;
+        toComapre.isArray--;
 
         for (size_t i = 0; i < bi->init.size(); i++)
         {
