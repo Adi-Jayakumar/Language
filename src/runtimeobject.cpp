@@ -1,21 +1,21 @@
 #include "runtimeobject.h"
 #define DUMMYCC RuntimeObject(255, "") // to silence compiler warnings -- never returned due to typechecking
 
-#define PRINT_ARRAY()                          \
-    do                                         \
-    {                                          \
-        RTArray arr = rto.as.arr;              \
-        out = out + "{";                       \
-                                               \
-        for (size_t i = 0; i < arr.size; i++)  \
-        {                                      \
-            out = out + ToString(arr.data[i]); \
-                                               \
-            if (i != arr.size - 1)             \
-                out = out + ", ";              \
-        }                                      \
-                                               \
-        out = out + "}";                       \
+#define PRINT_ARRAY()                           \
+    do                                          \
+    {                                           \
+        RTArray arr = rto.as.arr;               \
+        out = out + "{";                        \
+                                                \
+        for (size_t i = 0; i < arr.size; i++)   \
+        {                                       \
+            out = out + ToString(*arr.data[i]); \
+                                                \
+            if (i != arr.size - 1)              \
+                out = out + ", ";               \
+        }                                       \
+                                                \
+        out = out + "}";                        \
     } while (false)
 
 std::string ToString(const RuntimeObject &rto)
@@ -136,6 +136,17 @@ bool IsTruthy(const RuntimeObject &cc)
     }
 }
 
+RuntimeObject *GetNull()
+{
+    static RuntimeObject *nullObj = new RuntimeObject();
+    return nullObj;
+}
+
+RuntimeObject::RuntimeObject()
+{
+    t = RuntimeType::NULL_T;
+}
+
 RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
 {
     t = _type;
@@ -173,7 +184,7 @@ RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
         RTString str;
 
         str.len = stringLen;
-        str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+        str.data = new char[stringLen + 1];
         strcpy(str.data, asPtr);
 
         as.str = str;
@@ -213,7 +224,11 @@ RuntimeObject::RuntimeObject(bool _b)
 RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
 {
     t = _type;
-    as.arr.data = (RuntimeObject *)malloc(_size * sizeof(RuntimeObject));
+    as.arr.data = new RuntimeObject *[_size];
+
+    for (size_t i = 0; i < _size; i++)
+        as.arr.data[i] = GetNull();
+
     as.arr.size = _size;
 }
 
@@ -232,7 +247,7 @@ RuntimeObject::RuntimeObject(std::string _str)
     RTString str;
 
     str.len = stringLen;
-    str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+    str.data = new char[stringLen + 1];
     strcpy(str.data, asPtr);
 
     as.str = str;
@@ -246,7 +261,7 @@ RuntimeObject::RuntimeObject(char *_str)
     RTString str;
 
     str.len = stringLen;
-    str.data = (char *)malloc((stringLen + 1) * sizeof(char));
+    str.data = new char[stringLen + 1];
     strcpy(str.data, _str);
 
     as.str = str;

@@ -30,6 +30,7 @@ struct VM
     ~VM();
 
     void PrintStack();
+    void PrintValues();
 
     RuntimeObject *Allocate(size_t);
     char *StringAllocate(size_t);

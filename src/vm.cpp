@@ -24,7 +24,7 @@ VM::~VM()
             if (rto.state != GCSate::FREED)
             {
                 GC::FreeObject(&rto);
-        }
+            }
     }
     for (size_t i = 0; i < RTAllocValues.count; i++)
         GC::DestroyObject(RTAllocValues[i]);
@@ -35,13 +35,24 @@ void VM::PrintStack()
 {
     std::cout << "index\t|\tvalue" << std::endl;
     for (size_t i = stack.count - 1; (int)i >= 0; i--)
-        std::cout << i << "\t|\t" << *stack[i] << std::endl;
+        std::cout << i << "\t|\t" << stack[i] << std::endl;
+}
+
+void VM::PrintValues()
+{
+    for (size_t i = 0; i < functions.size(); i++)
+    {
+        std::cout << "Values of function " << i << std::endl;
+        for (auto &c : functions[i].values)
+            std::cout << &c << std::endl;
+        std::cout << std::endl;
+    }
 }
 
 RuntimeObject *VM::Allocate(size_t size)
 {
     // GC::GarbageCollect(this);
-    RuntimeObject *alloc = (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
+    RuntimeObject *alloc = size > 1 ? new RuntimeObject[size] : new RuntimeObject();
     RTAllocValues.push_back(alloc);
     return alloc;
 }
@@ -169,7 +180,7 @@ void VM::ExecuteInstruction()
         RuntimeObject *emptyArr = stack[stack.count - o.op - 1];
 
         for (size_t i = 0; i < o.op; i++)
-            emptyArr->as.arr.data[i] = *stack[stack.count - o.op + i];
+            emptyArr->as.arr.data[i] = stack[stack.count - o.op + i];
 
         stack.pop_N(o.op);
         break;
@@ -189,7 +200,7 @@ void VM::ExecuteInstruction()
         if (index->as.i >= (int)size || index->as.i < 0)
             RuntimeError("Array index " + std::to_string(index->as.i) + " out of bounds for array of size " + std::to_string(array->as.arr.size));
 
-        stack.push_back(&array->as.arr.data[index->as.i]);
+        stack.push_back(array->as.arr.data[index->as.i]);
         break;
     }
     case Opcode::ARR_SET:
@@ -203,14 +214,16 @@ void VM::ExecuteInstruction()
 
         size_t arraySize = array->as.arr.size;
 
-        RuntimeObject value = *stack.back;
-        stack.pop_back();
+        RuntimeObject *value = stack.back;
+        // stack.pop_back();
         if (i >= (int)arraySize || i < 0)
             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
 
-        array->as.arr.data[i] = value;
         RuntimeObject *copy = Allocate(1);
-        stack.push_back_copy(copy, value);
+        CopyRTO(copy, *value);
+        array->as.arr.data[i] = copy;
+        // RuntimeObject *copy = Allocate(1);
+        // stack.push_back_copy(copy, *value);
         break;
     }
     case Opcode::ARR_ALLOC:
@@ -346,7 +359,7 @@ void VM::ExecuteInstruction()
         if (strct->t == RuntimeType::NULL_T)
             RuntimeError("Cannot access into a null struct");
         stack.pop_back();
-        stack.push_back(&strct->as.arr.data[o.op]);
+        stack.push_back(strct->as.arr.data[o.op]);
         break;
     }
     case Opcode::STRUCT_D:
@@ -354,7 +367,7 @@ void VM::ExecuteInstruction()
         RuntimeObject *emptyStruct = stack[stack.count - o.op - 1];
 
         for (size_t i = 0; i < o.op; i++)
-            emptyStruct->as.arr.data[i] = *stack[stack.count - o.op + i];
+            emptyStruct->as.arr.data[i] = stack[stack.count - o.op + i];
 
         stack.pop_N(o.op);
         break;
@@ -365,7 +378,7 @@ void VM::ExecuteInstruction()
         if (strct->t == RuntimeType::NULL_T)
             RuntimeError("Cannot set a member of a null struct");
         stack.pop_back();
-        strct->as.arr.data[o.op] = *stack.back;
+        strct->as.arr.data[o.op] = stack.back;
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack

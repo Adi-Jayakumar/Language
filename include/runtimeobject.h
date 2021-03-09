@@ -7,7 +7,7 @@ struct RuntimeObject;
 struct RTArray
 {
     size_t size;
-    RuntimeObject *data;
+    RuntimeObject **data;
 };
 
 struct RTString
@@ -56,7 +56,7 @@ struct RuntimeObject
         char c;
     } as;
 
-    RuntimeObject() = default;
+    RuntimeObject();
     RuntimeObject(RuntimeType, std::string);
     RuntimeObject(int);
     RuntimeObject(double);
@@ -74,6 +74,8 @@ struct RuntimeObject
     // char case
     RuntimeObject(char);
 };
+
+RuntimeObject *GetNull();
 
 void CopyRTO(RuntimeObject *, const RuntimeObject &);
 
