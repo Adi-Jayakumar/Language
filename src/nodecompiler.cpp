@@ -158,7 +158,11 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
+    bool curIsAssign = c.cur->isAssign;
+    c.cur->isAssign = false;
     ai->name->NodeCompile(c);
+    c.cur->isAssign = curIsAssign;
+
     ai->index->NodeCompile(c);
     if (ai->name->GetType().isArray)
         c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
@@ -221,9 +225,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
     bool curIsAssign = c.cur->isAssign;
     c.cur->isAssign = false;
-
     fa->accessor->NodeCompile(c);
-
     c.cur->isAssign = curIsAssign;
 
     c.cur->depth++;
