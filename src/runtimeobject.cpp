@@ -137,7 +137,8 @@ bool IsTruthy(const RuntimeObject &cc)
 
 RuntimeObject *GetNull()
 {
-    static RuntimeObject *nullObj = new RuntimeObject();
+    static RuntimeObject *nullObj = (RuntimeObject *)malloc(sizeof(RuntimeObject));
+    nullObj->t = RuntimeType::NULL_T;
     return nullObj;
 }
 
@@ -149,6 +150,8 @@ RuntimeObject::RuntimeObject()
 RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
 {
     t = _type;
+    if (literal == "null")
+        t = RuntimeType::NULL_T;
     switch (t)
     {
     // sentinel null value
@@ -183,7 +186,7 @@ RuntimeObject::RuntimeObject(RuntimeType _type, std::string literal)
         RTString str;
 
         str.len = stringLen;
-        str.data = new char[stringLen + 1];
+        str.data = (char *)malloc(stringLen + 1);
         strcpy(str.data, asPtr);
 
         as.str = str;
@@ -223,7 +226,7 @@ RuntimeObject::RuntimeObject(bool _b)
 RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
 {
     t = _type;
-    as.arr.data = new RuntimeObject *[_size];
+    as.arr.data = (RuntimeObject **)malloc(_size * sizeof(RuntimeObject *));
 
     for (size_t i = 0; i < _size; i++)
         as.arr.data[i] = GetNull();
@@ -246,7 +249,7 @@ RuntimeObject::RuntimeObject(std::string _str)
     RTString str;
 
     str.len = stringLen;
-    str.data = new char[stringLen + 1];
+    str.data = (char *)malloc(stringLen + 1);
     strcpy(str.data, asPtr);
 
     as.str = str;
@@ -260,7 +263,7 @@ RuntimeObject::RuntimeObject(char *_str)
     RTString str;
 
     str.len = stringLen;
-    str.data = new char[stringLen + 1];
+    str.data = (char *)malloc(stringLen + 1);
     strcpy(str.data, _str);
 
     as.str = str;
@@ -283,7 +286,7 @@ void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
     copy->t = rto.t;
     if (copy->t == RuntimeType::ARRAY || copy->t == RuntimeType::STRUCT)
     {
-        copy->as.arr.data = new RuntimeObject *[rto.as.arr.size];
+        copy->as.arr.data = (RuntimeObject **)malloc(rto.as.arr.size * sizeof(RuntimeObject));
         std::copy(rto.as.arr.data, rto.as.arr.data + rto.as.arr.size, copy->as.arr.data);
         copy->as.arr.size = rto.as.arr.size;
     }

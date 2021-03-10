@@ -32,8 +32,16 @@ VM::~VM()
               << std::endl
               << std::endl;
 
-    for (size_t i = 0; i < RTAllocValues.count; i++)
-        std::cout << *RTAllocValues[i] << std::endl;
+    for (size_t i = 0; i < Heap.count; i++)
+        std::cout << *Heap[i] << std::endl;
+
+    GC::DeallocateHeap(this);
+
+    std::cout << std::endl
+              << std::endl;
+
+    // for (size_t i = 0; i < Heap.count; i++)
+    //     std::cout << *Heap[i] << std::endl;
 }
 
 void VM::PrintStack()
@@ -57,8 +65,8 @@ void VM::PrintValues()
 RuntimeObject *VM::Allocate(size_t size)
 {
     // GC::GarbageCollect(this);
-    RuntimeObject *alloc = size > 1 ? new RuntimeObject[size] : new RuntimeObject();
-    RTAllocValues.push_back(alloc);
+    RuntimeObject *alloc = (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
+    Heap.push_back(alloc);
     return alloc;
 }
 
