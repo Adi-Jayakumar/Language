@@ -39,9 +39,6 @@ VM::~VM()
 
     std::cout << std::endl
               << std::endl;
-
-    // for (size_t i = 0; i < Heap.count; i++)
-    //     std::cout << *Heap[i] << std::endl;
 }
 
 void VM::PrintStack()
