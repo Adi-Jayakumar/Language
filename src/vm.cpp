@@ -317,7 +317,7 @@ void VM::ExecuteInstruction()
         stack.pop_N(stackDiff);
 
         if (o.op == 0)
-            stack.push_back(retVal);
+            stack.push_back_copy(Allocate(1), *retVal);
         break;
     }
     case Opcode::NATIVE_CALL:

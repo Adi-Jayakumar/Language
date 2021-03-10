@@ -279,7 +279,14 @@ RuntimeObject::RuntimeObject(char c)
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
     copy->t = rto.t;
-    copy->as = rto.as;
+    if (copy->t == RuntimeType::ARRAY || copy->t == RuntimeType::STRUCT)
+    {
+        copy->as.arr.data = new RuntimeObject *[rto.as.arr.size];
+        std::copy(rto.as.arr.data, rto.as.arr.data + rto.as.arr.size, copy->as.arr.data);
+        copy->as.arr.size = rto.as.arr.size;
+    }
+    else
+        copy->as = rto.as;
 }
 
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
