@@ -17,6 +17,22 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 VM::~VM()
 {
     delete[] cs;
+    for (RuntimeFunction &rtf : functions)
+    {
+        for (RuntimeObject &rto : rtf.values)
+        {
+            std::cout << "value " << rto << std::endl;
+        }
+        std::cout << std::endl
+                  << std::endl;
+    }
+
+    std::cout << "====================HEAP====================" << std::endl
+              << std::endl
+              << std::endl;
+
+    for (size_t i = 0; i < RTAllocValues.count; i++)
+        std::cout << *RTAllocValues[i] << std::endl;
 }
 
 void VM::PrintStack()
@@ -202,7 +218,7 @@ void VM::ExecuteInstruction()
         if (i >= (int)arraySize || i < 0)
             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
 
-        *array->as.arr.data[i] = *stack.back;
+        array->as.arr.data[i] = stack.back;
         break;
     }
     case Opcode::ARR_ALLOC:
@@ -214,8 +230,7 @@ void VM::ExecuteInstruction()
         if (arraySize <= 0)
             RuntimeError("Dynamically allocated array must be declared with a size greater than 0");
 
-        RuntimeObject *copy = Allocate(1);
-        stack.push_back_copy(copy, RuntimeObject(RuntimeType::ARRAY, static_cast<size_t>(arraySize)));
+        stack.push_back_copy(Allocate(1), RuntimeObject(RuntimeType::ARRAY, static_cast<size_t>(arraySize)));
         break;
     }
     case Opcode::STRING_INDEX:
@@ -248,16 +263,10 @@ void VM::ExecuteInstruction()
 
         size_t strSize = str->as.str.len;
 
-        RuntimeObject value = *stack.back;
-        stack.pop_back();
-
         if (i >= (int)strSize || i < 0)
             RuntimeError("String index " + std::to_string(i) + " out of bounds for string of size " + std::to_string(strSize));
 
-        str->as.str.data[i] = value.as.c;
-
-        RuntimeObject *copy = Allocate(1);
-        stack.push_back_copy(copy, value);
+        str->as.str.data[i] = stack.back->as.c;
         break;
     }
     case Opcode::JUMP_IF_FALSE:
