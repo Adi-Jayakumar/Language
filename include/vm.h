@@ -44,3 +44,9 @@ struct VM
     void NativePrint(int arity);    // opcode: 0
     void NativeToString(int); // opcode: 1
 };
+
+namespace GC
+{
+    // deletes any memory owned by the object
+    void FreeObject(RuntimeObject* rto);
+}

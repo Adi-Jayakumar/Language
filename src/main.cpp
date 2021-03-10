@@ -24,7 +24,7 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    Parser p = Parser("ex/ndarray.txt");
+    Parser p = Parser("ex/gc.txt");
 
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 

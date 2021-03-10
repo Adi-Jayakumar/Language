@@ -31,8 +31,16 @@ enum class RuntimeType : uint8_t
 std::string ToString(const RuntimeType &gcs);
 std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
 
+enum class GCState : uint8_t
+{
+    FREED,
+    MARKED,
+    UNMARKED,
+};
+
 struct RuntimeObject
 {
+    GCState state = GCState::MARKED;
     RuntimeType t;
     union combo
     {

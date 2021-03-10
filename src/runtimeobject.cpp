@@ -20,6 +20,8 @@
 
 std::string ToString(const RuntimeObject &rto)
 {
+    if (rto.state == GCState::FREED)
+        return "FREED";
     switch (rto.t)
     {
     case RuntimeType::NULL_T:

@@ -6,7 +6,7 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
-    curFunc = 0;
+    curFunc = mainIndex == SIZE_MAX ? SIZE_MAX : 0;
     *curCF = {0, mainIndex, 0};
     curCF++;
     *curCF = {0, mainIndex, 0};
@@ -22,6 +22,7 @@ VM::~VM()
         for (RuntimeObject &rto : rtf.values)
         {
             std::cout << "value " << rto << std::endl;
+            GC::FreeObject(&rto);
         }
         std::cout << std::endl
                   << std::endl;
