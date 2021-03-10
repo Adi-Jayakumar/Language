@@ -20,7 +20,6 @@
 
 std::string ToString(const RuntimeObject &rto)
 {
-    if (rto.state == GCSate::FREED)
         return "FREED";
 
     switch (rto.t)
@@ -281,7 +280,6 @@ RuntimeObject::RuntimeObject(char c)
 
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
-    copy->state = rto.state;
     copy->t = rto.t;
     copy->as = rto.as;
 }

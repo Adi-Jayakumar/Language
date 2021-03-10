@@ -44,19 +44,3 @@ struct VM
     void NativePrint(int arity);    // opcode: 0
     void NativeToString(int); // opcode: 1
 };
-
-#define GC_DEBUG_OUTPUT
-// #define GC_STRESS_TEST
-// garbage collector for VM
-namespace GC
-{
-    void MarkObject(RuntimeObject *);
-    // frees any memory owned by the RTO pointed to
-    void FreeObject(RuntimeObject *);
-    // frees any memory owned by the RTO pointed to and memory
-    // pointed to
-    void DestroyObject(RuntimeObject *);
-    void MarkRoots(VM *vm);
-    void FreeUnMarked(VM *vm);
-    void GarbageCollect(VM *vm);
-} // namespace GC

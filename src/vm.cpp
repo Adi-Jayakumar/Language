@@ -17,18 +17,6 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
 VM::~VM()
 {
     delete[] cs;
-#ifndef GC_STRESS_TEST
-    for (RuntimeFunction &rtf : functions)
-    {
-        for (RuntimeObject &rto : rtf.values)
-            if (rto.state != GCSate::FREED)
-            {
-                GC::FreeObject(&rto);
-            }
-    }
-    for (size_t i = 0; i < RTAllocValues.count; i++)
-        GC::DestroyObject(RTAllocValues[i]);
-#endif
 }
 
 void VM::PrintStack()
@@ -139,8 +127,6 @@ void VM::ExecuteInstruction()
     {
     case Opcode::POP:
     {
-        if (stack.back->state != GCSate::FREED)
-            stack.back->state = GCSate::UNMARKED;
         stack.pop_back();
         break;
     }
@@ -152,7 +138,6 @@ void VM::ExecuteInstruction()
     case Opcode::VAR_A:
     {
         *stack[o.op + curCF->valStackMin] = *stack.back;
-        stack.back->state = GCSate::FREED;
         break;
     }
     case Opcode::VAR_A_GLOBAL:

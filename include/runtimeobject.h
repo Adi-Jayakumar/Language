@@ -16,16 +16,6 @@ struct RTString
     char *data;
 };
 
-enum class GCSate : uint8_t
-{
-    UNMARKED,
-    MARKED,
-    FREED,
-};
-
-std::string ToString(const GCSate &gcs);
-std::ostream &operator<<(std::ostream &out, const GCSate &gcs);
-
 enum class RuntimeType : uint8_t
 {
     NULL_T,
@@ -43,7 +33,6 @@ std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
 
 struct RuntimeObject
 {
-    GCSate state = GCSate::MARKED;
     RuntimeType t;
     union combo
     {
