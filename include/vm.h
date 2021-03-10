@@ -45,9 +45,11 @@ struct VM
     void NativeToString(int);    // opcode: 1
 };
 
+#define GC_DEBUG_OUTPUT
 namespace GC
 {
     // deletes any memory owned by the object
     void FreeObject(RuntimeObject *rto);
     void DeallocateHeap(VM *vm);
+    void MarkObject(RuntimeObject *rto);
 }

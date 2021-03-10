@@ -63,6 +63,9 @@ void Array::pop_back()
 
 void Array::pop_N(size_t n)
 {
+    for (size_t i = count - 1; i >= count - n; i--)
+        data[i]->state = GCState::UNMARKED;
+
     count -= n;
     back = count > 0 ? data[count - 1] : data[0];
 }

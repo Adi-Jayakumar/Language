@@ -21,8 +21,10 @@ VM::~VM()
     {
         for (RuntimeObject &rto : rtf.values)
         {
-            std::cout << "value " << rto << std::endl;
-            GC::FreeObject(&rto);
+            if (rto.t == RuntimeType::ARRAY)
+                GC::MarkObject(&rto);
+            std::cout << "value " << rto << " state " << rto.state << std::endl;
+            // GC::FreeObject(&rto);
         }
         std::cout << std::endl
                   << std::endl;
@@ -149,6 +151,7 @@ void VM::ExecuteInstruction()
     {
     case Opcode::POP:
     {
+        stack.back->state = GCState::UNMARKED;
         stack.pop_back();
         break;
     }
