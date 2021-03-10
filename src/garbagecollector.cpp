@@ -52,3 +52,9 @@ void GC::MarkObject(RuntimeObject *rto)
               << std::endl;
 #endif
 }
+
+void GC::MarkRoots(VM *vm)
+{
+    for (size_t i = 0; i < vm->stack.count; i++)
+        MarkObject(vm->stack[i]);
+}

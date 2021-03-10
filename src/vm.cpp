@@ -21,10 +21,8 @@ VM::~VM()
     {
         for (RuntimeObject &rto : rtf.values)
         {
-            if (rto.t == RuntimeType::ARRAY)
-                GC::MarkObject(&rto);
             std::cout << "value " << rto << " state " << rto.state << std::endl;
-            // GC::FreeObject(&rto);
+            GC::FreeObject(&rto);
         }
         std::cout << std::endl
                   << std::endl;
@@ -56,7 +54,7 @@ void VM::PrintValues()
     {
         std::cout << "Values of function " << i << std::endl;
         for (auto &c : functions[i].values)
-            std::cout << &c << std::endl;
+            std::cout << c << " state " << c.state << std::endl;
         std::cout << std::endl;
     }
 }
@@ -331,19 +329,19 @@ void VM::ExecuteInstruction()
     }
     case Opcode::NATIVE_CALL:
     {
-        RuntimeObject arityAsCC = *stack.back;
+        RuntimeObject *arityAsCC = stack.back;
         stack.pop_back();
 
         switch (o.op)
         {
         case 0:
         {
-            NativePrint(arityAsCC.as.i);
+            NativePrint(arityAsCC->as.i);
             break;
         }
         case 1:
         {
-            NativeToString(arityAsCC.as.i);
+            NativeToString(arityAsCC->as.i);
         }
         default:
             break;

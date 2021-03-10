@@ -52,4 +52,5 @@ namespace GC
     void FreeObject(RuntimeObject *rto);
     void DeallocateHeap(VM *vm);
     void MarkObject(RuntimeObject *rto);
+    void MarkRoots(VM *vm);
 }

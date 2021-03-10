@@ -57,6 +57,7 @@ void Array::push_back_copy(RuntimeObject *copy, RuntimeObject rto)
 
 void Array::pop_back()
 {
+    back->state = GCState::UNMARKED;
     count--;
     back = count > 0 ? data[count - 1] : data[0];
 }
