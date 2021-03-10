@@ -137,7 +137,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::VAR_A:
     {
-        *stack[o.op + curCF->valStackMin] = *stack.back;
+        stack.data[o.op + curCF->valStackMin] = stack.back;
         break;
     }
     case Opcode::VAR_A_GLOBAL:
@@ -199,16 +199,10 @@ void VM::ExecuteInstruction()
 
         size_t arraySize = array->as.arr.size;
 
-        RuntimeObject *value = stack.back;
-        // stack.pop_back();
         if (i >= (int)arraySize || i < 0)
             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
 
-        RuntimeObject *copy = Allocate(1);
-        CopyRTO(copy, *value);
-        array->as.arr.data[i] = copy;
-        // RuntimeObject *copy = Allocate(1);
-        // stack.push_back_copy(copy, *value);
+        *array->as.arr.data[i] = *stack.back;
         break;
     }
     case Opcode::ARR_ALLOC:

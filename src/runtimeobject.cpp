@@ -20,8 +20,6 @@
 
 std::string ToString(const RuntimeObject &rto)
 {
-        return "FREED";
-
     switch (rto.t)
     {
     case RuntimeType::NULL_T:
