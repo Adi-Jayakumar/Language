@@ -38,6 +38,9 @@ enum class GCState : uint8_t
     UNMARKED,
 };
 
+std::string ToString(const GCState &rts);
+std::ostream &operator<<(std::ostream &out, const GCState &gcs);
+
 struct RuntimeObject
 {
     GCState state = GCState::MARKED;
@@ -61,11 +64,9 @@ struct RuntimeObject
 
     // array case
     RuntimeObject(RuntimeType, size_t);
-    RuntimeObject(RTArray);
 
     // string case
     RuntimeObject(std::string);
-    RuntimeObject(char *);
     RuntimeObject(RTString);
 
     // char case

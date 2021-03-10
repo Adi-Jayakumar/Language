@@ -1,147 +1,6 @@
 #include "runtimeobject.h"
 #define DUMMYCC RuntimeObject(255, "") // to silence compiler warnings -- never returned due to typechecking
 
-#define PRINT_ARRAY()                           \
-    do                                          \
-    {                                           \
-        RTArray arr = rto.as.arr;               \
-        out = out + "{";                        \
-                                                \
-        for (size_t i = 0; i < arr.size; i++)   \
-        {                                       \
-            out = out + ToString(*arr.data[i]); \
-                                                \
-            if (i != arr.size - 1)              \
-                out = out + ", ";               \
-        }                                       \
-                                                \
-        out = out + "}";                        \
-    } while (false)
-
-std::string ToString(const RuntimeObject &rto)
-{
-    if (rto.state == GCState::FREED)
-        return "FREED";
-    switch (rto.t)
-    {
-    case RuntimeType::NULL_T:
-    {
-        return "NULL_T";
-    }
-    case RuntimeType::INT:
-    {
-        return std::to_string(rto.as.i);
-    }
-    case RuntimeType::DOUBLE:
-    {
-        return std::to_string(rto.as.d);
-    }
-    case RuntimeType::BOOL:
-    {
-        return rto.as.b ? "true" : "false";
-    }
-    case RuntimeType::ARRAY:
-    {
-        std::string out;
-        PRINT_ARRAY();
-        return out;
-    }
-    case RuntimeType::STRING:
-    {
-        return std::string(rto.as.str.data, rto.as.str.len);
-    }
-    case RuntimeType::CHAR:
-    {
-        return std::string{rto.as.c};
-    }
-    case RuntimeType::STRUCT:
-    {
-        std::string out;
-        PRINT_ARRAY();
-        return out;
-    }
-    }
-    // should never be reached
-    return "";
-}
-
-std::string ToString(const RuntimeType &rtt)
-{
-    switch (rtt)
-    {
-    case RuntimeType::NULL_T:
-    {
-        return "NULL_T";
-    }
-    case RuntimeType::INT:
-    {
-        return "INT";
-    }
-    case RuntimeType::DOUBLE:
-    {
-        return "DOUBLE";
-    }
-    case RuntimeType::BOOL:
-    {
-        return "BOOL";
-    }
-    case RuntimeType::ARRAY:
-    {
-        return "ARRAY";
-    }
-    case RuntimeType::STRING:
-    {
-        return "STRING";
-    }
-    case RuntimeType::CHAR:
-    {
-        return "CHAR";
-    }
-    case RuntimeType::STRUCT:
-    {
-        return "STRUCT";
-    }
-    }
-    // should never be reached
-    return "UNKNOWN RuntimeType";
-}
-
-std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt)
-{
-    out << ToString(rtt);
-    return out;
-}
-
-bool IsTruthy(const RuntimeObject &cc)
-{
-    switch (cc.t)
-    {
-    case RuntimeType::INT:
-    {
-        return cc.as.i;
-    }
-    case RuntimeType::DOUBLE:
-    {
-        return cc.as.d;
-    }
-    case RuntimeType::BOOL:
-    {
-        return cc.as.b;
-    }
-    default:
-    {
-        return false;
-    }
-    }
-}
-
-RuntimeObject *GetNull()
-{
-    static RuntimeObject *nullObj = (RuntimeObject *)malloc(sizeof(RuntimeObject));
-    nullObj->t = RuntimeType::NULL_T;
-    return nullObj;
-}
-
 RuntimeObject::RuntimeObject()
 {
     t = RuntimeType::NULL_T;
@@ -234,12 +93,6 @@ RuntimeObject::RuntimeObject(RuntimeType _type, size_t _size)
     as.arr.size = _size;
 }
 
-RuntimeObject::RuntimeObject(RTArray _arr)
-{
-    t = RuntimeType::ARRAY;
-    as.arr = _arr;
-}
-
 RuntimeObject::RuntimeObject(std::string _str)
 {
     t = RuntimeType::STRING;
@@ -251,20 +104,6 @@ RuntimeObject::RuntimeObject(std::string _str)
     str.len = stringLen;
     str.data = (char *)malloc(stringLen + 1);
     strcpy(str.data, asPtr);
-
-    as.str = str;
-}
-
-RuntimeObject::RuntimeObject(char *_str)
-{
-    t = RuntimeType::STRING;
-    size_t stringLen = strlen(_str);
-
-    RTString str;
-
-    str.len = stringLen;
-    str.data = (char *)malloc(stringLen + 1);
-    strcpy(str.data, _str);
 
     as.str = str;
 }
@@ -281,6 +120,83 @@ RuntimeObject::RuntimeObject(char c)
     as.c = c;
 }
 
+std::string ToString(const RuntimeType &rtt)
+{
+    switch (rtt)
+    {
+    case RuntimeType::NULL_T:
+    {
+        return "NULL_T";
+    }
+    case RuntimeType::INT:
+    {
+        return "INT";
+    }
+    case RuntimeType::DOUBLE:
+    {
+        return "DOUBLE";
+    }
+    case RuntimeType::BOOL:
+    {
+        return "BOOL";
+    }
+    case RuntimeType::ARRAY:
+    {
+        return "ARRAY";
+    }
+    case RuntimeType::STRING:
+    {
+        return "STRING";
+    }
+    case RuntimeType::CHAR:
+    {
+        return "CHAR";
+    }
+    case RuntimeType::STRUCT:
+    {
+        return "STRUCT";
+    }
+    }
+    // should never be reached
+    return "UNKNOWN RuntimeType";
+}
+
+std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt)
+{
+    out << ToString(rtt);
+    return out;
+}
+
+bool IsTruthy(const RuntimeObject &cc)
+{
+    switch (cc.t)
+    {
+    case RuntimeType::INT:
+    {
+        return cc.as.i;
+    }
+    case RuntimeType::DOUBLE:
+    {
+        return cc.as.d;
+    }
+    case RuntimeType::BOOL:
+    {
+        return cc.as.b;
+    }
+    default:
+    {
+        return false;
+    }
+    }
+}
+
+RuntimeObject *GetNull()
+{
+    static RuntimeObject *nullObj = (RuntimeObject *)malloc(sizeof(RuntimeObject));
+    nullObj->t = RuntimeType::NULL_T;
+    return nullObj;
+}
+
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
     copy->t = rto.t;
@@ -294,8 +210,98 @@ void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
         copy->as = rto.as;
 }
 
+#define PRINT_ARRAY()                           \
+    do                                          \
+    {                                           \
+        RTArray arr = rto.as.arr;               \
+        out = out + "{";                        \
+                                                \
+        for (size_t i = 0; i < arr.size; i++)   \
+        {                                       \
+            out = out + ToString(*arr.data[i]); \
+                                                \
+            if (i != arr.size - 1)              \
+                out = out + ", ";               \
+        }                                       \
+                                                \
+        out = out + "}";                        \
+    } while (false)
+
+std::string ToString(const RuntimeObject &rto)
+{
+    if (rto.state == GCState::FREED)
+        return "FREED";
+    switch (rto.t)
+    {
+    case RuntimeType::NULL_T:
+    {
+        return "NULL_T";
+    }
+    case RuntimeType::INT:
+    {
+        return std::to_string(rto.as.i);
+    }
+    case RuntimeType::DOUBLE:
+    {
+        return std::to_string(rto.as.d);
+    }
+    case RuntimeType::BOOL:
+    {
+        return rto.as.b ? "true" : "false";
+    }
+    case RuntimeType::ARRAY:
+    {
+        std::string out;
+        PRINT_ARRAY();
+        return out;
+    }
+    case RuntimeType::STRING:
+    {
+        return std::string(rto.as.str.data, rto.as.str.len);
+    }
+    case RuntimeType::CHAR:
+    {
+        return std::string{rto.as.c};
+    }
+    case RuntimeType::STRUCT:
+    {
+        std::string out;
+        PRINT_ARRAY();
+        return out;
+    }
+    }
+    // should never be reached
+    return "";
+}
+
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc)
 {
     out << ToString(cc);
+    return out;
+}
+
+std::string ToString(const GCState &rts)
+{
+    switch (rts)
+    {
+    case GCState::FREED:
+    {
+        return "FREED";
+    }
+    case GCState::MARKED:
+    {
+        return "MARKED";
+    }
+    case GCState::UNMARKED:
+    {
+        return "UNMARKED";
+    }
+    }
+    return "";
+}
+
+std::ostream &operator<<(std::ostream &out, const GCState &gcs)
+{
+    out << ToString(gcs);
     return out;
 }
