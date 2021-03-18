@@ -45,9 +45,9 @@ struct VM
     void NativeToString(int);    // opcode: 1
 };
 
-// #define GC_DEBUG_OUTPUT
-#define GC_SUPER_STRESS
-// #define GC_STRESS
+// #define GC_DEBUG_OUTPUT  // prints information about which objects are being marked/freed
+#define GC_SUPER_STRESS     // does a round of GC after every instruction
+// #define GC_STRESS        // does a round of GC whenever new memory is requested
 namespace GC
 {
     // deletes any memory owned by the object
