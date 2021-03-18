@@ -45,7 +45,9 @@ struct VM
     void NativeToString(int);    // opcode: 1
 };
 
-#define GC_DEBUG_OUTPUT
+// #define GC_DEBUG_OUTPUT
+#define GC_SUPER_STRESS
+// #define GC_STRESS
 namespace GC
 {
     // deletes any memory owned by the object
@@ -53,4 +55,7 @@ namespace GC
     void DeallocateHeap(VM *vm);
     void MarkObject(RuntimeObject *rto);
     void MarkRoots(VM *vm);
+    void FreeUnmarked(VM *vm);
+    void ResetObjects(VM *vm);
+    void GarbageCollect(VM *vm);
 }

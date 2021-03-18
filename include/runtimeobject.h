@@ -43,7 +43,7 @@ std::ostream &operator<<(std::ostream &out, const GCState &gcs);
 
 struct RuntimeObject
 {
-    GCState state = GCState::MARKED;
+    GCState state = GCState::UNMARKED;
     RuntimeType t;
     union combo
     {

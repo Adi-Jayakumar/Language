@@ -61,7 +61,9 @@ void VM::PrintValues()
 
 RuntimeObject *VM::Allocate(size_t size)
 {
-    // GC::GarbageCollect(this);
+#ifdef GC_STRESS
+    GC::GarbageCollect(this);
+#endif
     RuntimeObject *alloc = (RuntimeObject *)malloc(size * sizeof(RuntimeObject));
     Heap.push_back(alloc);
     return alloc;
@@ -69,7 +71,9 @@ RuntimeObject *VM::Allocate(size_t size)
 
 char *VM::StringAllocate(size_t size)
 {
-    // GC::GarbageCollect(this);
+#ifdef GC_STRESS
+    GC::GarbageCollect(this);
+#endif
     return (char *)malloc(size * sizeof(char));
 }
 
@@ -94,6 +98,9 @@ void VM::ExecuteProgram()
         {
             ExecuteInstruction();
             Jump(1);
+#ifdef GC_SUPER_STRESS
+            GC::GarbageCollect(this);
+#endif
         }
 
         CallFrame *returnCF = curCF;
@@ -149,7 +156,6 @@ void VM::ExecuteInstruction()
     {
     case Opcode::POP:
     {
-        stack.back->state = GCState::UNMARKED;
         stack.pop_back();
         break;
     }
@@ -225,19 +231,31 @@ void VM::ExecuteInstruction()
         if (i >= (int)arraySize || i < 0)
             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
 
-        array->as.arr.data[i] = stack.back;
+        CopyRTO(array->as.arr.data[i], *stack.back);
         break;
     }
     case Opcode::ARR_ALLOC:
     {
         RuntimeObject size = *stack.back;
         stack.pop_back();
-        int arraySize = size.as.arr.size;
+        int arraySize = size.as.i;
 
         if (arraySize <= 0)
             RuntimeError("Dynamically allocated array must be declared with a size greater than 0");
 
-        stack.push_back_copy(Allocate(1), RuntimeObject(RuntimeType::ARRAY, static_cast<size_t>(arraySize)));
+        RuntimeObject *arr = Allocate(1);
+        arr->t = RuntimeType::ARRAY;
+        arr->as.arr.data = (RuntimeObject **)malloc(arraySize * sizeof(RuntimeObject *));
+
+        for (size_t i = 0; i < (size_t)arraySize; i++)
+        {
+            arr->as.arr.data[i] = Allocate(1);
+            arr->as.arr.data[i]->state = GCState::MARKED;
+            arr->as.arr.data[i]->t = RuntimeType::NULL_T;
+        }
+        arr->as.arr.size = arraySize;
+
+        stack.push_back(arr);
         break;
     }
     case Opcode::STRING_INDEX:

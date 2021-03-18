@@ -200,6 +200,7 @@ RuntimeObject *GetNull()
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
     copy->t = rto.t;
+    copy->state = GCState::MARKED;
     if (copy->t == RuntimeType::ARRAY || copy->t == RuntimeType::STRUCT)
     {
         copy->as.arr.data = (RuntimeObject **)malloc(rto.as.arr.size * sizeof(RuntimeObject));
