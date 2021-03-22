@@ -23,10 +23,11 @@ enum class TokenID : uint8_t
     COMMA,
     DOT,
     NULL_T,
-    
+
     ARRAY,
     WHILE,
     STRUCT,
+    COLON,
 
     // arithmetic operators
     PLUS,

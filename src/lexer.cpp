@@ -242,6 +242,11 @@ Token Lexer::NextToken()
         res = {TokenID::CHAR_L, literal, line};
         break;
     }
+    case ':':
+    {
+        res = {TokenID::COLON, ":", line};
+        break;
+    }
     default:
     {
         size_t lineSize = LineSize();

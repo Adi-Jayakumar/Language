@@ -65,6 +65,10 @@ std::string ToString(const TokenID &t)
     {
         return "STRUCT";
     }
+    case TokenID::COLON:
+    {
+        return "COLON";
+    }
     case TokenID::TYPENAME:
     {
         return "TYPENAME";
