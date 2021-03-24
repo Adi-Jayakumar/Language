@@ -87,6 +87,23 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
         return true;
     else if (varType.type == 2 && valType.type == 1)
         return true;
+
+    if (varType.type > 6 && valType.type > 6)
+    {
+        if (varType == valType)
+            return true;
+
+        size_t valLoc = ResolveStruct(valType);
+        StructID valID = structTypes[valLoc];
+
+        TypeData voidType = {false, 0};
+
+        if (valID.parent == voidType)
+            return varType == valType;
+
+        return CanAssign(varType, valID.parent);
+    }
+
     return varType == valType;
 }
 
@@ -456,7 +473,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         TypeData varType = dv->t;
         TypeData valType = dv->value->Type(*this);
 
-        if (!CanAssign(valType, varType))
+        if (!CanAssign(varType, valType))
             TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
 
         dv->value->t = varType;
@@ -570,6 +587,23 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 
     StructID s;
     s.type = GetTypeNameMap()[sd->name];
+
+    TypeData voidType = {false, 0};
+
+    if (sd->parent != voidType)
+    {
+        size_t strct = ResolveStruct(sd->parent);
+
+        if (strct == SIZE_MAX)
+            TypeError(sd->Loc(), "Invalid parent struct");
+
+        for (const TypeData &mem : structTypes[strct].members)
+            s.members.push_back(mem);
+
+        for (const auto &kv : structTypes[strct].nameTypes)
+            s.nameTypes[kv.first] = kv.second;
+    }
+
     for (auto &d : sd->decls)
     {
         try
@@ -589,6 +623,8 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
             std::cerr << e.what() << std::endl;
         }
     }
+    s.parent = sd->parent;
+
     structTypes.push_back(s);
 
     CleanUpVariables();

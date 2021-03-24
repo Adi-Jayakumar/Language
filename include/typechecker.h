@@ -20,6 +20,7 @@ struct FuncID
 struct StructID
 {
     TypeData type;
+    TypeData parent;
     std::vector<TypeData> members;
     std::unordered_map<std::string, TypeData> nameTypes;
 };
