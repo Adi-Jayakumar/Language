@@ -277,6 +277,14 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     std::string name = cur.literal;
     Advance();
 
+    TypeData parent = {0, 0};
+
+    if (cur.type == TokenID::COLON)
+    {
+        Advance();
+        parent = ParseType("Struct derived from another struct must have a valid type after the colon");
+    }
+
     Check(TokenID::OPEN_BRACE, "Expect an open brace after struct declaration");
     Advance();
 
@@ -299,7 +307,7 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
 
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     Advance();
-    return std::make_shared<StructDecl>(name, decls, loc);
+    return std::make_shared<StructDecl>(name, parent, decls, loc);
 }
 
 // ----------------------STATEMENTS----------------------- //

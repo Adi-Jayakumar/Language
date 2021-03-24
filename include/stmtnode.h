@@ -120,8 +120,9 @@ struct Return : Stmt
 struct StructDecl : Stmt
 {
     std::string name;
+    TypeData parent;
     std::vector<std::shared_ptr<Stmt>> decls;
-    StructDecl(std::string &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    StructDecl(std::string &, TypeData &parent, std::vector<std::shared_ptr<Stmt>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
