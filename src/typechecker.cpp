@@ -453,6 +453,28 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
     return {false, 0};
 }
 
+TypeData TypeChecker::TypeOfGenericFuncCall(GenericFuncCall *gf)
+{
+    if (gf->name == "Cast")
+    {
+        if (gf->args.size() > 1)
+            TypeError(gf->Loc(), "Cast only accepts 1 argument");
+
+        TypeData newT = gf->type;
+        TypeData oldT = gf->args[0]->Type(*this);
+
+        if (CanAssign(newT, oldT))
+            gf->t = newT;
+        else if (CanAssign(oldT, newT))
+            gf->t = oldT;
+
+        return gf->t;
+    }
+
+    TypeError(gf->Loc(), "Invalid generic function");
+    return {false, 0};
+}
+
 //------------------STATEMENTS---------------------//
 
 TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
@@ -682,6 +704,11 @@ TypeData DynamicAllocArray::Type(TypeChecker &t)
 TypeData FieldAccess::Type(TypeChecker &t)
 {
     return t.TypeOfFieldAccess(this);
+}
+
+TypeData GenericFuncCall::Type(TypeChecker &t)
+{
+    return t.TypeOfGenericFuncCall(this);
 }
 
 //------------------STATEMENTS---------------------//
