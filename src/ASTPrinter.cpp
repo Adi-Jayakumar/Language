@@ -146,7 +146,7 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
 
 void ASTPrinter::PrintGenericFuncCall(GenericFuncCall *gf, std::ostream &out)
 {
-    out << gf->name << gf->type << "(";
+    out << gf->t << " " << gf->name << gf->type << "(";
     for (auto &arg : gf->args)
         out << arg.get() << ", ";
     out << ")";

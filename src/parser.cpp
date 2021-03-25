@@ -548,10 +548,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     std::shared_ptr<Expr> res = nullptr;
     if (cur.type == TokenID::NULL_T || IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
-    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
+    else if (cur.type == TokenID::IDEN && (next.type == TokenID::OPEN_PAR || next.type == TokenID::LT))
         res = FuncCall();
-    // else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_SQ)
-    //     res = ParseArrayIndex();
     else if (cur.type == TokenID::OPEN_PAR)
     {
         Advance();
@@ -580,6 +578,17 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // skipping the name
     Advance();
 
+    TypeData type = {false, 0};
+    TypeData voidT = {false, 0};
+
+    if (cur.type == TokenID::LT)
+    {
+        Advance();
+        type = ParseType("Invalid type for generic function call");
+        Check(TokenID::GT, "Missing '>'");
+        Advance();
+    }
+
     std::vector<std::shared_ptr<Expr>> args;
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
@@ -591,7 +600,10 @@ std::shared_ptr<Expr> Parser::FuncCall()
 
     Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
 
-    return std::make_shared<FunctionCall>(name, args, cur);
+    if (type == voidT)
+        return std::make_shared<FunctionCall>(name, args, cur);
+    else
+        return std::make_shared<GenericFuncCall>(name, type, args, cur);
 }
 
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
