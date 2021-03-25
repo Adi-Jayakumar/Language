@@ -166,3 +166,21 @@ TypeData FieldAccess::GetType()
 {
     return t;
 }
+
+GenericFuncCall::GenericFuncCall(std::string _name, TypeData _type, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
+{
+    name = _name;
+    type = _type;
+    args = _args;
+    loc = _loc;
+}
+
+Token GenericFuncCall::Loc()
+{
+    return loc;
+}
+
+TypeData GenericFuncCall::GetType()
+{
+    return t;
+}

@@ -185,3 +185,20 @@ struct FieldAccess : Expr
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
+
+struct GenericFuncCall : Expr
+{
+    Token loc;
+
+    std::string name;
+    TypeData type;
+    std::vector<std::shared_ptr<Expr>> args;
+
+    GenericFuncCall(std::string, TypeData, std::vector<std::shared_ptr<Expr>>, Token);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    TypeData GetType() override;
+    void NodeCompile(Compiler &c) override;
+};
