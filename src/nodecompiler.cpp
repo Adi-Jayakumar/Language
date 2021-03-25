@@ -462,6 +462,19 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
     s.type = GetTypeNameMap()[sd->name];
     s.isNull = false;
 
+    // adding the parent's members to the struct
+    TypeData voidType = {false, 0};
+    if (sd->parent != voidType)
+    {
+        size_t parent = c.ResolveStruct(sd->parent);
+
+        if (parent == SIZE_MAX)
+            c.CompileError(sd->Loc(), "Invalid parent type");
+
+        for (const auto &mem : c.structs[parent].members)
+            s.members.push_back(mem);
+    }
+
     for (size_t i = 0; i < sd->decls.size(); i++)
     {
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
