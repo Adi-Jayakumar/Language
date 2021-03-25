@@ -248,6 +248,11 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     c.cur->varOffset = curVarOffset;
 }
 
+void NodeCompiler::CompileGenericFuncCall(GenericFuncCall *gf, Compiler &c)
+{
+    
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -536,6 +541,11 @@ void DynamicAllocArray::NodeCompile(Compiler &c)
 void FieldAccess::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileFieldAccess(this, c);
+}
+
+void GenericFuncCall::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileGenericFuncCall(this, c);
 }
 
 //------------------STATEMENTS---------------------//

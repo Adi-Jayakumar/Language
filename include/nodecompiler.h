@@ -18,6 +18,7 @@ namespace NodeCompiler
     void CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c);
     void CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c);
     void CompileFieldAccess(FieldAccess *fa, Compiler &c);
+    void CompileGenericFuncCall(GenericFuncCall *gf, Compiler &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);
