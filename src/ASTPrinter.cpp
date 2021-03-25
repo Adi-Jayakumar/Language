@@ -144,6 +144,14 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
     out << ")";
 }
 
+void ASTPrinter::PrintGenericFuncCall(GenericFuncCall *gf, std::ostream &out)
+{
+    out << gf->name << gf->type << "(";
+    for (auto &arg : gf->args)
+        out << arg.get() << ", ";
+    out << ")";
+}
+
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
@@ -301,6 +309,11 @@ void DynamicAllocArray::Print(std::ostream &out)
 void FieldAccess::Print(std::ostream &out)
 {
     ASTPrinter::PrintFieldAccess(this, out);
+}
+
+void GenericFuncCall::Print(std::ostream &out)
+{
+    ASTPrinter::PrintGenericFuncCall(this, out);
 }
 
 //------------------STATEMENTS---------------------//
