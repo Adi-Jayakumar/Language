@@ -455,23 +455,31 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
 
 TypeData TypeChecker::TypeOfGenericFuncCall(GenericFuncCall *gf)
 {
-    if (gf->name == "Cast")
-    {
-        if (gf->args.size() > 1)
-            TypeError(gf->Loc(), "Cast only accepts 1 argument");
+    gf->t = {false, 4};
+    gf->args[0]->t = {false, 3};
+    // if (gf->name == "Cast")
+    // {
+    //     if (gf->args.size() > 1)
+    //         TypeError(gf->Loc(), "Cast only accepts 1 argument");
 
-        TypeData newT = gf->type;
-        TypeData oldT = gf->args[0]->Type(*this);
+    //     TypeData newT = gf->type;
+    //     TypeData oldT = gf->args[0]->Type(*this);
+    //     // gf->args[0]->t = oldT;
+    //     std::cout << "newT " << newT << std::endl;
+    //     std::cout << "oldT " << oldT << std::endl;
+    //     std::cout << "args[0] " << gf->args[0]->t << std::endl;
 
-        if (CanAssign(newT, oldT))
-            gf->t = newT;
-        else if (CanAssign(oldT, newT))
-            gf->t = oldT;
+    //     if (CanAssign(newT, oldT))
+    //         gf->t = newT;
+    //     else if (CanAssign(oldT, newT))
+    //         gf->t = oldT;
+    //     else
+    //         TypeError(gf->Loc(), "Invalid cast");
 
-        return gf->t;
-    }
+    //     return gf->t;
+    // }
 
-    TypeError(gf->Loc(), "Invalid generic function");
+    // TypeError(gf->Loc(), "Invalid generic function");
     return {false, 0};
 }
 
