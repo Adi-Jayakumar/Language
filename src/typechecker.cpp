@@ -455,23 +455,15 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
 
 TypeData TypeChecker::TypeOfTypeCast(TypeCast *gf)
 {
-    if (gf->name == "Cast")
-    {
-        if (gf->args.size() > 1)
-            TypeError(gf->Loc(), "Cast only accepts 1 argument");
 
-        TypeData newT = gf->type;
-        TypeData oldT = gf->args[0]->Type(*this);
+    TypeData newT = gf->type;
+    TypeData oldT = gf->arg->Type(*this);
 
-        if (!CanAssign(newT, oldT) && !CanAssign(oldT, newT))
-            TypeError(gf->Loc(), "Invalid cast");
+    if (!CanAssign(newT, oldT) && !CanAssign(oldT, newT))
+        TypeError(gf->Loc(), "Invalid cast");
 
-        gf->t = newT;
-        return gf->t;
-    }
-
-    TypeError(gf->Loc(), "Invalid generic function");
-    return {false, 0};
+    gf->t = newT;
+    return gf->t;
 }
 
 //------------------STATEMENTS---------------------//

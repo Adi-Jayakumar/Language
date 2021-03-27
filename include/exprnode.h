@@ -189,12 +189,10 @@ struct FieldAccess : Expr
 struct TypeCast : Expr
 {
     Token loc;
-
-    std::string name;
     TypeData type;
-    std::vector<std::shared_ptr<Expr>> args;
+    std::shared_ptr<Expr> arg;
 
-    TypeCast(std::string, TypeData, std::vector<std::shared_ptr<Expr>>, Token);
+    TypeCast(TypeData, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

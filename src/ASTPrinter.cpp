@@ -146,12 +146,9 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
 
 void ASTPrinter::PrintTypeCast(TypeCast *gf, std::ostream &out)
 {
-    out << gf->t << " " << gf->name;
+    out << gf->t << " Cast";
     gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
-    out << "(";
-    for (auto &arg : gf->args)
-        out << arg.get() << ", ";
-    out << ")";
+    out << "(" << gf->arg.get() << ")";
 }
 
 //------------------STATEMENTS---------------------//

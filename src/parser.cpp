@@ -574,7 +574,7 @@ std::shared_ptr<Expr> Parser::LiteralNode()
 std::shared_ptr<Expr> Parser::FuncCall()
 {
     std::string name = cur.literal;
-
+    Token loc = cur;
     // skipping the name
     Advance();
 
@@ -601,9 +601,17 @@ std::shared_ptr<Expr> Parser::FuncCall()
     Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
 
     if (type == voidT)
-        return std::make_shared<FunctionCall>(name, args, cur);
+        return std::make_shared<FunctionCall>(name, args, loc);
     else
-        return std::make_shared<TypeCast>(name, type, args, cur);
+    {
+        if (name != "Cast")
+            ParseError(loc, "Invalid generic function");
+
+        if (args.size() > 1)
+            ParseError(loc, "Cast only takes 1 argument");
+
+        return std::make_shared<TypeCast>(type, args[0], loc);
+    }
 }
 
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()

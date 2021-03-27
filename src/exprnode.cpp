@@ -167,11 +167,10 @@ TypeData FieldAccess::GetType()
     return t;
 }
 
-TypeCast::TypeCast(std::string _name, TypeData _type, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
+TypeCast::TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc)
 {
-    name = _name;
     type = _type;
-    args = _args;
+    arg = _arg;
     loc = _loc;
 }
 
