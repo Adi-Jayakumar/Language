@@ -603,7 +603,7 @@ std::shared_ptr<Expr> Parser::FuncCall()
     if (type == voidT)
         return std::make_shared<FunctionCall>(name, args, cur);
     else
-        return std::make_shared<GenericFuncCall>(name, type, args, cur);
+        return std::make_shared<TypeCast>(name, type, args, cur);
 }
 
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()

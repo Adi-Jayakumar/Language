@@ -248,9 +248,8 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     c.cur->varOffset = curVarOffset;
 }
 
-void NodeCompiler::CompileGenericFuncCall(GenericFuncCall *gf, Compiler &c)
+void NodeCompiler::CompileTypeCast(TypeCast *gf, Compiler &c)
 {
-    
 }
 
 //------------------STATEMENTS---------------------//
@@ -543,9 +542,9 @@ void FieldAccess::NodeCompile(Compiler &c)
     NodeCompiler::CompileFieldAccess(this, c);
 }
 
-void GenericFuncCall::NodeCompile(Compiler &c)
+void TypeCast::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileGenericFuncCall(this, c);
+    NodeCompiler::CompileTypeCast(this, c);
 }
 
 //------------------STATEMENTS---------------------//

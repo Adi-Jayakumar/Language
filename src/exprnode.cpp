@@ -167,7 +167,7 @@ TypeData FieldAccess::GetType()
     return t;
 }
 
-GenericFuncCall::GenericFuncCall(std::string _name, TypeData _type, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
+TypeCast::TypeCast(std::string _name, TypeData _type, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
 {
     name = _name;
     type = _type;
@@ -175,12 +175,12 @@ GenericFuncCall::GenericFuncCall(std::string _name, TypeData _type, std::vector<
     loc = _loc;
 }
 
-Token GenericFuncCall::Loc()
+Token TypeCast::Loc()
 {
     return loc;
 }
 
-TypeData GenericFuncCall::GetType()
+TypeData TypeCast::GetType()
 {
     return t;
 }

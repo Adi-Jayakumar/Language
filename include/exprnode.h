@@ -186,7 +186,7 @@ struct FieldAccess : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct GenericFuncCall : Expr
+struct TypeCast : Expr
 {
     Token loc;
 
@@ -194,7 +194,7 @@ struct GenericFuncCall : Expr
     TypeData type;
     std::vector<std::shared_ptr<Expr>> args;
 
-    GenericFuncCall(std::string, TypeData, std::vector<std::shared_ptr<Expr>>, Token);
+    TypeCast(std::string, TypeData, std::vector<std::shared_ptr<Expr>>, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

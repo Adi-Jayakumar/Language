@@ -14,7 +14,7 @@ namespace ASTPrinter
     void PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out);
     void PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out);
     void PrintFieldAccess(FieldAccess *fa, std::ostream &out);
-    void PrintGenericFuncCall(GenericFuncCall *gf, std::ostream &out);
+    void PrintTypeCast(TypeCast *gf, std::ostream &out);
 
     // statment printing
     void PrintExprStmt(ExprStmt *es, std::ostream &out);

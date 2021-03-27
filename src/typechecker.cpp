@@ -453,7 +453,7 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfGenericFuncCall(GenericFuncCall *gf)
+TypeData TypeChecker::TypeOfTypeCast(TypeCast *gf)
 {
     if (gf->name == "Cast")
     {
@@ -705,9 +705,9 @@ TypeData FieldAccess::Type(TypeChecker &t)
     return t.TypeOfFieldAccess(this);
 }
 
-TypeData GenericFuncCall::Type(TypeChecker &t)
+TypeData TypeCast::Type(TypeChecker &t)
 {
-    return t.TypeOfGenericFuncCall(this);
+    return t.TypeOfTypeCast(this);
 }
 
 //------------------STATEMENTS---------------------//

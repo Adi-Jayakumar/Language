@@ -144,7 +144,7 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
     out << ")";
 }
 
-void ASTPrinter::PrintGenericFuncCall(GenericFuncCall *gf, std::ostream &out)
+void ASTPrinter::PrintTypeCast(TypeCast *gf, std::ostream &out)
 {
     out << gf->t << " " << gf->name;
     gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
@@ -313,9 +313,9 @@ void FieldAccess::Print(std::ostream &out)
     ASTPrinter::PrintFieldAccess(this, out);
 }
 
-void GenericFuncCall::Print(std::ostream &out)
+void TypeCast::Print(std::ostream &out)
 {
-    ASTPrinter::PrintGenericFuncCall(this, out);
+    ASTPrinter::PrintTypeCast(this, out);
 }
 
 //------------------STATEMENTS---------------------//
