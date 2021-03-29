@@ -8,7 +8,7 @@ struct RTArray
 {
     size_t size;
     RuntimeObject **data;
-    size_t type = 0;
+    size_t type;
 };
 
 struct RTString

@@ -394,6 +394,10 @@ void VM::ExecuteInstruction()
         strct->as.arr.data[o.op] = stack.back;
         break;
     }
+    case Opcode::CAST:
+    {
+        break;
+    }
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {

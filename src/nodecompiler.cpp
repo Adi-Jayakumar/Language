@@ -253,6 +253,8 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
+    tc->arg->NodeCompile(c);
+    c.cur->code.push_back({Opcode::CAST, tc->type.type});
 }
 
 //------------------STATEMENTS---------------------//
@@ -266,7 +268,6 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     // Function calls need not always have a POP after due to void functions
     if (asFC == nullptr)
         c.cur->code.push_back({Opcode::POP, 0});
-
     else
     {
         bool isNative;
