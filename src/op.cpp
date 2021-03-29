@@ -92,6 +92,10 @@ std::string ToString(Opcode o)
     {
         return "STRUCT_MEMBER_SET";
     }
+    case Opcode::CAST:
+    {
+        return "CAST";
+    }
     case Opcode::I_ADD:
     {
         return "I_ADD";
