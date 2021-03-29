@@ -180,7 +180,10 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
     if (ia->GetType().isArray)
         arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
     else
+    {
         arr = RuntimeObject(RuntimeType::STRUCT, ia->size);
+        arr.as.arr.type = ia->GetType().type;
+    }
 
     c.cur->values.push_back(arr);
     size_t arrStackLoc = c.cur->values.size() - 1;
@@ -248,7 +251,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     c.cur->varOffset = curVarOffset;
 }
 
-void NodeCompiler::CompileTypeCast(TypeCast *gf, Compiler &c)
+void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
 }
 

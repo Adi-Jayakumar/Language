@@ -607,8 +607,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
         if (name != "Cast")
             ParseError(loc, "Invalid generic function");
 
-        if (args.size() > 1)
-            ParseError(loc, "Cast only takes 1 argument");
+        if (args.size() != 1)
+            ParseError(loc, "Cast takes 1 argument");
 
         return std::make_shared<TypeCast>(type, args[0], loc);
     }
