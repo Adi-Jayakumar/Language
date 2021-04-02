@@ -94,14 +94,15 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
             return true;
 
         size_t valLoc = ResolveStruct(valType);
-        StructID valID = structTypes[valLoc];
+        TypeData parent = structTypes[valLoc].parent;
 
         TypeData voidType = {false, 0};
 
-        if (valID.parent == voidType)
+        if (parent == voidType)
             return varType == valType;
 
-        return CanAssign(varType, valID.parent);
+        parent.isArray = valType.isArray;
+        return CanAssign(varType, parent);
     }
 
     return varType == valType;
@@ -180,7 +181,7 @@ size_t TypeChecker::ResolveStruct(const TypeData &td)
 {
     for (size_t i = 0; i < structTypes.size(); i++)
     {
-        if (structTypes[i].type == td)
+        if (structTypes[i].type.type == td.type)
             return i;
     }
     return SIZE_MAX;
@@ -459,7 +460,12 @@ TypeData TypeChecker::TypeOfTypeCast(TypeCast *gf)
     TypeData newT = gf->type;
     TypeData oldT = gf->arg->Type(*this);
 
-    if (!CanAssign(newT, oldT) && !CanAssign(oldT, newT))
+    bool isDownCast = CanAssign(newT, oldT);
+    bool isUpCast = CanAssign(oldT, newT);
+
+    std::cout << "isdowncast " << isDownCast << " upcast " << isUpCast << std::endl;
+
+    if (!isDownCast && !isUpCast)
         TypeError(gf->Loc(), "Invalid cast");
 
     gf->t = newT;
@@ -489,7 +495,8 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
         if (!CanAssign(varType, valType))
             TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
 
-        dv->value->t = varType;
+        if (varType.type < NUM_DEF_TYPES)
+            dv->value->t = varType;
     }
     return {false, 0};
 }
