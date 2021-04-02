@@ -197,6 +197,56 @@ RuntimeObject *GetNull()
     return nullObj;
 }
 
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, int _i)
+{
+    val->t = RuntimeType::INT;
+    val->as.i = _i;
+    return val;
+}
+
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, double _d)
+{
+    val->t = RuntimeType::DOUBLE;
+    val->as.d = _d;
+    return val;
+}
+
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, bool _b)
+{
+    val->t = RuntimeType::BOOL;
+    val->as.b = _b;
+    return val;
+}
+
+// array case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, RuntimeType _t, size_t _size)
+{
+    val->t = _t;
+    val->as.arr.data = (RuntimeObject **)malloc(_size * sizeof(RuntimeObject *));
+
+    for (size_t i = 0; i < _size; i++)
+        val->as.arr.data[i] = GetNull();
+
+    val->as.arr.size = _size;
+    return val;
+}
+
+// string case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, RTString _str)
+{
+    val->t = RuntimeType::STRING;
+    val->as.str = _str;
+    return val;
+}
+
+// char case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *val, char _c)
+{
+    val->t = RuntimeType::CHAR;
+    val->as.c = _c;
+    return val;
+}
+
 void CopyRTO(RuntimeObject *copy, const RuntimeObject &rto)
 {
     copy->t = rto.t;

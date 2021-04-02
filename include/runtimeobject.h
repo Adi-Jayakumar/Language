@@ -74,6 +74,16 @@ struct RuntimeObject
     RuntimeObject(char);
 };
 
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, int);
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, double);
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, bool);
+// array case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, RuntimeType, size_t);
+// string case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, RTString);
+// char case
+RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, char);
+
 RuntimeObject *GetNull();
 
 void CopyRTO(RuntimeObject *, const RuntimeObject &);
