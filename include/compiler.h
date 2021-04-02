@@ -22,6 +22,7 @@ struct Compiler
     std::vector<Chunk> chunks;
     std::vector<CTFunc> funcs{{"Print", {false, 0}}, {"ToString", {false, 4}}};
     std::vector<CTStruct> structs;
+    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
     bool hadError = false;
 
     void CompileError(Token loc, std::string err);

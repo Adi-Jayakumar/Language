@@ -479,6 +479,9 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         if (parent == SIZE_MAX)
             c.CompileError(sd->Loc(), "Invalid parent type");
 
+        // building up the struct inheritance tree
+        c.StructTree[parent + NUM_DEF_TYPES].insert(GetTypeNameMap()[sd->name].type);
+
         for (const auto &mem : c.structs[parent].members)
             s.members.push_back(mem);
     }
