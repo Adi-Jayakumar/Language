@@ -1,9 +1,9 @@
 #include "vm.h"
 
-VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex)
+VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree)
 {
     functions = _functions;
-
+    StructTree = _StructTree;
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
     curFunc = mainIndex == SIZE_MAX ? SIZE_MAX : 0;
@@ -396,6 +396,9 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CAST:
     {
+        size_t type = stack.back->as.arr.type;
+        if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
+            RuntimeError("Invalid cast");
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack

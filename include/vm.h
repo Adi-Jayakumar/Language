@@ -8,6 +8,7 @@ struct VM
 {
     std::vector<RuntimeFunction> functions;
     std::vector<RuntimeObject> globals;
+    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
     // instruction pointer
     size_t ip;
@@ -26,7 +27,7 @@ struct VM
     Array stack;
     Array Heap;
 
-    VM(std::vector<RuntimeFunction> &, size_t);
+    VM(std::vector<RuntimeFunction> &, size_t, std::unordered_map<size_t, std::unordered_set<size_t>> &);
     ~VM();
 
     void PrintStack();
@@ -46,7 +47,7 @@ struct VM
 };
 
 // #define GC_DEBUG_OUTPUT  // prints information about which objects are being marked/freed
-#define GC_SUPER_STRESS     // does a round of GC after every instruction
+#define GC_SUPER_STRESS // does a round of GC after every instruction
 // #define GC_STRESS        // does a round of GC whenever new memory is requested
 namespace GC
 {
