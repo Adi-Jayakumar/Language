@@ -463,10 +463,10 @@ TypeData TypeChecker::TypeOfTypeCast(TypeCast *gf)
     bool isDownCast = CanAssign(newT, oldT);
     bool isUpCast = CanAssign(oldT, newT);
 
-    std::cout << "isdowncast " << isDownCast << " upcast " << isUpCast << std::endl;
-
     if (!isDownCast && !isUpCast)
         TypeError(gf->Loc(), "Invalid cast");
+
+    gf->isDownCast = isDownCast;
 
     gf->t = newT;
     return gf->t;

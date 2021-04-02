@@ -396,9 +396,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CAST:
     {
-        size_t type = stack.back->as.arr.type;
-        if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
-            RuntimeError("Invalid cast");
+        if (stack.back->t == RuntimeType::STRUCT)
+        {
+            size_t type = stack.back->as.arr.type;
+            if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
+                RuntimeError("Invalid cast");
+        }
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack

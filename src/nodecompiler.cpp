@@ -254,7 +254,8 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
     tc->arg->NodeCompile(c);
-    c.cur->code.push_back({Opcode::CAST, tc->type.type});
+    if (!tc->isDownCast)
+        c.cur->code.push_back({Opcode::CAST, tc->type.type});
 }
 
 //------------------STATEMENTS---------------------//

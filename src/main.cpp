@@ -79,32 +79,45 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    // std::vector<RuntimeFunction> rf;
+    std::cout << "Struct inheritance tree" << std::endl;
 
-    // for (const auto &ch : c.chunks)
-    //     rf.push_back(RuntimeFunction(ch));
+    for (const auto &kv : c.StructTree)
+    {
+        std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
+        for (const auto &ch : kv.second)
+            std::cout << GetTypeStringMap()[ch] << ", ";
+        std::cout << std::endl;
+    }
 
-    // VM vm = VM(rf, mainIndex);
+    std::cout << std::endl
+              << std::endl;
 
-    // auto t1 = std::chrono::high_resolution_clock::now();
+    std::vector<RuntimeFunction> rf;
 
-    // vm.ExecuteProgram();
+    for (const auto &ch : c.chunks)
+        rf.push_back(RuntimeFunction(ch));
 
-    // auto t2 = std::chrono::high_resolution_clock::now();
+    VM vm = VM(rf, mainIndex, c.StructTree);
 
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    // std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
+    auto t1 = std::chrono::high_resolution_clock::now();
 
-    // std::cout << std::endl
-    //           << std::endl;
+    vm.ExecuteProgram();
 
-    // std::cout << "Size of stack: " << vm.stack.count << std::endl;
+    auto t2 = std::chrono::high_resolution_clock::now();
 
-    // if (vm.stack.count != 0)
-    // {
-    //     for (size_t i = 0; i < vm.stack.count; i++)
-    //     {
-    //         std::cout << *vm.stack.data[i] << std::endl;
-    //     }
-    // }
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
+
+    std::cout << std::endl
+              << std::endl;
+
+    std::cout << "Size of stack: " << vm.stack.count << std::endl;
+
+    if (vm.stack.count != 0)
+    {
+        for (size_t i = 0; i < vm.stack.count; i++)
+        {
+            std::cout << *vm.stack.data[i] << std::endl;
+        }
+    }
 }

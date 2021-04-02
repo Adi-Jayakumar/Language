@@ -191,6 +191,7 @@ struct TypeCast : Expr
     Token loc;
     TypeData type;
     std::shared_ptr<Expr> arg;
+    bool isDownCast = false;
 
     TypeCast(TypeData, std::shared_ptr<Expr>, Token);
 
