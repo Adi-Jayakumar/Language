@@ -396,7 +396,30 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CAST:
     {
-        if (stack.back->t == RuntimeType::STRUCT)
+        switch (stack.back->t)
+        {
+        case RuntimeType::NULL_T:
+        {
+            RuntimeError("Cannot cast a null value");
+            break;
+        }
+        case RuntimeType::INT:
+        {
+            RuntimeObject *val = stack.back;
+            stack.pop_back();
+            RuntimeObject *res = Allocate(1);
+            stack.push_back(InitialiseRuntimeObject(res, (double)val->as.i));
+            break;
+        }
+        case RuntimeType::DOUBLE:
+        {
+            RuntimeObject *val = stack.back;
+            stack.pop_back();
+            RuntimeObject *res = Allocate(1);
+            stack.push_back(InitialiseRuntimeObject(res, (int)val->as.d));
+            break;
+        }
+        case RuntimeType::STRUCT:
         {
             size_t type = stack.back->as.arr.type;
             if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
@@ -404,6 +427,11 @@ void VM::ExecuteInstruction()
                 stack.pop_back();
                 stack.push_back(GetNull());
             }
+        }
+        default:
+        {
+            break;
+        }
         }
         break;
     }
