@@ -400,7 +400,10 @@ void VM::ExecuteInstruction()
         {
             size_t type = stack.back->as.arr.type;
             if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
-                RuntimeError("Invalid cast");
+            {
+                stack.pop_back();
+                stack.push_back(GetNull());
+            }
         }
         break;
     }
