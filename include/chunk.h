@@ -2,20 +2,12 @@
 #include "op.h"
 #include "runtimeobject.h"
 
-struct CTVarID
-{
-    std::string name;
-    uint8_t depth;
-    uint8_t index;
-    bool isStructMember = false;
-};
-
 struct Chunk
 {
     uint8_t arity;
     std::vector<Op> code;
     std::vector<RuntimeObject> values;
-    std::vector<CTVarID> vars;
+    std::vector<VarID> vars;
 
     uint8_t depth = 1;
     // used to calculate the offsets for struct member accesses

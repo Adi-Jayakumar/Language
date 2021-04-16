@@ -388,10 +388,10 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
             if (strctNum == SIZE_MAX)
                 TypeError(bi->Loc(), "Expect valid struct name in front of braced initialiser");
 
-            if (MatchInitialiserToStruct(structTypes[strctNum].members, types))
+            if (MatchInitialiserToStruct(structTypes[strctNum].memTypes, types))
             {
                 for (size_t j = 0; j < bi->init.size(); j++)
-                    bi->init[j]->t = structTypes[strctNum].members[j];
+                    bi->init[j]->t = structTypes[strctNum].memTypes[j];
 
                 return structTypes[strctNum].type;
             }
@@ -617,8 +617,8 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
         if (strct == SIZE_MAX)
             TypeError(sd->Loc(), "Invalid parent struct");
 
-        for (const TypeData &mem : structTypes[strct].members)
-            s.members.push_back(mem);
+        for (const TypeData &mem : structTypes[strct].memTypes)
+            s.memTypes.push_back(mem);
 
         for (const auto &kv : structTypes[strct].nameTypes)
             s.nameTypes[kv.first] = kv.second;
@@ -634,7 +634,7 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
             if (asDV == nullptr)
                 TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
 
-            s.members.push_back(asDV->t);
+            s.memTypes.push_back(asDV->t);
             s.nameTypes[asDV->name] = asDV->t;
         }
         catch (std::exception &e)

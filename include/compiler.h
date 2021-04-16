@@ -1,27 +1,14 @@
 #pragma once
 #include "chunk.h"
+#include "idstructs.h"
 #include "perror.h"
 #include "stmtnode.h"
-
-struct CTFunc
-{
-    std::string name;
-    TypeData ret;
-};
-
-struct CTStruct
-{
-    std::vector<std::string> members;
-    std::vector<std::shared_ptr<Expr>> init;
-    TypeData type;
-    bool isNull;
-};
 
 struct Compiler
 {
     std::vector<Chunk> chunks;
-    std::vector<CTFunc> funcs{{"Print", {false, 0}}, {"ToString", {false, 4}}};
-    std::vector<CTStruct> structs;
+    // std::vector<FuncID> funcs{{"Print", {false, 0}}, {"ToString", {false, 4}}};
+    std::vector<StructID> structs;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
     bool hadError = false;
 

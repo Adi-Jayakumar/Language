@@ -224,7 +224,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     if (index == SIZE_MAX)
         c.CompileError(fa->Loc(), "Can only access into a struct");
 
-    CTStruct s = c.structs[index];
+    StructID s = c.structs[index];
 
     bool curIsAssign = c.cur->isAssign;
     c.cur->isAssign = false;
@@ -237,11 +237,11 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
     // handles the popping of the struct being accessed
 
-    for (const auto &member : s.members)
+    for (const auto &member : s.memTypes)
     {
         if (c.cur->vars.size() > UINT8_MAX)
             c.CompileError(fa->Loc(), "Too many variables");
-        c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size()), true});
+        // c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size()), true});
     }
 
     fa->accessee->NodeCompile(c);
@@ -272,8 +272,8 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     {
         bool isNative;
         size_t index = c.ResolveFunction(asFC->name, isNative);
-        if (c.funcs[index].ret.type != 0)
-            c.cur->code.push_back({Opcode::POP, 0});
+        // if (c.funcs[index].ret.type != 0)
+        //     c.cur->code.push_back({Opcode::POP, 0});
     }
 }
 
@@ -289,7 +289,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 
         if (strct != SIZE_MAX && !c.structs[strct].isNull)
         {
-            CTStruct s = c.structs[strct];
+            StructID s = c.structs[strct];
             for (auto &val : s.init)
                 val->NodeCompile(c);
             c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(s.init.size())});
@@ -331,7 +331,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     }
 
     // add to the list of variables
-    c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
+    // c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
 
     if (c.cur->vars.size() > UINT8_MAX)
         c.CompileError(dv->Loc(), "Too many variables");
@@ -424,17 +424,17 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     if (fd->argtypes.size() > UINT8_MAX)
         c.CompileError(fd->Loc(), "Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
 
-    c.funcs.push_back({fd->name, fd->ret});
+    // c.funcs.push_back({fd->name, fd->ret});
     size_t numVars = 0;
 
     for (size_t i = 0; i < fd->argtypes.size(); i++)
     {
-        CTVarID arg;
+        VarID arg;
         arg.name = fd->paramIdentifiers[i];
         arg.depth = c.cur->depth;
         arg.index = c.cur->vars.size();
 
-        c.cur->vars.push_back(arg);
+        // c.cur->vars.push_back(arg);
         numVars++;
     }
 
@@ -466,7 +466,7 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
-    CTStruct s;
+    StructID s;
     s.type = GetTypeNameMap()[sd->name];
     s.isNull = false;
 
@@ -482,14 +482,14 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         // building up the struct inheritance tree
         c.StructTree[parent + NUM_DEF_TYPES].insert(GetTypeNameMap()[sd->name].type);
 
-        for (const auto &mem : c.structs[parent].members)
-            s.members.push_back(mem);
+        for (const auto &mem : c.structs[parent].memTypes)
+            s.memTypes.push_back(mem);
     }
 
     for (size_t i = 0; i < sd->decls.size(); i++)
     {
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
-        s.members.push_back(asDV->name);
+        s.memberNames.push_back(asDV->name);
         s.init.push_back(asDV->value);
         s.isNull = s.isNull || (s.init[i] == nullptr);
     }

@@ -1,29 +1,8 @@
 #pragma once
 #include "common.h"
+#include "idstructs.h"
 #include "perror.h"
 #include "stmtnode.h"
-
-struct VarID
-{
-    TypeData type;
-    std::string name;
-    uint8_t depth;
-};
-
-struct FuncID
-{
-    TypeData ret;
-    std::string name;
-    std::vector<TypeData> argtypes;
-};
-
-struct StructID
-{
-    TypeData type;
-    TypeData parent;
-    std::vector<TypeData> members;
-    std::unordered_map<std::string, TypeData> nameTypes;
-};
 
 struct TypeChecker
 {
