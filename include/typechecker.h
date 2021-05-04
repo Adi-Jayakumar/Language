@@ -6,6 +6,7 @@
 #include "symboltable.h"
 
 bool CanAssign(const TypeData &, const TypeData &);
+bool IsTruthy(const TypeData &);
 
 struct TypeChecker
 {

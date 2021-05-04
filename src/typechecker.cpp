@@ -32,6 +32,14 @@ bool CanAssign(const TypeData &varType, const TypeData &valType)
     return varType == valType;
 }
 
+bool IsTruthy(const TypeData &cond)
+{
+    if (cond.isArray)
+        return false;
+
+    return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
+}
+
 void TypeChecker::TypeError(Token loc, std::string err)
 {
     Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + '\n' + err + '\n');
@@ -233,12 +241,26 @@ TypeData TypeChecker::TypeOfBlock(Block *b)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfIfStmt(IfStmt *)
+TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
 {
+    if (!IsTruthy(i->cond->Type(*this)))
+        TypeError(i->Loc(), "Condition of and if statement must be 'turthy'");
+
+    i->thenBranch->Type(*this);
+
+    if (i->elseBranch != nullptr)
+        i->elseBranch->Type(*this);
+
+    return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *)
+TypeData TypeChecker::TypeOfWhileStmt(WhileStmt * ws)
 {
+    if (!IsTruthy(ws->cond->Type(*this)))
+        TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
+
+    ws->body->Type(*this);
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
