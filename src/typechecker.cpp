@@ -126,8 +126,23 @@ TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
     return Symbols.vars[index].type;
 }
 
-TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *)
+TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 {
+    std::vector<TypeData> argtypes;
+
+    for(auto &e : fc->args)
+        argtypes.push_back(e->Type(*this));
+    
+    size_t index = Symbols.FindFunc(fc->name, argtypes);
+
+    if(index == SIZE_MAX)
+        TypeError(fc->Loc(), "Function '" + fc->name + "' has not been defined yet");
+    
+    if(index > UINT8_MAX)
+        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
+
+    fc->t = Symbols.funcs[index].ret;
+    return Symbols.funcs[index].ret;
 }
 
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
@@ -256,8 +271,13 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfReturn(Return *)
+TypeData TypeChecker::TypeOfReturn(Return *r)
 {
+    if (Symbols.depth == 0)
+        TypeError(r->Loc(), "Cannot return from outside of a function");
+    if (r->retVal == nullptr)
+        return {false, 0};
+    return r->retVal->Type(*this);
 }
 
 TypeData TypeChecker::TypeOfStructDecl(StructDecl *)
