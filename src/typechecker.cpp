@@ -82,8 +82,37 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfAssign(Assign *)
+TypeData TypeChecker::TypeOfAssign(Assign *a)
 {
+    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
+
+    TypeData valType = a->val->Type(*this);
+
+    if (targetAsVr != nullptr)
+    {
+        size_t varIndex = Symbols.FindVarByName(targetAsVr->name);
+
+        if (varIndex == SIZE_MAX)
+            TypeError(targetAsVr->Loc(), "Variable reference " + targetAsVr->name + " has not been defined before");
+
+        TypeData varType = Symbols.vars[varIndex].type;
+
+        if (!CanAssign(varType, valType))
+            TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
+
+        targetAsVr->isArray = varType.isArray;
+        targetAsVr->t = varType;
+        a->val->t = varType;
+        a->t = varType;
+
+        return varType;
+    }
+
+    TypeData targetType = a->target->Type(*this);
+    if (!CanAssign(targetType, valType))
+        TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
+
+    return targetType;
 }
 
 TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
