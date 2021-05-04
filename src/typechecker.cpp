@@ -198,8 +198,21 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *)
 {
 }
 
-TypeData TypeChecker::TypeOfTypeCast(TypeCast *)
+TypeData TypeChecker::TypeOfTypeCast(TypeCast *c)
 {
+    TypeData newT = c->type;
+    TypeData oldT = c->arg->Type(*this);
+
+    bool isDownCast = CanAssign(newT, oldT);
+    bool isUpCast = CanAssign(oldT, newT);
+
+    if (!isDownCast && !isUpCast)
+        TypeError(c->Loc(), "Invalid cast");
+
+    c->isDownCast = isDownCast;
+
+    c->t = newT;
+    return c->t;
 }
 
 //------------------STATEMENTS---------------------//
