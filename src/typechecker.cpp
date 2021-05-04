@@ -138,15 +138,15 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 {
     std::vector<TypeData> argtypes;
 
-    for(auto &e : fc->args)
+    for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
-    
+
     size_t index = Symbols.FindFunc(fc->name, argtypes);
 
-    if(index == SIZE_MAX)
+    if (index == SIZE_MAX)
         TypeError(fc->Loc(), "Function '" + fc->name + "' has not been defined yet");
-    
-    if(index > UINT8_MAX)
+
+    if (index > UINT8_MAX)
         TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
 
     fc->t = Symbols.funcs[index].ret;
@@ -267,7 +267,7 @@ TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfWhileStmt(WhileStmt * ws)
+TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
 {
     if (!IsTruthy(ws->cond->Type(*this)))
         TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
@@ -315,8 +315,62 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
     return r->retVal->Type(*this);
 }
 
-TypeData TypeChecker::TypeOfStructDecl(StructDecl *)
+TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 {
+    if (sd->decls.size() > UINT8_MAX)
+        TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
+
+    Symbols.depth++;
+
+    StructID s;
+    s.type = GetTypeNameMap()[sd->name];
+
+    TypeData voidT = {false, 0};
+
+    if (sd->parent != voidT)
+    {
+        size_t parIndex = Symbols.FindStruct(sd->parent);
+
+        if (parIndex == SIZE_MAX)
+            TypeError(sd->Loc(), "Invalid parent struct");
+
+        StructID par = Symbols.strcts[parIndex];
+        s.parent = par.type;
+
+        for (const std::string &name : par.memberNames)
+            s.memberNames.push_back(name);
+
+        for (const TypeData &type : par.memTypes)
+            s.memTypes.push_back(type);
+
+        for (const auto &e : par.init)
+            s.init.push_back(e);
+
+        for (const auto kv : par.nameTypes)
+            s.nameTypes[kv.first] = kv.second;
+    }
+
+    for(auto &d : sd->decls)
+    {
+        d->Type(*this);
+        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
+
+        if (asDV == nullptr)
+            TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
+
+        s.memberNames.push_back(asDV->name);
+        s.memTypes.push_back(asDV->t);
+        
+        if(asDV->value != nullptr)
+            s.init.push_back(asDV->value);
+
+        s.nameTypes[asDV->name] = asDV->t;
+    }
+    
+    Symbols.strcts.push_back(s);
+    Symbols.depth--;
+    
+    return{false, 0};
 }
 
 //-----------------EXPRESSIONS---------------------//

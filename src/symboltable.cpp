@@ -66,9 +66,25 @@ size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
 
 void SymbolTable::PopUntilSized(size_t size)
 {
-    if(vars.size() <= size)
+    if (vars.size() <= size)
         return;
-    
-    while(vars.size() > size)
+
+    while (vars.size() > size)
         vars.pop_back();
+}
+
+void SymbolTable::AddStruct(StructID &s)
+{
+    strcts.push_back(s);
+}
+
+size_t SymbolTable::FindStruct(const TypeData &td)
+{
+    for (size_t i = strcts.size(); (int)i >= 0; i--)
+    {
+        if (strcts[i].type == td)
+            return i;
+    }
+
+    return SIZE_MAX;
 }
