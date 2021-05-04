@@ -1,4 +1,5 @@
 #pragma once
+#include "idstructs.h"
 #include "op.h"
 #include "runtimeobject.h"
 

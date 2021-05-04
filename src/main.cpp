@@ -43,8 +43,8 @@ int main()
         t.TypeCheck(s);
     }
 
-    if (t.hadError)
-        exit(3);
+    // if (t.hadError)
+    //     exit(3);
 
     std::cout << std::endl
               << std::endl;
@@ -69,55 +69,55 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    Compiler c = Compiler();
-    size_t mainIndex = c.Compile(res);
-    c.Disassemble();
+    // Compiler c = Compiler();
+    // size_t mainIndex = c.Compile(res);
+    // c.Disassemble();
 
-    if (c.hadError)
-        exit(5);
+    // if (c.hadError)
+    //     exit(5);
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::cout << "Struct inheritance tree" << std::endl;
+    // std::cout << "Struct inheritance tree" << std::endl;
 
-    for (const auto &kv : c.StructTree)
-    {
-        std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
-        for (const auto &ch : kv.second)
-            std::cout << GetTypeStringMap()[ch] << ", ";
-        std::cout << std::endl;
-    }
+    // for (const auto &kv : c.StructTree)
+    // {
+    //     std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
+    //     for (const auto &ch : kv.second)
+    //         std::cout << GetTypeStringMap()[ch] << ", ";
+    //     std::cout << std::endl;
+    // }
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::vector<RuntimeFunction> rf;
+    // std::vector<RuntimeFunction> rf;
 
-    for (const auto &ch : c.chunks)
-        rf.push_back(RuntimeFunction(ch));
+    // for (const auto &ch : c.chunks)
+    //     rf.push_back(RuntimeFunction(ch));
 
-    VM vm = VM(rf, mainIndex, c.StructTree);
+    // VM vm = VM(rf, mainIndex, c.StructTree);
 
-    auto t1 = std::chrono::high_resolution_clock::now();
+    // auto t1 = std::chrono::high_resolution_clock::now();
 
-    vm.ExecuteProgram();
+    // vm.ExecuteProgram();
 
-    auto t2 = std::chrono::high_resolution_clock::now();
+    // auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+    // std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    std::cout << "Size of stack: " << vm.stack.count << std::endl;
+    // std::cout << "Size of stack: " << vm.stack.count << std::endl;
 
-    if (vm.stack.count != 0)
-    {
-        for (size_t i = 0; i < vm.stack.count; i++)
-        {
-            std::cout << *vm.stack.data[i] << std::endl;
-        }
-    }
+    // if (vm.stack.count != 0)
+    // {
+    //     for (size_t i = 0; i < vm.stack.count; i++)
+    //     {
+    //         std::cout << *vm.stack.data[i] << std::endl;
+    //     }
+    // }
 }

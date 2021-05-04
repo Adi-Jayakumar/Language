@@ -8,9 +8,11 @@ struct VarID
 {
     TypeData type;
     std::string name;
-    uint8_t depth;
-    uint8_t index;
+    size_t depth;
+    size_t index;
     bool isStructMember = false;
+    VarID() = default;
+    VarID(TypeData _type, std::string _name, size_t _depth, size_t _index) : type(_type), name(_name), depth(_depth), index(_index){};
 };
 
 struct FuncID

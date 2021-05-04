@@ -1,82 +1,6 @@
 #include "typechecker.h"
 
-void TypeChecker::TypeError(Token loc, std::string err)
-{
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + '\n' + err + '\n');
-    throw e;
-}
-
-void TypeChecker::TypeCheck(std::shared_ptr<Stmt> &s)
-{
-    s->Type(*this);
-}
-
-size_t TypeChecker::ResolveVariable(std::string &name, Token loc)
-{
-    size_t varIndex = SIZE_MAX;
-    if (isInFunc)
-    {
-        varIndex = CheckVariablesInFunction(name);
-        if (varIndex == SIZE_MAX)
-        {
-            for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-                if (vars[i].name == name)
-                {
-                    varIndex = i;
-                    break;
-                }
-        }
-    }
-    else
-    {
-        for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-            if (vars[i].name == name)
-            {
-                varIndex = i;
-                break;
-            }
-    }
-    if (varIndex == SIZE_MAX)
-        TypeError(loc, "Variable '" + name + "' has not been defined yet");
-
-    return varIndex;
-}
-
-size_t TypeChecker::CheckVariablesInFunction(std::string &name)
-{
-    for (size_t i = vars.size() - 1; (int)i >= (int)funcVarBegin; i--)
-    {
-        if ((vars[i].depth == depth) && (vars[i].name.length() == name.length()) && (vars[i].name == name))
-            return i;
-    }
-    return SIZE_MAX;
-}
-
-bool TypeChecker::IsVariableInScope(std::string &name)
-{
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].depth == depth && vars[i].name == name)
-            return true;
-    }
-    return false;
-}
-
-void TypeChecker::CleanUpVariables()
-{
-    while (!vars.empty() && vars.back().depth == depth)
-        vars.pop_back();
-}
-
-bool TypeChecker::IsTruthy(const TypeData &cond)
-{
-    if (cond.isArray)
-        return false;
-
-    return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
-}
-
-bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
+bool CanAssign(const TypeData &varType, const TypeData &valType)
 {
     if (varType.isArray != valType.isArray)
         return false;
@@ -88,127 +12,35 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
     else if (varType.type == 2 && valType.type == 1)
         return true;
 
-    if (varType.type > 6 && valType.type > 6)
-    {
-        if (varType == valType)
-            return true;
+    // if (varType.type > 6 && valType.type > 6)
+    // {
+    //     if (varType == valType)
+    //         return true;
 
-        size_t valLoc = ResolveStruct(valType);
-        TypeData parent = structTypes[valLoc].parent;
+    //     size_t valLoc = ResolveStruct(valType);
+    //     TypeData parent = structTypes[valLoc].parent;
 
-        TypeData voidType = {false, 0};
+    //     TypeData voidType = {false, 0};
 
-        if (parent == voidType)
-            return varType == valType;
+    //     if (parent == voidType)
+    //         return varType == valType;
 
-        parent.isArray = valType.isArray;
-        return CanAssign(varType, parent);
-    }
+    //     parent.isArray = valType.isArray;
+    //     return CanAssign(varType, parent);
+    // }
 
     return varType == valType;
 }
 
-bool TypeChecker::MatchNativeArguments(std::vector<TypeData> &actual, std::vector<TypeData> &supplied)
+void TypeChecker::TypeError(Token loc, std::string err)
 {
-    if (actual.size() == 0 && supplied.size() != 0)
-        return false;
-
-    TypeData matchMoreThanOne = {true, 0};
-    if (actual.size() == 1 && actual[0] == matchMoreThanOne && supplied.size() > 0)
-        return true;
-
-    TypeData matchOne = {false, 0};
-    if (supplied.size() == 1 && actual.size() == 1 && actual[0] == matchOne)
-        return true;
-
-    if (actual.size() != supplied.size())
-        return false;
-
-    bool areSame = true;
-    for (size_t i = 0; i < actual.size(); i++)
-    {
-        if (actual[i] != supplied[i])
-        {
-            areSame = false;
-            break;
-        }
-    }
-
-    return areSame;
+    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + '\n' + err + '\n');
+    throw e;
 }
 
-size_t TypeChecker::ResolveNativeFunctions(std::string &name, std::vector<TypeData> &argtypes)
+void TypeChecker::TypeCheck(std::shared_ptr<Stmt> &s)
 {
-    size_t index = SIZE_MAX;
-    for (size_t i = 0; i < funcs.size(); i++)
-    {
-        if (NativeFunctions.find(funcs[i].name) == NativeFunctions.end())
-            break;
-
-        if (funcs[i].name == name && MatchNativeArguments(funcs[i].argtypes, argtypes))
-            index = i;
-    }
-    return index;
-}
-
-size_t TypeChecker::ResolveFunction(std::string &name, std::vector<TypeData> &argtypes)
-{
-    size_t isNative = TypeChecker::ResolveNativeFunctions(name, argtypes);
-    if (isNative != SIZE_MAX)
-        return isNative;
-
-    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
-    {
-        if ((argtypes.size() == funcs[i].argtypes.size()) && (name.length() == funcs[i].name.length()) && (name == funcs[i].name))
-        {
-            bool doesMatch = true;
-            for (size_t j = 0; j < argtypes.size(); j++)
-            {
-                if (argtypes[j] != funcs[i].argtypes[j])
-                {
-                    doesMatch = false;
-                    break;
-                }
-            }
-            if (doesMatch)
-                return i;
-        }
-    }
-    return SIZE_MAX;
-}
-
-size_t TypeChecker::ResolveStruct(const TypeData &td)
-{
-    for (size_t i = 0; i < structTypes.size(); i++)
-    {
-        if (structTypes[i].type.type == td.type)
-            return i;
-    }
-    return SIZE_MAX;
-}
-
-bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
-{
-    if (member.size() != init.size())
-        return false;
-
-    for (size_t i = 0; i < member.size(); i++)
-    {
-        if (!CanAssign(member[i], init[i]))
-            return false;
-    }
-
-    return true;
-}
-
-size_t TypeChecker::FindStruct(const TypeData &structT)
-{
-    for (size_t i = 0; i < structTypes.size(); i++)
-    {
-        if (structTypes[i].type == structT)
-            return i;
-    }
-    return SIZE_MAX;
+    s->Type(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -250,70 +82,23 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfAssign(Assign *a)
+TypeData TypeChecker::TypeOfAssign(Assign *)
 {
-    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
-
-    TypeData valType = a->val->Type(*this);
-
-    if (targetAsVr != nullptr)
-    {
-        size_t varIndex = ResolveVariable(targetAsVr->name, a->Loc());
-        TypeData varType = vars[varIndex].type;
-
-        if (!CanAssign(varType, valType))
-            TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
-
-        targetAsVr->isArray = varType.isArray;
-        targetAsVr->t = varType;
-        a->val->t = varType;
-        a->t = varType;
-
-        return varType;
-    }
-
-    TypeData targetType = a->target->Type(*this);
-    if (!CanAssign(targetType, valType))
-        TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
-
-    return targetType;
 }
 
 TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
 {
-    size_t varIndex = ResolveVariable(vr->name, vr->Loc());
-    vr->t = vars[varIndex].type;
-    vr->isArray = vars[varIndex].type.isArray;
-    return vars[varIndex].type;
-}
-
-TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
-{
-    std::vector<TypeData> argtypes;
-
-    for (auto &e : fc->args)
-    {
-        try
-        {
-            argtypes.push_back(e->Type(*this));
-        }
-        catch (const std::exception &e)
-        {
-            hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    size_t index = ResolveFunction(fc->name, argtypes);
+    size_t index = Symbols.FindVarByName(vr->name);
 
     if (index == SIZE_MAX)
-        TypeError(fc->Loc(), "Function: '" + fc->name + "' has not been defined yet");
+        TypeError(vr->Loc(), "Variable reference " + vr->name + " has not been defined before");
 
-    if (index > UINT8_MAX)
-        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
+    vr->t = Symbols.vars[index].type;
+    return Symbols.vars[index].type;
+}
 
-    fc->t = funcs[index].ret;
-    return funcs[index].ret;
+TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *)
+{
 }
 
 TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
@@ -342,73 +127,8 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     return ai->t;
 }
 
-TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
+TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *)
 {
-    if (bi->size == 0)
-        return {false, 0};
-
-    // getting types of braced initialiser
-    std::vector<TypeData> types;
-    for (auto &e : bi->init)
-    {
-        try
-        {
-            types.push_back(e->Type(*this));
-        }
-        catch (const std::exception &e)
-        {
-            hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    TypeData voidType = {false, 0};
-    // if not declared with a type checks to see if it is an array
-    if (bi->t == voidType)
-    {
-        TypeData first = bi->init[0]->Type(*this);
-        for (size_t i = 0; i < bi->init.size(); i++)
-        {
-            if (!CanAssign(first, bi->init[i]->Type(*this)))
-                TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
-        }
-        bi->t = first;
-        bi->t.isArray++;
-        return bi->t;
-    }
-    // otherwise checks to see if elements match the required type
-    else
-    {
-        if (!bi->t.isArray)
-        {
-            if (bi->t.type < NUM_DEF_TYPES)
-                TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
-
-            size_t strctNum = ResolveStruct(bi->t);
-            if (strctNum == SIZE_MAX)
-                TypeError(bi->Loc(), "Expect valid struct name in front of braced initialiser");
-
-            if (MatchInitialiserToStruct(structTypes[strctNum].memTypes, types))
-            {
-                for (size_t j = 0; j < bi->init.size(); j++)
-                    bi->init[j]->t = structTypes[strctNum].memTypes[j];
-
-                return structTypes[strctNum].type;
-            }
-            else
-                TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
-        }
-
-        TypeData toComapre = bi->t;
-        toComapre.isArray--;
-
-        for (size_t i = 0; i < bi->init.size(); i++)
-        {
-            if (!CanAssign(toComapre, bi->init[i]->Type(*this)))
-                TypeError(bi->init[i]->Loc(), "Type of expression " + ToString(bi->init[i]->t) + " in a braced initialiser must be assignable to the type specified at its beginning " + ToString(bi->t));
-        }
-        return bi->t;
-    }
 }
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
@@ -422,54 +142,12 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
     return da->t;
 }
 
-TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
+TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *)
 {
-    TypeData accessorType = fa->accessor->Type(*this);
-
-    size_t structIndex = FindStruct(accessorType);
-
-    if (structIndex == SIZE_MAX)
-        TypeError(fa->Loc(), "Type " + ToString(accessorType) + " cannot be accesed into");
-
-    StructID s = structTypes[structIndex];
-
-    depth++;
-
-    for (const auto &kv : s.nameTypes)
-        vars.push_back({kv.second, kv.first, depth});
-
-    try
-    {
-        TypeData accesseeType = fa->accessee->Type(*this);
-        fa->t = accesseeType;
-        CleanUpVariables();
-        return accesseeType;
-    }
-    catch (const std::exception &e)
-    {
-        hadError = true;
-        std::cerr << "Invalid struct field access:" << std::endl
-                  << e.what() << std::endl;
-    }
-    return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfTypeCast(TypeCast *gf)
+TypeData TypeChecker::TypeOfTypeCast(TypeCast *)
 {
-
-    TypeData newT = gf->type;
-    TypeData oldT = gf->arg->Type(*this);
-
-    bool isDownCast = CanAssign(newT, oldT);
-    bool isUpCast = CanAssign(oldT, newT);
-
-    if (!isDownCast && !isUpCast)
-        TypeError(gf->Loc(), "Invalid cast");
-
-    gf->isDownCast = isDownCast;
-
-    gf->t = newT;
-    return gf->t;
 }
 
 //------------------STATEMENTS---------------------//
@@ -481,175 +159,54 @@ TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
 
 TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
-    if (IsVariableInScope(dv->name))
-        TypeError(dv->Loc(), "Variable: '" + dv->name + "' has already been defined");
+    if (Symbols.IsVarInScope(dv->name))
+        TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
 
-    vars.push_back({dv->t, dv->name, depth});
-    if (dv->value == nullptr)
-        return dv->t;
-    else
+    Symbols.AddVar(dv->t, dv->name);
+
+    if (dv->value != nullptr)
     {
-        TypeData varType = dv->t;
         TypeData valType = dv->value->Type(*this);
 
-        if (!CanAssign(varType, valType))
-            TypeError(dv->Loc(), "Cannot assign value of type: " + ToString(valType) + " to variable: '" + dv->name + "' of type: " + ToString(varType));
+        if (!CanAssign(dv->t, valType))
+            TypeError(dv->Loc(), "Cannot assign a value of type " + ToString(valType) + " to variable of type " + ToString(dv->t));
 
-        if (varType.type < NUM_DEF_TYPES)
-            dv->value->t = varType;
+        if (dv->t.type < NUM_DEF_TYPES)
+            dv->value->t = dv->t;
     }
+
     return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfBlock(Block *b)
 {
-    depth++;
+    Symbols.depth++;
 
-    if (depth == UINT8_MAX)
-        TypeError(b->Loc(), "Exceeded maximum number of nested blocks: " + std::to_string(UINT8_MAX));
+    for (auto &stmt : b->stmts)
+        stmt->Type(*this);
 
-    for (std::shared_ptr<Stmt> &s : b->stmts)
-    {
-        try
-        {
-            s->Type(*this);
-        }
-        catch (const std::exception &e)
-        {
-            hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-    // CleanUpVariables();
-    depth--;
+    Symbols.depth--;
     return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
+TypeData TypeChecker::TypeOfIfStmt(IfStmt *)
 {
-    if (!IsTruthy(i->cond->Type(*this)))
-        TypeError(i->Loc(), "Condition of and if statement must be 'turthy'");
-
-    i->thenBranch->Type(*this);
-
-    if (i->elseBranch != nullptr)
-        i->elseBranch->Type(*this);
-
-    return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
+TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *)
 {
-    if (!IsTruthy(ws->cond->Type(*this)))
-        TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
-
-    ws->body->Type(*this);
-    return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
+TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *)
 {
-    if (ResolveFunction(fd->name, fd->argtypes) != SIZE_MAX)
-        TypeError(fd->Loc(), "Function '" + fd->name + "' has already been defined");
-
-    depth++;
-    if (funcs.size() > UINT8_MAX)
-        TypeError(fd->loc, "Max number of functions is: " + std::to_string(UINT8_MAX));
-
-    funcs.push_back({fd->ret, fd->name, fd->argtypes});
-
-    isInFunc = true;
-    funcVarBegin = vars.size();
-
-    if (fd->argtypes.size() != fd->paramIdentifiers.size())
-    {
-        std::cout << "SOMETHING WENT WRONG HERE" << std::endl;
-        exit(14);
-    }
-
-    for (size_t j = 0; j < fd->argtypes.size(); j++)
-        vars.push_back({fd->argtypes[j], fd->paramIdentifiers[j], depth});
-
-    for (auto &s : fd->body)
-    {
-        try
-        {
-            s->Type(*this);
-        }
-        catch (const std::exception &e)
-        {
-            hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    isInFunc = false;
-    CleanUpVariables();
-    funcVarBegin = 0;
-    depth--;
-    return {false, 0};
 }
 
-TypeData TypeChecker::TypeOfReturn(Return *r)
+TypeData TypeChecker::TypeOfReturn(Return *)
 {
-    if (depth == 0)
-        TypeError(r->Loc(), "Cannot return from outside of a function");
-    if (r->retVal == nullptr)
-        return {false, 0};
-    return r->retVal->Type(*this);
 }
 
-TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
+TypeData TypeChecker::TypeOfStructDecl(StructDecl *)
 {
-    if (sd->decls.size() > UINT8_MAX)
-        TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
-    depth++;
-
-    StructID s;
-    s.type = GetTypeNameMap()[sd->name];
-
-    TypeData voidType = {false, 0};
-
-    if (sd->parent != voidType)
-    {
-        size_t strct = ResolveStruct(sd->parent);
-
-        if (strct == SIZE_MAX)
-            TypeError(sd->Loc(), "Invalid parent struct");
-
-        for (const TypeData &mem : structTypes[strct].memTypes)
-            s.memTypes.push_back(mem);
-
-        for (const auto &kv : structTypes[strct].nameTypes)
-            s.nameTypes[kv.first] = kv.second;
-    }
-
-    for (auto &d : sd->decls)
-    {
-        try
-        {
-            d->Type(*this);
-            DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
-
-            if (asDV == nullptr)
-                TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
-
-            s.memTypes.push_back(asDV->t);
-            s.nameTypes[asDV->name] = asDV->t;
-        }
-        catch (std::exception &e)
-        {
-            hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-    s.parent = sd->parent;
-
-    structTypes.push_back(s);
-
-    CleanUpVariables();
-    depth--;
-    return {false, 0};
 }
 
 //-----------------EXPRESSIONS---------------------//
