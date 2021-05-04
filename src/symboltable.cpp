@@ -36,3 +36,39 @@ size_t SymbolTable::FindVarByName(std::string &name)
 
     return varIndex - funcVarBegin;
 }
+
+void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> argtypes)
+{
+    funcs.push_back(FuncID(ret, name, argtypes));
+}
+
+size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
+{
+    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
+    {
+        if (argtypes.size() == funcs[i].argtypes.size() && name == funcs[i].name)
+        {
+            bool doesMatch = true;
+            for (size_t j = 0; j < argtypes.size(); j++)
+            {
+                if (argtypes[j] != funcs[i].argtypes[j])
+                {
+                    doesMatch = false;
+                    break;
+                }
+            }
+            if (doesMatch)
+                return i;
+        }
+    }
+    return SIZE_MAX;
+}
+
+void SymbolTable::PopUntilSized(size_t size)
+{
+    if(vars.size() <= size)
+        return;
+    
+    while(vars.size() > size)
+        vars.pop_back();
+}

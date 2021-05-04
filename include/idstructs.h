@@ -20,6 +20,8 @@ struct FuncID
     TypeData ret;
     std::string name;
     std::vector<TypeData> argtypes;
+    FuncID() = default;
+    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes) : ret(_ret), name(_name), argtypes(_argtypes){};
 };
 
 struct StructID
