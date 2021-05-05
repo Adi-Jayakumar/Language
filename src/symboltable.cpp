@@ -80,7 +80,7 @@ void SymbolTable::AddStruct(StructID &s)
 
 size_t SymbolTable::FindStruct(const TypeData &td)
 {
-    for (size_t i = strcts.size(); (int)i >= 0; i--)
+    for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
     {
         if (strcts[i].type == td)
             return i;

@@ -194,8 +194,28 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
     return da->t;
 }
 
-TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *)
+TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
 {
+    TypeData accessorType = fa->accessor->Type(*this);
+
+    size_t structIndex = Symbols.FindStruct(accessorType);
+
+    if (structIndex == SIZE_MAX)
+        TypeError(fa->Loc(), "Type " + ToString(accessorType) + " cannot be accesed into");
+
+    StructID s = Symbols.strcts[structIndex];
+    Symbols.depth++;
+    size_t preVarSize = Symbols.vars.size();
+
+    for (const auto &kv : s.nameTypes)
+        Symbols.AddVar(kv.second, kv.first);
+
+    TypeData accesseeType = fa->accessee->Type(*this);
+    fa->t = accesseeType;
+
+    Symbols.PopUntilSized(preVarSize);
+    Symbols.depth--;
+    return accesseeType;
 }
 
 TypeData TypeChecker::TypeOfTypeCast(TypeCast *c)
@@ -350,7 +370,9 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
             s.nameTypes[kv.first] = kv.second;
     }
 
-    for(auto &d : sd->decls)
+    s.isNull = false;
+
+    for (auto &d : sd->decls)
     {
         d->Type(*this);
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
@@ -360,17 +382,17 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 
         s.memberNames.push_back(asDV->name);
         s.memTypes.push_back(asDV->t);
-        
-        if(asDV->value != nullptr)
+
+        if (asDV->value != nullptr)
             s.init.push_back(asDV->value);
 
         s.nameTypes[asDV->name] = asDV->t;
     }
-    
+
     Symbols.strcts.push_back(s);
     Symbols.depth--;
-    
-    return{false, 0};
+
+    return {false, 0};
 }
 
 //-----------------EXPRESSIONS---------------------//
