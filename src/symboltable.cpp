@@ -82,7 +82,7 @@ size_t SymbolTable::FindStruct(const TypeData &td)
 {
     for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
     {
-        if (strcts[i].type == td)
+        if (strcts[i].type.type == td.type)
             return i;
     }
 

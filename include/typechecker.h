@@ -5,11 +5,13 @@
 #include "stmtnode.h"
 #include "symboltable.h"
 
-bool CanAssign(const TypeData &, const TypeData &);
 bool IsTruthy(const TypeData &);
 
 struct TypeChecker
 {
+    bool CanAssign(const TypeData &, const TypeData &);
+    bool MatchInitialiserToStruct(const std::vector<TypeData> &, const std::vector<TypeData> &);
+
     void TypeError(Token loc, std::string err);
     SymbolTable Symbols;
 

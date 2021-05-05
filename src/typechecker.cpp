@@ -1,6 +1,6 @@
 #include "typechecker.h"
 
-bool CanAssign(const TypeData &varType, const TypeData &valType)
+bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
 {
     if (varType.isArray != valType.isArray)
         return false;
@@ -12,22 +12,22 @@ bool CanAssign(const TypeData &varType, const TypeData &valType)
     else if (varType.type == 2 && valType.type == 1)
         return true;
 
-    // if (varType.type > 6 && valType.type > 6)
-    // {
-    //     if (varType == valType)
-    //         return true;
+    if (varType.type > 6 && valType.type > 6)
+    {
+        if (varType == valType)
+            return true;
 
-    //     size_t valLoc = ResolveStruct(valType);
-    //     TypeData parent = structTypes[valLoc].parent;
+        size_t valLoc = Symbols.FindStruct(valType);
+        TypeData parent = Symbols.strcts[valLoc].parent;
 
-    //     TypeData voidType = {false, 0};
+        TypeData voidType = {false, 0};
 
-    //     if (parent == voidType)
-    //         return varType == valType;
+        if (parent == voidType)
+            return varType == valType;
 
-    //     parent.isArray = valType.isArray;
-    //     return CanAssign(varType, parent);
-    // }
+        parent.isArray = valType.isArray;
+        return CanAssign(varType, parent);
+    }
 
     return varType == valType;
 }
@@ -38,6 +38,20 @@ bool IsTruthy(const TypeData &cond)
         return false;
 
     return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
+}
+
+bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
+{
+    if (member.size() != init.size())
+        return false;
+
+    for (size_t i = 0; i < member.size(); i++)
+    {
+        if (!CanAssign(member[i], init[i]))
+            return false;
+    }
+
+    return true;
 }
 
 void TypeChecker::TypeError(Token loc, std::string err)
@@ -179,8 +193,61 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     return ai->t;
 }
 
-TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *)
+TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
 {
+    if (bi->size == 0)
+        return {false, 0};
+
+    std::vector<TypeData> types;
+
+    for (auto &init : bi->init)
+        types.push_back(init->Type(*this));
+
+    TypeData voidT = {false, 0};
+    if (bi->t == voidT)
+    {
+        TypeData first = types[0];
+        for (size_t i = 1; i < types.size(); i++)
+        {
+            if (!CanAssign(first, types[i]))
+                TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
+        }
+        bi->t = first;
+        bi->t.isArray++;
+        return bi->t;
+    }
+    if (bi->t.isArray)
+    {
+        TypeData toCompare = bi->t;
+        toCompare.isArray--;
+        for (size_t i = 0; i < types.size(); i++)
+        {
+            if (!CanAssign(toCompare, types[i]))
+                TypeError(bi->init[i]->Loc(), "Type of expression in a braced initaliser must be assignable to the type specified at the beginning");
+        }
+        return bi->t;
+    }
+    else
+    {
+        if (bi->t.type < NUM_DEF_TYPES)
+            TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
+
+        size_t strctNum = Symbols.FindStruct(bi->t);
+        if (strctNum == SIZE_MAX)
+            TypeError(bi->Loc(), "Expect valid struct name in front of braced initialiser");
+
+        if (MatchInitialiserToStruct(Symbols.strcts[strctNum].memTypes, types))
+        {
+            for (size_t i = 0; i < bi->init.size(); i++)
+                bi->init[i]->t = Symbols.strcts[strctNum].memTypes[i];
+
+            return Symbols.strcts[strctNum].type;
+        }
+        else
+            TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
+    }
+    // dummy return, never reached
+    return {false, 0};
 }
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
