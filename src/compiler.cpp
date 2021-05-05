@@ -5,7 +5,6 @@ Compiler::Compiler()
     chunks.push_back(Chunk());
     chunks[0].arity = 0;
     cur = &chunks[0];
-    isFunc = false;
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -26,12 +25,15 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
             numFunctions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
             if (asFD->argtypes.size() == 0 && asFD->name == "Main")
+            {
+                if (mainIndex != SIZE_MAX)
+                    CompileError(asFD->Loc(), "Main function already defined");
                 mainIndex = numFunctions;
+            }
         }
-        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr)
-            CompileError(s[i]->Loc(), "Only declarations allowed in global region");
+        // else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr)
+        //     CompileError(s[i]->Loc(), "Only declarations allowed in global region");
     }
-    cur->CleanUpVariables();
     return mainIndex;
 }
 
@@ -54,43 +56,11 @@ void Compiler::Disassemble()
     }
 }
 
-size_t Compiler::ResolveVariableInCur(std::string &name)
+void Compiler::ClearCurrentDepthWithPOPInst()
 {
-    return cur->ChunkResolveVariable(name);
-}
-
-bool Compiler::ResolveVariable(std::string &name, size_t &index)
-{
-    index = cur->ChunkResolveVariable(name);
-    if (index == SIZE_MAX)
+    while (Symbols.vars.size() > 0 && Symbols.vars.back().depth == Symbols.depth)
     {
-        index = chunks[0].ChunkResolveVariable(name);
-        return true;
+        Symbols.vars.pop_back();
+        cur->code.push_back({Opcode::POP, 0});
     }
-    return false;
-}
-
-size_t Compiler::ResolveFunction(std::string &, bool &)
-{
-    // for (size_t i = 0; i < funcs.size(); i++)
-    // {
-    //     if (funcs[i].name == name)
-    //     {
-    //         isNative = NativeFunctions.find(name) != NativeFunctions.end();
-    //         return i;
-    //     }
-    // }
-    return SIZE_MAX;
-}
-
-size_t Compiler::ResolveStruct(const TypeData &type)
-{
-    for (size_t i = 0; i < structs.size(); i++)
-    {
-        if (structs[i].type == type)
-        {
-            return i;
-        }
-    }
-    return SIZE_MAX;
 }

@@ -62,112 +62,20 @@ void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
-    a->val->NodeCompile(c);
-    size_t stackIndex = SIZE_MAX;
-
-    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
-    if (targetAsVr != nullptr)
-    {
-        if (!c.ResolveVariable(targetAsVr->name, stackIndex))
-        {
-            c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(stackIndex)});
-            c.cur->code.push_back({Opcode::POP, 0});
-            c.cur->code.push_back({Opcode::GET_V, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
-        }
-        else
-        {
-            c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(stackIndex)});
-            c.cur->code.push_back({Opcode::POP, 0});
-            c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
-        }
-        return;
-    }
-
-    // the value is pushed onto the stack in the handling of the ARR_SET instruction
-    ArrayIndex *targetAsAi = dynamic_cast<ArrayIndex *>(a->target.get());
-    if (targetAsAi != nullptr)
-    {
-        c.cur->isAssign = true;
-        a->target->NodeCompile(c);
-        c.cur->isAssign = false;
-        return;
-    }
-
-    FieldAccess *targetAsFA = dynamic_cast<FieldAccess *>(a->target.get());
-    if (targetAsFA != nullptr)
-    {
-        c.cur->isAssign = true;
-        targetAsFA->NodeCompile(c);
-        c.cur->isAssign = false;
-    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    size_t stackIndex = SIZE_MAX;
-    if (!c.ResolveVariable(vr->name, stackIndex))
-    {
-        Opcode inst = Opcode::GET_V;
-        if (c.cur->vars[stackIndex].isStructMember)
-        {
-            inst = Opcode::STRUCT_MEMBER;
-            if (c.cur->isAssign)
-                inst = Opcode::STRUCT_MEMBER_SET;
-        }
-
-        c.cur->code.push_back({inst, static_cast<uint8_t>(stackIndex - c.cur->varOffset)});
-    }
-    else
-        c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<uint8_t>(stackIndex)});
+    uint8_t varStackLoc = static_cast<uint8_t>(c.Symbols.FindVarByName(vr->name));
+    c.cur->code.push_back({Opcode::GET_V, varStackLoc});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
-    bool isNative = false;
-    size_t index = c.ResolveFunction(fc->name, isNative);
-
-    if (index > UINT8_MAX)
-        c.CompileError(fc->Loc(), "Too many functions");
-
-    if (fc->args.size() > UINT8_MAX)
-        c.CompileError(fc->Loc(), "Functions can only have " + std::to_string(UINT8_MAX) + " arguments");
-
-    for (std::shared_ptr<Expr> &e : fc->args)
-    {
-        try
-        {
-            e->NodeCompile(c);
-        }
-        catch (const std::exception &e)
-        {
-            c.hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
-
-    if (!isNative)
-        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index + 1 - NativeFunctions.size())});
-    else
-    {
-        RuntimeObject arityAsCC = RuntimeObject(static_cast<int>(fc->args.size()));
-        c.cur->values.push_back(arityAsCC);
-        c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
-        c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(index)});
-    }
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
-    bool curIsAssign = c.cur->isAssign;
-    c.cur->isAssign = false;
-    ai->name->NodeCompile(c);
-    c.cur->isAssign = curIsAssign;
-
-    ai->index->NodeCompile(c);
-    if (ai->name->GetType().isArray)
-        c.cur->isAssign ? c.cur->code.push_back({Opcode::ARR_SET, 0}) : c.cur->code.push_back({Opcode::ARR_INDEX, 0});
-    else
-        c.cur->isAssign ? c.cur->code.push_back({Opcode::STRING_SET, 0}) : c.cur->code.push_back({Opcode::STRING_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
@@ -219,36 +127,6 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
-    size_t index = c.ResolveStruct(fa->accessor->t);
-
-    if (index == SIZE_MAX)
-        c.CompileError(fa->Loc(), "Can only access into a struct");
-
-    StructID s = c.structs[index];
-
-    bool curIsAssign = c.cur->isAssign;
-    c.cur->isAssign = false;
-    fa->accessor->NodeCompile(c);
-    c.cur->isAssign = curIsAssign;
-
-    c.cur->depth++;
-    uint8_t curVarOffset = c.cur->varOffset;
-    c.cur->varOffset = c.cur->vars.size();
-
-    // handles the popping of the struct being accessed
-
-    for (const auto &member : s.memTypes)
-    {
-        if (c.cur->vars.size() > UINT8_MAX)
-            c.CompileError(fa->Loc(), "Too many variables");
-        // c.cur->vars.push_back({member, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size()), true});
-    }
-
-    fa->accessee->NodeCompile(c);
-
-    c.cur->CleanUpVariablesNoPOP();
-    c.cur->depth--;
-    c.cur->varOffset = curVarOffset;
 }
 
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
@@ -262,104 +140,27 @@ void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
     es->exp->NodeCompile(c);
-
-    FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
-
-    // Function calls need not always have a POP after due to void functions
-    if (asFC == nullptr)
-        c.cur->code.push_back({Opcode::POP, 0});
-    else
-    {
-        bool isNative;
-        size_t index = c.ResolveFunction(asFC->name, isNative);
-        // if (c.funcs[index].ret.type != 0)
-        //     c.cur->code.push_back({Opcode::POP, 0});
-    }
+    c.cur->code.push_back({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
-    // compile the initialiser
-    if (dv->value != nullptr)
-        dv->value->NodeCompile(c);
-    else
-    {
-        TypeData dvType = dv->t;
-        size_t strct = c.ResolveStruct(dvType);
+    if (c.Symbols.vars.size() > UINT8_MAX)
+        c.CompileError(dv->Loc(), "Max number of variables in a chunk is " + std::to_string(UINT8_MAX));
 
-        if (strct != SIZE_MAX && !c.structs[strct].isNull)
-        {
-            StructID s = c.structs[strct];
-            for (auto &val : s.init)
-                val->NodeCompile(c);
-            c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(s.init.size())});
-        }
-        else
-        {
-            RuntimeObject def;
-            if (dvType.isArray)
-                def = RuntimeObject(RuntimeType::NULL_T, "");
-            else
-            {
-                switch (dvType.type)
-                {
-                case 1:
-                {
-                    def = RuntimeObject((int)0);
-                    break;
-                }
-                case 2:
-                {
-                    def = RuntimeObject((double)0);
-                    break;
-                }
-                case 3:
-                {
-                    def = RuntimeObject(false);
-                    break;
-                }
-                default:
-                {
-                    def = RuntimeObject(RuntimeType::NULL_T, "");
-                    break;
-                }
-                }
-            }
-            c.cur->values.push_back(def);
-            c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
-        }
-    }
-
-    // add to the list of variables
-    // c.cur->vars.push_back({dv->name, c.cur->depth, static_cast<uint8_t>(c.cur->vars.size())});
-
-    if (c.cur->vars.size() > UINT8_MAX)
-        c.CompileError(dv->Loc(), "Too many variables");
-
-    // check if it is a global variable
-    if (!c.isFunc)
-        c.cur->code.push_back({Opcode::VAR_D_GLOBAL, static_cast<uint8_t>(c.cur->vars.size() - 1)});
+    c.Symbols.AddVar(dv->t, dv->name);
+    dv->value->NodeCompile(c);
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
-    c.cur->depth++;
+    c.Symbols.depth++;
 
-    for (std::shared_ptr<Stmt> &s : b->stmts)
-    {
-        try
-        {
-            s->NodeCompile(c);
-        }
-        catch (const std::exception &e)
-        {
-            c.hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
+    for (auto &stmt : b->stmts)
+        stmt->NodeCompile(c);
 
-    c.cur->CleanUpVariables();
-    c.cur->depth--;
+    c.ClearCurrentDepthWithPOPInst();
+    c.Symbols.depth--;
 }
 
 void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
@@ -421,35 +222,6 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
-    if (fd->argtypes.size() > UINT8_MAX)
-        c.CompileError(fd->Loc(), "Functions can only have " + std::to_string(UINT8_MAX) + " number of arguments");
-
-    // c.funcs.push_back({fd->name, fd->ret});
-    size_t numVars = 0;
-
-    for (size_t i = 0; i < fd->argtypes.size(); i++)
-    {
-        VarID arg;
-        arg.name = fd->paramIdentifiers[i];
-        arg.depth = c.cur->depth;
-        arg.index = c.cur->vars.size();
-
-        // c.cur->vars.push_back(arg);
-        numVars++;
-    }
-
-    for (auto &s : fd->body)
-    {
-        try
-        {
-            s->NodeCompile(c);
-        }
-        catch (const std::exception &e)
-        {
-            c.hadError = true;
-            std::cerr << e.what() << std::endl;
-        }
-    }
 }
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
@@ -466,35 +238,6 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
-    StructID s;
-    s.type = GetTypeNameMap()[sd->name];
-    s.isNull = false;
-
-    // adding the parent's members to the struct
-    TypeData voidType = {false, 0};
-    if (sd->parent != voidType)
-    {
-        size_t parent = c.ResolveStruct(sd->parent);
-
-        if (parent == SIZE_MAX)
-            c.CompileError(sd->Loc(), "Invalid parent type");
-
-        // building up the struct inheritance tree
-        c.StructTree[parent + NUM_DEF_TYPES].insert(GetTypeNameMap()[sd->name].type);
-
-        for (const auto &mem : c.structs[parent].memTypes)
-            s.memTypes.push_back(mem);
-    }
-
-    for (size_t i = 0; i < sd->decls.size(); i++)
-    {
-        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
-        s.memberNames.push_back(asDV->name);
-        s.init.push_back(asDV->value);
-        s.isNull = s.isNull || (s.init[i] == nullptr);
-    }
-
-    c.structs.push_back(s);
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -583,17 +326,7 @@ void WhileStmt::NodeCompile(Compiler &c)
 
 void FuncDecl::NodeCompile(Compiler &c)
 {
-    c.chunks.push_back(Chunk());
-    c.cur = &c.chunks.back();
-    c.isFunc = true;
-
-    c.cur->arity = argtypes.size();
-
     NodeCompiler::CompileFuncDecl(this, c);
-
-    c.cur->CleanUpVariables();
-    c.isFunc = false;
-    c.cur = &c.chunks[0];
 }
 
 void Return::NodeCompile(Compiler &c)

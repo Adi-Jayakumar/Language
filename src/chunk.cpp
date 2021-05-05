@@ -21,34 +21,3 @@ void Chunk::PrintCode()
         std::cout << std::endl;
     }
 }
-
-size_t Chunk::ChunkResolveVariable(std::string &name)
-{
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if ((vars[i].name.length() == name.length()) && (vars[i].name == name))
-            return i;
-    }
-    return SIZE_MAX;
-}
-
-void Chunk::CleanUpVariables()
-{
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].depth == depth)
-        {
-            code.push_back({Opcode::POP, 0});
-            vars.pop_back();
-        }
-    }
-}
-
-void Chunk::CleanUpVariablesNoPOP()
-{
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].depth == depth)
-            vars.pop_back();
-    }
-}
