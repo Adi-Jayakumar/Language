@@ -90,6 +90,9 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
+    ai->name->NodeCompile(c);
+    ai->index->NodeCompile(c);
+    c.cur->code.push_back({Opcode::ARR_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
