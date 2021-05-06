@@ -1,5 +1,11 @@
 #include "vm.h"
 
+/*
+    TODO
+        ARR_ALLOC and STRUCT_ALLOC can have non-zero opcode representing
+        the size of the array to allocate
+*/
+
 VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree)
 {
     functions = _functions;
@@ -256,6 +262,10 @@ void VM::ExecuteInstruction()
         arr->as.arr.size = arraySize;
 
         stack.push_back(arr);
+        break;
+    }
+    case Opcode::STRUCT_ALLOC:
+    {
         break;
     }
     case Opcode::STRING_INDEX:

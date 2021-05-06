@@ -20,6 +20,7 @@ enum class Opcode : uint8_t
     ARR_INDEX,
     ARR_SET,
     ARR_ALLOC,
+    STRUCT_ALLOC,
 
     STRING_INDEX,
     STRING_SET,

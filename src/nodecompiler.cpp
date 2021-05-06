@@ -92,30 +92,20 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
 }
 
-void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
+void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
-    if (ia->size > UINT8_MAX)
-        c.CompileError(ia->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
+    if (bi->size > UINT8_MAX)
+        c.CompileError(bi->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
 
-    RuntimeObject arr;
+    if (bi->size > UINT8_MAX)
+        c.CompileError(bi->Loc(), "Braced initialisers can only have " + std::to_string(UINT8_MAX) + " elements");
 
-    if (ia->GetType().isArray)
-        arr = RuntimeObject(RuntimeType::ARRAY, ia->size);
+    if (bi->GetType().isArray)
+        c.cur->code.push_back({Opcode::ARR_ALLOC, static_cast<uint8_t>(bi->size)});
     else
-    {
-        arr = RuntimeObject(RuntimeType::STRUCT, ia->size);
-        arr.as.arr.type = ia->GetType().type;
-    }
+        c.cur->code.push_back({Opcode::STRUCT_ALLOC, static_cast<uint8_t>(bi->size)});
 
-    c.cur->values.push_back(arr);
-    size_t arrStackLoc = c.cur->values.size() - 1;
-
-    if (arrStackLoc > UINT8_MAX)
-        c.CompileError(ia->Loc(), "Too many variables");
-
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(arrStackLoc)});
-
-    for (auto &e : ia->init)
+    for (auto &e : bi->init)
     {
         try
         {
@@ -127,10 +117,10 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *ia, Compiler &c)
             std::cerr << e.what() << std::endl;
         }
     }
-    if (ia->GetType().isArray)
-        c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(ia->size)});
+    if (bi->GetType().isArray)
+        c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(bi->size)});
     else
-        c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(ia->size)});
+        c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(bi->size)});
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
