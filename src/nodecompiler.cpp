@@ -76,6 +76,40 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         size_t varStackLoc = c.Symbols.FindVarByName(targetAsVR->name);
         c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(varStackLoc)});
     }
+
+    ArrayIndex *targetAsAI = dynamic_cast<ArrayIndex *>(a->target.get());
+    if (targetAsAI != nullptr)
+    {
+        targetAsAI->name->NodeCompile(c);
+        targetAsAI->index->NodeCompile(c);
+        c.cur->code.push_back({Opcode::ARR_SET, 0});
+    }
+
+    FieldAccess *targetAsFA = dynamic_cast<FieldAccess *>(a->target.get());
+    if (targetAsFA != nullptr)
+    {
+        TypeData strct = targetAsFA->t;
+        size_t index = c.Symbols.FindStruct(strct);
+        StructID sID = c.Symbols.strcts[index];
+
+        VarReference *acessee = dynamic_cast<VarReference *>(targetAsFA->accessee.get());
+        if (acessee == nullptr)
+            c.CompileError(targetAsFA->accessee->Loc(), "Invalid struct accessor");
+
+        targetAsFA->accessor->NodeCompile(c);
+
+        size_t strctMem = SIZE_MAX;
+        for (size_t i = 0; i < sID.memberNames.size(); i++)
+        {
+            if (sID.memberNames[i] == acessee->name)
+            {
+                strctMem = i;
+                break;
+            }
+        }
+
+        c.cur->code.push_back({Opcode::STRUCT_MEMBER_SET, static_cast<uint8_t>(strctMem)});
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
@@ -144,6 +178,28 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
+    TypeData strct = fa->accessor->t;
+    size_t index = c.Symbols.FindStruct(strct);
+    std::cout << "Index " << index << std::endl;
+    StructID sID = c.Symbols.strcts[index];
+
+    VarReference *acessee = dynamic_cast<VarReference *>(fa->accessee.get());
+    if (acessee == nullptr)
+        c.CompileError(fa->accessee->Loc(), "Invalid struct accessor");
+
+    fa->accessor->NodeCompile(c);
+
+    size_t strctMem = SIZE_MAX;
+    for (size_t i = 0; i < sID.memberNames.size(); i++)
+    {
+        if (sID.memberNames[i] == acessee->name)
+        {
+            strctMem = i;
+            break;
+        }
+    }
+
+    c.cur->code.push_back({Opcode::STRUCT_MEMBER, static_cast<uint8_t>(strctMem)});
 }
 
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
