@@ -1,5 +1,10 @@
 #include "nodecompiler.h"
 
+/*
+    TODO
+        Compile uninitialised variables
+*/
+
 RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
 {
     if (t.isArray)
@@ -74,7 +79,10 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     if (targetAsVR != nullptr)
     {
         size_t varStackLoc = c.Symbols.FindVarByName(targetAsVR->name);
-        c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(varStackLoc)});
+        if (c.Symbols.vars[varStackLoc].depth == 0)
+            c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(varStackLoc)});
+        else
+            c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(varStackLoc)});
     }
 
     ArrayIndex *targetAsAI = dynamic_cast<ArrayIndex *>(a->target.get());
@@ -115,7 +123,10 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     uint8_t varStackLoc = static_cast<uint8_t>(c.Symbols.FindVarByName(vr->name));
-    c.cur->code.push_back({Opcode::GET_V, varStackLoc});
+    if (c.Symbols.vars[varStackLoc].depth == 0)
+        c.cur->code.push_back({Opcode::GET_V_GLOBAL, varStackLoc});
+    else
+        c.cur->code.push_back({Opcode::GET_V, varStackLoc});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
@@ -223,6 +234,9 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 
     c.Symbols.AddVar(dv->t, dv->name);
     dv->value->NodeCompile(c);
+
+    if (c.Symbols.depth == 0)
+        c.cur->code.push_back({Opcode::VAR_D_GLOBAL, 0});
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)

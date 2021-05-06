@@ -34,7 +34,8 @@ size_t SymbolTable::FindVarByName(std::string &name)
         }
     }
 
-    return varIndex - funcVarBegin;
+    int offsetLoc = static_cast<int>(varIndex) - static_cast<int>(funcVarBegin);
+    return offsetLoc < 0 ? varIndex : varIndex - funcVarBegin;
 }
 
 void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> argtypes)
