@@ -8,7 +8,7 @@ struct SymbolTable
     std::vector<StructID> strcts;
 
     size_t depth = 0;
-    size_t funcVarBegin;
+    size_t funcVarBegin = 0;
 
     void AddVar(TypeData, std::string);
 

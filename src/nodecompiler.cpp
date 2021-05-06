@@ -86,6 +86,16 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
+    std::vector<TypeData> argtypes;
+
+    for (auto &arg : fc->args)
+    {
+        argtypes.push_back(arg->GetType());
+        arg->NodeCompile(c);
+    }
+
+    size_t index = c.Symbols.FindFunc(fc->name, argtypes);
+    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index)});
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
@@ -254,6 +264,8 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     c.chunks.push_back(Chunk());
     c.cur = &c.chunks.back();
 
+    c.Symbols.funcVarBegin = c.Symbols.vars.size();
+
     c.Symbols.AddFunc(fd->ret, fd->name, fd->argtypes);
     c.Symbols.depth++;
 
@@ -265,6 +277,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.ClearCurrentDepthWithPOPInst();
     c.Symbols.depth--;
+    c.Symbols.funcVarBegin = 0;
     c.cur = &c.chunks[0];
 }
 
@@ -282,6 +295,21 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
+    StructID s;
+    s.type = GetTypeNameMap()[sd->name];
+    s.parent = sd->parent;
+
+    for (size_t i = 0; i < sd->decls.size(); i++)
+    {
+        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(sd->decls[i].get());
+        s.memberNames.push_back(asDV->name);
+        s.memTypes.push_back(asDV->t);
+        s.init.push_back(asDV->value);
+        s.nameTypes[asDV->name] = asDV->t;
+    }
+
+    s.isNull = true;
+    c.Symbols.AddStruct(s);
 }
 
 //-----------------EXPRESSIONS---------------------//
