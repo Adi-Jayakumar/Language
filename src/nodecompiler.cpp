@@ -88,7 +88,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     FieldAccess *targetAsFA = dynamic_cast<FieldAccess *>(a->target.get());
     if (targetAsFA != nullptr)
     {
-        TypeData strct = targetAsFA->t;
+        TypeData strct = targetAsFA->accessor->t;
         size_t index = c.Symbols.FindStruct(strct);
         StructID sID = c.Symbols.strcts[index];
 
