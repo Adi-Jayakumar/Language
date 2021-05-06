@@ -333,10 +333,12 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 TypeData TypeChecker::TypeOfBlock(Block *b)
 {
     Symbols.depth++;
+    size_t preBlockSize = Symbols.vars.size();
 
     for (auto &stmt : b->stmts)
         stmt->Type(*this);
 
+    Symbols.PopUntilSized(preBlockSize);
     Symbols.depth--;
     return {false, 0};
 }
