@@ -251,6 +251,21 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
+    c.chunks.push_back(Chunk());
+    c.cur = &c.chunks.back();
+
+    c.Symbols.AddFunc(fd->ret, fd->name, fd->argtypes);
+    c.Symbols.depth++;
+
+    for (size_t i = 0; i < fd->argtypes.size(); i++)
+        c.Symbols.AddVar(fd->argtypes[i], fd->paramIdentifiers[i]);
+
+    for (auto &stmt : fd->body)
+        stmt->NodeCompile(c);
+
+    c.ClearCurrentDepthWithPOPInst();
+    c.Symbols.depth--;
+    c.cur = &c.chunks[0];
 }
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
