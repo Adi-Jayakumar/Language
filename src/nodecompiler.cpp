@@ -62,6 +62,20 @@ void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 
 void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
+    /*
+    Valid assignment targets
+    1) VarReference
+    2) ArrayIndex
+    3) FieldAccess
+    */
+    a->val->NodeCompile(c);
+
+    VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
+    if (targetAsVR != nullptr)
+    {
+        size_t varStackLoc = c.Symbols.FindVarByName(targetAsVR->name);
+        c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(varStackLoc)});
+    }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
