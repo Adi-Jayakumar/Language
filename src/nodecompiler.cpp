@@ -178,7 +178,18 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     size_t patchIndex = c.cur->code.size() - 1;
     size_t befSize = c.cur->code.size();
 
+    bool isNotBlock = dynamic_cast<Block *>(i->thenBranch.get()) == nullptr;
+
+    if (isNotBlock)
+        c.Symbols.depth++;
+
     i->thenBranch->NodeCompile(c);
+
+    if (isNotBlock)
+    {
+        c.ClearCurrentDepthWithPOPInst();
+        c.Symbols.depth--;
+    }
 
     size_t sizeDiff = c.cur->code.size() - befSize;
 
@@ -197,7 +208,18 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     patchIndex = c.cur->code.size() - 1;
     befSize = c.cur->code.size();
 
+    isNotBlock = dynamic_cast<Block *>(i->elseBranch.get()) == nullptr;
+
+    if (isNotBlock)
+        c.Symbols.depth++;
+
     i->elseBranch->NodeCompile(c);
+
+    if (isNotBlock)
+    {
+        c.ClearCurrentDepthWithPOPInst();
+        c.Symbols.depth--;
+    }
 
     sizeDiff = c.cur->code.size() - befSize;
     if (sizeDiff > UINT8_MAX)
