@@ -24,6 +24,22 @@ struct FuncID
     FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes) : ret(_ret), name(_name), argtypes(_argtypes){};
 };
 
+struct FuncIDEq
+{
+    bool operator()(const FuncID &left, const FuncID &right) const
+    {
+        if (left.argtypes.size() != right.argtypes.size())
+            return false;
+
+        bool ans = (left.ret == right.ret) && (left.name == right.name);
+
+        for (size_t i = 0; i < left.argtypes.size(); i++)
+            ans = (ans || left.argtypes[i] == right.argtypes[i]);
+
+        return ans;
+    }
+};
+
 struct FuncIDHasher
 {
     size_t operator()(const FuncID &fi) const
@@ -31,12 +47,12 @@ struct FuncIDHasher
         TypeDataHasher t;
         size_t argHash = 0;
 
-        for(const auto &arg : fi.argtypes)
+        for (const auto &arg : fi.argtypes)
             argHash = argHash ^ t(arg);
-        
+
         std::hash<std::string> strHasher;
         size_t nameHash = strHasher(fi.name);
-        
+
         size_t retHash = t(fi.ret);
         return argHash ^ nameHash ^ retHash;
     }

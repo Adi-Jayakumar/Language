@@ -158,7 +158,21 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     size_t index = Symbols.FindFunc(fc->name, argtypes);
 
     if (index == SIZE_MAX)
-        TypeError(fc->Loc(), "Function '" + fc->name + "' has not been defined yet");
+    {
+        size_t nativeIndex = Symbols.FindNativeFunctions(argtypes);
+        if (nativeIndex != SIZE_MAX)
+        {
+            fc->t = Symbols.nativeFunctions[nativeIndex].ret;
+            return Symbols.nativeFunctions[nativeIndex].ret;
+        }
+        std::string err = "Function '" + fc->name + "(";
+
+        for(const auto &arg : argtypes)
+            err += ToString(arg) + ", ";
+
+        err += ")' has not been defined before";
+        TypeError(fc->Loc(), err);
+    }
 
     if (index > UINT8_MAX)
         TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");

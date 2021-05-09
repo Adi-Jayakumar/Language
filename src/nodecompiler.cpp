@@ -140,7 +140,10 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     }
 
     size_t index = c.Symbols.FindFunc(fc->name, argtypes);
-    c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index)});
+    if (index != SIZE_MAX)
+        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index)});
+    else
+        c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(c.Symbols.FindNativeFunctions(argtypes))});
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
