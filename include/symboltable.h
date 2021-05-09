@@ -5,10 +5,13 @@ struct SymbolTable
 {
     std::vector<VarID> vars;
     std::vector<FuncID> funcs;
+    std::vector<FuncID> nativeFunctions;
     std::vector<StructID> strcts;
 
     size_t depth = 0;
     size_t funcVarBegin = 0;
+
+    SymbolTable();
 
     void AddVar(TypeData, std::string);
 

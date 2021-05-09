@@ -23,6 +23,16 @@ struct TypeData
     TypeID type = 0;
 };
 
+struct TypeDataHasher
+{
+    size_t operator()(const TypeData &t) const
+    {
+        std::hash<size_t> stHasher;
+        std::hash<TypeID> tHasher;
+        return stHasher(t.isArray) ^ tHasher(t.type);
+    }
+};
+
 std::string ToString(const TypeData &td);
 std::ostream &operator<<(std::ostream &out, const TypeData &td);
 bool operator==(const TypeData &left, const TypeData &right);

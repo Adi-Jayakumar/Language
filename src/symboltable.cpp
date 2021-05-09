@@ -1,5 +1,10 @@
 #include "symboltable.h"
 
+SymbolTable::SymbolTable()
+{
+    
+}
+
 void SymbolTable::AddVar(TypeData type, std::string name)
 {
     vars.push_back(VarID(type, name, depth, vars.size()));

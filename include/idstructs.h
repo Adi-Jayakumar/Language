@@ -24,6 +24,24 @@ struct FuncID
     FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes) : ret(_ret), name(_name), argtypes(_argtypes){};
 };
 
+struct FuncIDHasher
+{
+    size_t operator()(const FuncID &fi) const
+    {
+        TypeDataHasher t;
+        size_t argHash = 0;
+
+        for(const auto &arg : fi.argtypes)
+            argHash = argHash ^ t(arg);
+        
+        std::hash<std::string> strHasher;
+        size_t nameHash = strHasher(fi.name);
+        
+        size_t retHash = t(fi.ret);
+        return argHash ^ nameHash ^ retHash;
+    }
+};
+
 struct StructID
 {
     TypeData type;
