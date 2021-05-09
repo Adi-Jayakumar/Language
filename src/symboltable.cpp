@@ -2,7 +2,10 @@
 
 SymbolTable::SymbolTable()
 {
-    
+    for (const auto &kv : NativeFunctions)
+    {
+        nativeFunctions.push_back(kv.first);
+    }
 }
 
 void SymbolTable::AddVar(TypeData type, std::string name)
@@ -70,6 +73,22 @@ size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
     return SIZE_MAX;
 }
 
+size_t SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args)
+{
+    size_t index = SIZE_MAX;
+
+    for (size_t i = 0; i < nativeFunctions.size(); i++)
+    {
+        if (MatchToNativeFuncs(nativeFunctions[i].argtypes, args))
+        {
+            index = i;
+            break;
+        }
+    }
+
+    return index;
+}
+
 void SymbolTable::PopUntilSized(size_t size)
 {
     if (vars.size() <= size)
@@ -93,4 +112,33 @@ size_t SymbolTable::FindStruct(const TypeData &td)
     }
 
     return SIZE_MAX;
+}
+
+bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<TypeData> &args)
+{
+    if (native.size() == 0 && args.size() != 0)
+        return false;
+
+    TypeData matchMoreThanOne = {true, 0};
+    if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
+        return true;
+
+    TypeData matchOne = {false, 0};
+    if (args.size() == 1 && native.size() == 1 && native[0] == matchOne)
+        return true;
+
+    if (native.size() != args.size())
+        return false;
+
+    bool areSame = true;
+    for (size_t i = 0; i < native.size(); i++)
+    {
+        if (native[i] != args[i])
+        {
+            areSame = false;
+            break;
+        }
+    }
+
+    return areSame;
 }

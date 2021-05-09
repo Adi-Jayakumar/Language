@@ -1,5 +1,6 @@
 #pragma once
 #include "idstructs.h"
+#include "nativefuncs.h"
 
 struct SymbolTable
 {
@@ -21,8 +22,11 @@ struct SymbolTable
     bool IsVarInScope(std::string &);
     size_t FindVarByName(std::string &);
     size_t FindFunc(std::string &, std::vector<TypeData> &);
+    size_t FindNativeFunctions(const std::vector<TypeData>&);
 
     void PopUntilSized(size_t size);
 
     size_t FindStruct(const TypeData &);
 };
+
+bool MatchToNativeFuncs(const std::vector<TypeData> &, const std::vector<TypeData> &);
