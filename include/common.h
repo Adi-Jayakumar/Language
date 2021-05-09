@@ -51,8 +51,6 @@ bool operator==(const TypeInfo &l, const TypeInfo &r);
 std::unordered_map<std::string, TypeData> &GetTypeNameMap();
 std::unordered_map<TypeID, std::string> &GetTypeStringMap();
 
-static std::unordered_set<std::string> NativeFunctions{"Print", "ToString"};
-
 struct TypeInfoHasher
 {
     size_t operator()(const TypeInfo &t) const
