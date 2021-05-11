@@ -141,7 +141,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 
     size_t index = c.Symbols.FindFunc(fc->name, argtypes);
     if (index != SIZE_MAX)
-        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index)});
+        c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(1 + index)});
     else
     {
         size_t natFunc = c.Symbols.FindNativeFunctions(argtypes);
@@ -351,6 +351,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
     c.chunks.push_back(Chunk());
     c.cur = &c.chunks.back();
+    c.cur->arity = fd->argtypes.size();
 
     c.Symbols.funcVarBegin = c.Symbols.vars.size();
 
