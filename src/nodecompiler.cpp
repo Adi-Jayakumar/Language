@@ -173,7 +173,7 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         c.CompileError(bi->Loc(), "Braced initialisers can only have " + std::to_string(UINT8_MAX) + " elements");
 
     if (bi->GetType().isArray)
-        c.cur->code.push_back({Opcode::ARR_ALLOC, static_cast<uint8_t>(bi->size)});
+        c.cur->code.push_back({Opcode::STATIC_ARR_ALLOC, static_cast<uint8_t>(bi->size)});
     else
         c.cur->code.push_back({Opcode::STRUCT_ALLOC, static_cast<uint8_t>(bi->size)});
 

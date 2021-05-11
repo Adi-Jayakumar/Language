@@ -264,8 +264,29 @@ void VM::ExecuteInstruction()
         stack.push_back(arr);
         break;
     }
+    case Opcode::STATIC_ARR_ALLOC:
+    {
+        RuntimeObject *arr = Allocate(1);
+
+        arr->t = RuntimeType::ARRAY;
+        arr->as.arr.data = (RuntimeObject **)malloc(o.op * sizeof(RuntimeObject *));
+
+        for (size_t i = 0; i < (size_t)o.op; i++)
+        {
+            arr->as.arr.data[i] = Allocate(1);
+            arr->as.arr.data[i]->state = GCState::MARKED;
+            arr->as.arr.data[i]->t = RuntimeType::NULL_T;
+        }
+        arr->as.arr.size = o.op;
+
+        stack.push_back(arr);
+        break;
+    }
     case Opcode::STRUCT_ALLOC:
     {
+        RuntimeObject *strct = Allocate(1);
+        InitialiseRuntimeObject(strct, RuntimeType::ARRAY, o.op);
+        stack.push_back(strct);
         break;
     }
     case Opcode::STRING_INDEX:
