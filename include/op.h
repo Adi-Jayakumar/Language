@@ -34,6 +34,7 @@ enum class Opcode : uint8_t
     CALL_F,
     RETURN,
     NATIVE_CALL,
+    PRINT,
 
     // structs
     STRUCT_MEMBER,

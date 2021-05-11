@@ -362,18 +362,19 @@ void VM::ExecuteInstruction()
 
         switch (o.op)
         {
-        case 0:
-        {
-            NativePrint(arityAsCC->as.i);
-            break;
-        }
         case 1:
         {
             NativeToString(arityAsCC->as.i);
+            break;
         }
         default:
             break;
         }
+        break;
+    }
+    case Opcode::PRINT:
+    {
+        NativePrint(o.op);
         break;
     }
     case Opcode::STRUCT_MEMBER:
