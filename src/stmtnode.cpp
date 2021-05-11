@@ -100,3 +100,15 @@ Token StructDecl::Loc()
 {
     return loc;
 }
+
+ImportStmt::ImportStmt(std::vector<std::string> &_modules, std::vector<std::string> &_symbols, Token &_loc)
+{
+    modules = _modules;
+    symbols = _symbols;
+    loc = _loc;
+}
+
+Token ImportStmt::Loc()
+{
+    return loc;
+}

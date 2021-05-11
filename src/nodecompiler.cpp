@@ -55,7 +55,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
     u->right->NodeCompile(c);
-    c.cur->code.push_back({TokenToOpcode({false, 0}, u->op.type, u->right->GetType(), true), 1});
+    c.cur->code.push_back({TokenToOpcode({0, false}, u->op.type, u->right->GetType(), true), 1});
 }
 
 void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
@@ -401,6 +401,11 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
     c.Symbols.AddStruct(s);
 }
 
+void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
+{
+    return;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::NodeCompile(Compiler &c)
@@ -498,4 +503,9 @@ void Return::NodeCompile(Compiler &c)
 void StructDecl::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileStructDecl(this, c);
+}
+
+void ImportStmt::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileImportStmt(this, c);
 }

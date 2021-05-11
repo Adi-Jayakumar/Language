@@ -9,7 +9,7 @@ struct TypeChecker;
 
 struct Expr
 {
-    TypeData t = {false, 0};
+    TypeData t = {0, false};
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;

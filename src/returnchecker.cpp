@@ -131,3 +131,8 @@ bool StructDecl::DoesReturn(TypeData, ReturnChecker &)
 {
     return false;
 }
+
+bool ImportStmt::DoesReturn(TypeData, ReturnChecker &)
+{
+    return false;
+}

@@ -82,8 +82,8 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{{false, 2}, TokenID::MINUS, {false, 1}}, {false, 2}},
         {{{false, 2}, TokenID::MINUS, {false, 2}}, {false, 2}},
         // unary minus
-        {{{false, 0}, TokenID::MINUS, {false, 1}}, {false, 1}},
-        {{{false, 0}, TokenID::MINUS, {false, 2}}, {false, 2}},
+        {{{0, false}, TokenID::MINUS, {false, 1}}, {false, 1}},
+        {{{0, false}, TokenID::MINUS, {false, 2}}, {false, 2}},
         // binary mult
         {{{false, 1}, TokenID::STAR, {false, 1}}, {false, 1}},
         {{{false, 1}, TokenID::STAR, {false, 2}}, {false, 2}},
@@ -127,7 +127,7 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{{false, 2}, TokenID::BANG_EQ, {false, 2}}, {false, 3}},
         {{{false, 3}, TokenID::BANG_EQ, {false, 3}}, {false, 3}},
         // unary negation
-        {{{false, 0}, TokenID::BANG, {false, 3}}, {false, 3}},
+        {{{0, false}, TokenID::BANG, {false, 3}}, {false, 3}},
         // string concatenation
         {{{false, 4}, TokenID::PLUS, {false, 4}}, {false, 4}},
     };

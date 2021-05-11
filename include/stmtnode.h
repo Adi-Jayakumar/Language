@@ -130,3 +130,22 @@ struct StructDecl : Stmt
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
+
+/*
+import math, physics
+from latin import nominative, accusative
+i.e. import --> comma seperated list of modules <---- imports everything
+i.e. from --> single module name import comma seperated list of symbols <---- only imports those symbols
+*/
+struct ImportStmt : Stmt
+{
+    std::vector<std::string> modules;
+    std::vector<std::string> symbols;
+    ImportStmt(std::vector<std::string> &, std::vector<std::string> &, Token &);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    TypeData Type(TypeChecker &t) override;
+    bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
+    void NodeCompile(Compiler &c) override;
+};

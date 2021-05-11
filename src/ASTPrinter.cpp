@@ -258,6 +258,24 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
     out << "}";
 }
 
+void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
+{
+    if (is->modules.size() == 1 && is->symbols.size() != 0)
+    {
+        out << "from " << is->modules[0] << " import ";
+        for (const auto &str : is->symbols)
+            out << str << ", ";
+        out << std::endl;
+    }
+    else
+    {
+        out << "import ";
+        for (const auto &str : is->modules)
+            out << str << ", ";
+        out << std::endl;
+    }
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)

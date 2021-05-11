@@ -25,4 +25,5 @@ namespace ASTPrinter
     void PrintFuncDecl(FuncDecl *fd, std::ostream &out);
     void PrintReturn(Return *r, std::ostream &out);
     void PrintStructDecl(StructDecl *sd, std::ostream &out);
+    void PrintImportStmt(ImportStmt *is, std::ostream &out);
 }; // namespace ASTPrinter

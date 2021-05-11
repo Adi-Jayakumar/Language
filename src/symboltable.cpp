@@ -123,7 +123,7 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
         return true;
 
-    TypeData matchOne = {false, 0};
+    TypeData matchOne = {0, false};
     if (args.size() == 1 && native.size() == 1 && native[0] == matchOne)
         return true;
 

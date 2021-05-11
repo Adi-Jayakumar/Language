@@ -29,4 +29,5 @@ namespace NodeCompiler
     void CompileFuncDecl(FuncDecl *fd, Compiler &c);
     void CompileReturn(Return *r, Compiler &c);
     void CompileStructDecl(StructDecl *sd, Compiler &c);
+    void CompileImportStmt(ImportStmt *is, Compiler &C);
 } // namespace NodeCompiler

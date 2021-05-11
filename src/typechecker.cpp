@@ -20,7 +20,7 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
         size_t valLoc = Symbols.FindStruct(valType);
         TypeData parent = Symbols.strcts[valLoc].parent;
 
-        TypeData voidType = {false, 0};
+        TypeData voidType = {0, false};
 
         if (parent == voidType)
             return varType == valType;
@@ -75,7 +75,7 @@ TypeData TypeChecker::TypeOfLiteral(Literal *l)
 TypeData TypeChecker::TypeOfUnary(Unary *u)
 {
     TypeData opType = u->right->Type(*this);
-    TypeInfo info = {{false, 0}, u->op.type, opType};
+    TypeInfo info = {{0, false}, u->op.type, opType};
 
     if (CheckUnaryOperatorUse(info))
     {
@@ -85,7 +85,7 @@ TypeData TypeChecker::TypeOfUnary(Unary *u)
     else
         TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + ToString(opType));
 
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfBinary(Binary *b)
@@ -101,7 +101,7 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     }
     else
         TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + ToString(lType) + " and: " + ToString(rType));
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfAssign(Assign *a)
@@ -167,7 +167,7 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
         }
         std::string err = "Function '" + fc->name + "(";
 
-        for(const auto &arg : argtypes)
+        for (const auto &arg : argtypes)
             err += ToString(arg) + ", ";
 
         err += ")' has not been defined before";
@@ -210,14 +210,14 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
 TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
 {
     if (bi->size == 0)
-        return {false, 0};
+        return {0, false};
 
     std::vector<TypeData> types;
 
     for (auto &init : bi->init)
         types.push_back(init->Type(*this));
 
-    TypeData voidT = {false, 0};
+    TypeData voidT = {0, false};
     if (bi->t == voidT)
     {
         TypeData first = types[0];
@@ -261,7 +261,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
             TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
     }
     // dummy return, never reached
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
@@ -341,7 +341,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
             dv->value->t = dv->t;
     }
 
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfBlock(Block *b)
@@ -354,7 +354,7 @@ TypeData TypeChecker::TypeOfBlock(Block *b)
 
     Symbols.PopUntilSized(preBlockSize);
     Symbols.depth--;
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
@@ -367,7 +367,7 @@ TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
     if (i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
 
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
@@ -376,7 +376,7 @@ TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
         TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
 
     ws->body->Type(*this);
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
@@ -406,7 +406,7 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
 
     Symbols.PopUntilSized(preFuncSize);
     Symbols.depth--;
-    return {false, 0};
+    return {0, false};
 }
 
 TypeData TypeChecker::TypeOfReturn(Return *r)
@@ -414,7 +414,7 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
     if (Symbols.depth == 0)
         TypeError(r->Loc(), "Cannot return from outside of a function");
     if (r->retVal == nullptr)
-        return {false, 0};
+        return {0, false};
     return r->retVal->Type(*this);
 }
 
@@ -428,7 +428,7 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
     StructID s;
     s.type = GetTypeNameMap()[sd->name];
 
-    TypeData voidT = {false, 0};
+    TypeData voidT = {0, false};
 
     if (sd->parent != voidT)
     {
@@ -475,7 +475,12 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
     Symbols.strcts.push_back(s);
     Symbols.depth--;
 
-    return {false, 0};
+    return {0, false};
+}
+
+TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
+{
+    return {0, false};
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -575,4 +580,9 @@ TypeData Return::Type(TypeChecker &t)
 TypeData StructDecl::Type(TypeChecker &t)
 {
     return t.TypeOfStructDecl(this);
+}
+
+TypeData ImportStmt::Type(TypeChecker &t)
+{
+    return t.TypeOfImportStmt(this);
 }

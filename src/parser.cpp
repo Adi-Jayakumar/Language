@@ -578,8 +578,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // skipping the name
     Advance();
 
-    TypeData type = {false, 0};
-    TypeData voidT = {false, 0};
+    TypeData type = {0, false};
+    TypeData voidT = {0, false};
 
     if (cur.type == TokenID::LT)
     {
@@ -617,7 +617,7 @@ std::shared_ptr<Expr> Parser::FuncCall()
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
 {
     Token loc = cur;
-    TypeData type = {false, 0};
+    TypeData type = {0, false};
 
     if (cur.type != TokenID::OPEN_BRACE)
         type = ParseType("Malformed type in brace initialiser");

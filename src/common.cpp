@@ -2,7 +2,7 @@
 
 std::unordered_map<std::string, TypeData> &GetTypeNameMap()
 {
-    static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {false, 0}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}, {"char", {false, 5}}, {"null_t", {false, 6}}};
+    static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {0, false}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}, {"char", {false, 5}}, {"null_t", {false, 6}}};
     return TypeNameMap;
 }
 

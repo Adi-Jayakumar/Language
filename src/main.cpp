@@ -53,7 +53,7 @@ int main()
     for (auto &s : res)
     {
         FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
-        TypeData voidType = {false, 0};
+        TypeData voidType = {0, false};
         if (asFunc && asFunc->ret != voidType)
         {
             asFunc->DoesReturn(asFunc->ret, rc);

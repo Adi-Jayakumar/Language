@@ -39,4 +39,5 @@ struct TypeChecker
     TypeData TypeOfFuncDecl(FuncDecl *fd);
     TypeData TypeOfReturn(Return *r);
     TypeData TypeOfStructDecl(StructDecl *sd);
+    TypeData TypeOfImportStmt(ImportStmt *is);
 };
