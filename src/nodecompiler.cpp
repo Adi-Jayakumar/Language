@@ -143,7 +143,18 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     if (index != SIZE_MAX)
         c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(index)});
     else
-        c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(c.Symbols.FindNativeFunctions(argtypes))});
+    {
+        size_t natFunc = c.Symbols.FindNativeFunctions(argtypes);
+        if (natFunc == 0)
+        {
+            size_t arity = argtypes.size();
+            if (arity > UINT8_MAX)
+                c.CompileError(fc->Loc(), "Maximum number arguments to Print call is " + std::to_string(UINT8_MAX));
+            c.cur->code.push_back({Opcode::PRINT, static_cast<uint8_t>(arity)});
+        }
+        else
+            c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(natFunc)});
+    }
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
@@ -227,7 +238,11 @@ void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
     es->exp->NodeCompile(c);
-    c.cur->code.push_back({Opcode::POP, 0});
+    FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
+
+    TypeData voidType = {0, false};
+    if (asFC == nullptr || asFC->GetType() != voidType)
+        c.cur->code.push_back({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
