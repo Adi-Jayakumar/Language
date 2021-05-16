@@ -313,11 +313,11 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'f':
     {
-        return MatchKeyWord("unction", TokenID::FUNC, tok) || MatchKeyWord("alse", TokenID::BOOL_L, tok);
+        return MatchKeyWord("unction", TokenID::FUNC, tok) || MatchKeyWord("alse", TokenID::BOOL_L, tok) || MatchKeyWord("rom", TokenID::FROM, tok);
     }
     case 'i':
     {
-        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok);
+        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok) || MatchKeyWord("mport", TokenID::IMPORT, tok);
     }
     case 'n':
     {
