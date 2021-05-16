@@ -46,6 +46,9 @@ struct Parser
     std::shared_ptr<Stmt> ParseStructDecl();
     // parses an expression statement
     std::shared_ptr<Stmt> ExpressionStatement();
+    // parses an import statement
+    std::shared_ptr<Stmt> ParseImportStmt();
+    std::vector<std::string> CommaSeparatedStrings();
     // parses any expression
     std::shared_ptr<Expr> Expression();
     // parses any field access

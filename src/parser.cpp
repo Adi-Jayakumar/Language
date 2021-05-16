@@ -148,6 +148,8 @@ std::shared_ptr<Stmt> Parser::Statement()
         Advance();
         return std::make_shared<Return>(retVal, cur);
     }
+    else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
+        return ParseImportStmt();
     return Declaration();
 }
 
@@ -392,6 +394,47 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);
+}
+
+std::shared_ptr<Stmt> Parser::ParseImportStmt()
+{
+    Token loc = cur;
+    Advance();
+    if (loc.type == TokenID::IMPORT)
+    {
+        std::vector<std::string> modules = CommaSeparatedStrings();
+        std::vector<std::string> symbols;
+        return std::make_shared<ImportStmt>(modules, symbols, loc);
+    }
+    else
+    {
+        std::vector<std::string> modules;
+        modules.push_back(cur.literal);
+
+        Advance();
+        Check(TokenID::IMPORT, "Need an import section in a from/import statement");
+        Advance();
+
+        std::vector<std::string> symbols = CommaSeparatedStrings();
+        return std::make_shared<ImportStmt>(modules, symbols, loc);
+    }
+}
+
+std::vector<std::string> Parser::CommaSeparatedStrings()
+{
+    std::vector<std::string> strings{cur.literal};
+    Advance();
+
+    while (cur.type == TokenID::COMMA)
+    {
+        Advance();
+        strings.push_back(cur.literal);
+        Advance();
+    }
+
+    Check(TokenID::SEMI, "Need ';' at the end of an import statement");
+    Advance();
+    return strings;
 }
 
 // ----------------------EPRESSIONS----------------------- //
