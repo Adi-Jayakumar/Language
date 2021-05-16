@@ -28,6 +28,9 @@ enum class TokenID : uint8_t
     WHILE,
     STRUCT,
     COLON,
+    
+    IMPORT,
+    FROM,
 
     // arithmetic operators
     PLUS,

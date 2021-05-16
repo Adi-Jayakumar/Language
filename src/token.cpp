@@ -69,6 +69,14 @@ std::string ToString(const TokenID &t)
     {
         return "COLON";
     }
+    case TokenID::IMPORT:
+    {
+        return "IMPORT";
+    }
+    case TokenID::FROM:
+    {
+        return "FROM";
+    }
     case TokenID::TYPENAME:
     {
         return "TYPENAME";
