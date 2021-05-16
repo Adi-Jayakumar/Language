@@ -374,3 +374,8 @@ void StructDecl::Print(std::ostream &out)
 {
     ASTPrinter::PrintStructDecl(this, out);
 }
+
+void ImportStmt::Print(std::ostream &out)
+{
+    ASTPrinter::PrintImportStmt(this, out);
+}
