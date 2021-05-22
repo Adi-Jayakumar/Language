@@ -7,7 +7,7 @@
 struct VM
 {
     std::vector<RuntimeFunction> functions;
-    std::vector<RuntimeObject> globals;
+    std::vector<RuntimeObject*> globals;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
     // instruction pointer
@@ -22,7 +22,7 @@ struct VM
     // current function index
     size_t curFunc;
 
-    std::vector<RuntimeObject> constants;
+    std::vector<RuntimeObject*> constants;
 
     Array stack;
     Array Heap;

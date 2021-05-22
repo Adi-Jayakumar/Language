@@ -33,12 +33,11 @@ void Array::push_back(RuntimeObject *cc)
     count++;
 }
 
-void Array::push_back_copy(RuntimeObject *copy, RuntimeObject rto)
+void Array::push_back_copy(RuntimeObject *rto)
 {
     if (count < capacity)
     {
-        CopyRTO(copy, rto);
-        data[count] = copy;
+        data[count] = CopyRTO(rto);
         back = data[count];
     }
     else
@@ -48,8 +47,7 @@ void Array::push_back_copy(RuntimeObject *copy, RuntimeObject rto)
         memcpy(more, data, count * sizeof(RuntimeObject *));
         free(data);
         data = more;
-        CopyRTO(copy, rto);
-        data[count] = copy;
+        data[count] = CopyRTO(rto);
         back = data[count];
     }
     count++;
@@ -57,7 +55,7 @@ void Array::push_back_copy(RuntimeObject *copy, RuntimeObject rto)
 
 void Array::pop_back()
 {
-    back->state = GCState::UNMARKED;
+    SetGCState(back, GCState::UNMARKED);
     count--;
     back = count > 0 ? data[count - 1] : data[0];
 }
@@ -66,7 +64,7 @@ void Array::pop_N(size_t n)
 {
     for (size_t i = count - 1; i >= count - n; i--)
     {
-        data[i]->state = GCState::UNMARKED;
+        SetGCState(data[i], GCState::UNMARKED);
         if (i == 0)
             break;
     }

@@ -2,93 +2,81 @@
 #include "common.h"
 #include <cstring>
 
-struct RuntimeObject;
-
-struct RTArray
+extern "C"
 {
-    size_t size;
-    RuntimeObject **data;
-    size_t type;
-};
 
-struct RTString
-{
-    size_t len;
-    char *data;
-};
-
-enum class RuntimeType : uint8_t
-{
-    NULL_T,
-    INT,
-    DOUBLE,
-    BOOL,
-    ARRAY,
-    STRING,
-    CHAR,
-    STRUCT,
-};
-
-std::string ToString(const RuntimeType &gcs);
-std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
-
-enum class GCState : uint8_t
-{
-    FREED,
-    MARKED,
-    UNMARKED,
-};
-
-std::string ToString(const GCState &rts);
-std::ostream &operator<<(std::ostream &out, const GCState &gcs);
-
-struct RuntimeObject
-{
-    GCState state = GCState::UNMARKED;
-    RuntimeType t;
-    union combo
+    struct RuntimeObject;
+    struct RTArray
     {
-        int i;
-        double d;
-        bool b;
-        // also for structs
-        RTArray arr;
-        RTString str;
-        char c;
-    } as;
+        size_t size;
+        RuntimeObject **data;
+    };
 
-    RuntimeObject();
-    RuntimeObject(RuntimeType, std::string);
-    RuntimeObject(int);
-    RuntimeObject(double);
-    RuntimeObject(bool);
+    struct RTString
+    {
+        size_t len;
+        char *data;
+    };
 
+    enum class RuntimeType : uint8_t
+    {
+        NULL_T,
+        INT,
+        DOUBLE,
+        BOOL,
+        ARRAY,
+        STRING,
+        CHAR,
+        STRUCT,
+    };
+    const char *RuntimeTypeToString(const RuntimeType &);
+
+    enum class GCState : uint8_t
+    {
+        FREED,
+        MARKED,
+        UNMARKED,
+    };
+    const char *GCStateToString(const GCState &rts);
+
+    RuntimeObject *CreateRTOLiteral(RuntimeType, const char *);
+
+    RuntimeObject *CreateInt(int);
+    RuntimeObject *CreateDouble(double);
+    RuntimeObject *CreateBool(bool);
     // array case
-    RuntimeObject(RuntimeType, size_t);
-
+    RuntimeObject *CreateArrayOrStruct(RuntimeType, size_t);
     // string case
-    RuntimeObject(std::string);
-    RuntimeObject(RTString);
-
+    RuntimeObject *CreateString(RTString);
     // char case
-    RuntimeObject(char);
-};
+    RuntimeObject *CreateChar(char);
 
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, int);
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, double);
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, bool);
-// array case
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, RuntimeType, size_t);
-// string case
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, RTString);
-// char case
-RuntimeObject *InitialiseRuntimeObject(RuntimeObject *, char);
+    RuntimeObject *GetNull();
 
-RuntimeObject *GetNull();
+    // returns the copy
+    RuntimeObject *CopyRTO(RuntimeObject *rt);
 
-void CopyRTO(RuntimeObject *, const RuntimeObject &);
+    int GetInt(RuntimeObject *);
+    double GetDouble(RuntimeObject *);
+    bool GetBool(RuntimeObject *);
+    RTArray GetArrayOrStruct(RuntimeObject *);
+    RTString GetString(RuntimeObject *);
+    char GetChar(RuntimeObject *);
 
-std::string ToString(const RuntimeObject &cc);
-bool IsTruthy(const RuntimeObject &cc);
+    RuntimeObject *SetInt(RuntimeObject *, int);
+    RuntimeObject *SetDouble(RuntimeObject *, double);
+    RuntimeObject *SetBool(RuntimeObject *, bool);
+    RuntimeObject *SetArrayOrStruct(RuntimeObject *, RTArray);
+    RuntimeObject *SetString(RuntimeObject *, RTString);
+    RuntimeObject *SetChar(RuntimeObject *, char);
+
+    GCState GetGCState(const RuntimeObject *);
+    void SetGCState(RuntimeObject *, GCState);
+
+    char *ToString(const RuntimeObject *cc);
+    bool IsTruthy(const RuntimeObject *cc);
+}
 
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc);
+std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
+std::ostream &operator<<(std::ostream &out, const GCState &gcs);

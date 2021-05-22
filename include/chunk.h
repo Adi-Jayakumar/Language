@@ -7,7 +7,7 @@ struct Chunk
 {
     uint8_t arity;
     std::vector<Op> code;
-    std::vector<RuntimeObject> values;
+    std::vector<RuntimeObject*> values;
 
     Chunk() = default;
     ~Chunk() = default;

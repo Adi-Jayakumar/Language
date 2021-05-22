@@ -47,9 +47,8 @@ RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    RuntimeObject copy = RuntimeObject(TypeDataToRuntimeType(l->t), l->Loc().literal);
-    c.cur->values.push_back(copy);
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
+    // c.cur->values.push_back(*CreateRTO(TypeDataToRuntimeType(l->t), l->Loc().literal.data()));
+    // c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
