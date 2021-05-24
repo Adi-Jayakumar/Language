@@ -286,4 +286,127 @@ extern "C"
     {
         rt->state = state;
     }
+
+    void InsertString(char *whole, const char *str, size_t len, size_t index)
+    {
+        for (size_t i = 0; i < len; i++)
+        {
+            whole[index + i] = str[i];
+        }
+    }
+
+    char *RTOToString(RuntimeObject *rt)
+    {
+        switch (rt->type)
+        {
+        case RuntimeType::NULL_T:
+        {
+            return strdup("NULL");
+        }
+        case RuntimeType::INT:
+        {
+            size_t length = snprintf(NULL, 0, "%i", rt->as.i);
+            char *str = (char *)malloc((length + 1) * sizeof(char));
+            sprintf(str, "%i", rt->as.i);
+            return str;
+        }
+        case RuntimeType::DOUBLE:
+        {
+            size_t length = snprintf(NULL, 0, "%f", rt->as.d);
+            char *str = (char *)malloc((length + 1) * sizeof(char));
+            sprintf(str, "%f", rt->as.d);
+            return str;
+        }
+        case RuntimeType::BOOL:
+        {
+            if (rt->as.b)
+                return strdup("true");
+            else
+                return strdup("false");
+        }
+        case RuntimeType::STRUCT:
+        case RuntimeType::ARRAY:
+        {
+            RTArray arr = rt->as.arr;
+            char **strs = (char **)malloc(arr.size * sizeof(char *));
+
+            size_t arrStringLength = 0;
+            for (size_t i = 0; i < arr.size; i++)
+            {
+                strs[i] = RTOToString(arr.data[i]);
+                arrStringLength += strlen(strs[i]);
+            }
+
+            arrStringLength += 2 + 2 * (arr.size - 1) + 1;
+            char *res = NULL;
+            free(res);
+            res = (char *)malloc(arrStringLength * sizeof(char));
+
+            res[arrStringLength - 1] = '\0';
+            res[0] = '{';
+
+            size_t insertIndex = 1;
+
+            for (size_t i = 0; i < arr.size; i++)
+            {
+                InsertString(res, strs[i], strlen(strs[i]), insertIndex);
+                insertIndex += strlen(strs[i]);
+
+                if (i != arr.size - 1)
+                {
+                    InsertString(res, ", ", 2, insertIndex);
+                    insertIndex += 2;
+                }
+            }
+
+            res[arrStringLength - 2] = '}';
+
+            for (size_t i = 0; i < arr.size; i++)
+                free(strs[i]);
+
+            free(strs);
+
+            return res;
+        }
+        case RuntimeType::STRING:
+        {
+            RTString str = GetString(rt);
+            char *res = (char *)malloc((str.len + 1) * sizeof(char));
+            return strcpy(res, str.data);
+        }
+        case RuntimeType::CHAR:
+        {
+            char *str = (char *)malloc(2);
+            str[0] = GetChar(rt);
+            return str;
+        }
+        default:
+        {
+            return strdup("");
+        }
+        }
+    }
+
+    bool IsTruthy(const RuntimeObject *rt)
+    {
+        switch (rt->type)
+        {
+        case RuntimeType::INT:
+        {
+            return rt->as.i != 0;
+        }
+        case RuntimeType::DOUBLE:
+        {
+            return rt->as.d != 0;
+        }
+        case RuntimeType::BOOL:
+        {
+            return rt->as.b;
+        }
+        default:
+        {
+            return false;
+        }
+        }
+    }
 }

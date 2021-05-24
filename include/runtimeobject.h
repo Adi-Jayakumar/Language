@@ -73,8 +73,9 @@ extern "C"
     GCState GetGCState(const RuntimeObject *);
     void SetGCState(RuntimeObject *, GCState);
 
-    char *ToString(const RuntimeObject *cc);
-    bool IsTruthy(const RuntimeObject *cc);
+    void InsertString(char *whole, const char *str, size_t len, size_t index);
+    char *RTOToString(RuntimeObject *);
+    bool IsTruthy(const RuntimeObject *);
 }
 
 std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc);
