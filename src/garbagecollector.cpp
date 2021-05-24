@@ -1,23 +1,23 @@
 #include "vm.h"
 
-void GC::FreeObject(RuntimeObject *rto)
+void GC::FreeObject(RuntimeObject *)
 {
 }
-void GC::DeallocateHeap(VM *vm)
+void GC::DeallocateHeap(VM *)
 {
 }
-void GC::MarkObject(RuntimeObject *rto)
+void GC::MarkObject(RuntimeObject *)
 {
 }
-void GC::MarkRoots(VM *vm)
+void GC::MarkRoots(VM *)
 {
 }
-void GC::FreeUnmarked(VM *vm)
+void GC::FreeUnmarked(VM *)
 {
 }
-void GC::ResetObjects(VM *vm)
+void GC::ResetObjects(VM *)
 {
 }
-void GC::GarbageCollect(VM *vm)
+void GC::GarbageCollect(VM *)
 {
 }

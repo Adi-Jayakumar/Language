@@ -39,8 +39,9 @@ extern "C"
     };
     const char *GCStateToString(const GCState &rts);
 
-    RuntimeObject *CreateRTOLiteral(RuntimeType, const char *);
+    RuntimeObject *CreateRTOFromString(RuntimeType, const char *);
 
+    RuntimeObject *CreateNull();
     RuntimeObject *CreateInt(int);
     RuntimeObject *CreateDouble(double);
     RuntimeObject *CreateBool(bool);

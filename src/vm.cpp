@@ -27,7 +27,9 @@ VM::~VM()
     {
         for (RuntimeObject *rto : rtf.values)
         {
-            std::cout << "value " << RTOToString(rto) << " state " << GetGCState(rto) << std::endl;
+            char *val = RTOToString(rto);
+            std::cout << "value " << val << " state " << GetGCState(rto) << std::endl;
+            free(val);
             GC::FreeObject(rto);
         }
         std::cout << std::endl
@@ -39,7 +41,11 @@ VM::~VM()
               << std::endl;
 
     for (size_t i = 0; i < Heap.count; i++)
-        std::cout << RTOToString(Heap[i]) << std::endl;
+    {
+        char *heap = RTOToString(Heap[i]);
+        std::cout << heap << std::endl;
+        free(heap);
+    }
 
     GC::DeallocateHeap(this);
 
@@ -51,7 +57,10 @@ void VM::PrintStack()
 {
     std::cout << "index\t|\tvalue" << std::endl;
     for (size_t i = stack.count - 1; (int)i >= 0; i--)
-        std::cout << i << "\t|\t" << RTOToString(stack[i]) << std::endl;
+    {
+        char *stackVal = RTOToString(stack[i]);
+        std::cout << i << "\t|\t" << stackVal << std::endl;
+    }
 }
 
 void VM::PrintValues()
@@ -60,7 +69,10 @@ void VM::PrintValues()
     {
         std::cout << "Values of function " << i << std::endl;
         for (RuntimeObject *c : functions[i].values)
-            std::cout << RTOToString(c) << " state " << GetGCState(c) << std::endl;
+        {
+            char *funcVal = RTOToString(c);
+            std::cout << funcVal << " state " << GetGCState(c) << std::endl;
+        }
         std::cout << std::endl;
     }
 }
@@ -777,7 +789,11 @@ void VM::ExecuteInstruction()
 void VM::NativePrint(int arity)
 {
     for (size_t i = 0; i < (size_t)arity; i++)
-        std::cout << RTOToString(stack[stack.count - arity + i]);
+    {
+        char *str = RTOToString(stack[stack.count - arity + i]);
+        std::cout << str;
+        free(str);
+    }
 
     std::cout << std::endl;
     stack.pop_N((size_t)arity);
@@ -785,7 +801,7 @@ void VM::NativePrint(int arity)
 
 void VM::NativeToString(int)
 {
-    char* chrs = RTOToString(stack.back);
+    char *chrs = RTOToString(stack.back);
     RTString rtstr = {strlen(chrs), chrs};
     stack.pop_back();
     stack.push_back(CreateString(rtstr));

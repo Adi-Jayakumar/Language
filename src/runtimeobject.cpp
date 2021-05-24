@@ -83,7 +83,7 @@ extern "C"
         } as;
     };
 
-    RuntimeObject *CreateRTO(RuntimeType type, const char *literal)
+    RuntimeObject *CreateRTOFromString(RuntimeType type, const char *literal)
     {
         RuntimeObject *res = (RuntimeObject *)malloc(sizeof(RuntimeObject));
         res->type = type;
@@ -91,6 +91,7 @@ extern "C"
         {
         case RuntimeType::NULL_T:
         {
+            res->as.i = 0;
             break;
         }
         case RuntimeType::INT:
