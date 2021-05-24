@@ -63,6 +63,8 @@ extern "C"
     RTString GetString(RuntimeObject *);
     char GetChar(RuntimeObject *);
 
+    RuntimeType GetType(RuntimeObject *);
+
     RuntimeObject *SetInt(RuntimeObject *, int);
     RuntimeObject *SetDouble(RuntimeObject *, double);
     RuntimeObject *SetBool(RuntimeObject *, bool);
@@ -78,6 +80,5 @@ extern "C"
     bool IsTruthy(const RuntimeObject *);
 }
 
-std::ostream &operator<<(std::ostream &out, const RuntimeObject &cc);
-std::ostream &operator<<(std::ostream &out, const RuntimeType &gcs);
+std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt);
 std::ostream &operator<<(std::ostream &out, const GCState &gcs);

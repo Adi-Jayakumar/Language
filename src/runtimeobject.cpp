@@ -168,6 +168,11 @@ extern "C"
         return res;
     }
 
+    RuntimeType GetType(RuntimeObject *rt)
+    {
+        return rt->type;
+    }
+
     RuntimeObject *GetNull()
     {
         RuntimeObject *nullObj = (RuntimeObject *)malloc(sizeof(RuntimeObject));
@@ -409,4 +414,15 @@ extern "C"
         }
         }
     }
+}
+
+std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt)
+{
+    out << RuntimeTypeToString(rtt);
+    return out;
+}
+std::ostream &operator<<(std::ostream &out, const GCState &gcs)
+{
+    out << GCStateToString(gcs);
+    return out;
 }
