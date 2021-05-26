@@ -1,7 +1,15 @@
 #include "symboltable.h"
 
+std::vector<FuncID> GetNativeFunctions()
+{
+    std::vector<FuncID> natives;
+    natives.push_back(FuncID({false, 0}, "Print", {{true, 0}}));
+    return natives;
+}
+
 SymbolTable::SymbolTable()
 {
+    nativeFunctions = GetNativeFunctions();
     for (const auto &kv : NativeFunctions)
     {
         nativeFunctions.push_back(kv.first);

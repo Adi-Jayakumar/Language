@@ -2,6 +2,8 @@
 #include "idstructs.h"
 #include "nativefuncs.h"
 
+std::vector<FuncID> GetNativeFunctions();
+
 struct SymbolTable
 {
     std::vector<VarID> vars;
@@ -22,7 +24,7 @@ struct SymbolTable
     bool IsVarInScope(std::string &);
     size_t FindVarByName(std::string &);
     size_t FindFunc(std::string &, std::vector<TypeData> &);
-    size_t FindNativeFunctions(const std::vector<TypeData>&);
+    size_t FindNativeFunctions(const std::vector<TypeData> &);
 
     void PopUntilSized(size_t size);
 
