@@ -3,6 +3,7 @@
 /*
     ARR_D
     ARR_ALLOC
+    STRUCT_ALLOC
     STRUCT_D
 */
 
@@ -209,12 +210,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::ARR_D:
     {
-        // RuntimeObject *emptyArr = stack[stack.count - o.op - 1];
+        RuntimeObject *arr = stack[stack.count - o.op - 1];
 
-        // for (size_t i = 0; i < o.op; i++)
-        //     emptyArr->as.arr.data[i] = stack[stack.count - o.op + i];
+        for (size_t i = 0; i < o.op; i++)
+            SetIndexOfArray(arr, i, stack[stack.count - o.op + i]);
 
-        // stack.pop_N(o.op);
+        stack.pop_N(o.op);
         break;
     }
     case Opcode::ARR_INDEX:
@@ -257,21 +258,22 @@ void VM::ExecuteInstruction()
     }
     case Opcode::ARR_ALLOC:
     {
-        RuntimeObject *size = stack.back;
-        stack.pop_back();
-        int arraySize = GetInt(size);
-
-        if (arraySize <= 0)
-            RuntimeError("Dynamically allocated array must be declared with a size greater than 0");
-
+        size_t arraySize = o.op;
         RuntimeObject *arr = CreateArrayOrStruct(RuntimeType::ARRAY, arraySize);
 
-        // for (size_t i = 0; i < (size_t)arraySize; i++)
-        // {
-        //     arr->as.arr.data[i] = Allocate(1);
-        //     arr->as.arr.data[i]->state = GCState::MARKED;
-        //     arr->as.arr.data[i]->t = RuntimeType::NULL_T;
-        // }
+        for (size_t i = 0; i < arraySize; i++)
+            SetIndexOfArray(arr, i, GetNull());
+
+        stack.push_back(arr);
+        break;
+    }
+    case Opcode::STRUCT_ALLOC:
+    {
+        size_t arraySize = o.op;
+        RuntimeObject *arr = CreateArrayOrStruct(RuntimeType::STRUCT, arraySize);
+
+        for (size_t i = 0; i < arraySize; i++)
+            SetIndexOfArray(arr, i, GetNull());
 
         stack.push_back(arr);
         break;
@@ -386,6 +388,11 @@ void VM::ExecuteInstruction()
         }
         break;
     }
+    case Opcode::PRINT:
+    {
+        NativePrint(o.op);
+        break;
+    }
     case Opcode::STRUCT_MEMBER:
     {
         RuntimeObject *strct = stack.back;
@@ -397,12 +404,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::STRUCT_D:
     {
-        // RuntimeObject *emptyStruct = stack[stack.count - o.op - 1];
+        RuntimeObject *arr = stack[stack.count - o.op - 1];
 
-        // for (size_t i = 0; i < o.op; i++)
-        //     emptyStruct->as.arr.data[i] = stack[stack.count - o.op + i];
+        for (size_t i = 0; i < o.op; i++)
+            SetIndexOfArray(arr, i, stack[stack.count - o.op + i]);
 
-        // stack.pop_N(o.op);
+        stack.pop_N(o.op);
         break;
     }
     case Opcode::STRUCT_MEMBER_SET:
@@ -439,7 +446,7 @@ void VM::ExecuteInstruction()
         }
         case RuntimeType::STRUCT:
         {
-            // size_t type = stack.back->as.arr.type;
+            // size_t type = GetType(stack.back).type;
             // if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
             // {
             //     stack.pop_back();
