@@ -48,10 +48,6 @@ std::string ToString(Opcode o)
     {
         return "ARR_ALLOC";
     }
-    case Opcode::STATIC_ARR_ALLOC:
-    {
-        return "STATIC_ARR_ALLOC";
-    }
     case Opcode::STRUCT_ALLOC:
     {
         return "STRUCT_ALLOC";
