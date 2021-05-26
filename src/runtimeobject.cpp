@@ -178,7 +178,7 @@ extern "C"
     {
         RuntimeObject *nullObj = (RuntimeObject *)malloc(sizeof(RuntimeObject));
         nullObj->type = RuntimeType::NULL_T;
-        nullObj->as.d = 0;
+        nullObj->as.i = 0;
         return nullObj;
     }
 
@@ -271,6 +271,12 @@ extern "C"
         return rt;
     }
 
+    RuntimeObject *SetIndexOfArray(RuntimeObject *arr, size_t index, RuntimeObject *val)
+    {
+        arr->as.arr.data[index] = val;
+        return arr;
+    }
+
     RuntimeObject *SetString(RuntimeObject *rt, RTString str)
     {
         rt->as.str = str;
@@ -324,12 +330,7 @@ extern "C"
             return str;
         }
         case RuntimeType::BOOL:
-        {
-            if (rt->as.b)
-                return strdup("true");
-            else
-                return strdup("false");
-        }
+            return rt->as.b ? strdup("true") : strdup("false");
         case RuntimeType::STRUCT:
         case RuntimeType::ARRAY:
         {

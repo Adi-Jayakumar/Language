@@ -70,6 +70,7 @@ extern "C"
     RuntimeObject *SetDouble(RuntimeObject *, double);
     RuntimeObject *SetBool(RuntimeObject *, bool);
     RuntimeObject *SetArrayOrStruct(RuntimeObject *, RTArray);
+    RuntimeObject *SetIndexOfArray(RuntimeObject *arr, size_t index, RuntimeObject *val);
     RuntimeObject *SetString(RuntimeObject *, RTString);
     RuntimeObject *SetChar(RuntimeObject *, char);
 
