@@ -78,8 +78,8 @@ extern "C"
             double d;
             bool b;
             char c;
-            RTArray arr;
-            RTString str;
+            Array arr;
+            String str;
         } as;
     };
 
@@ -150,7 +150,7 @@ extern "C"
         return res;
     }
 
-    RuntimeObject *CreateString(RTString str)
+    RuntimeObject *CreateString(String str)
     {
         RuntimeObject *res = (RuntimeObject *)malloc(sizeof(RuntimeObject));
         res->type = RuntimeType::STRING;
@@ -234,11 +234,11 @@ extern "C"
     {
         return rt->as.b;
     }
-    RTArray GetArrayOrStruct(RuntimeObject *rt)
+    Array GetArrayOrStruct(RuntimeObject *rt)
     {
         return rt->as.arr;
     }
-    RTString GetString(RuntimeObject *rt)
+    String GetString(RuntimeObject *rt)
     {
         return rt->as.str;
     }
@@ -265,7 +265,7 @@ extern "C"
         return rt;
     }
 
-    RuntimeObject *SetArrayOrStruct(RuntimeObject *rt, RTArray arr)
+    RuntimeObject *SetArrayOrStruct(RuntimeObject *rt, Array arr)
     {
         rt->as.arr = arr;
         return rt;
@@ -277,7 +277,7 @@ extern "C"
         return arr;
     }
 
-    RuntimeObject *SetString(RuntimeObject *rt, RTString str)
+    RuntimeObject *SetString(RuntimeObject *rt, String str)
     {
         rt->as.str = str;
         return rt;
@@ -334,7 +334,7 @@ extern "C"
         case RuntimeType::STRUCT:
         case RuntimeType::ARRAY:
         {
-            RTArray arr = rt->as.arr;
+            Array arr = rt->as.arr;
             char **strs = (char **)malloc(arr.size * sizeof(char *));
 
             size_t arrStringLength = 0;
@@ -377,7 +377,7 @@ extern "C"
         }
         case RuntimeType::STRING:
         {
-            RTString str = GetString(rt);
+            String str = GetString(rt);
             char *res = (char *)malloc((str.len + 1) * sizeof(char));
             return strcpy(res, str.data);
         }
@@ -415,6 +415,15 @@ extern "C"
             return false;
         }
         }
+    }
+
+    void FreeLibInfo(LibInfo li)
+    {
+        for (size_t i = 0; i < li.size; i++)
+        {
+            free(li.info[i]);
+        }
+        free(li.info);
     }
 }
 

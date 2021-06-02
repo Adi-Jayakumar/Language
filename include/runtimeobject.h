@@ -6,13 +6,13 @@ extern "C"
 {
 
     struct RuntimeObject;
-    struct RTArray
+    struct Array
     {
         size_t size;
         RuntimeObject **data;
     };
 
-    struct RTString
+    struct String
     {
         size_t len;
         char *data;
@@ -48,7 +48,7 @@ extern "C"
     // array case
     RuntimeObject *CreateArrayOrStruct(RuntimeType, size_t);
     // string case
-    RuntimeObject *CreateString(RTString);
+    RuntimeObject *CreateString(String);
     // char case
     RuntimeObject *CreateChar(char);
 
@@ -60,8 +60,8 @@ extern "C"
     int GetInt(RuntimeObject *);
     double GetDouble(RuntimeObject *);
     bool GetBool(RuntimeObject *);
-    RTArray GetArrayOrStruct(RuntimeObject *);
-    RTString GetString(RuntimeObject *);
+    Array GetArrayOrStruct(RuntimeObject *);
+    String GetString(RuntimeObject *);
     char GetChar(RuntimeObject *);
 
     RuntimeType GetType(RuntimeObject *);
@@ -69,9 +69,9 @@ extern "C"
     RuntimeObject *SetInt(RuntimeObject *, int);
     RuntimeObject *SetDouble(RuntimeObject *, double);
     RuntimeObject *SetBool(RuntimeObject *, bool);
-    RuntimeObject *SetArrayOrStruct(RuntimeObject *, RTArray);
+    RuntimeObject *SetArrayOrStruct(RuntimeObject *, Array);
     RuntimeObject *SetIndexOfArray(RuntimeObject *arr, size_t index, RuntimeObject *val);
-    RuntimeObject *SetString(RuntimeObject *, RTString);
+    RuntimeObject *SetString(RuntimeObject *, String);
     RuntimeObject *SetChar(RuntimeObject *, char);
 
     GCState GetGCState(const RuntimeObject *);
@@ -80,6 +80,14 @@ extern "C"
     void InsertString(char *whole, const char *str, size_t len, size_t index);
     char *RTOToString(RuntimeObject *);
     bool IsTruthy(const RuntimeObject *);
+
+    struct LibInfo
+    {
+        size_t size;
+        char** info;
+    };
+
+    void FreeLibInfo(LibInfo);
 }
 
 std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt);
