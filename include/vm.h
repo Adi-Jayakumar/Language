@@ -24,8 +24,8 @@ struct VM
 
     std::vector<RuntimeObject*> constants;
 
-    Array stack;
-    Array Heap;
+    Stack stack;
+    Stack Heap;
 
     VM(std::vector<RuntimeFunction> &, size_t, std::unordered_map<size_t, std::unordered_set<size_t>> &);
     ~VM();

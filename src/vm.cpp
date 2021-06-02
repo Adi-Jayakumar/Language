@@ -224,7 +224,7 @@ void VM::ExecuteInstruction()
         stack.pop_back();
         RuntimeObject *obj = stack.back;
 
-        RTArray arr = GetArrayOrStruct(obj);
+        Array arr = GetArrayOrStruct(obj);
 
         if (GetType(obj) == RuntimeType::NULL_T)
             RuntimeError("Cannot index into an uninitialised array");
@@ -245,7 +245,7 @@ void VM::ExecuteInstruction()
         int i = GetInt(index);
 
         RuntimeObject *obj = stack.back;
-        RTArray arr = GetArrayOrStruct(obj);
+        Array arr = GetArrayOrStruct(obj);
         stack.pop_back();
 
         size_t arraySize = arr.size;
@@ -288,7 +288,7 @@ void VM::ExecuteInstruction()
             RuntimeError("Cannot index into an uninitialised array");
         stack.pop_back();
 
-        RTString str = GetString(obj);
+        String str = GetString(obj);
         int size = (int)str.len;
         int index = GetInt(indexObj);
 
@@ -306,7 +306,7 @@ void VM::ExecuteInstruction()
 
         RuntimeObject *strObj = stack.back;
         stack.pop_back();
-        RTString str = GetString(strObj);
+        String str = GetString(strObj);
 
         size_t strSize = str.len;
 
@@ -489,8 +489,8 @@ void VM::ExecuteInstruction()
     case Opcode::S_ADD:
     {
         TAKE_LEFT_RIGHT(RuntimeObject * left, RuntimeObject * right, stack);
-        RTString lStr = GetString(left);
-        RTString rStr = GetString(right);
+        String lStr = GetString(left);
+        String rStr = GetString(right);
 
         size_t newStrSize = lStr.len + rStr.len;
 
@@ -500,7 +500,7 @@ void VM::ExecuteInstruction()
         char *next = concat + lStr.len;
         strcpy(next, rStr.data);
 
-        RTString concatStr = {newStrSize, concat};
+        String concatStr = {newStrSize, concat};
         stack.push_back(CreateString(concatStr));
         break;
     }
@@ -809,7 +809,7 @@ void VM::NativePrint(int arity)
 void VM::NativeToString(int)
 {
     char *chrs = RTOToString(stack.back);
-    RTString rtstr = {strlen(chrs), chrs};
+    String rtstr = {strlen(chrs), chrs};
     stack.pop_back();
     stack.push_back(CreateString(rtstr));
 }

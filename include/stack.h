@@ -6,18 +6,18 @@
 #define GROW_FAC 2U
 #define STACK_MAX 64 * UINT8_MAX
 
-struct Array
+struct Stack
 {
     size_t count;
     RuntimeObject **data;
     RuntimeObject *back;
 
-    Array();
-    ~Array();
+    Stack();
+    ~Stack();
     RuntimeObject *operator[](const size_t index);
     void push_back(RuntimeObject *cc);
     // returns a pointer to the copy so that the VM
-    // can add the pointer to the copy to the Array of
+    // can add the pointer to the copy to the Stack of
     // runtime allocated objects
     void push_back_copy(RuntimeObject *);
     void pop_back();

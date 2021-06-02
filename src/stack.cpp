@@ -1,6 +1,6 @@
 #include "stack.h"
 
-Array::Array()
+Stack::Stack()
 {
     data = (RuntimeObject **)malloc(DEF_SIZE * sizeof(RuntimeObject *));
     count = 0;
@@ -8,12 +8,12 @@ Array::Array()
     back = *data;
 }
 
-Array::~Array()
+Stack::~Stack()
 {
     free(data);
 }
 
-void Array::push_back(RuntimeObject *cc)
+void Stack::push_back(RuntimeObject *cc)
 {
     if (count < capacity)
     {
@@ -33,7 +33,7 @@ void Array::push_back(RuntimeObject *cc)
     count++;
 }
 
-void Array::push_back_copy(RuntimeObject *rto)
+void Stack::push_back_copy(RuntimeObject *rto)
 {
     if (count < capacity)
     {
@@ -53,14 +53,14 @@ void Array::push_back_copy(RuntimeObject *rto)
     count++;
 }
 
-void Array::pop_back()
+void Stack::pop_back()
 {
     SetGCState(back, GCState::UNMARKED);
     count--;
     back = count > 0 ? data[count - 1] : data[0];
 }
 
-void Array::pop_N(size_t n)
+void Stack::pop_N(size_t n)
 {
     for (size_t i = count - 1; i >= count - n; i--)
     {
@@ -73,7 +73,7 @@ void Array::pop_N(size_t n)
     back = count > 0 ? data[count - 1] : data[0];
 }
 
-RuntimeObject *Array::operator[](const size_t index)
+RuntimeObject *Stack::operator[](const size_t index)
 {
     return data[index];
 }
