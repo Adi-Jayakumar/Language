@@ -80,14 +80,6 @@ extern "C"
     void InsertString(char *whole, const char *str, size_t len, size_t index);
     char *RTOToString(RuntimeObject *);
     bool IsTruthy(const RuntimeObject *);
-
-    struct LibInfo
-    {
-        size_t size;
-        char** info;
-    };
-
-    void FreeLibInfo(LibInfo);
 }
 
 std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt);

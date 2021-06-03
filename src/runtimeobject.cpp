@@ -416,15 +416,6 @@ extern "C"
         }
         }
     }
-
-    void FreeLibInfo(LibInfo li)
-    {
-        for (size_t i = 0; i < li.size; i++)
-        {
-            free(li.info[i]);
-        }
-        free(li.info);
-    }
 }
 
 std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt)
