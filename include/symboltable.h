@@ -1,6 +1,8 @@
 #pragma once
 #include "idstructs.h"
 #include "nativefuncs.h"
+#include "perror.h"
+#include <sstream>
 
 std::vector<FuncID> GetNativeFunctions();
 
@@ -29,6 +31,14 @@ struct SymbolTable
     void PopUntilSized(size_t size);
 
     size_t FindStruct(const TypeData &);
+
+    //-------------------LIBRARY-------------------//
+    std::vector<std::string> GetLibraryFunctionNames(const std::string &libname);
+    void ParseLibraryFunction(std::string &func);
 };
+
+void LibraryError(const std::string &msg);
+std::vector<std::string> SplitStringByChar(std::string &, char);
+std::string TrimFrontBack(std::string &);
 
 bool MatchToNativeFuncs(const std::vector<TypeData> &, const std::vector<TypeData> &);

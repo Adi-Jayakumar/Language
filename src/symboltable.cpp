@@ -150,3 +150,94 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
 
     return areSame;
 }
+
+void LibraryError(const std::string &msg)
+{
+    Error e("[LIBRARY ERROR]\n" + msg + "\n");
+}
+
+std::vector<std::string> SplitStringByChar(std::string &s, char c)
+{
+    std::stringstream stream(s);
+    std::string segment;
+    std::vector<std::string> split;
+
+    while (std::getline(stream, segment, c))
+        split.push_back(segment);
+
+    return split;
+}
+
+std::string TrimFrontBack(std::string &str)
+{
+    size_t first = 0;
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        first = i;
+        if (!isspace(str[i]))
+            break;
+    }
+
+    size_t last = str.length() - 1;
+    for (size_t j = str.length() - 1; (int)j >= 0; j--)
+    {
+        last = j;
+        if (!isspace(str[j]))
+            break;
+    }
+
+    return str.substr(first, last - first + 1);
+}
+
+std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string &)
+{
+    // in reality: load library, call FunctionPrototypes/find the required constant
+    return {"Sin                : double - double",
+            "Cos                : double - double",
+            "Tan                : double - double",
+            "GetPi              :        - double",
+            "EuclideanDist      : double, double - double"};
+}
+
+void SymbolTable::ParseLibraryFunction(std::string &func)
+{
+    std::vector<std::string> name_prototype = SplitStringByChar(func, ':');
+
+    if (name_prototype.size() > 2 || name_prototype.size() <= 1)
+        LibraryError("Invalid function prototype definition for function '" + func + "'");
+
+    std::string name = TrimFrontBack(name_prototype[0]);
+    std::vector<std::string> input_ret = SplitStringByChar(name_prototype[1], '-');
+
+    if (input_ret.size() > 2 || input_ret.size() == 1)
+        LibraryError("Invalid separation between argument and return types in function '" + func + "'");
+
+    std::vector<std::string> args = SplitStringByChar(input_ret[0], ',');
+
+    for (size_t i = 0; i < args.size(); i++)
+        args[i] = TrimFrontBack(args[i]);
+
+    std::vector<TypeData> argtypes;
+    if (args.size() != 1 || args[0] != " ")
+    {
+        for (size_t i = 0; i < args.size(); i++)
+        {
+            if (GetTypeNameMap().find(args[i]) == GetTypeNameMap().end())
+                LibraryError("Invalid argumnent type '" + args[i] + "'");
+            argtypes.push_back(GetTypeNameMap()[args[i]]);
+        }
+    }
+
+    std::string ret = TrimFrontBack(input_ret[1]);
+    if (GetTypeNameMap().find(ret) == GetTypeNameMap().end())
+        LibraryError("Invalid return type '" + ret + "'");
+    TypeData retType = GetTypeNameMap()[ret];
+
+    std::cout << ret << " " << name << "(";
+    for (const TypeData &arg : argtypes)
+        std::cout << arg << ", ";
+
+    std::cout << ")" << std::endl;
+
+    funcs.push_back(FuncID(retType, name, argtypes));
+}
