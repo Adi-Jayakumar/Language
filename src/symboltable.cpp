@@ -203,7 +203,7 @@ void SymbolTable::ParseLibraryFunction(std::string &func)
 {
     std::vector<std::string> name_prototype = SplitStringByChar(func, ':');
 
-    if (name_prototype.size() > 2 || name_prototype.size() <= 1)
+    if (name_prototype.size() != 2)
         LibraryError("Invalid function prototype definition for function '" + func + "'");
 
     std::string name = TrimFrontBack(name_prototype[0]);
@@ -233,7 +233,7 @@ void SymbolTable::ParseLibraryFunction(std::string &func)
         LibraryError("Invalid return type '" + ret + "'");
     TypeData retType = GetTypeNameMap()[ret];
 
-    std::cout << ret << " " << name << "(";
+    std::cout << retType << " " << name << "(";
     for (const TypeData &arg : argtypes)
         std::cout << arg << ", ";
 
