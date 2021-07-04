@@ -147,8 +147,8 @@ void VM::ExecuteProgram()
     left = stack.back;                      \
     stack.pop_back()
 
-// void VM::ExecuteInstruction()
-// {
+void VM::ExecuteInstruction()
+{
 //     Op o = functions[curFunc].code[ip];
 //     switch (o.code)
 //     {
@@ -770,7 +770,7 @@ void VM::ExecuteProgram()
 //         break;
 //     }
 //     }
-// }
+}
 
 void VM::NativePrint(int arity)
 {

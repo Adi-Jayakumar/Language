@@ -19,7 +19,6 @@ struct Stack
     // returns a pointer to the copy so that the VM
     // can add the pointer to the copy to the Stack of
     // runtime allocated objects
-    void push_back_copy(Object *);
     void pop_back();
     void pop_N(size_t n);
 

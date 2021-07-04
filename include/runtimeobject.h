@@ -68,8 +68,8 @@ public:
 
 Object *CreateInt(int);
 Object *CreateDouble(double);
-Object *CreateArray(size_t, Object **);
-Object *CreateStruct(size_t, Object **, TypeID);
+Object *CreateArray(Object **, size_t);
+Object *CreateStruct(Object **, size_t, TypeID);
 Object *CreateChar(char);
 Object *CreateString(char *);
 

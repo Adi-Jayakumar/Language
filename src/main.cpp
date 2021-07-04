@@ -31,7 +31,7 @@ int main()
     data[2] = three;
     data[3] = four;
 
-    Object *array = CreateArray(4, data);
+    Object *array = CreateArray(data, 4);
 
     std::cout << array->ToString() << std::endl;
     delete array;
