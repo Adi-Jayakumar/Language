@@ -9,17 +9,17 @@
 struct Stack
 {
     size_t count;
-    RuntimeObject **data;
-    RuntimeObject *back;
+    Object **data;
+    Object *back;
 
     Stack();
     ~Stack();
-    RuntimeObject *operator[](const size_t index);
-    void push_back(RuntimeObject *cc);
+    Object *operator[](const size_t index);
+    void push_back(Object *cc);
     // returns a pointer to the copy so that the VM
     // can add the pointer to the copy to the Stack of
     // runtime allocated objects
-    void push_back_copy(RuntimeObject *);
+    void push_back_copy(Object *);
     void pop_back();
     void pop_N(size_t n);
 

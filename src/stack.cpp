@@ -2,7 +2,7 @@
 
 Stack::Stack()
 {
-    data = (RuntimeObject **)malloc(DEF_SIZE * sizeof(RuntimeObject *));
+    data = (Object **)malloc(DEF_SIZE * sizeof(Object *));
     count = 0;
     capacity = DEF_SIZE;
     back = *data;
@@ -13,7 +13,7 @@ Stack::~Stack()
     free(data);
 }
 
-void Stack::push_back(RuntimeObject *cc)
+void Stack::push_back(Object *cc)
 {
     if (count < capacity)
     {
@@ -23,8 +23,8 @@ void Stack::push_back(RuntimeObject *cc)
     else
     {
         capacity *= GROW_FAC;
-        RuntimeObject **more = (RuntimeObject **)malloc(capacity * sizeof(RuntimeObject *));
-        memcpy(more, data, count * sizeof(RuntimeObject *));
+        Object **more = (Object **)malloc(capacity * sizeof(Object *));
+        memcpy(more, data, count * sizeof(Object *));
         free(data);
         data = more;
         data[count] = cc;
@@ -33,7 +33,7 @@ void Stack::push_back(RuntimeObject *cc)
     count++;
 }
 
-void Stack::push_back_copy(RuntimeObject *rto)
+void Stack::push_back_copy(Object *rto)
 {
     if (count < capacity)
     {
@@ -43,8 +43,8 @@ void Stack::push_back_copy(RuntimeObject *rto)
     else
     {
         capacity *= GROW_FAC;
-        RuntimeObject **more = (RuntimeObject **)malloc(capacity * sizeof(RuntimeObject *));
-        memcpy(more, data, count * sizeof(RuntimeObject *));
+        Object **more = (Object **)malloc(capacity * sizeof(Object *));
+        memcpy(more, data, count * sizeof(Object *));
         free(data);
         data = more;
         data[count] = CopyRTO(rto);
@@ -73,7 +73,7 @@ void Stack::pop_N(size_t n)
     back = count > 0 ? data[count - 1] : data[0];
 }
 
-RuntimeObject *Stack::operator[](const size_t index)
+Object *Stack::operator[](const size_t index)
 {
     return data[index];
 }

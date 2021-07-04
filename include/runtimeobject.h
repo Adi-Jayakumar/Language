@@ -1,86 +1,51 @@
 #pragma once
 #include "common.h"
-#include <cstring>
+#include <sstream>
 
-extern "C"
+class Object
 {
+public:
+    virtual ~Object(){};
+    virtual std::string ToString() = 0;
+    virtual void DestroyOwnedMemory(){};
+};
 
-    struct RuntimeObject;
-    struct Array
-    {
-        size_t size;
-        RuntimeObject **data;
-    };
+class Int : public Object
+{
+public:
+    int i;
+    Int(int _i) : i(_i){};
+    virtual std::string ToString() override;
+};
 
-    struct String
-    {
-        size_t len;
-        char *data;
-    };
+class Double : public Object
+{
+public:
+    double d;
+    Double(double _d) : d(_d){};
+    virtual std::string ToString() override;
+};
 
-    enum class RuntimeType : uint8_t
-    {
-        NULL_T,
-        INT,
-        DOUBLE,
-        BOOL,
-        ARRAY,
-        STRING,
-        CHAR,
-        STRUCT,
-    };
-    const char *RuntimeTypeToString(const RuntimeType &);
+class Array : public Object
+{
+public:
+    size_t size;
+    Object **arr;
+    Array(size_t _size, Object **_arr) : size(size), arr(_arr){};
+    virtual std::string ToString() override;
+};
 
-    enum class GCState : uint8_t
-    {
-        FREED,
-        MARKED,
-        UNMARKED,
-    };
-    const char *GCStateToString(const GCState &rts);
+class Struct : public Object
+{
+public:
+    size_t size;
+    Object **arr;
+    TypeID type;
+    Struct(size_t _size, Object **_arr, TypeID _type) : size(size), arr(_arr), type(_type){};
+    virtual std::string ToString() override;
+};
 
-    RuntimeObject *CreateRTOFromString(RuntimeType, const char *);
-
-    RuntimeObject *CreateNull();
-    RuntimeObject *CreateInt(int);
-    RuntimeObject *CreateDouble(double);
-    RuntimeObject *CreateBool(bool);
-    // array case
-    RuntimeObject *CreateArrayOrStruct(RuntimeType, size_t);
-    // string case
-    RuntimeObject *CreateString(String);
-    // char case
-    RuntimeObject *CreateChar(char);
-
-    RuntimeObject *GetNull();
-
-    // returns the copy
-    RuntimeObject *CopyRTO(RuntimeObject *rt);
-
-    int GetInt(RuntimeObject *);
-    double GetDouble(RuntimeObject *);
-    bool GetBool(RuntimeObject *);
-    Array GetArrayOrStruct(RuntimeObject *);
-    String GetString(RuntimeObject *);
-    char GetChar(RuntimeObject *);
-
-    RuntimeType GetType(RuntimeObject *);
-
-    RuntimeObject *SetInt(RuntimeObject *, int);
-    RuntimeObject *SetDouble(RuntimeObject *, double);
-    RuntimeObject *SetBool(RuntimeObject *, bool);
-    RuntimeObject *SetArrayOrStruct(RuntimeObject *, Array);
-    RuntimeObject *SetIndexOfArray(RuntimeObject *arr, size_t index, RuntimeObject *val);
-    RuntimeObject *SetString(RuntimeObject *, String);
-    RuntimeObject *SetChar(RuntimeObject *, char);
-
-    GCState GetGCState(const RuntimeObject *);
-    void SetGCState(RuntimeObject *, GCState);
-
-    void InsertString(char *whole, const char *str, size_t len, size_t index);
-    char *RTOToString(RuntimeObject *);
-    bool IsTruthy(const RuntimeObject *);
-}
-
-std::ostream &operator<<(std::ostream &out, const RuntimeType &rtt);
-std::ostream &operator<<(std::ostream &out, const GCState &gcs);
+Object *CreateInt(int);
+Object *CreateDouble(double);
+Object *CreateArray(size_t, Object **);
+Object *CreateStruct(size_t, Object **, TypeID);

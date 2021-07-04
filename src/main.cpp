@@ -19,14 +19,17 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    SymbolTable s;
-    std::vector<std::string> funcs{"Sin                : double - double",
-                                   "Cos                : double - double",
-                                   "Tan                : double - double",
-                                   "GetPi              :        - double",
-                                   "EuclideanDist      : double, double - double"};
-    for (std::string name : funcs)
-        s.ParseLibraryFunction(name);
+
+    
+
+    // SymbolTable s;
+    // std::vector<std::string> funcs{"Sin                : double - double",
+    //                                "Cos                : double - double",
+    //                                "Tan                : double - double",
+    //                                "GetPi              :        - double",
+    //                                "EuclideanDist      : double, double - double"};
+    // for (std::string name : funcs)
+    //     s.ParseLibraryFunction(name);
     // // DumpTokens("ex/test.txt");
 
     // std::cout << std::endl

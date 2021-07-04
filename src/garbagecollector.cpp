@@ -1,12 +1,12 @@
 #include "vm.h"
 
-void GC::FreeObject(RuntimeObject *)
+void GC::FreeObject(Object *)
 {
 }
 void GC::DeallocateHeap(VM *)
 {
 }
-void GC::MarkObject(RuntimeObject *)
+void GC::MarkObject(Object *)
 {
 }
 void GC::MarkRoots(VM *)
