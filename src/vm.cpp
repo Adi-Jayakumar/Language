@@ -1,4 +1,4 @@
-// #include "vm.h"
+#include "vm.h"
 
 // /*
 //     ARR_D
@@ -7,143 +7,121 @@
 //     STRUCT_D
 // */
 
-// VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree)
-// {
-//     functions = _functions;
-//     StructTree = _StructTree;
-//     cs = new CallFrame[STACK_MAX];
-//     curCF = cs;
-//     curFunc = mainIndex == SIZE_MAX ? SIZE_MAX : 0;
-//     *curCF = {0, mainIndex, 0};
-//     curCF++;
-//     *curCF = {0, mainIndex, 0};
+VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::unordered_map<TypeID, std::string> &_TypeNameMap)
+{
+    functions = _functions;
+    StructTree = _StructTree;
+    TypeNameMap = _TypeNameMap;
 
-//     ip = 0;
+    cs = new CallFrame[STACK_MAX];
+    curCF = cs;
+    curFunc = mainIndex == SIZE_MAX ? SIZE_MAX : 0;
+    *curCF = {0, mainIndex, 0};
+    curCF++;
+    *curCF = {0, mainIndex, 0};
+
+    ip = 0;
+}
+
+VM::~VM()
+{
+    delete[] cs;
+    for (RuntimeFunction &rtf : functions)
+    {
+        for (Object *rto : rtf.values)
+            std::cout << "value " << rto->ToString() << std::endl;
+
+        std::cout << std::endl
+                  << std::endl;
+    }
+
+    std::cout << "====================HEAP====================" << std::endl
+              << std::endl
+              << std::endl;
+
+    for (size_t i = 0; i < Heap.size(); i++)
+        std::cout << Heap[i]->ToString() << std::endl;
+
+    std::cout << std::endl
+              << std::endl;
+}
+
+void VM::PrintStack()
+{
+    std::cout << "index\t|\tvalue" << std::endl;
+    for (size_t i = stack.count - 1; (int)i >= 0; i--)
+        std::cout << i << "\t|\t" << stack[i]->ToString() << std::endl;
+}
+
+void VM::PrintValues()
+{
+    for (size_t i = 0; i < functions.size(); i++)
+    {
+        std::cout << "Values of function " << i << std::endl;
+
+        for (Object *c : functions[i].values)
+            std::cout << c->ToString() << std::endl;
+
+        std::cout << std::endl;
+    }
+}
+
+// Object *VM::Allocate(size_t size)
+// {
+//     Object *alloc = new Object[size];
+//     Heap.push_back(alloc);
+//     return alloc;
 // }
 
-// VM::~VM()
-// {
-//     delete[] cs;
-//     for (RuntimeFunction &rtf : functions)
-//     {
-//         for (Object *rto : rtf.values)
-//         {
-//             char *val = RTOToString(rto);
-//             std::cout << "value " << val << " state " << GetGCState(rto) << std::endl;
-//             free(val);
-//             GC::FreeObject(rto);
-//         }
-//         std::cout << std::endl
-//                   << std::endl;
-//     }
+char *VM::StringAllocate(size_t size)
+{
+    return new char[size * sizeof(char)];
+}
 
-//     std::cout << "====================HEAP====================" << std::endl
-//               << std::endl
-//               << std::endl;
+void VM::RuntimeError(std::string msg)
+{
+    std::cout << "[RUNTIME ERROR] " << msg << std::endl;
+    exit(4);
+}
 
-//     for (size_t i = 0; i < Heap.count; i++)
-//     {
-//         char *heap = RTOToString(Heap[i]);
-//         std::cout << heap << std::endl;
-//         free(heap);
-//     }
+void VM::Jump(size_t jump)
+{
+    ip += jump;
+}
 
-//     GC::DeallocateHeap(this);
+void VM::ExecuteProgram()
+{
+    if (curFunc == SIZE_MAX)
+        return;
+    while (curCF != cs - 1)
+    {
+        while (ip < functions[curFunc].code.size())
+        {
+            ExecuteInstruction();
+            Jump(1);
+        }
 
-//     std::cout << std::endl
-//               << std::endl;
-// }
+        CallFrame *returnCF = curCF;
+        curCF--;
 
-// void VM::PrintStack()
-// {
-//     std::cout << "index\t|\tvalue" << std::endl;
-//     for (size_t i = stack.count - 1; (int)i >= 0; i--)
-//     {
-//         char *stackVal = RTOToString(stack[i]);
-//         std::cout << i << "\t|\t" << stackVal << std::endl;
-//     }
-// }
+        ip = returnCF->retIndex;
+        if (curFunc != 0)
+            ip++;
 
-// void VM::PrintValues()
-// {
-//     for (size_t i = 0; i < functions.size(); i++)
-//     {
-//         std::cout << "Values of function " << i << std::endl;
-//         for (Object *c : functions[i].values)
-//         {
-//             char *funcVal = RTOToString(c);
-//             std::cout << funcVal << " state " << GetGCState(c) << std::endl;
-//         }
-//         std::cout << std::endl;
-//     }
-// }
+        if (curCF != cs - 1)
+        {
+            curFunc = returnCF->retChunk;
+            size_t stackDiff = stack.count - returnCF->valStackMin;
 
-// // Object *VM::Allocate(size_t size)
-// // {
-// // #ifdef GC_STRESS
-// //     GC::GarbageCollect(this);
-// // #endif
-// //     Object *alloc = (Object *)malloc(size * sizeof(Object));
-// //     Heap.push_back(alloc);
-// //     return alloc;
-// // }
+            // cleaning up the function's constants
+            stack.count -= stackDiff;
+            stack.back = stack[stack.count];
+        }
+    }
+}
 
-// char *VM::StringAllocate(size_t size)
-// {
-// #ifdef GC_STRESS
-//     GC::GarbageCollect(this);
-// #endif
-//     return (char *)malloc(size * sizeof(char));
-// }
-
-// void VM::RuntimeError(std::string msg)
-// {
-//     std::cout << "[RUNTIME ERROR] " << msg << std::endl;
-//     exit(4);
-// }
-
-// void VM::Jump(size_t jump)
-// {
-//     ip += jump;
-// }
-
-// void VM::ExecuteProgram()
-// {
-//     if (curFunc == SIZE_MAX)
-//         return;
-//     while (curCF != cs - 1)
-//     {
-//         while (ip < functions[curFunc].code.size())
-//         {
-//             ExecuteInstruction();
-//             Jump(1);
-// #ifdef GC_SUPER_STRESS
-//             GC::GarbageCollect(this);
-// #endif
-//         }
-
-//         CallFrame *returnCF = curCF;
-//         curCF--;
-
-//         ip = returnCF->retIndex;
-//         if (curFunc != 0)
-//             ip++;
-
-//         if (curCF != cs - 1)
-//         {
-//             curFunc = returnCF->retChunk;
-//             size_t stackDiff = stack.count - returnCF->valStackMin;
-
-//             // cleaning up the function's constants
-//             stack.count -= stackDiff;
-//             stack.back = stack[stack.count];
-//         }
-//     }
-// }
-
-/*
 #define BINARY_I_OP(l, op, r) \
-     CreateInt(GetInt(l) op GetInt(r))
+    CreateInt(GetInt(l) op GetInt(r))
 
 #define BINARY_DI_OP(l, op, r) \
     CreateDouble(GetDouble(l) op GetInt(r))
@@ -168,7 +146,7 @@
     stack.pop_back();                       \
     left = stack.back;                      \
     stack.pop_back()
-*/
+
 // void VM::ExecuteInstruction()
 // {
 //     Op o = functions[curFunc].code[ip];
@@ -794,23 +772,19 @@
 //     }
 // }
 
-// void VM::NativePrint(int arity)
-// {
-//     for (size_t i = 0; i < (size_t)arity; i++)
-//     {
-//         char *str = RTOToString(stack[stack.count - arity + i]);
-//         std::cout << str;
-//         free(str);
-//     }
+void VM::NativePrint(int arity)
+{
+    for (size_t i = 0; i < (size_t)arity; i++)
+        std::cout << stack[stack.count - arity + i]->ToString();
 
-//     std::cout << std::endl;
-//     stack.pop_N((size_t)arity);
-// }
+    std::cout << std::endl;
+    stack.pop_N((size_t)arity);
+}
 
-// void VM::NativeToString(int)
-// {
-//     char *chrs = RTOToString(stack.back);
-//     String rtstr = {strlen(chrs), chrs};
-//     stack.pop_back();
-//     stack.push_back(CreateString(rtstr));
-// }
+void VM::NativeToString(int)
+{
+    std::string str = stack.back->ToString();
+    stack.pop_back();
+    char* c = new char[str.length() + 1];
+    stack.push_back(new String(strcpy(c, str.c_str()), str.length()));
+}

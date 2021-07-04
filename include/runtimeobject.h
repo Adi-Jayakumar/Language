@@ -1,5 +1,10 @@
 #pragma once
-#include "common.h"
+// #include "common.h"
+
+#ifndef COMMON_H_INCLUDED
+#include <cstdint>
+typedef uint8_t TypeID;
+#endif
 #include <sstream>
 
 class Object
@@ -29,19 +34,19 @@ public:
 class Array : public Object
 {
 public:
-    size_t size;
     Object **arr;
-    Array(size_t _size, Object **_arr) : size(_size), arr(_arr){};
+    size_t size;
+    Array(Object **_arr, size_t _size) : arr(_arr), size(_size){};
     virtual std::string ToString() override;
 };
 
 class Struct : public Object
 {
 public:
-    size_t size;
     Object **arr;
+    size_t size;
     TypeID type;
-    Struct(size_t _size, Object **_arr, TypeID _type) : size(_size), arr(_arr), type(_type){};
+    Struct(Object **_arr, size_t _size, TypeID _type) : arr(_arr), size(_size), type(_type){};
     virtual std::string ToString() override;
 };
 
@@ -56,8 +61,8 @@ public:
 class String : public Object
 {
 public:
-    size_t len;
     char *str;
+    size_t len;
     String(char *_str, size_t _len) : str(_str), len(_len){};
     virtual std::string ToString() override;
 };

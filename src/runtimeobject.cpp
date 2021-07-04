@@ -20,9 +20,9 @@ std::string Double::ToString()
     return std::to_string(d);
 }
 
-Object *CreateArray(size_t len, Object **arr)
+Object *CreateArray(Object **arr, size_t len)
 {
-    return new Array(len, arr);
+    return new Array(arr, len);
 }
 
 std::string Array::ToString()
@@ -37,9 +37,9 @@ std::string Array::ToString()
     return out.str();
 }
 
-Object *CreateStruct(size_t len, Object **strct, TypeID type)
+Object *CreateStruct(Object **strct, size_t len, TypeID type)
 {
-    return new Struct(len, strct, type);
+    return new Struct(strct, len, type);
 }
 
 std::string Struct::ToString()
