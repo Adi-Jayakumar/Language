@@ -25,7 +25,7 @@ int main()
     Object *three = CreateInt(3);
     Object *four = CreateInt(4);
 
-    Object **data = new Object *[4];
+    Object **data = new Object *[4U];
     data[0] = one;
     data[1] = two;
     data[2] = three;
@@ -34,7 +34,12 @@ int main()
     Object *array = CreateArray(4, data);
 
     std::cout << array->ToString() << std::endl;
-    delete[] array;
+    delete array;
+    delete[] data;
+    delete one;
+    delete two;
+    delete three;
+    delete four;
 
     // SymbolTable s;
     // std::vector<std::string> funcs{"Sin                : double - double",

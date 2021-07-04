@@ -45,7 +45,41 @@ public:
     virtual std::string ToString() override;
 };
 
+class Char : public Object
+{
+public:
+    char c;
+    Char(char _c) : c(_c){};
+    virtual std::string ToString() override;
+};
+
+class String : public Object
+{
+public:
+    size_t len;
+    char *str;
+    String(char *_str, size_t _len) : str(_str), len(_len){};
+    virtual std::string ToString() override;
+};
+
 Object *CreateInt(int);
 Object *CreateDouble(double);
 Object *CreateArray(size_t, Object **);
 Object *CreateStruct(size_t, Object **, TypeID);
+Object *CreateChar(char);
+Object *CreateString(char *);
+
+// All getters assume that the underlying
+// type of the Object* is appropriate
+int GetInt(Object *);
+double GetDouble(Object *);
+
+size_t GetArrayLength(Object *);
+Object **GetArray(Object *);
+
+size_t GetNumStructMembers(Object *);
+Object **GetStructMembers(Object *);
+TypeID GetStructType(Object *);
+
+char GetChar(Object *);
+char *GetString(Object *);
