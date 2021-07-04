@@ -31,7 +31,7 @@ class Array : public Object
 public:
     size_t size;
     Object **arr;
-    Array(size_t _size, Object **_arr) : size(size), arr(_arr){};
+    Array(size_t _size, Object **_arr) : size(_size), arr(_arr){};
     virtual std::string ToString() override;
 };
 
@@ -41,7 +41,7 @@ public:
     size_t size;
     Object **arr;
     TypeID type;
-    Struct(size_t _size, Object **_arr, TypeID _type) : size(size), arr(_arr), type(_type){};
+    Struct(size_t _size, Object **_arr, TypeID _type) : size(_size), arr(_arr), type(_type){};
     virtual std::string ToString() override;
 };
 

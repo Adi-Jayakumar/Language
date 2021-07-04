@@ -141,33 +141,34 @@
 //     }
 // }
 
-// #define BINARY_I_OP(l, op, r) \
-//     CreateInt(GetInt(l) op GetInt(r))
+/*
+#define BINARY_I_OP(l, op, r) \
+     CreateInt(GetInt(l) op GetInt(r))
 
-// #define BINARY_DI_OP(l, op, r) \
-//     CreateDouble(GetDouble(l) op GetInt(r))
+#define BINARY_DI_OP(l, op, r) \
+    CreateDouble(GetDouble(l) op GetInt(r))
 
-// #define BINARY_ID_OP(l, op, r) \
-//     CreateDouble(GetInt(l) op GetDouble(r))
+#define BINARY_ID_OP(l, op, r) \
+    CreateDouble(GetInt(l) op GetDouble(r))
 
-// #define BINARY_D_OP(l, op, r) \
-//     CreateDouble(GetDouble(l) op GetDouble(r))
+#define BINARY_D_OP(l, op, r) \
+    CreateDouble(GetDouble(l) op GetDouble(r))
 
-// #define UNARY_I_OP(op, r) \
-//     CreateInt(op GetInt(r))
+#define UNARY_I_OP(op, r) \
+    CreateInt(op GetInt(r))
 
-// #define UNARY_D_OP(op, r) \
-//     CreateDouble(op GetDouble(r))
+#define UNARY_D_OP(op, r) \
+    CreateDouble(op GetDouble(r))
 
-// #define UNARY_B_OP(op, r) \
-//     CreateBool(op r->as.b)
+#define UNARY_B_OP(op, r) \
+    CreateBool(op r->as.b)
 
-// #define TAKE_LEFT_RIGHT(left, right, stack) \
-//     right = stack.back;                     \
-//     stack.pop_back();                       \
-//     left = stack.back;                      \
-//     stack.pop_back()
-
+#define TAKE_LEFT_RIGHT(left, right, stack) \
+    right = stack.back;                     \
+    stack.pop_back();                       \
+    left = stack.back;                      \
+    stack.pop_back()
+*/
 // void VM::ExecuteInstruction()
 // {
 //     Op o = functions[curFunc].code[ip];

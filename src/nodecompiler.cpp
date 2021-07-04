@@ -5,50 +5,12 @@
         Compile uninitialised variables
 */
 
-RuntimeType NodeCompiler::TypeDataToRuntimeType(const TypeData &t)
-{
-    if (t.isArray)
-        return RuntimeType::ARRAY;
-
-    switch (t.type)
-    {
-    case 1:
-    {
-        return RuntimeType::INT;
-    }
-    case 2:
-    {
-        return RuntimeType::DOUBLE;
-    }
-    case 3:
-    {
-        return RuntimeType::BOOL;
-    }
-    case 4:
-    {
-        return RuntimeType::STRING;
-    }
-    case 5:
-    {
-        return RuntimeType::CHAR;
-    }
-    case 6:
-    {
-        return RuntimeType::NULL_T;
-    }
-    default:
-    {
-        return RuntimeType::STRUCT;
-    }
-    }
-}
-
 //-----------------EXPRESSIONS---------------------//
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    c.cur->values.push_back(CreateRTOFromString(TypeDataToRuntimeType(l->t), l->Loc().literal.c_str()));
-    c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
+    // c.cur->values.push_back(CreateRTOFromString(TypeDataToRuntimeType(l->t), l->Loc().literal.c_str()));
+    // c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)

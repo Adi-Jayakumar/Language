@@ -20,7 +20,21 @@ void DumpTokens(std::string fPath)
 int main()
 {
 
-    
+    Object *one = CreateInt(1);
+    Object *two = CreateInt(2);
+    Object *three = CreateInt(3);
+    Object *four = CreateInt(4);
+
+    Object **data = new Object *[4];
+    data[0] = one;
+    data[1] = two;
+    data[2] = three;
+    data[3] = four;
+
+    Object *array = CreateArray(4, data);
+
+    std::cout << array->ToString() << std::endl;
+    delete[] array;
 
     // SymbolTable s;
     // std::vector<std::string> funcs{"Sin                : double - double",

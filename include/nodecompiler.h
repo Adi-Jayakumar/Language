@@ -5,7 +5,6 @@
 
 namespace NodeCompiler
 {
-    RuntimeType TypeDataToRuntimeType(const TypeData &);
 
     // expression compiling
     void CompileLiteral(Literal *l, Compiler &c);

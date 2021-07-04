@@ -7,9 +7,8 @@ void Chunk::PrintCode()
         std::cout << ToString(o.code);
         if (o.code == Opcode::GET_C)
         {
-            char *str = RTOToString(values[o.op]);
+            std::string str = values[o.op]->ToString();
             std::cout << " '" << str << "' at index: " << +o.op;
-            free(str);
         }
         else if (o.code == Opcode::GET_V || o.code == Opcode::VAR_A)
         {
