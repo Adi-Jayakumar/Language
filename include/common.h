@@ -4,6 +4,8 @@
 #include <unordered_set>
 #include <vector>
 
+#define COMMON_H_INCLUDED
+
 typedef uint8_t TypeID;
 
 #define NUM_DEF_TYPES 7U
