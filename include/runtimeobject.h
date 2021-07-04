@@ -1,5 +1,4 @@
 #pragma once
-// #include "common.h"
 
 #ifndef COMMON_H_INCLUDED
 #include <cstdint>

@@ -1,5 +1,5 @@
 #pragma once
-#include "common.h"
+#include <string>
 
 enum class Opcode : uint8_t
 {
@@ -114,8 +114,6 @@ enum class Opcode : uint8_t
 };
 
 std::string ToString(Opcode o);
-
-Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);
 
 struct Op
 {

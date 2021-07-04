@@ -1,4 +1,5 @@
 #include "op.h"
+#include "common.h"
 
 std::string ToString(Opcode o)
 {
@@ -293,101 +294,4 @@ std::string ToString(Opcode o)
         return "UNRECOGNISED OPCODE " + std::to_string((uint8_t)o);
     }
     }
-}
-
-#define GET_TYPED_BINARY_OP(l, op, r, ret)   \
-    do                                       \
-    {                                        \
-        if (l.type == 1 && r.type == 1)      \
-            ret = Opcode::I_##op;            \
-        else if (l.type == 1 && r.type == 2) \
-            ret = Opcode::ID_##op;           \
-        else if (l.type == 2 && r.type == 1) \
-            ret = Opcode::DI_##op;           \
-        else                                 \
-            ret = Opcode::D_##op;            \
-    } while (false)
-
-#define GET_TYPED_UNARY_OP(op, r, ret) \
-    do                                 \
-    {                                  \
-        if (r.type == 1)               \
-            ret = Opcode::I_##op;      \
-        else if (r.type == 2)          \
-            ret = Opcode::D_##op;      \
-    } while (false)
-
-Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
-{
-    Opcode o;
-    if (t == TokenID::PLUS)
-    {
-        if (l.type == 4 && r.type == 4)
-            return Opcode::S_ADD;
-
-        GET_TYPED_BINARY_OP(l, ADD, r, o);
-        return o;
-    }
-    else if (t == TokenID::MINUS)
-    {
-        if (isUnary)
-            GET_TYPED_UNARY_OP(SUB, r, o);
-        else
-            GET_TYPED_BINARY_OP(l, SUB, r, o);
-        return o;
-    }
-    else if (t == TokenID::STAR)
-    {
-        GET_TYPED_BINARY_OP(l, MUL, r, o);
-        return o;
-    }
-    else if (t == TokenID::SLASH)
-    {
-        GET_TYPED_BINARY_OP(l, DIV, r, o);
-        return o;
-    }
-    else if (t == TokenID::GT)
-    {
-        GET_TYPED_BINARY_OP(l, GT, r, o);
-        return o;
-    }
-    else if (t == TokenID::LT)
-    {
-        GET_TYPED_BINARY_OP(l, LT, r, o);
-        return o;
-    }
-    else if (t == TokenID::GEQ)
-    {
-        GET_TYPED_BINARY_OP(l, GEQ, r, o);
-        return o;
-    }
-    else if (t == TokenID::LEQ)
-    {
-        GET_TYPED_BINARY_OP(l, LEQ, r, o);
-        return o;
-    }
-    else if (t == TokenID::EQ_EQ)
-    {
-        if (l.type == 3 && r.type == 3)
-            return Opcode::B_EQ_EQ;
-        else if (l.type == 6 || r.type == 6)
-            return Opcode::N_EQ_EQ;
-        GET_TYPED_BINARY_OP(l, EQ_EQ, r, o);
-        return o;
-    }
-    else if (t == TokenID::BANG_EQ)
-    {
-        if (l.type == 3 && r.type == 3)
-            return Opcode::B_BANG_EQ;
-        else if (l.type == 6 || r.type == 6)
-            return Opcode::N_BANG_EQ;
-        GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
-        return o;
-    }
-    else if (t == TokenID::BANG)
-    {
-        return Opcode::BANG;
-    }
-    else
-        return Opcode::NONE;
 }

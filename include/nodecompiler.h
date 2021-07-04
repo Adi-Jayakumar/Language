@@ -3,6 +3,8 @@
 #include "compiler.h"
 #include "runtimeobject.h"
 
+Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);
+
 namespace NodeCompiler
 {
 
