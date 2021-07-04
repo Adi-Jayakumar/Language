@@ -106,8 +106,50 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    // c.cur->values.push_back(CreateRTOFromString(TypeDataToRuntimeType(l->t), l->Loc().literal.c_str()));
-    // c.cur->code.push_back({Opcode::GET_C, static_cast<uint8_t>(c.cur->values.size() - 1)});
+    TypeID type = l->GetType().type;
+    std::string literal = l->Loc().literal;
+    Chunk *cur = c.cur;
+
+    if (type == 1)
+    {
+        cur->ints.push_back(std::stoi(literal));
+        if (cur->ints.size() > UINT8_MAX)
+            c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(UINT8_MAX));
+
+        cur->code.push_back({Opcode::LOAD_INT, static_cast<uint8_t>(cur->ints.size() - 1)});
+    }
+    else if (type == 2)
+    {
+        cur->doubles.push_back(std::stod(literal));
+        if (cur->doubles.size() > UINT8_MAX)
+            c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(UINT8_MAX));
+
+        cur->code.push_back({Opcode::LOAD_DOUBLE, static_cast<uint8_t>(cur->doubles.size() - 1)});
+    }
+    else if (type == 3)
+    {
+        cur->bools.push_back(literal == "true" ? true : false);
+        if (cur->bools.size() > UINT8_MAX)
+            c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(UINT8_MAX));
+
+        cur->code.push_back({Opcode::LOAD_BOOL, static_cast<uint8_t>(cur->bools.size() - 1)});
+    }
+    else if (type == 4)
+    {
+        cur->strings.push_back(literal);
+        if (cur->strings.size() > UINT8_MAX)
+            c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(UINT8_MAX));
+
+        cur->code.push_back({Opcode::LOAD_STRING, static_cast<uint8_t>(cur->strings.size() - 1)});
+    }
+    else if (type == 5)
+    {
+        cur->chars.push_back(literal[0]);
+        if (cur->chars.size() > UINT8_MAX)
+            c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(UINT8_MAX));
+
+        cur->code.push_back({Opcode::LOAD_CHAR, static_cast<uint8_t>(cur->chars.size() - 1)});
+    }
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)

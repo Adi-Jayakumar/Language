@@ -9,9 +9,25 @@ std::string ToString(Opcode o)
     {
         return "POP";
     }
-    case Opcode::GET_C:
+    case Opcode::LOAD_INT:
     {
-        return "GET_C";
+        return "LOAD_INT";
+    }
+    case Opcode::LOAD_DOUBLE:
+    {
+        return "LOAD_DOUBLE";
+    }
+    case Opcode::LOAD_BOOL:
+    {
+        return "LOAD_BOOL";
+    }
+    case Opcode::LOAD_STRING:
+    {
+        return "LOAD_STRING";
+    }
+    case Opcode::LOAD_CHAR:
+    {
+        return "LOAD_CHAR";
     }
     case Opcode::VAR_A:
     {

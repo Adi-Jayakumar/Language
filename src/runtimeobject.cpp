@@ -20,6 +20,16 @@ std::string Double::ToString()
     return std::to_string(d);
 }
 
+Object *CreateBool(bool b)
+{
+    return new Bool(b);
+}
+
+std::string Bool::ToString()
+{
+    return b ? "true" : "false";
+}
+
 Object *CreateArray(Object **arr, size_t len)
 {
     return new Array(arr, len);
@@ -74,6 +84,21 @@ std::string String::ToString()
     return std::string(str, len);
 }
 
+Object *CreateNull_T()
+{
+    return new Null_T();
+}
+
+std::string Null_T::ToString()
+{
+    return "null";
+}
+
+bool IsNull_T(Object *o)
+{
+    return dynamic_cast<Null_T *>(o) == nullptr;
+}
+
 // GETTERS
 int GetInt(Object *o)
 {
@@ -83,6 +108,11 @@ int GetInt(Object *o)
 double GetDouble(Object *o)
 {
     return static_cast<Double *>(o)->d;
+}
+
+bool GetBool(Object *o)
+{
+    return static_cast<Bool *>(o)->b;
 }
 
 size_t GetArrayLength(Object *o)
@@ -118,4 +148,9 @@ char GetChar(Object *o)
 char *GetString(Object *o)
 {
     return static_cast<String *>(o)->str;
+}
+
+size_t GetStringLen(Object *o)
+{
+    return static_cast<String *>(o)->len;
 }

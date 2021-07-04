@@ -149,627 +149,659 @@ void VM::ExecuteProgram()
 
 void VM::ExecuteInstruction()
 {
-//     Op o = functions[curFunc].code[ip];
-//     switch (o.code)
-//     {
-//     case Opcode::POP:
-//     {
-//         stack.pop_back();
-//         break;
-//     }
-//     case Opcode::GET_C:
-//     {
-//         stack.push_back(functions[curFunc].values[o.op]);
-//         break;
-//     }
-//     case Opcode::VAR_A:
-//     {
-//         stack.data[o.op + curCF->valStackMin] = stack.back;
-//         break;
-//     }
-//     case Opcode::VAR_A_GLOBAL:
-//     {
-//         globals[o.op] = stack.back;
-//         break;
-//     }
-//     case Opcode::VAR_D_GLOBAL:
-//     {
-//         globals.push_back(stack.back);
-//         break;
-//     }
-//     case Opcode::GET_V:
-//     {
-//         stack.push_back(stack[o.op + curCF->valStackMin]);
-//         break;
-//     }
-//     case Opcode::GET_V_GLOBAL:
-//     {
-//         stack.push_back(globals[o.op]);
-//         break;
-//     }
-//     case Opcode::ARR_D:
-//     {
-//         Object *arr = stack[stack.count - o.op - 1];
+    Op o = functions[curFunc].code[ip];
+    switch (o.code)
+    {
+    case Opcode::POP:
+    {
+        stack.pop_back();
+        break;
+    }
+    case Opcode::LOAD_INT:
+    {
+        int i = functions[curFunc].ints[o.op];
+        stack.push_back(CreateInt(i));
+        break;
+    }
+    case Opcode::LOAD_DOUBLE:
+    {
+        double d = functions[curFunc].doubles[o.op];
+        stack.push_back(CreateDouble(d));
+        break;
+    }
+    case Opcode::LOAD_BOOL:
+    {
+        bool b = functions[curFunc].bools[o.op];
+        stack.push_back(CreateBool(b));
+        break;
+    }
+    case Opcode::LOAD_STRING:
+    {
+        std::string str = functions[curFunc].strings[o.op];
+        char *c = new char[str.length() + 1];
+        stack.push_back(CreateString(strcpy(c, str.c_str()), str.length()));
+        break;
+    }
+    case Opcode::LOAD_CHAR:
+    {
+        char c = functions[curFunc].chars[o.op];
+        stack.push_back(CreateChar(c));
+        break;
+    }
+    case Opcode::VAR_A:
+    {
+        stack.data[o.op + curCF->valStackMin] = stack.back;
+        break;
+    }
+    case Opcode::VAR_A_GLOBAL:
+    {
+        globals[o.op] = stack.back;
+        break;
+    }
+    case Opcode::VAR_D_GLOBAL:
+    {
+        globals.push_back(stack.back);
+        break;
+    }
+    case Opcode::GET_V:
+    {
+        stack.push_back(stack[o.op + curCF->valStackMin]);
+        break;
+    }
+    case Opcode::GET_V_GLOBAL:
+    {
+        stack.push_back(globals[o.op]);
+        break;
+    }
+    case Opcode::ARR_D:
+    {
+        Object *array = stack[stack.count - o.op - 1];
+        Object **data = GetArray(array);
 
-//         for (size_t i = 0; i < o.op; i++)
-//             SetIndexOfArray(arr, i, stack[stack.count - o.op + i]);
+        for (size_t i = 0; i < o.op; i++)
+            data[i] = stack[stack.count - o.op + i];
 
-//         stack.pop_N(o.op);
-//         break;
-//     }
-//     case Opcode::ARR_INDEX:
-//     {
-//         Object *index = stack.back;
-//         stack.pop_back();
-//         Object *obj = stack.back;
+        stack.pop_N(o.op);
+        break;
+    }
+    case Opcode::ARR_INDEX:
+    {
+        Object *index = stack.back;
+        stack.pop_back();
+        Object *obj = stack.back;
 
-//         Array arr = GetArrayOrStruct(obj);
+        if (IsNull_T(obj))
+            RuntimeError("Cannot index into an uninitialised array");
 
-//         if (GetType(obj) == RuntimeType::NULL_T)
-//             RuntimeError("Cannot index into an uninitialised array");
-//         stack.pop_back();
+        Object **data = GetArray(obj);
+        stack.pop_back();
 
-//         int size = (int)arr.size;
+        size_t size = GetArrayLength(obj);
+        int i = GetInt(index);
 
-//         if (GetInt(index) >= (int)size || GetInt(index) < 0)
-//             RuntimeError("Array index " + std::to_string(GetInt(index)) + " out of bounds for array of size " + std::to_string(arr.size));
+        if (i >= (int)size || i < 0)
+            RuntimeError("Array i " + std::to_string(i) + " out of bounds for array of size " + std::to_string(size));
 
-//         stack.push_back(arr.data[GetInt(index)]);
-//         break;
-//     }
-//     case Opcode::ARR_SET:
-//     {
-//         Object *index = stack.back;
-//         stack.pop_back();
-//         int i = GetInt(index);
+        stack.push_back(data[i]);
+        break;
+    }
+    case Opcode::ARR_SET:
+    {
+        Object *index = stack.back;
+        stack.pop_back();
+        int i = GetInt(index);
 
-//         Object *obj = stack.back;
-//         Array arr = GetArrayOrStruct(obj);
-//         stack.pop_back();
+        Object *obj = stack.back;
+        Object **data = GetArray(obj);
+        stack.pop_back();
 
-//         size_t arraySize = arr.size;
+        size_t size = GetArrayLength(obj);
+        if (i >= (int)size || i < 0)
+            RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(size));
 
-//         if (i >= (int)arraySize || i < 0)
-//             RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(arraySize));
+        data[i] = stack.back;
+        break;
+    }
+    case Opcode::ARR_ALLOC:
+    {
+        size_t size = o.op;
+        Object **data = new Object *[size];
+        Object *arr = CreateArray(data, size);
 
-//         arr.data[i] = CopyRTO(stack.back);
-//         break;
-//     }
-//     case Opcode::ARR_ALLOC:
-//     {
-//         size_t arraySize = o.op;
-//         Object *arr = CreateArrayOrStruct(RuntimeType::ARRAY, arraySize);
+        for (size_t i = 0; i < size; i++)
+            data[i] = CreateNull_T();
 
-//         for (size_t i = 0; i < arraySize; i++)
-//             SetIndexOfArray(arr, i, GetNull());
+        stack.push_back(arr);
+        break;
+    }
+    case Opcode::STRUCT_ALLOC:
+    {
+        size_t size = o.op;
+        Object **data = new Object *[size];
+        Object *strct = CreateStruct(data, size, 1);
 
-//         stack.push_back(arr);
-//         break;
-//     }
-//     case Opcode::STRUCT_ALLOC:
-//     {
-//         size_t arraySize = o.op;
-//         Object *arr = CreateArrayOrStruct(RuntimeType::STRUCT, arraySize);
+        for (size_t i = 0; i < size; i++)
+            data[i] = CreateNull_T();
 
-//         for (size_t i = 0; i < arraySize; i++)
-//             SetIndexOfArray(arr, i, GetNull());
+        stack.push_back(strct);
+        break;
+    }
+    case Opcode::STRING_INDEX:
+    {
+        Object *indexObj = stack.back;
+        stack.pop_back();
+        Object *obj = stack.back;
 
-//         stack.push_back(arr);
-//         break;
-//     }
-//     case Opcode::STRING_INDEX:
-//     {
-//         Object *indexObj = stack.back;
-//         stack.pop_back();
-//         Object *obj = stack.back;
+        if (IsNull_T(obj))
+            RuntimeError("Cannot index into an uninitialised array");
+        stack.pop_back();
 
-//         if (GetType(obj) == RuntimeType::NULL_T)
-//             RuntimeError("Cannot index into an uninitialised array");
-//         stack.pop_back();
+        char *str = GetString(obj);
 
-//         String str = GetString(obj);
-//         int size = (int)str.len;
-//         int index = GetInt(indexObj);
+        size_t size = GetStringLen(obj);
+        int index = GetInt(indexObj);
 
-//         if (index >= (int)size || index < 0)
-//             RuntimeError("String index " + std::to_string(index) + " out of bounds for array of size " + std::to_string(str.len));
+        if (index >= (int)size || index < 0)
+            RuntimeError("String index " + std::to_string(index) + " out of bounds for array of size " + std::to_string(size));
 
-//         stack.push_back(CreateChar(str.data[index]));
-//         break;
-//     }
-//     case Opcode::STRING_SET:
-//     {
-//         Object *index = stack.back;
-//         stack.pop_back();
-//         int i = GetInt(index);
+        stack.push_back(CreateChar(str[index]));
+        break;
+    }
+    case Opcode::STRING_SET:
+    {
+        Object *index = stack.back;
+        stack.pop_back();
+        int i = GetInt(index);
 
-//         Object *strObj = stack.back;
-//         stack.pop_back();
-//         String str = GetString(strObj);
+        Object *strObj = stack.back;
+        stack.pop_back();
 
-//         size_t strSize = str.len;
+        char *str = GetString(strObj);
+        size_t strLen = GetStringLen(strObj);
 
-//         if (i >= (int)strSize || i < 0)
-//             RuntimeError("String index " + std::to_string(i) + " out of bounds for string of size " + std::to_string(strSize));
+        if (i >= (int)strLen || i < 0)
+            RuntimeError("String index " + std::to_string(i) + " out of bounds for string of size " + std::to_string(strLen));
 
-//         str.data[i] = GetChar(stack.back);
-//         break;
-//     }
-//     case Opcode::JUMP_IF_FALSE:
-//     {
-//         if (!IsTruthy(stack.back))
-//             ip += o.op;
-//         stack.pop_back();
-//         break;
-//     }
-//     case Opcode::JUMP:
-//     {
-//         ip += o.op;
-//         break;
-//     }
-//     case Opcode::LOOP:
-//     {
-//         ip = o.op;
-//         break;
-//     }
-//     case Opcode::CALL_F:
-//     {
-//         curCF++;
+        str[i] = GetChar(stack.back);
+        break;
+    }
+    case Opcode::JUMP_IF_FALSE:
+    {
+        if (!stack.back->IsTruthy())
+            ip += o.op;
+        stack.pop_back();
+        break;
+    }
+    case Opcode::JUMP:
+    {
+        ip += o.op;
+        break;
+    }
+    case Opcode::LOOP:
+    {
+        ip = o.op;
+        break;
+    }
+    case Opcode::CALL_F:
+    {
+        curCF++;
 
-//         if (curCF == &cs[STACK_MAX - 1])
-//             RuntimeError("CallStack overflow. Used: " + std::to_string(curCF - &cs[0]) + " callstacks");
+        if (curCF == &cs[STACK_MAX - 1])
+            RuntimeError("CallStack overflow. Used: " + std::to_string(curCF - &cs[0]) + " callstacks");
 
-//         *curCF = {ip, curFunc, stack.count - functions[o.op].arity};
+        *curCF = {ip, curFunc, stack.count - functions[o.op].arity};
 
-//         curFunc = o.op;
-//         ip = -1;
-//         break;
-//     }
-//     case Opcode::RETURN:
-//     {
-//         CallFrame *returnCF = curCF;
-//         curCF--;
+        curFunc = o.op;
+        ip = -1;
+        break;
+    }
+    case Opcode::RETURN:
+    {
+        CallFrame *returnCF = curCF;
+        curCF--;
 
-//         ip = returnCF->retIndex;
-//         curFunc = returnCF->retChunk;
+        ip = returnCF->retIndex;
+        curFunc = returnCF->retChunk;
 
-//         size_t stackDiff = stack.count - returnCF->valStackMin;
-//         Object *retVal;
+        size_t stackDiff = stack.count - returnCF->valStackMin;
+        Object *retVal;
 
-//         if (o.op == 0)
-//             retVal = stack.back;
+        if (o.op == 0)
+            retVal = stack.back;
 
-//         // cleaning up the function's constants
-//         stack.pop_N(stackDiff);
+        // cleaning up the function's constants
+        stack.pop_N(stackDiff);
 
-//         if (o.op == 0)
-//             stack.push_back(CopyRTO(retVal));
-//         break;
-//     }
-//     case Opcode::NATIVE_CALL:
-//     {
-//         Object *arityAsCC = stack.back;
-//         stack.pop_back();
+        if (o.op == 0)
+            stack.push_back(retVal);
+        break;
+    }
+    case Opcode::NATIVE_CALL:
+    {
+        Object *arityAsCC = stack.back;
+        stack.pop_back();
 
-//         switch (o.op)
-//         {
-//         case 0:
-//         {
-//             NativePrint(GetInt(arityAsCC));
-//             break;
-//         }
-//         case 1:
-//         {
-//             NativeToString(GetInt(arityAsCC));
-//         }
-//         default:
-//             break;
-//         }
-//         break;
-//     }
-//     case Opcode::PRINT:
-//     {
-//         NativePrint(o.op);
-//         break;
-//     }
-//     case Opcode::STRUCT_MEMBER:
-//     {
-//         Object *strct = stack.back;
-//         if (GetType(strct) == RuntimeType::NULL_T)
-//             RuntimeError("Cannot access into a null struct");
-//         stack.pop_back();
-//         stack.push_back(GetArrayOrStruct(strct).data[o.op]);
-//         break;
-//     }
-//     case Opcode::STRUCT_D:
-//     {
-//         Object *arr = stack[stack.count - o.op - 1];
+        switch (o.op)
+        {
+        case 0:
+        {
+            NativePrint(GetInt(arityAsCC));
+            break;
+        }
+        case 1:
+        {
+            NativeToString(GetInt(arityAsCC));
+        }
+        default:
+            break;
+        }
+        break;
+    }
+    case Opcode::PRINT:
+    {
+        NativePrint(o.op);
+        break;
+    }
+    case Opcode::STRUCT_MEMBER:
+    {
+        Object *strct = stack.back;
+        if (IsNull_T(strct))
+            RuntimeError("Cannot access into a null struct");
+        stack.pop_back();
+        stack.push_back(GetStructMembers(strct)[o.op]);
+        break;
+    }
+    case Opcode::STRUCT_D:
+    {
+        Object *arr = stack[stack.count - o.op - 1];
+        Object **data = GetStructMembers(arr);
 
-//         for (size_t i = 0; i < o.op; i++)
-//             SetIndexOfArray(arr, i, stack[stack.count - o.op + i]);
+        for (size_t i = 0; i < o.op; i++)
+            data[i] = stack[stack.count - o.op + i];
 
-//         stack.pop_N(o.op);
-//         break;
-//     }
-//     case Opcode::STRUCT_MEMBER_SET:
-//     {
-//         Object *strct = stack.back;
-//         if (GetType(strct) == RuntimeType::NULL_T)
-//             RuntimeError("Cannot set a member of a null struct");
-//         stack.pop_back();
-//         GetArrayOrStruct(strct).data[o.op] = stack.back;
-//         break;
-//     }
-//     case Opcode::CAST:
-//     {
-//         switch (GetType(stack.back))
-//         {
-//         case RuntimeType::NULL_T:
-//         {
-//             RuntimeError("Cannot cast a null value");
-//             break;
-//         }
-//         case RuntimeType::INT:
-//         {
-//             Object *val = stack.back;
-//             stack.pop_back();
-//             stack.push_back(CreateDouble((double)GetInt(val)));
-//             break;
-//         }
-//         case RuntimeType::DOUBLE:
-//         {
-//             Object *val = stack.back;
-//             stack.pop_back();
-//             stack.push_back(CreateInt((int)GetDouble(val)));
-//             break;
-//         }
-//         case RuntimeType::STRUCT:
-//         {
-//             // size_t type = GetType(stack.back).type;
-//             // if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
-//             // {
-//             //     stack.pop_back();
-//             //     stack.push_back(GetNull());
-//             // }
-//             break;
-//         }
-//         default:
-//         {
-//             break;
-//         }
-//         }
-//         break;
-//     }
-//     // ADDITIONS: adds the last 2 things on the stack
-//     case Opcode::I_ADD:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, +, right));
-//         break;
-//     }
-//     case Opcode::DI_ADD:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, +, right));
-//         break;
-//     }
-//     case Opcode::ID_ADD:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, +, right));
-//         break;
-//     }
-//     case Opcode::D_ADD:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, +, right));
-//         break;
-//     }
-//     case Opcode::S_ADD:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         String lStr = GetString(left);
-//         String rStr = GetString(right);
+        stack.pop_N(o.op);
+        break;
+    }
+    case Opcode::STRUCT_MEMBER_SET:
+    {
+        Object *strct = stack.back;
+        if (IsNull_T(strct))
+            RuntimeError("Cannot set a member of a null struct");
+        stack.pop_back();
+        GetStructMembers(strct)[o.op] = stack.back;
+        break;
+    }
+    // case Opcode::CAST:
+    // {
+    //     switch (GetType(stack.back))
+    //     {
+    //     case RuntimeType::NULL_T:
+    //     {
+    //         RuntimeError("Cannot cast a null value");
+    //         break;
+    //     }
+    //     case RuntimeType::INT:
+    //     {
+    //         Object *val = stack.back;
+    //         stack.pop_back();
+    //         stack.push_back(CreateDouble((double)GetInt(val)));
+    //         break;
+    //     }
+    //     case RuntimeType::DOUBLE:
+    //     {
+    //         Object *val = stack.back;
+    //         stack.pop_back();
+    //         stack.push_back(CreateInt((int)GetDouble(val)));
+    //         break;
+    //     }
+    //     case RuntimeType::STRUCT:
+    //     {
+    //         // size_t type = GetType(stack.back).type;
+    //         // if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
+    //         // {
+    //         //     stack.pop_back();
+    //         //     stack.push_back(GetNull());
+    //         // }
+    //         break;
+    //     }
+    //     default:
+    //     {
+    //         break;
+    //     }
+    //     }
+    //     break;
+    // }
+    // ADDITIONS: adds the last 2 things on the stack
+    case Opcode::I_ADD:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, +, right));
+        break;
+    }
+    case Opcode::DI_ADD:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, +, right));
+        break;
+    }
+    case Opcode::ID_ADD:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, +, right));
+        break;
+    }
+    case Opcode::D_ADD:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, +, right));
+        break;
+    }
+    case Opcode::S_ADD:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        char *lStr = GetString(left);
+        char *rStr = GetString(right);
 
-//         size_t newStrSize = lStr.len + rStr.len;
+        size_t leftSize = GetStringLen(left);
+        size_t rightSize = GetStringLen(right);
+        size_t newStrSize = leftSize + rightSize;
 
-//         char *concat = StringAllocate(newStrSize + 1);
-//         strcpy(concat, lStr.data);
+        char *concat = StringAllocate(newStrSize + 1);
+        strcpy(concat, lStr);
 
-//         char *next = concat + lStr.len;
-//         strcpy(next, rStr.data);
+        char *next = concat + leftSize;
+        strcpy(next, rStr);
 
-//         String concatStr = {newStrSize, concat};
-//         stack.push_back(CreateString(concatStr));
-//         break;
-//     }
-//     // SUBTRACTIONS: subtracts the last 2 things on the stack
-//     // if o.op is 1 then is a unary negation (only the case
-//     // for I_SUB and D_SUB obviously)
-//     case Opcode::I_SUB:
-//     {
-//         Object *right = stack.back;
-//         stack.pop_back();
-//         if (o.op == 0)
-//         {
-//             Object *left = stack.back;
-//             stack.pop_back();
+        stack.push_back(CreateString(concat, newStrSize));
+        break;
+    }
+    // SUBTRACTIONS: subtracts the last 2 things on the stack
+    // if o.op is 1 then is a unary negation (only the case
+    // for I_SUB and D_SUB obviously)
+    case Opcode::I_SUB:
+    {
+        Object *right = stack.back;
+        stack.pop_back();
+        if (o.op == 0)
+        {
+            Object *left = stack.back;
+            stack.pop_back();
 
-//             stack.push_back(CreateInt(GetInt(left) - GetInt(right)));
-//         }
-//         else
-//             stack.push_back(CreateInt(-GetInt(right)));
-//         break;
-//     }
-//     case Opcode::DI_SUB:
-//     {
-//         // DI_SUB cannot be a unary operation
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+            stack.push_back(CreateInt(GetInt(left) - GetInt(right)));
+        }
+        else
+            stack.push_back(CreateInt(-GetInt(right)));
+        break;
+    }
+    case Opcode::DI_SUB:
+    {
+        // DI_SUB cannot be a unary operation
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
 
-//         stack.push_back(BINARY_DI_OP(left, -, right));
-//         break;
-//     }
-//     case Opcode::ID_SUB:
-//     {
-//         // ID_SUB cannot be a unary operation
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, -, right));
+        break;
+    }
+    case Opcode::ID_SUB:
+    {
+        // ID_SUB cannot be a unary operation
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
 
-//         stack.push_back(BINARY_ID_OP(left, -, right));
-//         break;
-//     }
-//     case Opcode::D_SUB:
-//     {
-//         Object *right = stack.back;
-//         stack.pop_back();
+        stack.push_back(BINARY_ID_OP(left, -, right));
+        break;
+    }
+    case Opcode::D_SUB:
+    {
+        Object *right = stack.back;
+        stack.pop_back();
 
-//         if (o.op == 0)
-//         {
-//             Object *left = stack.back;
-//             stack.pop_back();
+        if (o.op == 0)
+        {
+            Object *left = stack.back;
+            stack.pop_back();
 
-//             stack.push_back(CreateDouble(GetDouble(left) - GetDouble(right)));
-//         }
-//         else
-//             stack.push_back(CreateDouble(-GetDouble(right)));
-//         break;
-//     }
-//     // multiplies the last 2 things on the stack
-//     case Opcode::I_MUL:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, *, right));
-//         break;
-//     }
-//     case Opcode::DI_MUL:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, *, right));
-//         break;
-//     }
-//     case Opcode::ID_MUL:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, *, right));
-//         break;
-//     }
-//     case Opcode::D_MUL:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, *, right));
-//         break;
-//     }
-//     // divides the last 2 things on the stack
-//     case Opcode::I_DIV:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, /, right));
-//         break;
-//     }
-//     case Opcode::DI_DIV:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, /, right));
-//         break;
-//     }
-//     case Opcode::ID_DIV:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, /, right));
-//         break;
-//     }
-//     case Opcode::D_DIV:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, /, right));
-//         break;
-//     }
-//     // does a greater than comparison on the last 2 things on the stack
-//     case Opcode::I_GT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, >, right));
-//         break;
-//     }
-//     case Opcode::DI_GT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, >, right));
-//         break;
-//     }
-//     case Opcode::ID_GT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, >, right));
-//         break;
-//     }
-//     case Opcode::D_GT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, >, right));
-//         break;
-//     }
-//     // does a less than comparison on the last 2 things on the stack
-//     case Opcode::I_LT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, <, right));
-//         break;
-//     }
-//     case Opcode::DI_LT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, <, right));
-//         break;
-//     }
-//     case Opcode::ID_LT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, <, right));
-//         break;
-//     }
-//     case Opcode::D_LT:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, <, right));
-//         break;
-//     }
-//     // does a greater than or equal comparison on the last 2 things on the stack
-//     case Opcode::I_GEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, >=, right));
-//         break;
-//     }
-//     case Opcode::DI_GEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, >=, right));
-//         break;
-//     }
-//     case Opcode::ID_GEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, >=, right));
-//         break;
-//     }
-//     case Opcode::D_GEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, >=, right));
-//         break;
-//     }
-//     // does a less than or equal comparison on the last 2 things on the stack
-//     case Opcode::I_LEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, <=, right));
-//         break;
-//     }
-//     case Opcode::DI_LEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, <=, right));
-//         break;
-//     }
-//     case Opcode::ID_LEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, <=, right));
-//         break;
-//     }
-//     case Opcode::D_LEQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, <=, right));
-//         break;
-//     }
-//     case Opcode::N_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(CreateBool(GetType(left) == RuntimeType::NULL_T && GetType(right) == RuntimeType::NULL_T));
-//         break;
-//     }
-//     // does an equality check on the last 2 things on the stack
-//     case Opcode::I_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, ==, right));
-//         break;
-//     }
-//     case Opcode::DI_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, ==, right));
-//         break;
-//     }
-//     case Opcode::ID_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, ==, right));
-//         break;
-//     }
-//     case Opcode::D_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, ==, right));
-//         break;
-//     }
-//     case Opcode::B_EQ_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(CreateBool(GetBool(left) == GetBool(right)));
-//         break;
-//     }
-//     case Opcode::N_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(CreateBool(GetType(left) != RuntimeType::NULL_T && GetType(right) != RuntimeType::NULL_T));
-//         break;
-//     }
-//     // does an inequality check on the last 2 things on the stack
-//     case Opcode::I_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_I_OP(left, !=, right));
-//         break;
-//     }
-//     case Opcode::DI_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_DI_OP(left, !=, right));
-//         break;
-//     }
-//     case Opcode::ID_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_ID_OP(left, !=, right));
-//         break;
-//     }
-//     case Opcode::D_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(BINARY_D_OP(left, !=, right));
-//         break;
-//     }
-//     case Opcode::B_BANG_EQ:
-//     {
-//         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-//         stack.push_back(CreateBool(GetBool(left) != GetBool(right)));
-//         break;
-//     }
-//     case Opcode::BANG:
-//     {
-//         Object *right = stack.back;
-//         stack.pop_back();
-//         stack.push_back(CreateBool(!GetBool(right)));
-//         break;
-//     }
-//     // Does nothing
-//     case Opcode::NONE:
-//     {
-//         break;
-//     }
-//     }
+            stack.push_back(CreateDouble(GetDouble(left) - GetDouble(right)));
+        }
+        else
+            stack.push_back(CreateDouble(-GetDouble(right)));
+        break;
+    }
+    // multiplies the last 2 things on the stack
+    case Opcode::I_MUL:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, *, right));
+        break;
+    }
+    case Opcode::DI_MUL:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, *, right));
+        break;
+    }
+    case Opcode::ID_MUL:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, *, right));
+        break;
+    }
+    case Opcode::D_MUL:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, *, right));
+        break;
+    }
+    // divides the last 2 things on the stack
+    case Opcode::I_DIV:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, /, right));
+        break;
+    }
+    case Opcode::DI_DIV:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, /, right));
+        break;
+    }
+    case Opcode::ID_DIV:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, /, right));
+        break;
+    }
+    case Opcode::D_DIV:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, /, right));
+        break;
+    }
+    // does a greater than comparison on the last 2 things on the stack
+    case Opcode::I_GT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, >, right));
+        break;
+    }
+    case Opcode::DI_GT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, >, right));
+        break;
+    }
+    case Opcode::ID_GT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, >, right));
+        break;
+    }
+    case Opcode::D_GT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, >, right));
+        break;
+    }
+    // does a less than comparison on the last 2 things on the stack
+    case Opcode::I_LT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, <, right));
+        break;
+    }
+    case Opcode::DI_LT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, <, right));
+        break;
+    }
+    case Opcode::ID_LT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, <, right));
+        break;
+    }
+    case Opcode::D_LT:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, <, right));
+        break;
+    }
+    // does a greater than or equal comparison on the last 2 things on the stack
+    case Opcode::I_GEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, >=, right));
+        break;
+    }
+    case Opcode::DI_GEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, >=, right));
+        break;
+    }
+    case Opcode::ID_GEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, >=, right));
+        break;
+    }
+    case Opcode::D_GEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, >=, right));
+        break;
+    }
+    // does a less than or equal comparison on the last 2 things on the stack
+    case Opcode::I_LEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, <=, right));
+        break;
+    }
+    case Opcode::DI_LEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, <=, right));
+        break;
+    }
+    case Opcode::ID_LEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, <=, right));
+        break;
+    }
+    case Opcode::D_LEQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, <=, right));
+        break;
+    }
+    case Opcode::N_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(CreateBool(IsNull_T(left) && IsNull_T(right)));
+        break;
+    }
+    // does an equality check on the last 2 things on the stack
+    case Opcode::I_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, ==, right));
+        break;
+    }
+    case Opcode::DI_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, ==, right));
+        break;
+    }
+    case Opcode::ID_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, ==, right));
+        break;
+    }
+    case Opcode::D_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, ==, right));
+        break;
+    }
+    case Opcode::B_EQ_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(CreateBool(GetBool(left) == GetBool(right)));
+        break;
+    }
+    case Opcode::N_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(CreateBool(!IsNull_T(left) || !IsNull_T(right)));
+        break;
+    }
+    // does an inequality check on the last 2 things on the stack
+    case Opcode::I_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_I_OP(left, !=, right));
+        break;
+    }
+    case Opcode::DI_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_DI_OP(left, !=, right));
+        break;
+    }
+    case Opcode::ID_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_ID_OP(left, !=, right));
+        break;
+    }
+    case Opcode::D_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(BINARY_D_OP(left, !=, right));
+        break;
+    }
+    case Opcode::B_BANG_EQ:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(CreateBool(GetBool(left) != GetBool(right)));
+        break;
+    }
+    case Opcode::BANG:
+    {
+        Object *right = stack.back;
+        stack.pop_back();
+        stack.push_back(CreateBool(!GetBool(right)));
+        break;
+    }
+    // Does nothing
+    case Opcode::NONE:
+    {
+        break;
+    }
+    }
 }
 
 void VM::NativePrint(int arity)
@@ -785,6 +817,6 @@ void VM::NativeToString(int)
 {
     std::string str = stack.back->ToString();
     stack.pop_back();
-    char* c = new char[str.length() + 1];
+    char *c = new char[str.length() + 1];
     stack.push_back(new String(strcpy(c, str.c_str()), str.length()));
 }

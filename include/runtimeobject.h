@@ -12,6 +12,7 @@ public:
     virtual ~Object(){};
     virtual std::string ToString() = 0;
     virtual void DestroyOwnedMemory(){};
+    virtual bool IsTruthy() { return false; }
 };
 
 class Int : public Object
@@ -20,6 +21,7 @@ public:
     int i;
     Int(int _i) : i(_i){};
     virtual std::string ToString() override;
+    virtual bool IsTruthy() { return i != 0; };
 };
 
 class Double : public Object
@@ -28,6 +30,16 @@ public:
     double d;
     Double(double _d) : d(_d){};
     virtual std::string ToString() override;
+    virtual bool IsTruthy() { return d != 0; };
+};
+
+class Bool : public Object
+{
+public:
+    bool b;
+    Bool(bool _b) : b(_b){};
+    virtual std::string ToString() override;
+    virtual bool IsTruthy() { return b; };
 };
 
 class Array : public Object
@@ -66,17 +78,30 @@ public:
     virtual std::string ToString() override;
 };
 
+class Null_T : public Object
+{
+public:
+    char isNull;
+    Null_T() = default;
+    virtual std::string ToString() override;
+};
+
 Object *CreateInt(int);
 Object *CreateDouble(double);
+Object *CreateBool(bool);
 Object *CreateArray(Object **, size_t);
 Object *CreateStruct(Object **, size_t, TypeID);
 Object *CreateChar(char);
-Object *CreateString(char *);
+Object *CreateString(char *, size_t);
+Object *CreateNull_T();
+
+bool IsNull_T(Object *o);
 
 // All getters assume that the underlying
 // type of the Object* is appropriate
 int GetInt(Object *);
 double GetDouble(Object *);
+bool GetBool(Object *);
 
 size_t GetArrayLength(Object *);
 Object **GetArray(Object *);
@@ -86,4 +111,6 @@ Object **GetStructMembers(Object *);
 TypeID GetStructType(Object *);
 
 char GetChar(Object *);
+
 char *GetString(Object *);
+size_t GetStringLen(Object *);

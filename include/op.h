@@ -4,7 +4,11 @@
 enum class Opcode : uint8_t
 {
     POP,
-    GET_C,
+    LOAD_INT,
+    LOAD_DOUBLE,
+    LOAD_BOOL,
+    LOAD_STRING,
+    LOAD_CHAR,
 
     // variables
     VAR_A,
