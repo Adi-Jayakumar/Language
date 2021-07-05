@@ -324,9 +324,14 @@ TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
 
 TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
+    std::cout << "DeclaredVar state of symbol table:" << std::endl;
+    for (const auto &var : Symbols.vars)
+        std::cout << var.name << std::endl;
+
     if (Symbols.IsVarInScope(dv->name))
         TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
 
+    std::cout << "type: " << dv->t << " name " << dv->name << std::endl;
     Symbols.AddVar(dv->t, dv->name);
 
     if (dv->value != nullptr)
@@ -470,8 +475,8 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 
         s.nameTypes[asDV->name] = asDV->t;
     }
-
     Symbols.strcts.push_back(s);
+    Symbols.CleanUpCurDepth();
     Symbols.depth--;
 
     return {0, false};

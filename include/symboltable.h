@@ -29,6 +29,7 @@ struct SymbolTable
     size_t FindNativeFunctions(const std::vector<TypeData> &);
 
     void PopUntilSized(size_t size);
+    void CleanUpCurDepth();
 
     size_t FindStruct(const TypeData &);
 

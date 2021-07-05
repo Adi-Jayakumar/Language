@@ -106,6 +106,15 @@ void SymbolTable::PopUntilSized(size_t size)
         vars.pop_back();
 }
 
+void SymbolTable::CleanUpCurDepth()
+{
+    while (vars.size() > 0 && vars.back().depth == depth)
+        vars.pop_back();
+
+    if (vars.size() == 1 && vars[0].depth == depth)
+        vars.clear();
+}
+
 void SymbolTable::AddStruct(StructID &s)
 {
     strcts.push_back(s);
