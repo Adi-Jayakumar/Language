@@ -107,7 +107,6 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
 TypeData TypeChecker::TypeOfAssign(Assign *a)
 {
     VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
-
     TypeData valType = a->val->Type(*this);
 
     if (targetAsVr != nullptr)
@@ -133,7 +132,7 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
     TypeData targetType = a->target->Type(*this);
     if (!CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
-
+    a->val->t = targetType;
     return targetType;
 }
 
