@@ -280,9 +280,6 @@ void VM::ExecuteInstruction()
         Object **data = new Object *[size];
         Object *strct = CreateStruct(data, size, 1);
 
-        for (size_t i = 0; i < size; i++)
-            data[i] = CreateNull_T();
-
         stack.push_back(strct);
         break;
     }
@@ -425,52 +422,41 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_MEMBER_SET:
     {
         Object *strct = stack.back;
+
         if (IsNull_T(strct))
             RuntimeError("Cannot set a member of a null struct");
         stack.pop_back();
         GetStructMembers(strct)[o.op] = stack.back;
         break;
     }
-    // case Opcode::CAST:
-    // {
-    //     switch (GetType(stack.back))
-    //     {
-    //     case RuntimeType::NULL_T:
-    //     {
-    //         RuntimeError("Cannot cast a null value");
-    //         break;
-    //     }
-    //     case RuntimeType::INT:
-    //     {
-    //         Object *val = stack.back;
-    //         stack.pop_back();
-    //         stack.push_back(CreateDouble((double)GetInt(val)));
-    //         break;
-    //     }
-    //     case RuntimeType::DOUBLE:
-    //     {
-    //         Object *val = stack.back;
-    //         stack.pop_back();
-    //         stack.push_back(CreateInt((int)GetDouble(val)));
-    //         break;
-    //     }
-    //     case RuntimeType::STRUCT:
-    //     {
-    //         // size_t type = GetType(stack.back).type;
-    //         // if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
-    //         // {
-    //         //     stack.pop_back();
-    //         //     stack.push_back(GetNull());
-    //         // }
-    //         break;
-    //     }
-    //     default:
-    //     {
-    //         break;
-    //     }
-    //     }
-    //     break;
-    // }
+    case Opcode::CAST:
+    {
+        Object *obj = stack.back;
+        stack.pop_back();
+        if (IsNull_T(obj))
+            RuntimeError("Cannot cast a null value");
+        else if (dynamic_cast<Int *>(obj) != nullptr)
+        {
+            stack.push_back(CreateDouble((double)GetInt(obj)));
+            break;
+        }
+        else if (dynamic_cast<Double *>(obj) != nullptr)
+        {
+            stack.push_back(CreateInt((int)GetDouble(obj)));
+            break;
+        }
+        else if (dynamic_cast<Struct *>(obj) != nullptr)
+        {
+            size_t type = GetStructType(obj);
+            if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
+            {
+                stack.pop_back();
+                stack.push_back(CreateNull_T());
+            }
+            break;
+        }
+        break;
+    }
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {

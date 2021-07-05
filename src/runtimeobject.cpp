@@ -96,7 +96,7 @@ std::string Null_T::ToString()
 
 bool IsNull_T(Object *o)
 {
-    return dynamic_cast<Null_T *>(o) == nullptr;
+    return dynamic_cast<Null_T *>(o) != nullptr;
 }
 
 // GETTERS
@@ -135,7 +135,7 @@ Object **GetStructMembers(Object *o)
     return static_cast<Struct *>(o)->arr;
 }
 
-TypeID GetStructTypes(Object *o)
+TypeID GetStructType(Object *o)
 {
     return static_cast<Struct *>(o)->type;
 }
