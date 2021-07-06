@@ -19,13 +19,17 @@ An implementation of a C-style statically typed language that compiles down to a
  - [x] Implement strings
  - [x] Implement multidimensional arrays
  - [x] Implement structs
+ - [x] Implement struct inheritance
  - [ ] Allow methods in structs
- - [ ] Implement struct inheritance
 
 # Long-term Goals
  - [ ] Optimiser
  - [ ] Multiple file programs
  - [ ] Modules
+
+# Known bugs TODO
+ - [ ] Parsing arithmetic comparison statements like 'n < 10' and thinking it is a cast
+ - [ ] Overloading of functions where the overloaded types are assignable to each other
 
 # Example Programs
 
