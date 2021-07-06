@@ -526,7 +526,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                 if (c.Symbols.funcs.size() > UINT8_MAX)
                     c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
 
-                c.libfuncs.emplace_back(LibFuncInfo(lf, library));
+                c.libfuncs.emplace_back(LibFuncInfo(lf, library, func.argtypes.size()));
             }
         }
     }
@@ -552,7 +552,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                 if (c.Symbols.funcs.size() > UINT8_MAX)
                     c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
 
-                c.libfuncs.emplace_back(LibFuncInfo(name, is->libraries[0]));
+                c.libfuncs.emplace_back(LibFuncInfo(name, is->libraries[0], func.argtypes.size()));
             }
         }
     }
