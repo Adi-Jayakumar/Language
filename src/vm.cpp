@@ -362,15 +362,25 @@ void VM::ExecuteInstruction()
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
         Object *retVal;
-
-        if (o.op == 0)
-            retVal = stack.back;
+        retVal = stack.back;
 
         // cleaning up the function's constants
         stack.pop_N(stackDiff);
+        stack.push_back(retVal);
+        break;
+    }
+    case Opcode::RETURN_VOID:
+    {
+        CallFrame *returnCF = curCF;
+        curCF--;
 
-        if (o.op == 0)
-            stack.push_back(retVal);
+        ip = returnCF->retIndex;
+        curFunc = returnCF->retChunk;
+
+        size_t stackDiff = stack.count - returnCF->valStackMin;
+
+        // cleaning up the function's constants
+        stack.pop_N(stackDiff);
         break;
     }
     case Opcode::NATIVE_CALL:

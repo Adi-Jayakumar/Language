@@ -473,8 +473,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
     if (r->retVal == nullptr)
-        // the 1 in op's position is to ensure that we do not pop a value off the stack
-        c.cur->code.push_back({Opcode::RETURN, 1});
+        c.cur->code.push_back({Opcode::RETURN_VOID, 0});
     else
     {
         r->retVal->NodeCompile(c);

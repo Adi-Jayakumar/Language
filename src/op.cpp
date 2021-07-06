@@ -97,6 +97,10 @@ std::string ToString(Opcode o)
     {
         return "RETURN";
     }
+    case Opcode::RETURN_VOID:
+    {
+        return "RETURN_VOID";
+    }
     case Opcode::NATIVE_CALL:
     {
         return "NATIVE_CALL";
