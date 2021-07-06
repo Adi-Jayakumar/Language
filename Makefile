@@ -3,14 +3,14 @@ CC		:= g++
 # -fsanitize=leak -fsanitize=address -fsanitize=undefined
 
 
-C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -Wall -Wextra -march=native
+C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -Wall -Wextra -march=native -Wl,--export-dynamic
 
 BIN		:= bin
 SRC		:= src
 INCLUDE	:= include
 LIB		:= lib
 
-LIBRARIES	:=
+LIBRARIES	:= -ldl
 
 ifeq ($(OS),Windows_NT)
 EXECUTABLE	:= main.exe
