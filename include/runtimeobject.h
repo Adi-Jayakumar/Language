@@ -86,6 +86,14 @@ public:
     virtual std::string ToString() override;
 };
 
+class LibFuncInfo
+{
+public:
+    std::string name;
+    std::string library;
+    LibFuncInfo(std::string _name, std::string _library) : name(_name), library(_library){};
+};
+
 Object *CreateInt(int);
 Object *CreateDouble(double);
 Object *CreateBool(bool);

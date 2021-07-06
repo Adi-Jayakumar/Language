@@ -1,19 +1,9 @@
 #include "symboltable.h"
 
-std::vector<FuncID> GetNativeFunctions()
-{
-    std::vector<FuncID> natives;
-    natives.push_back(FuncID({false, 0}, "Print", {{true, 0}}));
-    return natives;
-}
-
 SymbolTable::SymbolTable()
 {
-    nativeFunctions = GetNativeFunctions();
     for (const auto &kv : NativeFunctions)
-    {
         nativeFunctions.push_back(kv.first);
-    }
 }
 
 void SymbolTable::AddVar(TypeData type, std::string name)
@@ -54,9 +44,9 @@ size_t SymbolTable::FindVarByName(std::string &name)
     return offsetLoc < 0 ? varIndex : varIndex - funcVarBegin;
 }
 
-void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> argtypes)
+void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> argtypes, bool isLibFunc)
 {
-    funcs.push_back(FuncID(ret, name, argtypes));
+    funcs.push_back(FuncID(ret, name, argtypes, isLibFunc));
 }
 
 size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
@@ -269,5 +259,5 @@ void SymbolTable::ParseLibraryFunction(std::string &func)
 
     // std::cout << ")" << std::endl;
 
-    funcs.push_back(FuncID(retType, name, argtypes));
+    funcs.push_back(FuncID(retType, name, argtypes, true));
 }

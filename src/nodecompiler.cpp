@@ -455,7 +455,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.Symbols.funcVarBegin = c.Symbols.vars.size();
 
-    c.Symbols.AddFunc(fd->ret, fd->name, fd->argtypes);
+    c.Symbols.AddFunc(fd->ret, fd->name, fd->argtypes, false);
     c.Symbols.depth++;
 
     for (size_t i = 0; i < fd->argtypes.size(); i++)

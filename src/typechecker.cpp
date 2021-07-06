@@ -385,24 +385,20 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
         TypeError(fd->Loc(), "Maximum number of functions is " + std::to_string(UINT8_MAX));
 
     Symbols.depth++;
-    Symbols.AddFunc(fd->ret, fd->name, fd->argtypes);
+    Symbols.AddFunc(fd->ret, fd->name, fd->argtypes, false);
     size_t preFuncSize = Symbols.vars.size();
 
     if (fd->argtypes.size() != fd->paramIdentifiers.size())
     {
-        std::cout << "SOMETHING WENT WRONG HERE" << std::endl;
+        std::cout << "SOMETHING FUNDAMENTAL WENT WRONG HERE" << std::endl;
         exit(14);
     }
 
     for (size_t j = 0; j < fd->argtypes.size(); j++)
-    {
         Symbols.AddVar(fd->argtypes[j], fd->paramIdentifiers[j]);
-    }
 
     for (auto &s : fd->body)
-    {
         s->Type(*this);
-    }
 
     Symbols.PopUntilSized(preFuncSize);
     Symbols.depth--;

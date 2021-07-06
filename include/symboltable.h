@@ -5,8 +5,6 @@
 #include <dlfcn.h>
 #include <sstream>
 
-std::vector<FuncID> GetNativeFunctions();
-
 struct SymbolTable
 {
     std::vector<VarID> vars;
@@ -21,7 +19,7 @@ struct SymbolTable
 
     void AddVar(TypeData, std::string);
 
-    void AddFunc(TypeData, std::string, std::vector<TypeData>);
+    void AddFunc(TypeData, std::string, std::vector<TypeData>, bool);
     void AddStruct(StructID &);
 
     bool IsVarInScope(std::string &);
