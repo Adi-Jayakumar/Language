@@ -93,6 +93,10 @@ std::string ToString(Opcode o)
     {
         return "CALL_F";
     }
+    case Opcode::CALL_LIBRARY_FUNC:
+    {
+        return "CALL_LIBRARY_FUNC";
+    }
     case Opcode::RETURN:
     {
         return "RETURN";

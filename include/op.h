@@ -36,6 +36,7 @@ enum class Opcode : uint8_t
 
     // functions
     CALL_F,
+    CALL_LIBRARY_FUNC,
     RETURN,
     RETURN_VOID,
     NATIVE_CALL,

@@ -487,6 +487,9 @@ TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
             {
                 FuncID func = Symbols.ParseLibraryFunction(lf);
                 Symbols.AddFunc(func);
+
+                if (Symbols.funcs.size() > UINT8_MAX)
+                    TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
             }
         }
     }
@@ -505,7 +508,12 @@ TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
             std::string name = func.name;
 
             if (imports.find(name) != imports.end())
+            {
                 Symbols.AddFunc(func);
+
+                if (Symbols.funcs.size() > UINT8_MAX)
+                    TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
+            }
         }
     }
     return {0, false};

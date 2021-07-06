@@ -2,6 +2,7 @@
 #include "ASTPrinter.h"
 #include "compiler.h"
 #include "runtimeobject.h"
+#include <cassert>
 
 Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);
 

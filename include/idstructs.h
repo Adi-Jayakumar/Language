@@ -19,9 +19,9 @@ struct FuncID
     TypeData ret;
     std::string name;
     std::vector<TypeData> argtypes;
-    bool isLibFunc;
+    size_t isLibFunc; // serves dual purpose of being the index for library functions
     FuncID() = default;
-    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes, bool _isLibFunc) : ret(_ret), name(_name), argtypes(_argtypes), isLibFunc(_isLibFunc){};
+    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes, size_t _isLibFunc) : ret(_ret), name(_name), argtypes(_argtypes), isLibFunc(_isLibFunc){};
 };
 
 struct FuncIDEq

@@ -352,6 +352,10 @@ void VM::ExecuteInstruction()
         ip = -1;
         break;
     }
+    case Opcode::CALL_LIBRARY_FUNC:
+    {
+        break;
+    }
     case Opcode::RETURN:
     {
         CallFrame *returnCF = curCF;

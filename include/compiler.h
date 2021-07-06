@@ -11,6 +11,7 @@ struct Compiler
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
     SymbolTable Symbols;
+    std::vector<LibFuncInfo> libfuncs;
 
     bool hadError = false;
 
