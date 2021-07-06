@@ -49,6 +49,11 @@ void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> 
     funcs.push_back(FuncID(ret, name, argtypes, isLibFunc));
 }
 
+void SymbolTable::AddFunc(FuncID &func)
+{
+    funcs.emplace_back(func);
+}
+
 size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
 {
     for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
@@ -195,7 +200,7 @@ std::string TrimFrontBack(std::string &str)
         std::cerr << errorMsg << std::endl; \
     }
 
-std::vector<std::string> SymbolTable::GetModuleFunctionNames(const std::string &modulename)
+std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string &modulename)
 {
     std::string libpath = "./lib/lib" + modulename + ".so";
     char *errorMsg;
@@ -219,7 +224,7 @@ std::vector<std::string> SymbolTable::GetModuleFunctionNames(const std::string &
     return libfuncs;
 }
 
-void SymbolTable::ParseLibraryFunction(std::string &func)
+FuncID SymbolTable::ParseLibraryFunction(std::string &func)
 {
     std::vector<std::string> name_prototype = SplitStringByChar(func, ':');
 
@@ -259,5 +264,5 @@ void SymbolTable::ParseLibraryFunction(std::string &func)
 
     // std::cout << ")" << std::endl;
 
-    funcs.push_back(FuncID(retType, name, argtypes, true));
+    return FuncID(retType, name, argtypes, true);
 }

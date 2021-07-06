@@ -20,6 +20,7 @@ struct SymbolTable
     void AddVar(TypeData, std::string);
 
     void AddFunc(TypeData, std::string, std::vector<TypeData>, bool);
+    void AddFunc(FuncID &);
     void AddStruct(StructID &);
 
     bool IsVarInScope(std::string &);
@@ -33,8 +34,8 @@ struct SymbolTable
     size_t FindStruct(const TypeData &);
 
     //-------------------LIBRARY-------------------//
-    std::vector<std::string> GetModuleFunctionNames(const std::string &libname);
-    void ParseLibraryFunction(std::string &func);
+    std::vector<std::string> GetLibraryFunctionNames(const std::string &libname);
+    FuncID ParseLibraryFunction(std::string &func);
 };
 
 void LibraryError(const std::string &msg);

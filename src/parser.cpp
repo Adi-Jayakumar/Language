@@ -402,21 +402,21 @@ std::shared_ptr<Stmt> Parser::ParseImportStmt()
     Advance();
     if (loc.type == TokenID::IMPORT)
     {
-        std::vector<std::string> modules = CommaSeparatedStrings();
+        std::vector<std::string> libraries = CommaSeparatedStrings();
         std::vector<std::string> symbols;
-        return std::make_shared<ImportStmt>(modules, symbols, loc);
+        return std::make_shared<ImportStmt>(libraries, symbols, loc);
     }
     else
     {
-        std::vector<std::string> modules;
-        modules.push_back(cur.literal);
+        std::vector<std::string> libraries;
+        libraries.push_back(cur.literal);
 
         Advance();
         Check(TokenID::IMPORT, "Need an import section in a from/import statement");
         Advance();
 
         std::vector<std::string> symbols = CommaSeparatedStrings();
-        return std::make_shared<ImportStmt>(modules, symbols, loc);
+        return std::make_shared<ImportStmt>(libraries, symbols, loc);
     }
 }
 

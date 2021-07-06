@@ -159,7 +159,6 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     if (index == SIZE_MAX)
     {
         size_t nativeIndex = Symbols.FindNativeFunctions(argtypes, fc->name);
-        std::cout << "native function name " << Symbols.nativeFunctions[nativeIndex].name << std::endl;
         if (nativeIndex != SIZE_MAX)
         {
             fc->t = Symbols.nativeFunctions[nativeIndex].ret;
@@ -333,7 +332,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     if (dv->value != nullptr)
     {
         TypeData valType = dv->value->Type(*this);
-        
+
         if (!CanAssign(dv->t, valType))
             TypeError(dv->Loc(), "Cannot assign a value of type " + ToString(valType) + " to variable of type " + ToString(dv->t));
 
@@ -477,25 +476,38 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 // for now all functions of library are imported
 TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
 {
-    if (is->modules.size() > 0)
+    std::vector<std::string> libraryFuncs;
+    if (is->symbols.size() == 0)
     {
-        assert(is->symbols.size() == 0);
-        for (const auto module : is->modules)
+        assert(is->libraries.size() > 0);
+        for (const auto library : is->libraries)
         {
-            std::vector<std::string> moduleFuncs = Symbols.GetModuleFunctionNames(module);
-            for (auto &mf : moduleFuncs)
+            libraryFuncs = Symbols.GetLibraryFunctionNames(library);
+            for (auto &lf : libraryFuncs)
             {
-                Symbols.ParseLibraryFunction(mf);
-
-                // FuncID f = Symbols.funcs.back();
-                // std::cout << f.ret << " " << f.name << "(";
-                // for (const TypeData &arg : f.argtypes)
-                //     std::cout << arg << ", ";
-                // std::cout << ")" << std::endl;
+                FuncID func = Symbols.ParseLibraryFunction(lf);
+                Symbols.AddFunc(func);
             }
         }
     }
+    else
+    {
+        assert(is->libraries.size() == 1);
+        libraryFuncs = Symbols.GetLibraryFunctionNames(is->libraries[0]);
+        std::unordered_set<std::string> imports;
 
+        for (const auto &sym : is->symbols)
+            imports.insert(sym);
+
+        for (auto &lf : libraryFuncs)
+        {
+            FuncID func = Symbols.ParseLibraryFunction(lf);
+            std::string name = func.name;
+
+            if (imports.find(name) != imports.end())
+                Symbols.AddFunc(func);
+        }
+    }
     return {0, false};
 }
 

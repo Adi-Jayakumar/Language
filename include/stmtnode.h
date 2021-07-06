@@ -134,12 +134,12 @@ struct StructDecl : Stmt
 /*
 import math, physics
 from latin import nominative, accusative
-i.e. import --> comma seperated list of modules <---- imports everything
+i.e. import --> comma seperated list of libraries <---- imports everything
 i.e. from --> single module name import comma seperated list of symbols <---- only imports those symbols
 */
 struct ImportStmt : Stmt
 {
-    std::vector<std::string> modules;
+    std::vector<std::string> libraries;
     std::vector<std::string> symbols;
     ImportStmt(std::vector<std::string> &, std::vector<std::string> &, Token &);
 

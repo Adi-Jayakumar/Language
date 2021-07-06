@@ -260,9 +260,9 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
 
 void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
 {
-    if (is->modules.size() == 1 && is->symbols.size() != 0)
+    if (is->libraries.size() == 1 && is->symbols.size() != 0)
     {
-        out << "from " << is->modules[0] << " import ";
+        out << "from " << is->libraries[0] << " import ";
         for (const auto &str : is->symbols)
             out << str << ", ";
         out << std::endl;
@@ -270,7 +270,7 @@ void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
     else
     {
         out << "import ";
-        for (const auto &str : is->modules)
+        for (const auto &str : is->libraries)
             out << str << ", ";
         out << std::endl;
     }

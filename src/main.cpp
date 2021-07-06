@@ -56,7 +56,7 @@ int main()
 
     // SymbolTable s;
 
-    // s.GetModuleFunctionNames("math");
+    // s.GetLibraryFunctionNames("math");
 
     Parser p("ex/test.txt");
 
