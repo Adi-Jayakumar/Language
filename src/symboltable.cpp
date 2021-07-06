@@ -81,13 +81,13 @@ size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
     return SIZE_MAX;
 }
 
-size_t SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args)
+size_t SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
     size_t index = SIZE_MAX;
 
     for (size_t i = 0; i < nativeFunctions.size(); i++)
     {
-        if (MatchToNativeFuncs(nativeFunctions[i].argtypes, args))
+        if (name == nativeFunctions[i].name && MatchToNativeFuncs(nativeFunctions[i].argtypes, args))
         {
             index = i;
             break;
@@ -198,14 +198,35 @@ std::string TrimFrontBack(std::string &str)
     return str.substr(first, last - first + 1);
 }
 
-std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string &)
+#define DL_ERROR(error_msg)                 \
+    errorMsg = dlerror();                   \
+    if (errorMsg != NULL)                   \
+    {                                       \
+        std::cerr << errorMsg << std::endl; \
+    }
+
+std::vector<std::string> SymbolTable::GetModuleFunctionNames(const std::string &modulename)
 {
-    // in reality: load library, call FunctionPrototypes/find the required constant
-    return {"Sin                : double - double",
-            "Cos                : double - double",
-            "Tan                : double - double",
-            "GetPi              :        - double",
-            "EuclideanDist      : double, double - double"};
+    std::string libpath = "./lib/lib" + modulename + ".so";
+    char *errorMsg;
+
+    void *handle = dlopen(libpath.c_str(), RTLD_LAZY);
+    DL_ERROR(errorMsg)
+
+    const char *const *LibraryFunctions;
+    *(void **)&LibraryFunctions = dlsym(handle, "LibraryFunctions");
+    DL_ERROR(errorMsg)
+
+    size_t *numfuncs;
+    *(void **)&numfuncs = dlsym(handle, "NumLibFunctions");
+    DL_ERROR(errorMsg)
+
+    std::vector<std::string> libfuncs;
+    for (size_t i = 0; i < *numfuncs; i++)
+        libfuncs.push_back(LibraryFunctions[i]);
+
+    dlclose(handle);
+    return libfuncs;
 }
 
 void SymbolTable::ParseLibraryFunction(std::string &func)
@@ -242,11 +263,11 @@ void SymbolTable::ParseLibraryFunction(std::string &func)
         LibraryError("Invalid return type '" + ret + "'");
     TypeData retType = GetTypeNameMap()[ret];
 
-    std::cout << retType << " " << name << "(";
-    for (const TypeData &arg : argtypes)
-        std::cout << arg << ", ";
+    // std::cout << retType << " " << name << "(";
+    // for (const TypeData &arg : argtypes)
+    //     std::cout << arg << ", ";
 
-    std::cout << ")" << std::endl;
+    // std::cout << ")" << std::endl;
 
     funcs.push_back(FuncID(retType, name, argtypes));
 }

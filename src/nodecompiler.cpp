@@ -244,7 +244,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(1 + index)});
     else
     {
-        size_t natFunc = c.Symbols.FindNativeFunctions(argtypes);
+        size_t natFunc = c.Symbols.FindNativeFunctions(argtypes, fc->name);
         if (natFunc == 0)
         {
             size_t arity = argtypes.size();

@@ -158,7 +158,8 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
 
     if (index == SIZE_MAX)
     {
-        size_t nativeIndex = Symbols.FindNativeFunctions(argtypes);
+        size_t nativeIndex = Symbols.FindNativeFunctions(argtypes, fc->name);
+        std::cout << "native function name " << Symbols.nativeFunctions[nativeIndex].name << std::endl;
         if (nativeIndex != SIZE_MAX)
         {
             fc->t = Symbols.nativeFunctions[nativeIndex].ret;
@@ -324,20 +325,15 @@ TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
 
 TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
 {
-    std::cout << "DeclaredVar state of symbol table:" << std::endl;
-    for (const auto &var : Symbols.vars)
-        std::cout << var.name << std::endl;
-
     if (Symbols.IsVarInScope(dv->name))
         TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
 
-    std::cout << "type: " << dv->t << " name " << dv->name << std::endl;
     Symbols.AddVar(dv->t, dv->name);
 
     if (dv->value != nullptr)
     {
         TypeData valType = dv->value->Type(*this);
-
+        
         if (!CanAssign(dv->t, valType))
             TypeError(dv->Loc(), "Cannot assign a value of type " + ToString(valType) + " to variable of type " + ToString(dv->t));
 
@@ -482,8 +478,28 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
     return {0, false};
 }
 
+// for now all functions of library are imported
 TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
 {
+    if (is->modules.size() > 0)
+    {
+        assert(is->symbols.size() == 0);
+        for (const auto module : is->modules)
+        {
+            std::vector<std::string> moduleFuncs = Symbols.GetModuleFunctionNames(module);
+            for (auto &mf : moduleFuncs)
+            {
+                Symbols.ParseLibraryFunction(mf);
+
+                // FuncID f = Symbols.funcs.back();
+                // std::cout << f.ret << " " << f.name << "(";
+                // for (const TypeData &arg : f.argtypes)
+                //     std::cout << arg << ", ";
+                // std::cout << ")" << std::endl;
+            }
+        }
+    }
+
     return {0, false};
 }
 

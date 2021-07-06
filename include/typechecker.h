@@ -1,10 +1,11 @@
 #pragma once
 #include "common.h"
 #include "idstructs.h"
+#include "op.h"
 #include "perror.h"
 #include "stmtnode.h"
 #include "symboltable.h"
-#include "op.h"
+#include <cassert>
 
 bool IsTruthy(const TypeData &);
 

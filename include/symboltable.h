@@ -2,6 +2,7 @@
 #include "idstructs.h"
 #include "nativefuncs.h"
 #include "perror.h"
+#include <dlfcn.h>
 #include <sstream>
 
 std::vector<FuncID> GetNativeFunctions();
@@ -26,7 +27,7 @@ struct SymbolTable
     bool IsVarInScope(std::string &);
     size_t FindVarByName(std::string &);
     size_t FindFunc(std::string &, std::vector<TypeData> &);
-    size_t FindNativeFunctions(const std::vector<TypeData> &);
+    size_t FindNativeFunctions(const std::vector<TypeData> &, const std::string &);
 
     void PopUntilSized(size_t size);
     void CleanUpCurDepth();
@@ -34,7 +35,7 @@ struct SymbolTable
     size_t FindStruct(const TypeData &);
 
     //-------------------LIBRARY-------------------//
-    std::vector<std::string> GetLibraryFunctionNames(const std::string &libname);
+    std::vector<std::string> GetModuleFunctionNames(const std::string &libname);
     void ParseLibraryFunction(std::string &func);
 };
 
