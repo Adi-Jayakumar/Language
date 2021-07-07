@@ -1,17 +1,20 @@
 #include "vm.h"
 
-// /*
-//     ARR_D
-//     ARR_ALLOC
-//     STRUCT_ALLOC
-//     STRUCT_D
-// */
-
-VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::unordered_map<TypeID, std::string> &_TypeNameMap)
+VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::vector<LibraryFunctionDef> &_syms)
 {
     functions = _functions;
     StructTree = _StructTree;
-    TypeNameMap = _TypeNameMap;
+
+    for (auto &lf : _syms)
+    {
+        std::string libpath = "./lib/lib" + lf.library + ".so";
+        void *handle = dlopen(libpath.c_str(), RTLD_NOW);
+        libHandles.push_back(handle);
+
+        LibFunc func;
+        *(void **)&func = dlsym(handle, lf.name.c_str());
+        CLibs.push_back({func, lf.arity});
+    }
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
@@ -26,13 +29,12 @@ VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordere
 VM::~VM()
 {
     delete[] cs;
-    for (RuntimeFunction &rtf : functions)
-    {
-        for (Object *rto : rtf.values)
-            std::cout << "value " << rto->ToString() << std::endl;
 
-        std::cout << std::endl
-                  << std::endl;
+    if (libHandles.size() > 0)
+    {
+        std::cout << "Closing libraries" << std::endl;
+        for (auto &handle : libHandles)
+            dlclose(handle);
     }
 
     std::cout << "====================HEAP====================" << std::endl
@@ -51,27 +53,17 @@ void VM::PrintStack()
     std::cout << "index\t|\tvalue" << std::endl;
     for (size_t i = stack.count - 1; (int)i >= 0; i--)
         std::cout << i << "\t|\t" << stack[i]->ToString() << std::endl;
+
+    std::cout << std::endl
+              << std::endl;
 }
 
-void VM::PrintValues()
+Object **VM::Allocate(size_t size)
 {
-    for (size_t i = 0; i < functions.size(); i++)
-    {
-        std::cout << "Values of function " << i << std::endl;
-
-        for (Object *c : functions[i].values)
-            std::cout << c->ToString() << std::endl;
-
-        std::cout << std::endl;
-    }
+    Object **alloc = new Object *[size];
+    // Heap.push_back(alloc);
+    return alloc;
 }
-
-// Object *VM::Allocate(size_t size)
-// {
-//     Object *alloc = new Object[size];
-//     Heap.push_back(alloc);
-//     return alloc;
-// }
 
 char *VM::StringAllocate(size_t size)
 {
@@ -265,7 +257,7 @@ void VM::ExecuteInstruction()
     case Opcode::ARR_ALLOC:
     {
         size_t size = o.op;
-        Object **data = new Object *[size];
+        Object **data = Allocate(size);
         Object *arr = CreateArray(data, size);
 
         for (size_t i = 0; i < size; i++)
@@ -277,7 +269,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_ALLOC:
     {
         size_t size = o.op;
-        Object **data = new Object *[size];
+        Object **data = Allocate(size);
         Object *strct = CreateStruct(data, size, 1);
 
         stack.push_back(strct);
@@ -354,6 +346,17 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CALL_LIBRARY_FUNC:
     {
+        std::pair<LibFunc, size_t> func = CLibs[o.op];
+        Object **args = &stack.back - func.second + 1;
+
+        Object *result = func.first(args);
+        stack.pop_N(func.second);
+
+        if (result != nullptr)
+            stack.push_back(result);
+
+        std::cout << std::endl
+                  << std::endl;
         break;
     }
     case Opcode::RETURN:
@@ -394,11 +397,6 @@ void VM::ExecuteInstruction()
 
         switch (o.op)
         {
-        case 0:
-        {
-            NativePrint(GetInt(arityAsCC));
-            break;
-        }
         case 1:
         {
             NativeToString(GetInt(arityAsCC));

@@ -159,6 +159,7 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     if (index == SIZE_MAX)
     {
         size_t nativeIndex = Symbols.FindNativeFunctions(argtypes, fc->name);
+        std::cout << "names " << nativeIndex << " in typechecker" << std::endl;
         if (nativeIndex != SIZE_MAX)
         {
             fc->t = Symbols.nativeFunctions[nativeIndex].ret;

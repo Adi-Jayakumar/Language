@@ -87,13 +87,13 @@ public:
 };
 
 typedef Object *(*LibFunc)(Object **);
-class LibFuncInfo
+class LibraryFunctionDef
 {
 public:
     std::string name;
     std::string library;
     size_t arity;
-    LibFuncInfo(std::string _name, std::string _library, size_t _arity) : name(_name), library(_library), arity(_arity){};
+    LibraryFunctionDef(std::string _name, std::string _library, size_t _arity) : name(_name), library(_library), arity(_arity){};
 };
 
 Object *CreateInt(int);

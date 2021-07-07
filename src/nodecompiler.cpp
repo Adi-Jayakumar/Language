@@ -253,6 +253,8 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     else
     {
         size_t natFunc = c.Symbols.FindNativeFunctions(argtypes, fc->name);
+        std::cout << "names " << natFunc << " in nodecompiler" << std::endl;
+
         if (natFunc == 0)
         {
             size_t arity = argtypes.size();
@@ -526,7 +528,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                 if (c.Symbols.funcs.size() > UINT8_MAX)
                     c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
 
-                c.libfuncs.emplace_back(LibFuncInfo(lf, library, func.argtypes.size()));
+                c.libfuncs.emplace_back(LibraryFunctionDef(lf, library, func.argtypes.size()));
             }
         }
     }
@@ -552,7 +554,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                 if (c.Symbols.funcs.size() > UINT8_MAX)
                     c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
 
-                c.libfuncs.emplace_back(LibFuncInfo(name, is->libraries[0], func.argtypes.size()));
+                c.libfuncs.emplace_back(LibraryFunctionDef(name, is->libraries[0], func.argtypes.size()));
             }
         }
     }

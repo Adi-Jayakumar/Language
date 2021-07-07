@@ -3,13 +3,16 @@
 #include "runtimefunc.h"
 #include "runtimeobject.h"
 #include "stack.h"
+#include <dlfcn.h>
 
 struct VM
 {
     std::vector<RuntimeFunction> functions;
     std::vector<Object *> globals;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
-    std::unordered_map<TypeID, std::string> TypeNameMap;
+
+    std::vector<std::pair<LibFunc, size_t>> CLibs;
+    std::vector<void *> libHandles;
 
     // instruction pointer
     size_t ip;
@@ -28,13 +31,12 @@ struct VM
     Stack stack;
     std::vector<Object *> Heap;
 
-    VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::unordered_map<TypeID, std::string> &TypeNameMap);
+    VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
     ~VM();
 
     void PrintStack();
-    void PrintValues();
 
-    // Object *Allocate(size_t);
+    Object **Allocate(size_t);
     char *StringAllocate(size_t);
 
     void RuntimeError(std::string msg);
