@@ -40,7 +40,9 @@ public:
     VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
     ~VM();
 
-    // adds a list of new'ed objects to the VM's heap
+    // adds a list of Create*()'ed objects to the VM's heap
+    // must be used in C-Libraries after Create*()'ing objects
+    // so that the garbage collector knows about them
     void AddToHeap(Object **objs, size_t numObjs);
 
     void RuntimeError(std::string msg);
@@ -50,17 +52,16 @@ public:
     void NativeToString();       // opcode: 1
 };
 
-// // #define GC_DEBUG_OUTPUT      // prints information about which objects are being marked/freed
-// #define GC_SUPER_STRESS      // does a round of GC after every instruction
-// // #define GC_STRESS            // does a round of GC whenever new memory is requested
-// namespace GC
-// {
-//     // deletes any memory owned by the object
-//     void FreeObject(Object *rto);
-//     void DeallocateHeap(VM *vm);
-//     void MarkObject(Object *rto);
-//     void MarkRoots(VM *vm);
-//     void FreeUnmarked(VM *vm);
-//     void ResetObjects(VM *vm);
-//     void GarbageCollect(VM *vm);
-// }
+// #define GC_DEBUG_OUTPUT      // prints information about which objects are being marked/freed
+// #define GC_STRESS            // does a round of GC whenever new memory is requested
+namespace GC
+{
+    // deletes any memory owned by the object
+    void FreeObject(Object *rto);
+    void DeallocateHeap(VM *vm);
+    void MarkObject(Object *rto);
+    void MarkRoots(VM *vm);
+    void FreeUnmarked(VM *vm);
+    void ResetObjects(VM *vm);
+    void GarbageCollect(VM *vm);
+}

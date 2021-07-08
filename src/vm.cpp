@@ -193,17 +193,6 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V:
     {
         stack.push_back(stack[o.op + curCF->valStackMin]);
-
-        std::cout << "val stack min in GET_V " << curCF->valStackMin << std::endl;
-
-        // std::cout << std::endl
-        //           << std::endl;
-
-        // PrintStack();
-
-        // std::cout << std::endl
-        //           << std::endl;
-
         break;
     }
     case Opcode::GET_V_GLOBAL:
