@@ -3,11 +3,11 @@
 #include "op.h"
 #include "runtimeobject.h"
 
-struct Chunk
+class Chunk
 {
+public:
     uint8_t arity;
     std::vector<Op> code;
-    std::vector<Object *> values;
 
     std::vector<int> ints;
     std::vector<double> doubles;
