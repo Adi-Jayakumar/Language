@@ -1,23 +1,38 @@
 #include "vm.h"
 
-void GC::FreeObject(Object *)
+void VM::MarkRoots()
 {
+    for (size_t i = 0; i < stack.count; i++)
+    {
+        stack[i]->state = GCState::MARKED;
+        stack[i]->MarkChildren();
+    }
 }
-void GC::DeallocateHeap(VM *)
+
+void VM::FreeUnmarked()
 {
+    for (size_t i = 0; i < heap.Size(); i++)
+    {
+        if (heap[i]->state != GCState::MARKED && heap[i]->state != GCState::FREED)
+        {
+            heap[i]->DestroyOwnedMemory();
+            heap[i]->state = GCState::FREED;
+        }
+    }
 }
-void GC::MarkObject(Object *)
+
+void VM::ResetObjects()
 {
+    for (size_t i = 0; i < GetStackSize(); i++)
+    {
+        if (stack[i]->state != GCState::FREED)
+            stack[i]->state = GCState::UNMARKED;
+    }
 }
-void GC::MarkRoots(VM *)
+
+void VM::GarbageCollect()
 {
-}
-void GC::FreeUnmarked(VM *)
-{
-}
-void GC::ResetObjects(VM *)
-{
-}
-void GC::GarbageCollect(VM *)
-{
+    MarkRoots();
+    FreeUnmarked();
+    ResetObjects();
 }

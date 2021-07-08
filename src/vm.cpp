@@ -41,11 +41,18 @@ VM::~VM()
               << std::endl
               << std::endl;
 
-    for (size_t i = 0; i < Heap.size(); i++)
-        std::cout << Heap[i]->ToString() << std::endl;
+    for (size_t i = 0; i < heap.Size(); i++)
+        std::cout << (heap[i]->state != GCState::FREED ? heap[i]->ToString() : "FREED") << std::endl;
 
     std::cout << std::endl
               << std::endl;
+
+    for (size_t i = 0; i < heap.Size(); i++)
+    {
+        if (heap[i]->state != GCState::FREED)
+            heap[i]->DestroyOwnedMemory();
+        delete heap[i];
+    }
 }
 
 void VM::PrintStack()
@@ -61,7 +68,7 @@ void VM::PrintStack()
 void VM::AddToHeap(Object **objs, size_t numObjs)
 {
     for (size_t i = 0; i < numObjs; i++)
-        Heap.push_back(objs[i]);
+        heap.AddObject(objs[i]);
 }
 
 void VM::RuntimeError(std::string msg)
@@ -146,20 +153,26 @@ void VM::ExecuteInstruction()
     case Opcode::LOAD_INT:
     {
         int i = functions[curFunc].ints[o.op];
-        stack.push_back(CreateInt(i));
+        Object *obj = CreateInt(i);
+        heap.AddObject(obj);
+        stack.push_back(obj);
         break;
     }
     case Opcode::LOAD_DOUBLE:
     {
         double d = functions[curFunc].doubles[o.op];
-        stack.push_back(CreateDouble(d));
+        Object *obj = CreateDouble(d);
+        heap.AddObject(obj);
+        stack.push_back(obj);
         break;
     }
     case Opcode::LOAD_BOOL:
     {
 
         bool b = functions[curFunc].bools[o.op];
-        stack.push_back(CreateBool(b));
+        Object *obj = CreateBool(b);
+        heap.AddObject(obj);
+        stack.push_back(obj);
         break;
     }
     case Opcode::LOAD_STRING:

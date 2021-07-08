@@ -8,6 +8,19 @@
 class VM;
 typedef Object *(*LibFunc)(VM *, Object **);
 
+class Heap
+{
+    std::vector<Object *> values;
+    size_t threshold;
+
+public:
+    Heap() = default;
+    size_t Size() { return values.size(); };
+    Object *operator[](size_t index) { return values[index]; };
+    void AddObject(Object *obj) { values.push_back(obj); };
+    void CleanUp(); // does nothing if the number of unmarked objects is not sufficiently large
+};
+
 class VM
 {
     std::vector<RuntimeFunction> functions;
@@ -28,14 +41,22 @@ class VM
 
     // current function index
     size_t curFunc;
-
-    std::vector<Object *> constants;
-
     Stack stack;
-    std::vector<Object *> Heap;
+    Heap heap;
 
     void Jump(size_t jump);
     void ExecuteInstruction();
+
+    /*------------------------------------Garbage collector------------------------------------*/
+
+#define GC_DEBUG_OUTPUT // prints information about which objects are being marked/freed
+    // #define GC_STRESS            // does a round of GC whenever new memory is requested
+    // deletes any memory owned by the object
+    void FreeObject(Object *obj);
+    void MarkRoots();
+    void FreeUnmarked();
+    void ResetObjects();
+    void GarbageCollect();
 
 public:
     VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
@@ -52,6 +73,7 @@ public:
     // must be used in C-Libraries after Create*()'ing objects
     // so that the garbage collector knows about them
     void AddToHeap(Object **objs, size_t numObjs);
+    void AddSingleToHeap(Object *obj) { heap.AddObject(obj); };
 
     void RuntimeError(std::string msg);
 
@@ -59,17 +81,3 @@ public:
     void NativePrint(int arity); // opcode: 0
     void NativeToString();       // opcode: 1
 };
-
-// #define GC_DEBUG_OUTPUT      // prints information about which objects are being marked/freed
-// #define GC_STRESS            // does a round of GC whenever new memory is requested
-namespace GC
-{
-    // deletes any memory owned by the object
-    void FreeObject(Object *obj);
-    void DeallocateHeap(VM *vm);
-    void MarkObject(Object *obj);
-    void MarkRoots(VM *vm);
-    void FreeUnmarked(VM *vm);
-    void ResetObjects(VM *vm);
-    void GarbageCollect(VM *vm);
-}

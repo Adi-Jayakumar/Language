@@ -6,13 +6,27 @@ typedef uint8_t TypeID;
 #endif
 #include <sstream>
 
+enum class GCState
+{
+    FREED,
+    MARKED,
+    UNMARKED,
+};
+
 class Object
 {
 public:
+    GCState state = GCState::UNMARKED;
+
     virtual ~Object(){};
     virtual std::string ToString() = 0;
-    virtual void DestroyOwnedMemory(){};
+
+    // never to be overloaded by library type
     virtual bool IsTruthy() { return false; }
+
+    // GC STUFF
+    virtual void MarkChildren(){};
+    virtual void DestroyOwnedMemory(){};
 };
 
 class Int : public Object
@@ -49,6 +63,12 @@ public:
     size_t size;
     Array(Object **_arr, size_t _size) : arr(_arr), size(_size){};
     virtual std::string ToString() override;
+
+    virtual void MarkChildren() override
+    {
+        for (size_t i = 0; i < size; i++)
+            arr[i]->MarkChildren();
+    };
 };
 
 class Struct : public Object
@@ -59,6 +79,12 @@ public:
     TypeID type;
     Struct(Object **_arr, size_t _size, TypeID _type) : arr(_arr), size(_size), type(_type){};
     virtual std::string ToString() override;
+
+    virtual void MarkChildren() override
+    {
+        for (size_t i = 0; i < size; i++)
+            arr[i]->MarkChildren();
+    };
 };
 
 class Char : public Object
@@ -76,6 +102,8 @@ public:
     size_t len;
     String(char *_str, size_t _len) : str(_str), len(_len){};
     virtual std::string ToString() override;
+
+    virtual void DestroyOwnedMemory() override { delete[] str; };
 };
 
 class Null_T : public Object
