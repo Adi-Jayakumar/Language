@@ -1,4 +1,5 @@
 #include "../include/runtimeobject.h"
+#include "../include/vm.h"
 #include <cmath>
 
 extern "C" constexpr const char *LibraryFunctions[]{"Sin                : double - double",
@@ -10,9 +11,9 @@ extern "C" constexpr const char *LibraryFunctions[]{"Sin                : double
 
 extern "C" constexpr size_t NumLibFunctions{6};
 
-extern "C" Object *Sin(Object **args);
-extern "C" Object *Cos(Object **args);
-extern "C" Object *Tan(Object **args);
-extern "C" Object *GetPi(Object **args);
-extern "C" Object *DoNothing(Object **args);
-extern "C" Object *EuclideanDist(Object **args);
+extern "C" Object *Sin(VM *vm, Object **args);
+extern "C" Object *Cos(VM *vm, Object **args);
+extern "C" Object *Tan(VM *vm, Object **args);
+extern "C" Object *GetPi(VM *vm, Object **args);
+extern "C" Object *DoNothing(VM *vm, Object **args);
+extern "C" Object *EuclideanDist(VM *vm, Object **args);

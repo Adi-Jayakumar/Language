@@ -105,11 +105,8 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    std::cout << "Size of stack: " << vm.stack.count << std::endl;
+    std::cout << "Size of stack: " << vm.GetStackSize() << std::endl;
 
-    if (vm.stack.count != 0)
-    {
-        for (size_t i = 0; i < vm.stack.count; i++)
-            std::cout << vm.stack.data[i]->ToString() << std::endl;
-    }
+    if (vm.GetStackSize() != 0)
+        vm.PrintStack();
 }

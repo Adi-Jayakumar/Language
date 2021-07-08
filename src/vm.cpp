@@ -343,7 +343,7 @@ void VM::ExecuteInstruction()
     {
         std::pair<LibFunc, size_t> func = CLibs[o.op];
         Object **args = &stack.data[stack.count - func.second];
-        Object *result = func.first(args);
+        Object *result = func.first(this, args);
 
         stack.pop_N(func.second);
         if (result != nullptr)

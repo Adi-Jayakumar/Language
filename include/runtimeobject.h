@@ -86,7 +86,6 @@ public:
     virtual std::string ToString() override;
 };
 
-typedef Object *(*LibFunc)(Object **);
 class LibraryFunctionDef
 {
 public:

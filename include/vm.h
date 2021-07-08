@@ -5,6 +5,9 @@
 #include "stack.h"
 #include <dlfcn.h>
 
+class VM;
+typedef Object *(*LibFunc)(VM *, Object **);
+
 class VM
 {
     std::vector<RuntimeFunction> functions;
@@ -31,14 +34,19 @@ class VM
     Stack stack;
     std::vector<Object *> Heap;
 
-    void PrintStack();
     void Jump(size_t jump);
-    void ExecuteProgram();
     void ExecuteInstruction();
 
 public:
     VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
     ~VM();
+
+    size_t GetStackSize()
+    {
+        return stack.count;
+    };
+    void PrintStack();
+    void ExecuteProgram();
 
     // adds a list of Create*()'ed objects to the VM's heap
     // must be used in C-Libraries after Create*()'ing objects
@@ -57,9 +65,9 @@ public:
 namespace GC
 {
     // deletes any memory owned by the object
-    void FreeObject(Object *rto);
+    void FreeObject(Object *obj);
     void DeallocateHeap(VM *vm);
-    void MarkObject(Object *rto);
+    void MarkObject(Object *obj);
     void MarkRoots(VM *vm);
     void FreeUnmarked(VM *vm);
     void ResetObjects(VM *vm);
