@@ -26,6 +26,8 @@ An implementation of a C-style statically typed language that compiles down to a
 
 # Long-term Goals
  - [ ] Allow methods in structs
+ - [ ] Serialise and de-serialise RuntimeFunctions in order to seperate compilation and execution
+ - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
 # Known bugs TODO
  - [ ] Parsing arithmetic comparison statements like 'n < 10' and thinking it is a cast
