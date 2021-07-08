@@ -2,8 +2,7 @@
 
 SymbolTable::SymbolTable()
 {
-    for (const auto &kv : NativeFunctions)
-        nativeFunctions.push_back(kv.first);
+    nativeFunctions = NativeFunctions;
 }
 
 void SymbolTable::AddVar(TypeData type, std::string name)
@@ -133,9 +132,17 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
 
     TypeData matchMoreThanOne = {true, 0};
     if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
+    {
+        TypeData voidT = {false, 0};
+        for (const auto &arg : args)
+        {
+            if (arg == voidT)
+                SymbolError("Cannot pass 'void' as a function argument");
+        }
         return true;
+    }
 
-    TypeData matchOne = {0, false};
+    TypeData matchOne = {false, 0};
     if (args.size() == 1 && native.size() == 1 && native[0] == matchOne)
         return true;
 
@@ -153,6 +160,11 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     }
 
     return areSame;
+}
+
+void SymbolError(const std::string &msg)
+{
+    Error e("[Symbol ERROR]\n" + msg + "\n");
 }
 
 void LibraryError(const std::string &msg)

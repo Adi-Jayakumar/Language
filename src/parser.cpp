@@ -399,25 +399,10 @@ std::shared_ptr<Stmt> Parser::ExpressionStatement()
 std::shared_ptr<Stmt> Parser::ParseImportStmt()
 {
     Token loc = cur;
+    Check(TokenID::IMPORT, "Expect 'import' before import statements");
     Advance();
-    if (loc.type == TokenID::IMPORT)
-    {
-        std::vector<std::string> libraries = CommaSeparatedStrings();
-        std::vector<std::string> symbols;
-        return std::make_shared<ImportStmt>(libraries, symbols, loc);
-    }
-    else
-    {
-        std::vector<std::string> libraries;
-        libraries.push_back(cur.literal);
-
-        Advance();
-        Check(TokenID::IMPORT, "Need an import section in a from/import statement");
-        Advance();
-
-        std::vector<std::string> symbols = CommaSeparatedStrings();
-        return std::make_shared<ImportStmt>(libraries, symbols, loc);
-    }
+    std::vector<std::string> libraries = CommaSeparatedStrings();
+    return std::make_shared<ImportStmt>(libraries, loc);
 }
 
 std::vector<std::string> Parser::CommaSeparatedStrings()
@@ -621,8 +606,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // skipping the name
     Advance();
 
-    TypeData type = {0, false};
-    TypeData voidT = {0, false};
+    TypeData type = {false, 0};
+    TypeData voidT = {false, 0};
 
     if (cur.type == TokenID::LT)
     {

@@ -20,7 +20,7 @@ bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
         size_t valLoc = Symbols.FindStruct(valType);
         TypeData parent = Symbols.strcts[valLoc].parent;
 
-        TypeData voidType = {0, false};
+        TypeData voidType = {false, 0};
 
         if (parent == voidType)
             return varType == valType;
@@ -217,7 +217,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     for (auto &init : bi->init)
         types.push_back(init->Type(*this));
 
-    TypeData voidT = {0, false};
+    TypeData voidT = {false, 0};
     if (bi->t == voidT)
     {
         TypeData first = types[0];
@@ -424,7 +424,7 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
     StructID s;
     s.type = GetTypeNameMap()[sd->name];
 
-    TypeData voidT = {0, false};
+    TypeData voidT = {false, 0};
 
     if (sd->parent != voidT)
     {
@@ -478,43 +478,17 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
 {
     std::vector<std::string> libraryFuncs;
-    if (is->symbols.size() == 0)
+    assert(is->libraries.size() > 0);
+    for (const auto library : is->libraries)
     {
-        assert(is->libraries.size() > 0);
-        for (const auto library : is->libraries)
-        {
-            libraryFuncs = Symbols.GetLibraryFunctionNames(library);
-            for (auto &lf : libraryFuncs)
-            {
-                FuncID func = Symbols.ParseLibraryFunction(lf);
-                Symbols.AddFunc(func);
-
-                if (Symbols.funcs.size() > UINT8_MAX)
-                    TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
-            }
-        }
-    }
-    else
-    {
-        assert(is->libraries.size() == 1);
-        libraryFuncs = Symbols.GetLibraryFunctionNames(is->libraries[0]);
-        std::unordered_set<std::string> imports;
-
-        for (const auto &sym : is->symbols)
-            imports.insert(sym);
-
+        libraryFuncs = Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)
         {
             FuncID func = Symbols.ParseLibraryFunction(lf);
-            std::string name = func.name;
+            Symbols.AddFunc(func);
 
-            if (imports.find(name) != imports.end())
-            {
-                Symbols.AddFunc(func);
-
-                if (Symbols.funcs.size() > UINT8_MAX)
-                    TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
-            }
+            if (Symbols.funcs.size() > UINT8_MAX)
+                TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
         }
     }
     return {0, false};

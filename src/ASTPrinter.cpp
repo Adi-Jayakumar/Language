@@ -260,20 +260,10 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
 
 void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
 {
-    if (is->libraries.size() == 1 && is->symbols.size() != 0)
-    {
-        out << "from " << is->libraries[0] << " import ";
-        for (const auto &str : is->symbols)
-            out << str << ", ";
-        out << std::endl;
-    }
-    else
-    {
-        out << "import ";
-        for (const auto &str : is->libraries)
-            out << str << ", ";
-        out << std::endl;
-    }
+    out << "import ";
+    for (const auto &str : is->libraries)
+        out << str << ", ";
+    out << std::endl;
 }
 
 //-----------------EXPRESSIONS---------------------//

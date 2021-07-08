@@ -46,7 +46,7 @@ struct VM
 
     // native functions
     void NativePrint(int arity); // opcode: 0
-    void NativeToString(int);    // opcode: 1
+    void NativeToString();    // opcode: 1
 };
 
 // // #define GC_DEBUG_OUTPUT      // prints information about which objects are being marked/freed

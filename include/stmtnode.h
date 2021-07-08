@@ -140,8 +140,7 @@ i.e. from --> single module name import comma seperated list of symbols <---- on
 struct ImportStmt : Stmt
 {
     std::vector<std::string> libraries;
-    std::vector<std::string> symbols;
-    ImportStmt(std::vector<std::string> &, std::vector<std::string> &, Token &);
+    ImportStmt(std::vector<std::string> &,  Token &);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

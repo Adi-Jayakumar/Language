@@ -253,8 +253,6 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     else
     {
         size_t natFunc = c.Symbols.FindNativeFunctions(argtypes, fc->name);
-        std::cout << "names " << natFunc << " in nodecompiler" << std::endl;
-
         if (natFunc == 0)
         {
             size_t arity = argtypes.size();
@@ -350,7 +348,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
     FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
 
-    TypeData voidType = {0, false};
+    TypeData voidType = {false, 0};
     if (asFC == nullptr || asFC->GetType() != voidType)
         c.cur->code.push_back({Opcode::POP, 0});
 }
@@ -513,49 +511,20 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 {
     std::vector<std::string> libraryFuncs;
-    if (is->symbols.size() == 0)
+    assert(is->libraries.size() > 0);
+    for (const auto library : is->libraries)
     {
-        assert(is->libraries.size() > 0);
-        for (const auto library : is->libraries)
-        {
-            libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
-            for (auto &lf : libraryFuncs)
-            {
-                FuncID func = c.Symbols.ParseLibraryFunction(lf);
-                func.isLibFunc = c.libfuncs.size() + 1;
-                c.Symbols.AddFunc(func);
-
-                if (c.Symbols.funcs.size() > UINT8_MAX)
-                    c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
-
-                c.libfuncs.emplace_back(LibraryFunctionDef(lf, library, func.argtypes.size()));
-            }
-        }
-    }
-    else
-    {
-        assert(is->libraries.size() == 1);
-        libraryFuncs = c.Symbols.GetLibraryFunctionNames(is->libraries[0]);
-        std::unordered_set<std::string> imports;
-
-        for (const auto &sym : is->symbols)
-            imports.insert(sym);
-
+        libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)
         {
             FuncID func = c.Symbols.ParseLibraryFunction(lf);
-            std::string name = func.name;
+            func.isLibFunc = c.libfuncs.size() + 1;
+            c.Symbols.AddFunc(func);
 
-            if (imports.find(name) != imports.end())
-            {
-                func.isLibFunc = c.libfuncs.size() + 1;
-                c.Symbols.AddFunc(func);
+            if (c.Symbols.funcs.size() > UINT8_MAX)
+                c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
 
-                if (c.Symbols.funcs.size() > UINT8_MAX)
-                    c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
-
-                c.libfuncs.emplace_back(LibraryFunctionDef(name, is->libraries[0], func.argtypes.size()));
-            }
+            c.libfuncs.emplace_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
         }
     }
     return;

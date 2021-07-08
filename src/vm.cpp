@@ -163,6 +163,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::LOAD_BOOL:
     {
+
         bool b = functions[curFunc].bools[o.op];
         stack.push_back(CreateBool(b));
         break;
@@ -198,6 +199,17 @@ void VM::ExecuteInstruction()
     case Opcode::GET_V:
     {
         stack.push_back(stack[o.op + curCF->valStackMin]);
+
+        std::cout << "val stack min in GET_V " << curCF->valStackMin << std::endl;
+
+        // std::cout << std::endl
+        //           << std::endl;
+
+        // PrintStack();
+
+        // std::cout << std::endl
+        //           << std::endl;
+
         break;
     }
     case Opcode::GET_V_GLOBAL:
@@ -347,16 +359,13 @@ void VM::ExecuteInstruction()
     case Opcode::CALL_LIBRARY_FUNC:
     {
         std::pair<LibFunc, size_t> func = CLibs[o.op];
-        Object **args = &stack.back - func.second + 1;
-
+        Object **args = &stack.data[stack.count - func.second];
         Object *result = func.first(args);
-        stack.pop_N(func.second);
 
+        stack.pop_N(func.second);
         if (result != nullptr)
             stack.push_back(result);
 
-        std::cout << std::endl
-                  << std::endl;
         break;
     }
     case Opcode::RETURN:
@@ -392,14 +401,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::NATIVE_CALL:
     {
-        Object *arityAsCC = stack.back;
-        stack.pop_back();
-
         switch (o.op)
         {
         case 1:
         {
-            NativeToString(GetInt(arityAsCC));
+            NativeToString();
+            break;
         }
         default:
             break;
@@ -811,7 +818,7 @@ void VM::NativePrint(int arity)
     stack.pop_N((size_t)arity);
 }
 
-void VM::NativeToString(int)
+void VM::NativeToString()
 {
     std::string str = stack.back->ToString();
     stack.pop_back();

@@ -38,6 +38,7 @@ struct SymbolTable
     FuncID ParseLibraryFunction(std::string &func);
 };
 
+void SymbolError(const std::string &msg);
 void LibraryError(const std::string &msg);
 std::vector<std::string> SplitStringByChar(std::string &, char);
 std::string TrimFrontBack(std::string &);

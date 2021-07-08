@@ -8,7 +8,7 @@ extern "C" constexpr const char *LibraryFunctions[]{"Sin                : double
                                                     "DoNothing          : double - ",
                                                     "EuclideanDist      : double, double - double"};
 
-extern "C" size_t NumLibFunctions = 6;
+extern "C" constexpr size_t NumLibFunctions{6};
 
 extern "C" Object *Sin(Object **args);
 extern "C" Object *Cos(Object **args);
