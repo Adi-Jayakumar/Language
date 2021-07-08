@@ -270,11 +270,5 @@ FuncID SymbolTable::ParseLibraryFunction(std::string &func)
         LibraryError("Invalid return type '" + ret + "'");
     TypeData retType = GetTypeNameMap()[ret];
 
-    // std::cout << retType << " " << name << "(";
-    // for (const TypeData &arg : argtypes)
-    //     std::cout << arg << ", ";
-
-    // std::cout << ")" << std::endl;
-
     return FuncID(retType, name, argtypes, true);
 }
