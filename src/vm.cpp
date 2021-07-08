@@ -58,16 +58,10 @@ void VM::PrintStack()
               << std::endl;
 }
 
-Object **VM::Allocate(size_t size)
+void VM::AddToHeap(Object **objs, size_t numObjs)
 {
-    Object **alloc = new Object *[size];
-    // Heap.push_back(alloc);
-    return alloc;
-}
-
-char *VM::StringAllocate(size_t size)
-{
-    return new char[size * sizeof(char)];
+    for (size_t i = 0; i < numObjs; i++)
+        Heap.push_back(objs[i]);
 }
 
 void VM::RuntimeError(std::string msg)
@@ -269,7 +263,7 @@ void VM::ExecuteInstruction()
     case Opcode::ARR_ALLOC:
     {
         size_t size = o.op;
-        Object **data = Allocate(size);
+        Object **data = new Object *[size];
         Object *arr = CreateArray(data, size);
 
         for (size_t i = 0; i < size; i++)
@@ -281,7 +275,7 @@ void VM::ExecuteInstruction()
     case Opcode::STRUCT_ALLOC:
     {
         size_t size = o.op;
-        Object **data = Allocate(size);
+        Object **data = new Object *[size];
         Object *strct = CreateStruct(data, size, 1);
 
         stack.push_back(strct);
@@ -511,7 +505,7 @@ void VM::ExecuteInstruction()
         size_t rightSize = GetStringLen(right);
         size_t newStrSize = leftSize + rightSize;
 
-        char *concat = StringAllocate(newStrSize + 1);
+        char *concat = new char[newStrSize + 1];
         strcpy(concat, lStr);
 
         char *next = concat + leftSize;

@@ -5,7 +5,7 @@
 #include "stack.h"
 #include <dlfcn.h>
 
-struct VM
+class VM
 {
     std::vector<RuntimeFunction> functions;
     std::vector<Object *> globals;
@@ -31,22 +31,23 @@ struct VM
     Stack stack;
     std::vector<Object *> Heap;
 
-    VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
-    ~VM();
-
     void PrintStack();
-
-    Object **Allocate(size_t);
-    char *StringAllocate(size_t);
-
-    void RuntimeError(std::string msg);
     void Jump(size_t jump);
     void ExecuteProgram();
     void ExecuteInstruction();
 
+public:
+    VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
+    ~VM();
+
+    // adds a list of new'ed objects to the VM's heap
+    void AddToHeap(Object **objs, size_t numObjs);
+
+    void RuntimeError(std::string msg);
+
     // native functions
     void NativePrint(int arity); // opcode: 0
-    void NativeToString();    // opcode: 1
+    void NativeToString();       // opcode: 1
 };
 
 // // #define GC_DEBUG_OUTPUT      // prints information about which objects are being marked/freed
