@@ -19,10 +19,13 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::CHAR_L, 5},
     {TokenID::NULL_T, 6}};
 
-struct TypeData
+class TypeData
 {
+public:
     size_t isArray = 0;
     TypeID type = 0;
+    TypeData() = default;
+    TypeData(size_t _isArray, TypeID _type) : isArray(_isArray), type(_type){};
 };
 
 struct TypeDataHasher
@@ -40,11 +43,15 @@ std::ostream &operator<<(std::ostream &out, const TypeData &td);
 bool operator==(const TypeData &left, const TypeData &right);
 bool operator!=(const TypeData &left, const TypeData &right);
 
-struct TypeInfo
+class TypeInfo
 {
+public:
     TypeData left;
     TokenID t;
     TypeData right;
+
+    TypeInfo() = default;
+    TypeInfo(TypeData _left, TokenID _t, TypeData _right) : left(_left), t(_t), right(_right){};
 };
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);
