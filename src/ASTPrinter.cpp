@@ -2,19 +2,14 @@
 
 std::ostream &operator<<(std::ostream &out, Expr *e)
 {
-    if (e == nullptr)
-        out << "null";
-    else
-        e->Print(out);
+    e->Print(out);
     return out;
 }
 
 std::ostream &operator<<(std::ostream &out, Stmt *s)
 {
-    if (s == nullptr)
-        out << "null";
-    else
-        s->Print(out);
+
+    s->Print(out);
     return out;
 }
 
@@ -155,47 +150,34 @@ void ASTPrinter::PrintTypeCast(TypeCast *gf, std::ostream &out)
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
 {
-    if (es == nullptr)
-        out << "null";
-    else
-    {
-        es->exp->Print(out);
-        out << ";" << std::endl;
-    }
+
+    es->exp->Print(out);
+    out << ";" << std::endl;
 }
 
 void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
 {
-    if (v == nullptr)
-        out << "null";
-    else
-        out << v->t << " " << v->name << " = " << v->value.get();
+    out << v->t << " " << v->name << " = " << v->value.get();
     out << ";" << std::endl;
 }
 
 void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
 {
-    if (b == nullptr)
-        out << "null";
-    else
+    out << "DEPTH: " << +b->depth << std::endl;
+    for (uint8_t i = 1; i < b->depth; i++)
+        out << "\t";
+    out << "{\n";
+
+    for (std::shared_ptr<Stmt> &s : b->stmts)
     {
-
-        out << "DEPTH: " << +b->depth << std::endl;
         for (uint8_t i = 1; i < b->depth; i++)
             out << "\t";
-        out << "{\n";
-
-        for (std::shared_ptr<Stmt> &s : b->stmts)
-        {
-            for (uint8_t i = 1; i < b->depth; i++)
-                out << "\t";
-            out << "\t" << s.get() << std::endl;
-        }
-
-        for (uint8_t i = 1; i < b->depth; i++)
-            out << "\t";
-        out << "}\n";
+        out << "\t" << s.get() << std::endl;
     }
+
+    for (uint8_t i = 1; i < b->depth; i++)
+        out << "\t";
+    out << "}\n";
 }
 
 void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
