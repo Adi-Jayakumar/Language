@@ -5,8 +5,9 @@
 #include "stmtnode.h"
 #include "symboltable.h"
 
-struct Compiler
+class Compiler
 {
+public:
     std::vector<Chunk> chunks;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
