@@ -4,11 +4,12 @@
 #include <cstring>
 #include <memory>
 
-struct Compiler;
-struct TypeChecker;
+class Compiler;
+class TypeChecker;
 
-struct Expr
+class Expr
 {
+public:
     TypeData t = {0, false};
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
@@ -25,14 +26,9 @@ struct Expr
 
 std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
 
-/*
-    TypeIDs are represented as TypeID with
-    1 ---> int
-    2 ---> double
-    3 ---> bool
-*/
-struct Literal : Expr
+class Literal : public Expr
 {
+public:
     Token loc;
     Literal(Token);
     // ~Literal() override = default;
@@ -45,8 +41,9 @@ struct Literal : Expr
     // bool IsTruthy() override;
 };
 
-struct Unary : Expr
+class Unary : public Expr
 {
+public:
     Token op;
     std::shared_ptr<Expr> right;
 
@@ -61,8 +58,9 @@ struct Unary : Expr
     // bool IsTruthy() override;
 };
 
-struct Binary : Expr
+class Binary : public Expr
 {
+public:
     std::shared_ptr<Expr> left;
     Token op;
     std::shared_ptr<Expr> right;
@@ -78,8 +76,9 @@ struct Binary : Expr
     // bool IsTruthy() override;
 };
 
-struct VarReference : Expr
+class VarReference : public Expr
 {
+public:
     Token loc;
     std::string name;
     VarReference(Token);
@@ -95,8 +94,9 @@ struct VarReference : Expr
     // bool IsTruthy() override;
 };
 
-struct Assign : Expr
+class Assign : public Expr
 {
+public:
     Token loc;
     std::shared_ptr<Expr> target;
     std::shared_ptr<Expr> val;
@@ -112,8 +112,9 @@ struct Assign : Expr
     // bool IsTruthy() override;
 };
 
-struct FunctionCall : Expr
+class FunctionCall : public Expr
 {
+public:
     Token loc;
     std::string name;
     std::vector<std::shared_ptr<Expr>> args;
@@ -127,8 +128,9 @@ struct FunctionCall : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct ArrayIndex : Expr
+class ArrayIndex : public Expr
 {
+public:
     Token loc;
     std::shared_ptr<Expr> name;
     std::shared_ptr<Expr> index;
@@ -142,8 +144,9 @@ struct ArrayIndex : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct BracedInitialiser : Expr
+class BracedInitialiser : public Expr
 {
+public:
     Token loc;
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
@@ -157,8 +160,9 @@ struct BracedInitialiser : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct DynamicAllocArray : Expr
+class DynamicAllocArray : public Expr
 {
+public:
     Token loc;
     std::shared_ptr<Expr> size;
 
@@ -171,8 +175,9 @@ struct DynamicAllocArray : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct FieldAccess : Expr
+class FieldAccess : public Expr
 {
+public:
     Token loc;
     std::shared_ptr<Expr> accessor;
     std::shared_ptr<Expr> accessee;
@@ -186,8 +191,9 @@ struct FieldAccess : Expr
     void NodeCompile(Compiler &c) override;
 };
 
-struct TypeCast : Expr
+class TypeCast : public Expr
 {
+public:
     Token loc;
     TypeData type;
     std::shared_ptr<Expr> arg;
