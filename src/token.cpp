@@ -141,6 +141,18 @@ std::string ToString(const TokenID &t)
     {
         return "CLOSE_PAR";
     }
+    case TokenID::OPEN_VER:
+    {
+        return "OPEN_VER";
+    }
+    case TokenID::CLOSE_VER:
+    {
+        return "CLOSE_VER";
+    }
+    case TokenID::RESULT:
+    {
+        return "RESULT";
+    }
     case TokenID::OPEN_BRACE:
     {
         return "OPEN_BRACE";

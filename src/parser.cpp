@@ -146,7 +146,23 @@ std::shared_ptr<Stmt> Parser::Statement()
 
         // advancing over the semicolon
         Advance();
-        return std::make_shared<Return>(retVal, cur);
+
+        std::vector<std::shared_ptr<Expr>> post;
+        if (cur.type == TokenID::OPEN_VER)
+        {
+            Advance();
+            while (cur.type != TokenID::CLOSE_VER && cur.type != TokenID::END)
+            {
+                post.push_back(Expression());
+                Check(TokenID::SEMI, "Expect semicolon after verification expressions");
+                Advance();
+            }
+
+            Check(TokenID::CLOSE_VER, "Expect close verification");
+            Advance();
+        }
+
+        return std::make_shared<Return>(retVal, post, cur);
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
         return ParseImportStmt();
@@ -219,7 +235,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
         {
             argtypes.push_back(ParseType("Function arguments need types"));
 
-            Check(TokenID::IDEN, "Arguments in function must have names");
+            Check(TokenID::IDEN, "Function arguments need names");
             paramIdentifiers.push_back(cur.literal);
 
             Advance();
@@ -236,6 +252,22 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     }
 
     Advance();
+
+    std::vector<std::shared_ptr<Expr>> pre;
+    if (cur.type == TokenID::OPEN_VER)
+    {
+        Advance();
+        while (cur.type != TokenID::CLOSE_VER && cur.type != TokenID::END)
+        {
+            pre.push_back(Expression());
+            Check(TokenID::SEMI, "Expect semicolon after verification expressions");
+            Advance();
+        }
+
+        Check(TokenID::CLOSE_VER, "Expect close verification");
+        Advance();
+    }
+
     Check(TokenID::OPEN_BRACE, "Function body must start with an open brace");
 
     depth++;
@@ -262,7 +294,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     depth--;
     Advance();
-    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, argtypes, paramIdentifiers, body, beg);
+    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, argtypes, paramIdentifiers, body, pre, beg);
     return func;
 }
 
@@ -587,6 +619,13 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     }
     else if (cur.type == TokenID::IDEN)
     {
+        // TODO - Is declaration necessary
+        Token loc = cur;
+        res = std::make_shared<VarReference>(loc);
+    }
+    else if (cur.type == TokenID::RESULT)
+    {
+        // TODO - Is declaration necessary
         Token loc = cur;
         res = std::make_shared<VarReference>(loc);
     }

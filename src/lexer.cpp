@@ -164,12 +164,27 @@ Token Lexer::NextToken()
     }
     case '(':
     {
-        res = {TokenID::OPEN_PAR, "(", line};
+        if (src[index + 1] == '|')
+        {
+            res = {TokenID::OPEN_VER, "(|", line};
+            index++;
+        }
+        else
+            res = {TokenID::OPEN_PAR, "(", line};
         break;
     }
     case ')':
     {
         res = {TokenID::CLOSE_PAR, ")", line};
+        break;
+    }
+    case '|':
+    {
+        if (src[index + 1] == ')')
+        {
+            res = {TokenID::CLOSE_VER, "|)", line};
+            index++;
+        }
         break;
     }
     case '{':
@@ -325,7 +340,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'r':
     {
-        return MatchKeyWord("eturn", TokenID::RETURN, tok);
+        return MatchKeyWord("eturn", TokenID::RETURN, tok) || MatchKeyWord("esult", TokenID::RESULT, tok);
     }
     case 's':
     {

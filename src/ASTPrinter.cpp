@@ -213,6 +213,18 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
     }
 
     out << ")" << std::endl;
+
+    if (fd->preConds.size() != 0)
+    {
+        out << "(|";
+        for (auto exp : fd->preConds)
+        {
+            exp->Print(out);
+            out << ";";
+        }
+        out << "|)" << std::endl;
+    }
+
     out << "{" << std::endl;
     for (auto &s : fd->body)
     {
@@ -228,7 +240,19 @@ void ASTPrinter::PrintReturn(Return *r, std::ostream &out)
     out << "return ";
     if (r->retVal != nullptr)
         r->retVal->Print(out);
-    out << ";";
+    out << ";" << std::endl;
+
+    if (r->postConds.size() != 0)
+    {
+        out << "(|";
+        for (auto exp : r->postConds)
+        {
+            exp->Print(out);
+            out << ";";
+        }
+        out << "|)" << std::endl;
+    }
+
     return;
 }
 

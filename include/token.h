@@ -59,6 +59,12 @@ enum class TokenID : uint8_t
     OPEN_PAR,
     CLOSE_PAR,
 
+    // opening and closing verifcation statements
+    OPEN_VER,
+    CLOSE_VER,
+    // result of calling a function used in the verifier's post conditions
+    RESULT,
+
     OPEN_BRACE,
     CLOSE_BRACE,
 

@@ -23,9 +23,12 @@ An implementation of a C-style statically typed language that compiles down to a
  - [x] Modules
  - [ ] Optimiser
  - [ ] Multiple file programs
+ - [ ] Verification
+    - [ ] Lex and parse verification statements
+    - [ ] Push precondition through program
+    - [ ] Verify output
 
 # Long-term Goals
- - [ ] Allow methods in structs
  - [ ] Serialise and de-serialise RuntimeFunctions in order to seperate compilation and execution
  - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
@@ -59,5 +62,17 @@ function int Fib(int n)
 function void Main()
 {
     Print(Fib(10));
+}
+```
+
+# Verification
+
+## Example 1
+```C
+function int Square(int x)
+(|x = x_0|)
+{
+    return x * x;
+    (|x_0 * x_0|)
 }
 ```

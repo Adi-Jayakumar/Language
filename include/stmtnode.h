@@ -96,7 +96,10 @@ struct FuncDecl : Stmt
     std::vector<std::string> paramIdentifiers;
     std::vector<std::shared_ptr<Stmt>> body;
 
-    FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    std::vector<std::shared_ptr<Expr>> preConds;
+
+    // FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, Token);
+    FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -108,7 +111,10 @@ struct FuncDecl : Stmt
 struct Return : Stmt
 {
     std::shared_ptr<Expr> retVal;
+    std::vector<std::shared_ptr<Expr>> postConds;
+
     Return(std::shared_ptr<Expr>, Token);
+    Return(std::shared_ptr<Expr>, std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -140,7 +146,7 @@ i.e. from --> single module name import comma seperated list of symbols <---- on
 struct ImportStmt : Stmt
 {
     std::vector<std::string> libraries;
-    ImportStmt(std::vector<std::string> &,  Token &);
+    ImportStmt(std::vector<std::string> &, Token &);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
