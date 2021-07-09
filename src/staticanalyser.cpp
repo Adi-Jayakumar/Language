@@ -1,6 +1,6 @@
-#include "typechecker.h"
+#include "staticanalyser.h"
 
-bool TypeChecker::CanAssign(const TypeData &varType, const TypeData &valType)
+bool StaticAnalyser::CanAssign(const TypeData &varType, const TypeData &valType)
 {
     if (varType.isArray != valType.isArray)
         return false;
@@ -40,7 +40,7 @@ bool IsTruthy(const TypeData &cond)
     return (cond.type == 1) || (cond.type == 2) || (cond.type == 3);
 }
 
-bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
+bool StaticAnalyser::MatchInitialiserToStruct(const std::vector<TypeData> &member, const std::vector<TypeData> &init)
 {
     if (member.size() != init.size())
         return false;
@@ -54,25 +54,25 @@ bool TypeChecker::MatchInitialiserToStruct(const std::vector<TypeData> &member, 
     return true;
 }
 
-void TypeChecker::TypeError(Token loc, std::string err)
+void StaticAnalyser::TypeError(Token loc, std::string err)
 {
     Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + '\n' + err + '\n');
     throw e;
 }
 
-void TypeChecker::TypeCheck(std::shared_ptr<Stmt> &s)
+void StaticAnalyser::TypeCheck(std::shared_ptr<Stmt> &s)
 {
     s->Type(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//
 
-TypeData TypeChecker::TypeOfLiteral(Literal *l)
+TypeData StaticAnalyser::TypeOfLiteral(Literal *l)
 {
     return l->t;
 }
 
-TypeData TypeChecker::TypeOfUnary(Unary *u)
+TypeData StaticAnalyser::TypeOfUnary(Unary *u)
 {
     TypeData opType = u->right->Type(*this);
     TypeInfo info = {{0, false}, u->op.type, opType};
@@ -88,7 +88,7 @@ TypeData TypeChecker::TypeOfUnary(Unary *u)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfBinary(Binary *b)
+TypeData StaticAnalyser::TypeOfBinary(Binary *b)
 {
     TypeData lType = b->left->Type(*this);
     TypeData rType = b->right->Type(*this);
@@ -104,7 +104,7 @@ TypeData TypeChecker::TypeOfBinary(Binary *b)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfAssign(Assign *a)
+TypeData StaticAnalyser::TypeOfAssign(Assign *a)
 {
     VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
     TypeData valType = a->val->Type(*this);
@@ -136,7 +136,7 @@ TypeData TypeChecker::TypeOfAssign(Assign *a)
     return targetType;
 }
 
-TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
+TypeData StaticAnalyser::TypeOfVarReference(VarReference *vr)
 {
     size_t index = Symbols.FindVarByName(vr->name);
 
@@ -147,7 +147,7 @@ TypeData TypeChecker::TypeOfVarReference(VarReference *vr)
     return Symbols.vars[index].type;
 }
 
-TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
+TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
 {
     std::vector<TypeData> argtypes;
 
@@ -181,7 +181,7 @@ TypeData TypeChecker::TypeOfFunctionCall(FunctionCall *fc)
     return Symbols.funcs[index].ret;
 }
 
-TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
+TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
 {
     TypeData nameT = ai->name->Type(*this);
     TypeData stringT = {false, 4};
@@ -207,7 +207,7 @@ TypeData TypeChecker::TypeOfArrayIndex(ArrayIndex *ai)
     return ai->t;
 }
 
-TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
+TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
 {
     if (bi->size == 0)
         return {0, false};
@@ -264,7 +264,7 @@ TypeData TypeChecker::TypeOfBracedInitialiser(BracedInitialiser *bi)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
+TypeData StaticAnalyser::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 {
     TypeData sizeType = da->size->Type(*this);
     TypeData intType = {false, 1};
@@ -275,7 +275,7 @@ TypeData TypeChecker::TypeOfDynamicAllocArray(DynamicAllocArray *da)
     return da->t;
 }
 
-TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
+TypeData StaticAnalyser::TypeOfFieldAccess(FieldAccess *fa)
 {
     TypeData accessorType = fa->accessor->Type(*this);
 
@@ -299,7 +299,7 @@ TypeData TypeChecker::TypeOfFieldAccess(FieldAccess *fa)
     return accesseeType;
 }
 
-TypeData TypeChecker::TypeOfTypeCast(TypeCast *c)
+TypeData StaticAnalyser::TypeOfTypeCast(TypeCast *c)
 {
     TypeData newT = c->type;
     TypeData oldT = c->arg->Type(*this);
@@ -318,12 +318,12 @@ TypeData TypeChecker::TypeOfTypeCast(TypeCast *c)
 
 //------------------STATEMENTS---------------------//
 
-TypeData TypeChecker::TypeOfExprStmt(ExprStmt *es)
+TypeData StaticAnalyser::TypeOfExprStmt(ExprStmt *es)
 {
     return es->exp->Type(*this);
 }
 
-TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
+TypeData StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
 {
     if (Symbols.IsVarInScope(dv->name))
         TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
@@ -344,7 +344,7 @@ TypeData TypeChecker::TypeOfDeclaredVar(DeclaredVar *dv)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfBlock(Block *b)
+TypeData StaticAnalyser::TypeOfBlock(Block *b)
 {
     Symbols.depth++;
     size_t preBlockSize = Symbols.vars.size();
@@ -357,7 +357,7 @@ TypeData TypeChecker::TypeOfBlock(Block *b)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
+TypeData StaticAnalyser::TypeOfIfStmt(IfStmt *i)
 {
     if (!IsTruthy(i->cond->Type(*this)))
         TypeError(i->Loc(), "Condition of and if statement must be 'turthy'");
@@ -370,7 +370,7 @@ TypeData TypeChecker::TypeOfIfStmt(IfStmt *i)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
+TypeData StaticAnalyser::TypeOfWhileStmt(WhileStmt *ws)
 {
     if (!IsTruthy(ws->cond->Type(*this)))
         TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
@@ -379,7 +379,7 @@ TypeData TypeChecker::TypeOfWhileStmt(WhileStmt *ws)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
+TypeData StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
 {
     if (Symbols.funcs.size() > UINT8_MAX)
         TypeError(fd->Loc(), "Maximum number of functions is " + std::to_string(UINT8_MAX));
@@ -405,7 +405,7 @@ TypeData TypeChecker::TypeOfFuncDecl(FuncDecl *fd)
     return {0, false};
 }
 
-TypeData TypeChecker::TypeOfReturn(Return *r)
+TypeData StaticAnalyser::TypeOfReturn(Return *r)
 {
     if (Symbols.depth == 0)
         TypeError(r->Loc(), "Cannot return from outside of a function");
@@ -414,7 +414,7 @@ TypeData TypeChecker::TypeOfReturn(Return *r)
     return r->retVal->Type(*this);
 }
 
-TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
+TypeData StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
 {
     if (sd->decls.size() > UINT8_MAX)
         TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
@@ -475,7 +475,7 @@ TypeData TypeChecker::TypeOfStructDecl(StructDecl *sd)
 }
 
 // for now all functions of library are imported
-TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
+TypeData StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
 {
     std::vector<std::string> libraryFuncs;
     assert(is->libraries.size() > 0);
@@ -496,104 +496,104 @@ TypeData TypeChecker::TypeOfImportStmt(ImportStmt *is)
 
 //-----------------EXPRESSIONS---------------------//
 
-TypeData Literal::Type(TypeChecker &t)
+TypeData Literal::Type(StaticAnalyser &t)
 {
     return t.TypeOfLiteral(this);
 }
 
-TypeData Unary::Type(TypeChecker &t)
+TypeData Unary::Type(StaticAnalyser &t)
 {
     return t.TypeOfUnary(this);
 }
 
-TypeData Binary::Type(TypeChecker &t)
+TypeData Binary::Type(StaticAnalyser &t)
 {
     return t.TypeOfBinary(this);
 }
 
-TypeData Assign::Type(TypeChecker &t)
+TypeData Assign::Type(StaticAnalyser &t)
 {
     return t.TypeOfAssign(this);
 }
 
-TypeData VarReference::Type(TypeChecker &t)
+TypeData VarReference::Type(StaticAnalyser &t)
 {
     return t.TypeOfVarReference(this);
 }
 
-TypeData FunctionCall::Type(TypeChecker &t)
+TypeData FunctionCall::Type(StaticAnalyser &t)
 {
     return t.TypeOfFunctionCall(this);
 }
 
-TypeData ArrayIndex::Type(TypeChecker &t)
+TypeData ArrayIndex::Type(StaticAnalyser &t)
 {
     return t.TypeOfArrayIndex(this);
 }
 
-TypeData BracedInitialiser::Type(TypeChecker &t)
+TypeData BracedInitialiser::Type(StaticAnalyser &t)
 {
     return t.TypeOfBracedInitialiser(this);
 }
 
-TypeData DynamicAllocArray::Type(TypeChecker &t)
+TypeData DynamicAllocArray::Type(StaticAnalyser &t)
 {
     return t.TypeOfDynamicAllocArray(this);
 }
 
-TypeData FieldAccess::Type(TypeChecker &t)
+TypeData FieldAccess::Type(StaticAnalyser &t)
 {
     return t.TypeOfFieldAccess(this);
 }
 
-TypeData TypeCast::Type(TypeChecker &t)
+TypeData TypeCast::Type(StaticAnalyser &t)
 {
     return t.TypeOfTypeCast(this);
 }
 
 //------------------STATEMENTS---------------------//
 
-TypeData ExprStmt::Type(TypeChecker &t)
+TypeData ExprStmt::Type(StaticAnalyser &t)
 {
     return t.TypeOfExprStmt(this);
 }
 
-TypeData DeclaredVar::Type(TypeChecker &t)
+TypeData DeclaredVar::Type(StaticAnalyser &t)
 {
     return t.TypeOfDeclaredVar(this);
 }
 
-TypeData Block::Type(TypeChecker &t)
+TypeData Block::Type(StaticAnalyser &t)
 {
     return t.TypeOfBlock(this);
 }
 
-TypeData IfStmt::Type(TypeChecker &t)
+TypeData IfStmt::Type(StaticAnalyser &t)
 {
     return t.TypeOfIfStmt(this);
 }
 
-TypeData WhileStmt::Type(TypeChecker &t)
+TypeData WhileStmt::Type(StaticAnalyser &t)
 {
     return t.TypeOfWhileStmt(this);
 }
 
-TypeData FuncDecl::Type(TypeChecker &t)
+TypeData FuncDecl::Type(StaticAnalyser &t)
 {
     return t.TypeOfFuncDecl(this);
 }
 
-TypeData Return::Type(TypeChecker &t)
+TypeData Return::Type(StaticAnalyser &t)
 {
     return t.TypeOfReturn(this);
 }
 
-TypeData StructDecl::Type(TypeChecker &t)
+TypeData StructDecl::Type(StaticAnalyser &t)
 {
     return t.TypeOfStructDecl(this);
 }
 
-TypeData ImportStmt::Type(TypeChecker &t)
+TypeData ImportStmt::Type(StaticAnalyser &t)
 {
     return t.TypeOfImportStmt(this);
 }

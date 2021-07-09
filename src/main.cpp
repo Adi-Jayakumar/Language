@@ -2,7 +2,7 @@
 #include "compiler.h"
 #include "parser.h"
 #include "returnchecker.h"
-#include "typechecker.h"
+#include "staticanalyser.h"
 #include "vm.h"
 #include <chrono>
 

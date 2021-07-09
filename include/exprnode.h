@@ -5,7 +5,7 @@
 #include <memory>
 
 class Compiler;
-class TypeChecker;
+class StaticAnalyser;
 
 class Expr
 {
@@ -15,7 +15,7 @@ public:
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeData Type(TypeChecker &t) = 0;
+    virtual TypeData Type(StaticAnalyser &t) = 0;
     // returns the type after typechecking is done
     virtual TypeData GetType() = 0;
     // compiles the node - implmented in Compiler.cpp
@@ -35,7 +35,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
@@ -52,7 +52,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
@@ -70,7 +70,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
@@ -88,7 +88,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
@@ -106,7 +106,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
@@ -123,7 +123,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
@@ -139,7 +139,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
@@ -155,7 +155,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
@@ -170,7 +170,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
@@ -186,7 +186,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
@@ -203,7 +203,7 @@ public:
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(TypeChecker &t) override;
+    TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
 };
