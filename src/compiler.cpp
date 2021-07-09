@@ -31,7 +31,7 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
                 mainIndex = numFunctions;
             }
         }
-        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr)
+        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr && dynamic_cast<ImportStmt *>(s[i].get()) == nullptr)
             CompileError(s[i]->Loc(), "Only declarations allowed in global region");
     }
     return mainIndex;

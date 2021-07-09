@@ -28,7 +28,7 @@ enum class TokenID : uint8_t
     WHILE,
     STRUCT,
     COLON,
-    
+
     IMPORT,
     FROM,
 
@@ -77,6 +77,9 @@ struct Token
     TokenID type;
     std::string literal;
     size_t line;
+
+    Token() = default;
+    Token(TokenID _type, std::string _literal, size_t _line) : type(_type), literal(_literal), line(_line){};
 };
 
 bool IsLiteral(const Token &);

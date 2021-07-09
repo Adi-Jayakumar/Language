@@ -11,8 +11,9 @@ namespace IO
     std::string GetSrcString(std::string fName);
 } // namespace IO
 
-struct Lexer
+class Lexer
 {
+public:
     size_t index;
     size_t line;
     std::string src;
