@@ -20,8 +20,6 @@ bool StaticAnalyser::CanAssign(const TypeData &varType, const TypeData &valType)
         size_t valLoc = Symbols.FindStruct(valType);
         TypeData parent = Symbols.strcts[valLoc].parent;
 
-
-
         if (parent == GetTypeNameMap()["void"])
             return varType == valType;
 
@@ -114,7 +112,7 @@ TypeData StaticAnalyser::TypeOfAssign(Assign *a)
         size_t varIndex = Symbols.FindVarByName(targetAsVr->name);
 
         if (varIndex == SIZE_MAX)
-            TypeError(targetAsVr->Loc(), "Variable reference " + targetAsVr->name + " has not been defined before");
+            TypeError(targetAsVr->Loc(), "Variable reference '" + targetAsVr->name + "' has not been defined before");
 
         TypeData varType = Symbols.vars[varIndex].type;
 
@@ -141,7 +139,7 @@ TypeData StaticAnalyser::TypeOfVarReference(VarReference *vr)
     size_t index = Symbols.FindVarByName(vr->name);
 
     if (index == SIZE_MAX)
-        TypeError(vr->Loc(), "Variable reference " + vr->name + " has not been defined before");
+        TypeError(vr->Loc(), "Variable reference '" + vr->name + "' has not been defined before");
 
     vr->t = Symbols.vars[index].type;
     return Symbols.vars[index].type;
@@ -417,9 +415,6 @@ void StaticAnalyser::TypeOfReturn(Return *r)
             TypeError(r->Loc(), "Void function cannot have post conditions");
     }
 
-    for (auto &e : r->postConds)
-        e->Type(*this);
-
     assert(curFunc != nullptr);
     TypeData ret = r->retVal->Type(*this);
 
@@ -436,6 +431,9 @@ void StaticAnalyser::TypeOfReturn(Return *r)
 
     for (auto e : r->postConds)
     {
+        std::cout << std::endl;
+        e->Print(std::cout);
+        std::cout << std::endl;
         if (e->Type(tempSA) != GetTypeNameMap()["bool"])
             TypeError(r->Loc(), "Post condition expressions must be bools");
     }

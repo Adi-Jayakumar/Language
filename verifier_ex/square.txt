@@ -3,6 +3,7 @@
 function int Square(int x)
 (|x;|)
 {
-    return x * x;
-    (|result == x * x; result > 0;|)
+    int y = x * x;
+    return y;
+    (|result == x * x;|)
 }

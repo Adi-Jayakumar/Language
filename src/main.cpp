@@ -1,7 +1,6 @@
 #include "ASTPrinter.h"
 #include "compiler.h"
 #include "parser.h"
-#include "returnchecker.h"
 #include "staticanalyser.h"
 #include "vm.h"
 #include <chrono>
@@ -46,20 +45,6 @@ int main()
 
     std::cout << std::endl
               << std::endl;
-
-    // ReturnChecker rc;
-    // for (auto &s : res)
-    // {
-    //     FuncDecl *asFunc = dynamic_cast<FuncDecl *>(s.get());
-    //     TypeData voidType = {0, false};
-    //     if (asFunc && asFunc->ret != voidType)
-    //     {
-    //         asFunc->DoesReturn(asFunc->ret, rc);
-    //     }
-    // }
-
-    // if (rc.hadError)
-    //     exit(4);
 
     for (auto &s : res)
         std::cout << s.get() << std::endl;
