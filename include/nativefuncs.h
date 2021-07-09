@@ -1,7 +1,8 @@
 #pragma once
+#include "common.h"
 #include "idstructs.h"
 
 const std::vector<FuncID> NativeFunctions{
-    FuncID({0, false}, "Print", {{true, 0}}, 0),
-    FuncID({0, false}, "ToString", {{false, 0}}, 0),
+    FuncID(GetTypeNameMap()["void"], "Print", {{true, 0}}, 0),
+    FuncID(GetTypeNameMap()["void"], "ToString", {GetTypeNameMap()["void"]}, 0),
 };

@@ -35,17 +35,17 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    // TypeChecker t = TypeChecker();
-    // for (auto &s : res)
-    // {
-    //     t.TypeCheck(s);
-    // }
+    StaticAnalyser t = StaticAnalyser();
+    for (auto &s : res)
+    {
+        t.TypeCheck(s);
+    }
 
-    // // if (t.hadError)
-    // //     exit(3);
+    // if (t.hadError)
+    //     exit(3);
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
     // ReturnChecker rc;
     // for (auto &s : res)
@@ -61,11 +61,11 @@ int main()
     // if (rc.hadError)
     //     exit(4);
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
+    for (auto &s : res)
+        std::cout << s.get() << std::endl;
 
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
     // Compiler c = Compiler();
     // size_t mainIndex = c.Compile(res);

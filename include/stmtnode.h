@@ -11,7 +11,7 @@ struct Stmt
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;
     // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeData Type(StaticAnalyser &t) = 0;
+    virtual void Type(StaticAnalyser &t) = 0;
     // determines whether all the node's code paths return the appropriate type
     virtual bool DoesReturn(TypeData ret, ReturnChecker &rc) = 0;
     // compiles the node - implemented in Compiler.cpp
@@ -27,7 +27,7 @@ struct ExprStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -41,7 +41,7 @@ struct DeclaredVar : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -54,7 +54,7 @@ struct Block : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -68,7 +68,7 @@ struct IfStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -83,7 +83,7 @@ struct WhileStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -92,8 +92,10 @@ struct FuncDecl : Stmt
 {
     TypeData ret;
     std::string name;
+    // TODO - Convert to vector of pairs
     std::vector<TypeData> argtypes;
     std::vector<std::string> paramIdentifiers;
+
     std::vector<std::shared_ptr<Stmt>> body;
 
     std::vector<std::shared_ptr<Expr>> preConds;
@@ -103,7 +105,7 @@ struct FuncDecl : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -118,7 +120,7 @@ struct Return : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -132,7 +134,7 @@ struct StructDecl : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };
@@ -150,7 +152,7 @@ struct ImportStmt : Stmt
 
     Token Loc() override;
     void Print(std::ostream &out) override;
-    TypeData Type(StaticAnalyser &t) override;
+    void Type(StaticAnalyser &t) override;
     bool DoesReturn(TypeData ret, ReturnChecker &rc) override;
     void NodeCompile(Compiler &c) override;
 };

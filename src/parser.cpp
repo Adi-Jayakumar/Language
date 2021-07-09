@@ -645,8 +645,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // skipping the name
     Advance();
 
-    TypeData type = {false, 0};
-    TypeData voidT = {false, 0};
+    TypeData type = GetTypeNameMap()["void"];
+    TypeData voidT = GetTypeNameMap()["void"];
 
     if (cur.type == TokenID::LT)
     {

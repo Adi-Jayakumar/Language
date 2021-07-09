@@ -348,7 +348,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
     FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
 
-    TypeData voidType = {false, 0};
+    TypeData voidType = GetTypeNameMap()["void"];
     if (asFC == nullptr || asFC->GetType() != voidType)
         c.cur->code.push_back({Opcode::POP, 0});
 }

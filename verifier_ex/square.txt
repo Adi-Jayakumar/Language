@@ -1,8 +1,8 @@
 
 
 function int Square(int x)
-(|x = x0;|)
+(|x;|)
 {
     return x * x;
-    (|result == x0 * x0; result > 0;|)
+    (|result == x * x; result > 0;|)
 }

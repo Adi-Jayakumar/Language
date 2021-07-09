@@ -133,17 +133,15 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     TypeData matchMoreThanOne = {true, 0};
     if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
     {
-        TypeData voidT = {false, 0};
         for (const auto &arg : args)
         {
-            if (arg == voidT)
+            if (arg == GetTypeNameMap()["void"])
                 SymbolError("Cannot pass 'void' as a function argument");
         }
         return true;
     }
 
-    TypeData matchOne = {false, 0};
-    if (args.size() == 1 && native.size() == 1 && native[0] == matchOne)
+    if (args.size() == 1 && native.size() == 1 && native[0] == GetTypeNameMap()["void"])
         return true;
 
     if (native.size() != args.size())

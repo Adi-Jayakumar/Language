@@ -16,6 +16,7 @@ struct StaticAnalyser
 
     void TypeError(Token loc, std::string err);
     SymbolTable Symbols;
+    FuncDecl *curFunc = nullptr;
 
     void TypeCheck(std::shared_ptr<Stmt> &s);
 
@@ -33,13 +34,13 @@ struct StaticAnalyser
     TypeData TypeOfTypeCast(TypeCast *gf);
 
     // statment typechecking
-    TypeData TypeOfExprStmt(ExprStmt *es);
-    TypeData TypeOfDeclaredVar(DeclaredVar *v);
-    TypeData TypeOfBlock(Block *b);
-    TypeData TypeOfIfStmt(IfStmt *i);
-    TypeData TypeOfWhileStmt(WhileStmt *ws);
-    TypeData TypeOfFuncDecl(FuncDecl *fd);
-    TypeData TypeOfReturn(Return *r);
-    TypeData TypeOfStructDecl(StructDecl *sd);
-    TypeData TypeOfImportStmt(ImportStmt *is);
+    void TypeOfExprStmt(ExprStmt *es);
+    void TypeOfDeclaredVar(DeclaredVar *v);
+    void TypeOfBlock(Block *b);
+    void TypeOfIfStmt(IfStmt *i);
+    void TypeOfWhileStmt(WhileStmt *ws);
+    void TypeOfFuncDecl(FuncDecl *fd);
+    void TypeOfReturn(Return *r);
+    void TypeOfStructDecl(StructDecl *sd);
+    void TypeOfImportStmt(ImportStmt *is);
 };

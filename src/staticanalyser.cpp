@@ -20,9 +20,9 @@ bool StaticAnalyser::CanAssign(const TypeData &varType, const TypeData &valType)
         size_t valLoc = Symbols.FindStruct(valType);
         TypeData parent = Symbols.strcts[valLoc].parent;
 
-        TypeData voidType = {false, 0};
 
-        if (parent == voidType)
+
+        if (parent == GetTypeNameMap()["void"])
             return varType == valType;
 
         parent.isArray = valType.isArray;
@@ -217,8 +217,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
     for (auto &init : bi->init)
         types.push_back(init->Type(*this));
 
-    TypeData voidT = {false, 0};
-    if (bi->t == voidT)
+    if (bi->t == GetTypeNameMap()["void"])
     {
         TypeData first = types[0];
         for (size_t i = 1; i < types.size(); i++)
@@ -318,12 +317,12 @@ TypeData StaticAnalyser::TypeOfTypeCast(TypeCast *c)
 
 //------------------STATEMENTS---------------------//
 
-TypeData StaticAnalyser::TypeOfExprStmt(ExprStmt *es)
+void StaticAnalyser::TypeOfExprStmt(ExprStmt *es)
 {
-    return es->exp->Type(*this);
+    es->exp->Type(*this);
 }
 
-TypeData StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
+void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
 {
     if (Symbols.IsVarInScope(dv->name))
         TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
@@ -340,11 +339,9 @@ TypeData StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
         if (dv->t.type < NUM_DEF_TYPES)
             dv->value->t = dv->t;
     }
-
-    return {0, false};
 }
 
-TypeData StaticAnalyser::TypeOfBlock(Block *b)
+void StaticAnalyser::TypeOfBlock(Block *b)
 {
     Symbols.depth++;
     size_t preBlockSize = Symbols.vars.size();
@@ -354,10 +351,9 @@ TypeData StaticAnalyser::TypeOfBlock(Block *b)
 
     Symbols.PopUntilSized(preBlockSize);
     Symbols.depth--;
-    return {0, false};
 }
 
-TypeData StaticAnalyser::TypeOfIfStmt(IfStmt *i)
+void StaticAnalyser::TypeOfIfStmt(IfStmt *i)
 {
     if (!IsTruthy(i->cond->Type(*this)))
         TypeError(i->Loc(), "Condition of and if statement must be 'turthy'");
@@ -366,23 +362,22 @@ TypeData StaticAnalyser::TypeOfIfStmt(IfStmt *i)
 
     if (i->elseBranch != nullptr)
         i->elseBranch->Type(*this);
-
-    return {0, false};
 }
 
-TypeData StaticAnalyser::TypeOfWhileStmt(WhileStmt *ws)
+void StaticAnalyser::TypeOfWhileStmt(WhileStmt *ws)
 {
     if (!IsTruthy(ws->cond->Type(*this)))
         TypeError(ws->Loc(), "Condition of a while statment must be 'truthy'");
 
     ws->body->Type(*this);
-    return {0, false};
 }
 
-TypeData StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
+void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
 {
     if (Symbols.funcs.size() > UINT8_MAX)
         TypeError(fd->Loc(), "Maximum number of functions is " + std::to_string(UINT8_MAX));
+
+    curFunc = fd;
 
     Symbols.depth++;
     Symbols.AddFunc(fd->ret, fd->name, fd->argtypes, false);
@@ -400,21 +395,53 @@ TypeData StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
     for (auto &s : fd->body)
         s->Type(*this);
 
+    for (auto &e : fd->preConds)
+        e->Type(*this);
+
     Symbols.PopUntilSized(preFuncSize);
     Symbols.depth--;
-    return {0, false};
+    curFunc = nullptr;
 }
 
-TypeData StaticAnalyser::TypeOfReturn(Return *r)
+void StaticAnalyser::TypeOfReturn(Return *r)
 {
     if (Symbols.depth == 0)
         TypeError(r->Loc(), "Cannot return from outside of a function");
+
     if (r->retVal == nullptr)
-        return {0, false};
-    return r->retVal->Type(*this);
+    {
+        if (curFunc->ret != TypeData(false, 0))
+            TypeError(r->Loc(), "Non-void function cannot return void");
+
+        if (r->postConds.size() != 0)
+            TypeError(r->Loc(), "Void function cannot have post conditions");
+    }
+
+    for (auto &e : r->postConds)
+        e->Type(*this);
+
+    assert(curFunc != nullptr);
+    TypeData ret = r->retVal->Type(*this);
+
+    if (ret != curFunc->ret)
+        TypeError(r->Loc(), "Return type does not match declaration");
+
+    // typechecking post conditions against function arguments
+    StaticAnalyser tempSA;
+
+    tempSA.Symbols.AddVar(curFunc->ret, "result");
+
+    for (size_t i = 0; i < curFunc->argtypes.size(); i++)
+        tempSA.Symbols.AddVar(curFunc->argtypes[i], curFunc->paramIdentifiers[i]);
+
+    for (auto e : r->postConds)
+    {
+        if (e->Type(tempSA) != GetTypeNameMap()["bool"])
+            TypeError(r->Loc(), "Post condition expressions must be bools");
+    }
 }
 
-TypeData StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
+void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
 {
     if (sd->decls.size() > UINT8_MAX)
         TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
@@ -424,9 +451,7 @@ TypeData StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
     StructID s;
     s.type = GetTypeNameMap()[sd->name];
 
-    TypeData voidT = {false, 0};
-
-    if (sd->parent != voidT)
+    if (sd->parent != GetTypeNameMap()["void"])
     {
         size_t parIndex = Symbols.FindStruct(sd->parent);
 
@@ -471,11 +496,11 @@ TypeData StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
     Symbols.CleanUpCurDepth();
     Symbols.depth--;
 
-    return {0, false};
+    return;
 }
 
 // for now all functions of library are imported
-TypeData StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
+void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
 {
     std::vector<std::string> libraryFuncs;
     assert(is->libraries.size() > 0);
@@ -491,7 +516,7 @@ TypeData StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
                 TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
         }
     }
-    return {0, false};
+    return;
 }
 
 //-----------------EXPRESSIONS---------------------//
@@ -553,47 +578,47 @@ TypeData TypeCast::Type(StaticAnalyser &t)
 
 //------------------STATEMENTS---------------------//
 
-TypeData ExprStmt::Type(StaticAnalyser &t)
+void ExprStmt::Type(StaticAnalyser &t)
 {
-    return t.TypeOfExprStmt(this);
+    t.TypeOfExprStmt(this);
 }
 
-TypeData DeclaredVar::Type(StaticAnalyser &t)
+void DeclaredVar::Type(StaticAnalyser &t)
 {
-    return t.TypeOfDeclaredVar(this);
+    t.TypeOfDeclaredVar(this);
 }
 
-TypeData Block::Type(StaticAnalyser &t)
+void Block::Type(StaticAnalyser &t)
 {
-    return t.TypeOfBlock(this);
+    t.TypeOfBlock(this);
 }
 
-TypeData IfStmt::Type(StaticAnalyser &t)
+void IfStmt::Type(StaticAnalyser &t)
 {
-    return t.TypeOfIfStmt(this);
+    t.TypeOfIfStmt(this);
 }
 
-TypeData WhileStmt::Type(StaticAnalyser &t)
+void WhileStmt::Type(StaticAnalyser &t)
 {
-    return t.TypeOfWhileStmt(this);
+    t.TypeOfWhileStmt(this);
 }
 
-TypeData FuncDecl::Type(StaticAnalyser &t)
+void FuncDecl::Type(StaticAnalyser &t)
 {
-    return t.TypeOfFuncDecl(this);
+    t.TypeOfFuncDecl(this);
 }
 
-TypeData Return::Type(StaticAnalyser &t)
+void Return::Type(StaticAnalyser &t)
 {
-    return t.TypeOfReturn(this);
+    t.TypeOfReturn(this);
 }
 
-TypeData StructDecl::Type(StaticAnalyser &t)
+void StructDecl::Type(StaticAnalyser &t)
 {
-    return t.TypeOfStructDecl(this);
+    t.TypeOfStructDecl(this);
 }
 
-TypeData ImportStmt::Type(StaticAnalyser &t)
+void ImportStmt::Type(StaticAnalyser &t)
 {
-    return t.TypeOfImportStmt(this);
+    t.TypeOfImportStmt(this);
 }
