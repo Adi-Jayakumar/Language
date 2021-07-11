@@ -108,7 +108,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     TypeID type = l->GetType().type;
     std::string literal = l->Loc().literal;
-    Chunk *cur = c.cur;
+    Function *cur = c.cur;
 
     if (type == 1)
     {
@@ -356,7 +356,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     if (c.Symbols.vars.size() > UINT8_MAX)
-        c.CompileError(dv->Loc(), "Max number of variables in a chunk is " + std::to_string(UINT8_MAX));
+        c.CompileError(dv->Loc(), "Max number of variables in a Function is " + std::to_string(UINT8_MAX));
 
     c.Symbols.AddVar(dv->t, dv->name);
     dv->value->NodeCompile(c);
@@ -457,8 +457,8 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
-    c.chunks.push_back(Chunk());
-    c.cur = &c.chunks.back();
+    c.Functions.push_back(Function());
+    c.cur = &c.Functions.back();
     c.cur->arity = fd->argtypes.size();
 
     c.Symbols.funcVarBegin = c.Symbols.vars.size();
@@ -475,7 +475,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     c.ClearCurrentDepthWithPOPInst();
     c.Symbols.depth--;
     c.Symbols.funcVarBegin = 0;
-    c.cur = &c.chunks[0];
+    c.cur = &c.Functions[0];
 }
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)

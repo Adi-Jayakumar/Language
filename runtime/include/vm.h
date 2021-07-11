@@ -1,7 +1,7 @@
 #pragma once
 #include "callstack.h"
+#include "function.h"
 #include "libfuncdef.h"
-#include "runtimefunc.h"
 #include "runtimeobject.h"
 #include "stack.h"
 #include <dlfcn.h>
@@ -27,7 +27,7 @@ public:
 
 class VM
 {
-    std::vector<RuntimeFunction> functions;
+    std::vector<Function> functions;
     std::vector<Object *> globals;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
@@ -63,7 +63,7 @@ class VM
     void GarbageCollect();
 
 public:
-    VM(std::vector<RuntimeFunction> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
+    VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
     ~VM();
 
     size_t GetStackSize()

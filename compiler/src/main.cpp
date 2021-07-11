@@ -18,10 +18,10 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("verifier_ex/square.txt");
+    DumpTokens("../verifier_ex/square.txt");
     std::cout << std::endl
               << std::endl;
-    Parser p("verifier_ex/square.txt");
+    Parser p("../verifier_ex/square.txt");
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
     if (p.hadError)
@@ -74,10 +74,10 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    // std::vector<RuntimeFunction> rf;
+    // std::vector<Function> rf;
 
-    // for (const auto &ch : c.chunks)
-    //     rf.push_back(RuntimeFunction(ch));
+    // for (const auto &ch : c.Functions)
+    //     rf.push_back(Function(ch));
 
     // VM vm = VM(rf, mainIndex, c.StructTree, c.libfuncs);
 

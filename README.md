@@ -24,12 +24,12 @@ An implementation of a C-style statically typed language that compiles down to a
  - [ ] Optimiser
  - [ ] Multiple file programs
  - [ ] Verification
-    - [ ] Lex and parse verification statements
+    - [x] Lex and parse verification statements
     - [ ] Push precondition through program
     - [ ] Verify output
 
 # Long-term Goals
- - [ ] Serialise and de-serialise RuntimeFunctions in order to seperate compilation and execution
+ - [ ] Serialise and de-serialise Functions in order to seperate compilation and execution
  - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
 # Known bugs TODO

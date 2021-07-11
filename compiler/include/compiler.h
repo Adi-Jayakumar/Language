@@ -1,15 +1,15 @@
 #pragma once
-#include "chunk.h"
+#include "function.h"
 #include "idstructs.h"
+#include "libfuncdef.h"
 #include "perror.h"
 #include "stmtnode.h"
 #include "symboltable.h"
-#include "libfuncdef.h"
 
 class Compiler
 {
 public:
-    std::vector<Chunk> chunks;
+    std::vector<Function> Functions;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
     SymbolTable Symbols;
@@ -19,7 +19,7 @@ public:
 
     void CompileError(Token loc, std::string err);
 
-    Chunk *cur;
+    Function *cur;
     Compiler();
 
     // returns the index of the 'void Main()' function

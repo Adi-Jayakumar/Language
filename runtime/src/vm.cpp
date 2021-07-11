@@ -1,6 +1,6 @@
 #include "vm.h"
 
-VM::VM(std::vector<RuntimeFunction> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::vector<LibraryFunctionDef> &_syms)
+VM::VM(std::vector<Function> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::vector<LibraryFunctionDef> &_syms)
 {
     functions = _functions;
     StructTree = _StructTree;
@@ -103,7 +103,7 @@ void VM::ExecuteProgram()
 
         if (curCF != cs - 1)
         {
-            curFunc = returnCF->retChunk;
+            curFunc = returnCF->retFunction;
             size_t stackDiff = stack.count - returnCF->valStackMin;
 
             // cleaning up the function's constants
@@ -370,7 +370,7 @@ void VM::ExecuteInstruction()
         curCF--;
 
         ip = returnCF->retIndex;
-        curFunc = returnCF->retChunk;
+        curFunc = returnCF->retFunction;
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
         Object *retVal;
@@ -387,7 +387,7 @@ void VM::ExecuteInstruction()
         curCF--;
 
         ip = returnCF->retIndex;
-        curFunc = returnCF->retChunk;
+        curFunc = returnCF->retFunction;
 
         size_t stackDiff = stack.count - returnCF->valStackMin;
 

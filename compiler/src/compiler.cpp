@@ -2,9 +2,9 @@
 
 Compiler::Compiler()
 {
-    chunks.push_back(Chunk());
-    chunks[0].arity = 0;
-    cur = &chunks[0];
+    Functions.push_back(Function());
+    Functions[0].arity = 0;
+    cur = &Functions[0];
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -39,17 +39,17 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 
 void Compiler::Disassemble()
 {
-    std::cout << "NUM CHUNKS: " << chunks.size() << std::endl
+    std::cout << "NUM FunctionS: " << Functions.size() << std::endl
               << std::endl
               << std::endl;
-    for (size_t i = 0; i < chunks.size(); i++)
+    for (size_t i = 0; i < Functions.size(); i++)
     {
-        std::cout << "Chunk index: " << i << std::endl
-                  << "Chunk arity: " << +chunks[i].arity
+        std::cout << "Function index: " << i << std::endl
+                  << "Function arity: " << +Functions[i].arity
                   << std::endl
                   << std::endl;
 
-        chunks[i].PrintCode();
+        Functions[i].PrintCode();
 
         std::cout << std::endl
                   << std::endl;
