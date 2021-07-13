@@ -290,11 +290,23 @@ Token Lexer::LexNumber()
     int length = 0;
 
     bool hadDot = false;
+    int eCount = 0;
 
-    while (isdigit(src[index]) || src[index] == '.')
+    while (isdigit(src[index]) || src[index] == '.' || src[index] == 'e')
     {
         if (src[index] == '.')
             hadDot = true;
+        if ((src[index] == 'e' && !hadDot) || eCount > 1)
+            LexError("Malformed double on line " + std::to_string(line));
+
+        if (src[index] == 'e')
+        {
+            if (src[index + 1] != '+' && src[index + 1] != '-')
+                LexError("Malformed double on line " + std::to_string(line));
+            index++;
+            length++;
+        }
+
         index++;
         length++;
     }

@@ -125,4 +125,5 @@ struct Op
 {
     Opcode code;
     uint8_t op;
+    Op(Opcode _code, uint8_t _op) : code(_code), op(_op){};
 };

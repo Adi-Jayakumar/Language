@@ -1,8 +1,6 @@
 #pragma once
 #include "op.h"
-#include <cstdint>
 #include <iostream>
-#include <string>
 #include <vector>
 
 struct Function
@@ -14,10 +12,11 @@ struct Function
     std::vector<int> ints;
     std::vector<double> doubles;
     std::vector<bool> bools;
-    std::vector<std::string> strings;
     std::vector<char> chars;
+    std::vector<std::string> strings;
 
     Function() = default;
+    Function(uint8_t _arity, std::vector<Op> _code, std::vector<int> _ints, std::vector<double> _doubles, std::vector<bool> _bools, std::vector<char> _chars, std::vector<std::string> _strings) : arity(_arity), code(_code), ints(_ints), doubles(_doubles), bools(_bools), chars(_chars), strings(_strings){};
 
     void PrintCode()
     {

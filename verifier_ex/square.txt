@@ -1,9 +1,5 @@
-
-
-function int Square(int x)
-(|x;|)
+function void Main()
 {
-    int y = x * x;
-    return y;
-    (|result == x * x;|)
+    int i = 2147483647;
+    string str = "hi";
 }

@@ -1,6 +1,7 @@
 #include "ASTPrinter.h"
 #include "compiler.h"
 #include "parser.h"
+#include "serialise.h"
 #include "staticanalyser.h"
 #include <chrono>
 
@@ -18,7 +19,7 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("../verifier_ex/square.txt");
+    // DumpTokens("../verifier_ex/square.txt");
     std::cout << std::endl
               << std::endl;
     Parser p("../verifier_ex/square.txt");
@@ -53,48 +54,34 @@ int main()
 
     Compiler c = Compiler();
     size_t mainIndex = c.Compile(res);
+
     c.Disassemble();
+    // c.Functions[0] = c.Functions[1];
+    // std::ofstream file;
+    // file.open("../test.lo", std::ios::out | std::ios::app | std::ios::binary);
 
-    if (c.hadError)
-        exit(5);
+    // c.Functions[0].SerialiseFunction(file);
+    // c.Functions[1].SerialiseFunction(file);
+
+    // std::ifstream fil;
+    // fil.open("../test.lo", std::ios::in | std::ios::binary);
+    // Function f = Function::DeserialiseFunction(fil);
+    // f.PrintCode();
+    // Function g = Function::DeserialiseFunction(fil);
+    // g.PrintCode();
+    Serialise::SerialiseProgram(c, "../test.lo");
 
     std::cout << std::endl
               << std::endl;
+    std::cout << "DESERIALISED VERSION" << std::endl;
+    std::cout << std::endl
+              << std::endl;
 
-    std::cout << "Struct inheritance tree" << std::endl;
+    std::vector<Function> des = Serialise::DeserialiseProgram("../test.lo");
 
-    for (const auto &kv : c.StructTree)
+    std::cout << "numFunctions " << des.size() << std::endl;
+    for (auto &f : des)
     {
-        std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
-        for (const auto &ch : kv.second)
-            std::cout << GetTypeStringMap()[ch] << ", ";
-        std::cout << std::endl;
+        f.PrintCode();
     }
-
-    std::cout << std::endl
-              << std::endl;
-
-    // std::vector<Function> rf;
-
-    // for (const auto &ch : c.Functions)
-    //     rf.push_back(Function(ch));
-
-    // VM vm = VM(rf, mainIndex, c.StructTree, c.libfuncs);
-
-    // auto t1 = std::chrono::high_resolution_clock::now();
-
-    // vm.ExecuteProgram();
-
-    // auto t2 = std::chrono::high_resolution_clock::now();
-
-    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
-    // std::cout << "Time taken (s): " << (double)duration / 1e6 << std::endl;
-
-    // std::cout << std::endl
-    //           << std::endl;
-
-    // std::cout << "Size of stack: " << vm.GetStackSize() << std::endl;
-
-    // if (vm.GetStackSize() != 0)
-    //     vm.PrintStack();
 }
