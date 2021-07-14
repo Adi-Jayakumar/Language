@@ -21,6 +21,7 @@ An implementation of a C-style statically typed language that compiles down to a
  - [x] Implement structs
  - [x] Implement struct inheritance
  - [x] Modules
+ - [x] Serialise and de-serialise Functions in order to seperate compilation and execution
  - [ ] Optimiser
  - [ ] Multiple file programs
  - [ ] Verification
@@ -29,7 +30,6 @@ An implementation of a C-style statically typed language that compiles down to a
     - [ ] Verify output
 
 # Long-term Goals
- - [ ] Serialise and de-serialise Functions in order to seperate compilation and execution
  - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
 # Known bugs TODO
