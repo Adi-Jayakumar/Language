@@ -2,9 +2,12 @@
 #include "callstack.h"
 #include "function.h"
 #include "libfuncdef.h"
+#include "perror.h"
 #include "runtimeobject.h"
+#include "serialise.h"
 #include "stack.h"
 #include <dlfcn.h>
+#include <fstream>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
@@ -27,6 +30,7 @@ public:
 
 class VM
 {
+private:
     std::vector<Function> functions;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
@@ -83,4 +87,19 @@ public:
     // native functions
     void NativePrint(int arity); // opcode: 0
     void NativeToString();       // opcode: 1
+
+    static std::vector<Function> DeserialiseProgram(std::string fPath);
+
+private:
+    static bool DoesFileExist(std::string &path);
+    static void DeserialisationError(std::string err);
+    static Function DeserialiseFunction(std::ifstream &file);
+    static size_t ReadSizeT(std::ifstream &file);
+    static void *DeserialiseData(size_t numElements, size_t typeSize, std::ifstream &file);
+    static std::vector<int> DeserialiseInts(std::ifstream &file);
+    static std::vector<double> DeserialiseDoubles(std::ifstream &file);
+    static std::vector<bool> DeserialiseBools(std::ifstream &file);
+    static std::vector<char> DeserialiseChars(std::ifstream &file);
+    static std::vector<std::string> DeserialiseStrings(std::ifstream &file);
+    static std::vector<Op> DeserialiseOps(std::ifstream &file);
 };

@@ -83,19 +83,5 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    Serialise::SerialiseProgram(c, "../test.lo");
-
-    std::cout << std::endl
-              << std::endl;
-    std::cout << "DESERIALISED VERSION" << std::endl;
-    std::cout << std::endl
-              << std::endl;
-
-    std::vector<Function> des = Serialise::DeserialiseProgram("../test.lo");
-
-    std::cout << "numFunctions " << des.size() << std::endl;
-    for (auto &f : des)
-    {
-        f.PrintCode();
-    }
+    Compiler::SerialiseProgram(c, "../test.lo");
 }
