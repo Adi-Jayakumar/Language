@@ -157,7 +157,9 @@ void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
 
 void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
 {
-    out << v->t << " " << v->name << " = " << v->value.get();
+    out << v->t << " " << v->name;
+    if (v->value != nullptr)
+        out << " = " << v->value.get();
     out << ";" << std::endl;
 }
 

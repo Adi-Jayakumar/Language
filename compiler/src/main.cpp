@@ -53,7 +53,7 @@ int main()
               << std::endl;
 
     Compiler c = Compiler();
-    size_t mainIndex = c.Compile(res);
+    c.Compile(res);
 
     c.Disassemble();
     // c.Functions[0] = c.Functions[1];
@@ -69,6 +69,20 @@ int main()
     // f.PrintCode();
     // Function g = Function::DeserialiseFunction(fil);
     // g.PrintCode();
+
+    std::cout << "Struct inheritance tree in main" << std::endl;
+
+    for (const auto &kv : c.StructTree)
+    {
+        std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
+        for (const auto &ch : kv.second)
+            std::cout << GetTypeStringMap()[ch] << ", ";
+        std::cout << std::endl;
+    }
+
+    std::cout << std::endl
+              << std::endl;
+
     Serialise::SerialiseProgram(c, "../test.lo");
 
     std::cout << std::endl

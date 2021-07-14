@@ -28,7 +28,6 @@ public:
 class VM
 {
     std::vector<Function> functions;
-    std::vector<Object *> globals;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
     std::vector<std::pair<LibFunc, size_t>> CLibs;

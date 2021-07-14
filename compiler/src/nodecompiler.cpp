@@ -504,6 +504,13 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         s.nameTypes[asDV->name] = asDV->t;
     }
 
+    if (sd->parent != GetTypeNameMap()["void"])
+    {
+        size_t sParent = c.Symbols.FindStruct(sd->parent);
+        TypeData parent = c.Symbols.strcts[sParent].type;
+        c.StructTree[GetTypeNameMap()[sd->name].type].insert(parent.type);
+    }
+
     s.isNull = true;
     c.Symbols.AddStruct(s);
 }

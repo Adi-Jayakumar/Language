@@ -13,9 +13,9 @@ void Compiler::CompileError(Token loc, std::string err)
     throw e;
 }
 
-size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
+void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
-    size_t mainIndex = SIZE_MAX;
+    mainIndex = SIZE_MAX;
     size_t numFunctions = 0;
     for (size_t i = 0; i < s.size(); i++)
     {
@@ -34,7 +34,6 @@ size_t Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
         else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr && dynamic_cast<ImportStmt *>(s[i].get()) == nullptr)
             CompileError(s[i]->Loc(), "Only declarations allowed in global region");
     }
-    return mainIndex;
 }
 
 void Compiler::Disassemble()

@@ -1,11 +1,8 @@
 #pragma once
-
-#ifndef COMMON_H_INCLUDED
 #include <cstdint>
-typedef uint8_t TypeID;
-#endif
 #include <sstream>
 
+typedef uint8_t TypeID;
 enum class GCState
 {
     FREED,
@@ -113,7 +110,6 @@ public:
     Null_T() = default;
     virtual std::string ToString() override;
 };
-
 
 Object *CreateInt(int);
 Object *CreateDouble(double);

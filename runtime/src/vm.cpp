@@ -195,12 +195,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::VAR_A_GLOBAL:
     {
-        globals[o.op] = stack.back;
+        // globals[o.op] = stack.back;
         break;
     }
     case Opcode::VAR_D_GLOBAL:
     {
-        globals.push_back(stack.back);
+        // globals.push_back(stack.back);
         break;
     }
     case Opcode::GET_V:
@@ -210,7 +210,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::GET_V_GLOBAL:
     {
-        stack.push_back(globals[o.op]);
+        // stack.push_back(globals[o.op]);
         break;
     }
     case Opcode::ARR_D:

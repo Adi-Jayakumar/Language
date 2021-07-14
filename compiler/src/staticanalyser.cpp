@@ -490,6 +490,10 @@ void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
 
         s.nameTypes[asDV->name] = asDV->t;
     }
+
+    if (sd->parent.isArray)
+        TypeError(sd->Loc(), "Parent of struct cannot be an array");
+
     Symbols.strcts.push_back(s);
     Symbols.CleanUpCurDepth();
     Symbols.depth--;

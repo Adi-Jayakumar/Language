@@ -1,3 +1,24 @@
+struct Animal
+{
+    string sound;
+}
+
+struct Dog : Animal
+{
+    string breed;
+}
+
+struct Cat : Animal
+{
+    string color;
+}
+
+struct Labrador : Dog
+{
+    string name;
+    string owner;
+}
+
 function void Main()
 {
     int i = 2147483647;

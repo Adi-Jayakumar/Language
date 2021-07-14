@@ -9,6 +9,7 @@
 class Compiler
 {
 public:
+    size_t mainIndex;
     std::vector<Function> Functions;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
@@ -22,8 +23,8 @@ public:
     Function *cur;
     Compiler();
 
-    // returns the index of the 'void Main()' function
-    size_t Compile(std::vector<std::shared_ptr<Stmt>> &s);
+    // sets the index of the 'void Main()' function
+    void Compile(std::vector<std::shared_ptr<Stmt>> &s);
     void Disassemble();
 
     void ClearCurrentDepthWithPOPInst();

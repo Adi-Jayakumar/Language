@@ -26,6 +26,15 @@ struct Serialise
         return std::ifstream(path).good();
     }
 
+#define INT_ID 0xAAAAAAAAAAAAAAAA
+#define DOUBLE_ID 0xBBBBBBBBBBBBBBBB
+#define BOOL_ID 0xCCCCCCCCCCCCCCCC
+#define CHAR_ID 0xDDDDDDDDDDDDDDDD
+#define STRING_ID 0xEEEEEEEEEEEEEEEE
+#define CODE_ID 0xFFFFFFFFFFFFFFFF
+#define STRUCT_TREE_ID 0xABABABABABABABAB
+#define LIB_FUNC_ID 0xBCBCBCBCBCBCBCBC
+
     static void SerialiseProgram(Compiler &prog, std::string fPath)
     {
         std::ofstream file;
@@ -35,8 +44,59 @@ struct Serialise
 
         file.open(fPath, std::ios::out | std::ios::app | std::ios::binary);
 
+        // serialising the index of the 'void Main()' function
+        uint8_t mainIndex = static_cast<uint8_t>(prog.mainIndex);
+        file.write((char *)&mainIndex, sizeof(uint8_t));
+
+        // serialising the number of functions
+        uint8_t numFunctions = static_cast<uint8_t>(prog.Functions.size());
+        file.write((char *)&numFunctions, sizeof(uint8_t));
+
         for (Function &func : prog.Functions)
             SerialiseFunction(func, file);
+
+        // serialising the struct tree
+        size_t structTreeID = STRUCT_TREE_ID;
+        file.write((char *)&structTreeID, sizeof(size_t));
+
+        // writing the number of structs
+        size_t numStructs = prog.StructTree.size();
+        file.write((char *)&numStructs, sizeof(size_t));
+
+        for (auto &s : prog.StructTree)
+        {
+            // writing the struct id
+            file.write((char *)&s.first, sizeof(size_t));
+
+            size_t numParents = s.second.size();
+            // writing the number of parents
+            file.write((char *)&numParents, sizeof(size_t));
+            // writing the parent ids
+            for (auto &parent : s.second)
+                file.write((char *)&parent, sizeof(size_t));
+        }
+
+        size_t libFuncID = LIB_FUNC_ID;
+        file.write((char *)&libFuncID, sizeof(size_t));
+
+        size_t numLibFuncs = prog.libfuncs.size();
+        file.write((char *)&numLibFuncs, sizeof(size_t));
+
+        for (auto &libfunc : prog.libfuncs)
+        {
+            // writing the name of the function
+            size_t nameLen = libfunc.name.length();
+            file.write((char *)&nameLen, sizeof(size_t));
+            SerialiseData(&libfunc.name[0], sizeof(char), nameLen, file);
+
+            // writing the library
+            size_t libLen = libfunc.library.length();
+            file.write((char *)&libLen, sizeof(size_t));
+            SerialiseData(&libfunc.library[0], sizeof(char), libLen, file);
+
+            // writing the arity of the library function
+            file.write((char *)&libfunc.arity, sizeof(size_t));
+        }
 
         file.close();
     }
@@ -55,13 +115,6 @@ struct Serialise
         SerialiseOps(f, file);
     }
 
-#define INT_ID 0xAAAAAAAAAAAAAAAA
-#define DOUBLE_ID 0xBBBBBBBBBBBBBBBB
-#define BOOL_ID 0xCCCCCCCCCCCCCCCC
-#define CHAR_ID 0xDDDDDDDDDDDDDDDD
-#define STRING_ID 0xEEEEEEEEEEEEEEEE
-#define CODE_ID 0xFFFFFFFFFFFFFFFF
-
     static std::vector<Function> DeserialiseProgram(std::string fPath)
     {
         std::ifstream file;
@@ -70,9 +123,76 @@ struct Serialise
 
         file.open(fPath, std::ios::in | std::ios::binary);
 
+        uint8_t mainIndex;
+        file.read((char *)&mainIndex, sizeof(uint8_t));
+
+        uint8_t numFunctions;
+        file.read((char *)&numFunctions, sizeof(uint8_t));
+
         std::vector<Function> program;
-        while (file.peek() != EOF)
+        for (uint8_t i = 0; i < numFunctions; i++)
             program.push_back(DeserialiseFunction(file));
+
+        size_t id = ReadSizeT(file);
+        switch (id)
+        {
+        case STRUCT_TREE_ID:
+        {
+            std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
+            size_t numStructs = ReadSizeT(file);
+
+            for (size_t i = 0; i < numStructs; i++)
+            {
+                size_t structId = ReadSizeT(file);
+                size_t numParents = ReadSizeT(file);
+
+                for (size_t i = 0; i < numParents; i++)
+                    StructTree[structId].insert(ReadSizeT(file));
+            }
+
+            std::cout << "Struct inheritance tree" << std::endl;
+
+            for (const auto &kv : StructTree)
+            {
+                std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
+                for (const auto &ch : kv.second)
+                    std::cout << GetTypeStringMap()[ch] << ", ";
+                std::cout << std::endl;
+            }
+
+            std::cout << std::endl
+                      << std::endl;
+
+            break;
+        }
+        case LIB_FUNC_ID:
+        {
+            std::vector<LibraryFunctionDef> libFuncs;
+            size_t numLibFuncs = ReadSizeT(file);
+
+            for (size_t i = 0; i < numLibFuncs; i++)
+            {
+                size_t nameLen = ReadSizeT(file);
+                char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
+                std::string name(cName, nameLen);
+                delete[] cName;
+
+                size_t libLen = ReadSizeT(file);
+                char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
+                std::string libName(cLibName, libLen);
+                delete[] cLibName;
+
+                size_t arity = ReadSizeT(file);
+                libFuncs.push_back(LibraryFunctionDef(name, libName, arity));
+            }
+            break;
+        }
+        default:
+        {
+            SerialisationError("Invalid section identifier " + std::to_string(id));
+            break;
+        }
+        }
 
         file.close();
         return program;
