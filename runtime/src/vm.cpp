@@ -55,6 +55,25 @@ VM::~VM()
     }
 }
 
+void VM::Disasemble()
+{
+    std::cout << "NUM FunctionS: " << functions.size() << std::endl
+              << std::endl
+              << std::endl;
+    for (size_t i = 0; i < functions.size(); i++)
+    {
+        std::cout << "Function index: " << i << std::endl
+                  << "Function arity: " << +functions[i].arity
+                  << std::endl
+                  << std::endl;
+
+        functions[i].PrintCode();
+
+        std::cout << std::endl
+                  << std::endl;
+    }
+}
+
 void VM::PrintStack()
 {
     std::cout << "index\t|\tvalue" << std::endl;
@@ -425,8 +444,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::STRUCT_D:
     {
-        Object *arr = stack[stack.count - o.op - 1];
+        Object *arr = stack[stack.count - o.op - 2];
+
+        Object *type = stack[stack.count - o.op - 1];
         Object **data = GetStructMembers(arr);
+
+        SetStructType(arr, static_cast<TypeID>(GetInt(arr)));
 
         for (size_t i = 0; i < o.op; i++)
             data[i] = stack[stack.count - o.op + i];
@@ -822,7 +845,7 @@ void VM::NativeToString()
     stack.push_back(new String(strcpy(c, str.c_str()), str.length()));
 }
 
-std::vector<Function> VM::DeserialiseProgram(std::string fPath)
+VM VM::DeserialiseProgram(std::string fPath)
 {
     std::ifstream file;
     if (!DoesFileExist(fPath))
@@ -841,11 +864,14 @@ std::vector<Function> VM::DeserialiseProgram(std::string fPath)
         program.push_back(DeserialiseFunction(file));
 
     size_t id = ReadSizeT(file);
+
+    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
+    std::vector<LibraryFunctionDef> libFuncs;
+
     switch (id)
     {
     case STRUCT_TREE_ID:
     {
-        std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
         size_t numStructs = ReadSizeT(file);
 
         for (size_t i = 0; i < numStructs; i++)
@@ -857,24 +883,10 @@ std::vector<Function> VM::DeserialiseProgram(std::string fPath)
                 StructTree[structId].insert(ReadSizeT(file));
         }
 
-        // std::cout << "Struct inheritance tree" << std::endl;
-
-        // for (const auto &kv : StructTree)
-        // {
-        //     std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
-        //     for (const auto &ch : kv.second)
-        //         std::cout << GetTypeStringMap()[ch] << ", ";
-        //     std::cout << std::endl;
-        // }
-
-        // std::cout << std::endl
-        //           << std::endl;
-
         break;
     }
     case LIB_FUNC_ID:
     {
-        std::vector<LibraryFunctionDef> libFuncs;
         size_t numLibFuncs = ReadSizeT(file);
 
         for (size_t i = 0; i < numLibFuncs; i++)
@@ -902,7 +914,7 @@ std::vector<Function> VM::DeserialiseProgram(std::string fPath)
     }
 
     file.close();
-    return program;
+    return VM(program, mainIndex, StructTree, libFuncs);
 }
 
 bool VM::DoesFileExist(std::string &path)

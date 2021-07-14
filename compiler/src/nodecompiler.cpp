@@ -283,7 +283,12 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
     if (bi->GetType().isArray)
         c.cur->code.push_back({Opcode::ARR_ALLOC, static_cast<uint8_t>(bi->size)});
     else
+    {
         c.cur->code.push_back({Opcode::STRUCT_ALLOC, static_cast<uint8_t>(bi->size)});
+
+        c.cur->ints.push_back(static_cast<int>(bi->t.type));
+        c.cur->code.push_back({Opcode::LOAD_INT, static_cast<uint8_t>(c.cur->ints.size() - 1)});
+    }
 
     for (auto &e : bi->init)
     {

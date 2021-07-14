@@ -6,21 +6,10 @@ struct Animal
 struct Dog : Animal
 {
     string breed;
-}
-
-struct Cat : Animal
-{
-    string color;
-}
-
-struct Labrador : Dog
-{
     string name;
-    string owner;
 }
 
 function void Main()
 {
-    int i = 2147483647;
-    string str = "hi";
+    Animal fido = Dog{"Woof", "Labrador", "Fido Dog"};
 }

@@ -68,6 +68,7 @@ private:
 public:
     VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
     ~VM();
+    void Disasemble();
 
     size_t GetStackSize()
     {
@@ -88,7 +89,7 @@ public:
     void NativePrint(int arity); // opcode: 0
     void NativeToString();       // opcode: 1
 
-    static std::vector<Function> DeserialiseProgram(std::string fPath);
+    static VM DeserialiseProgram(std::string fPath);
 
 private:
     static bool DoesFileExist(std::string &path);

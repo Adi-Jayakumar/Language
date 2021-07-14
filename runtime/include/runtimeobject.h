@@ -134,6 +134,7 @@ Object **GetArray(Object *);
 size_t GetNumStructMembers(Object *);
 Object **GetStructMembers(Object *);
 TypeID GetStructType(Object *);
+void SetStructType(Object *, TypeID);
 
 char GetChar(Object *);
 

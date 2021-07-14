@@ -140,6 +140,12 @@ TypeID GetStructType(Object *o)
     return static_cast<Struct *>(o)->type;
 }
 
+void SetStructType(Object *s, TypeID t)
+{
+    Struct *strct = static_cast<Struct *>(s);
+    strct->type = t;
+}
+
 char GetChar(Object *o)
 {
     return static_cast<Char *>(o)->c;
