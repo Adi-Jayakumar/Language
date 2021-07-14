@@ -20,7 +20,7 @@ An implementation of a C-style statically typed language that compiles down to a
  - [x] Implement multidimensional arrays
  - [x] Implement structs
  - [x] Implement struct inheritance
- - [x] Modules
+ - [x] Interfacing with C/C++ libraries
  - [x] Serialise and de-serialise Functions in order to seperate compilation and execution
  - [ ] Optimiser
  - [ ] Multiple file programs
