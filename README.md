@@ -34,7 +34,19 @@ An implementation of a C-style statically typed language that compiles down to a
 
 # Known bugs TODO
  - [ ] Parsing arithmetic comparison statements like 'n < 10' and thinking it is a cast
+    - MWE:
+        ```C
+        int n = 10;
+        bool ex = n < 100;
+        ```
  - [ ] Overloading of functions where the overloaded types are assignable to each other
+    - MWE:
+        ```C
+        function void Foo(int i){...}
+        function void Foo(double d){...}
+
+        Foo(3.14); // calls the int version not the double version
+        ```
  - [ ] Put parsed library functions into different container than normal functions
 
 # Example Programs
