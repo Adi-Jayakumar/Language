@@ -45,7 +45,8 @@ An implementation of a C-style statically typed language that compiles down to a
         function void Foo(int i){...}
         function void Foo(double d){...}
 
-        Foo(3.14); // calls the int version not the double version
+        Foo(3.14); // calls the int version not the double version as it appears first and
+                   // ints can be assigned to doubles 
         ```
  - [ ] Put parsed library functions into different container than normal functions
 
