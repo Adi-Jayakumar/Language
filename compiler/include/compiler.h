@@ -7,6 +7,7 @@
 #include "stmtnode.h"
 #include "symboltable.h"
 #include <fstream>
+#include <stack>
 
 class Compiler
 {
@@ -17,6 +18,8 @@ public:
 
     SymbolTable Symbols;
     std::vector<LibraryFunctionDef> libfuncs;
+
+    std::stack<std::vector<size_t>> breakIndices;
 
     bool hadError = false;
 

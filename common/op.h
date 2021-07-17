@@ -32,7 +32,7 @@ enum class Opcode : uint8_t
     // conditonals
     JUMP_IF_FALSE,
     JUMP,
-    LOOP,
+    SET_IP,
 
     // functions
     CALL_F,
@@ -210,9 +210,9 @@ inline std::string ToString(Opcode o)
     {
         return "JUMP";
     }
-    case Opcode::LOOP:
+    case Opcode::SET_IP:
     {
-        return "LOOP";
+        return "SET_IP";
     }
     case Opcode::CALL_F:
     {

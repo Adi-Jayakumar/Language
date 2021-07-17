@@ -6,5 +6,7 @@ int main()
 
     vm.Disasemble();
 
+    vm.ExecuteProgram();
+
     return 0;
 }

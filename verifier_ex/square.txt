@@ -1,6 +1,9 @@
-function int Square(int x)
-(|x;|)
+function void Main()
 {
-    return x * x;
-    (|result == x * x;|)
+    int counter = 0;
+    while(true)
+    {
+        
+        Print(counter);
+    }
 }

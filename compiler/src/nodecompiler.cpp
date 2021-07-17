@@ -440,24 +440,26 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 {
-    size_t begLoop = c.cur->code.size() - 1;
+    size_t loopBeg = c.cur->code.size();
+    if (loopBeg > UINT8_MAX)
+        c.CompileError(ws->Loc(), "Too much generated code before while statement");
     ws->cond->NodeCompile(c);
+
+    size_t patchIndex = c.cur->code.size();
+    if (patchIndex > UINT8_MAX)
+        c.CompileError(ws->cond->Loc(), "Too much code generated from loop condition");
+
     c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0});
-    size_t patchIndex = c.cur->code.size() - 1;
 
+    size_t bodyBeg = c.cur->code.size();
     ws->body->NodeCompile(c);
+    c.cur->code.push_back({Opcode::SET_IP, static_cast<uint8_t>(loopBeg - 1)}); // loopBeg - 1 since after each instruction ip is incremented
 
-    if (c.cur->code.size() - begLoop > UINT8_MAX)
-        c.CompileError(ws->Loc(), "Too much code to loop over");
+    size_t patchLoc = c.cur->code.size();
+    if (patchLoc - bodyBeg > UINT8_MAX)
+        c.CompileError(ws->body->Loc(), "Too much code generated from loop body");
 
-    c.cur->code.push_back({Opcode::LOOP, static_cast<uint8_t>(begLoop)});
-
-    size_t jumpSize = c.cur->code.size() - patchIndex;
-
-    if (jumpSize > UINT8_MAX)
-        c.CompileError(ws->Loc(), "Too much code to jump over");
-
-    c.cur->code[patchIndex].op = static_cast<uint8_t>(jumpSize - 1);
+    c.cur->code[patchIndex].op = static_cast<uint8_t>(patchLoc - bodyBeg);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
@@ -544,7 +546,14 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 
 void NodeCompiler::CompileBreak(Break *b, Compiler &c)
 {
-    return;
+    if (c.breakIndices.size() == 0)
+        c.CompileError(b->Loc(), "Break statement cannot occur outside of a loop");
+
+    std::vector<size_t> *curLoopBreaks = &c.breakIndices.top();
+    size_t breakLoc = c.cur->code.size();
+
+    curLoopBreaks->push_back(breakLoc);
+    c.cur->code.push_back({Opcode::SET_IP, 0});
 }
 
 //-----------------EXPRESSIONS---------------------//

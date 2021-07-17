@@ -18,7 +18,7 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex, std::unordered_map<s
 
     cs = new CallFrame[STACK_MAX];
     curCF = cs;
-    curFunc = mainIndex == SIZE_MAX ? SIZE_MAX : 0;
+    curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
     *curCF = {0, mainIndex, 0};
     curCF++;
     *curCF = {0, mainIndex, 0};
@@ -103,7 +103,7 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteProgram()
 {
-    if (curFunc == SIZE_MAX)
+    if (curFunc == UINT8_MAX)
         return;
     while (curCF != cs - 1)
     {
@@ -343,8 +343,12 @@ void VM::ExecuteInstruction()
     }
     case Opcode::JUMP_IF_FALSE:
     {
+        std::cout << "stack.back() in JIF " << stack.back->ToString() << std::endl;
         if (!stack.back->IsTruthy())
+        {
+            std::cout << "JUMP_IF_FALSE taken " << +o.op << std::endl;
             ip += o.op;
+        }
         stack.pop_back();
         break;
     }
@@ -353,7 +357,7 @@ void VM::ExecuteInstruction()
         ip += o.op;
         break;
     }
-    case Opcode::LOOP:
+    case Opcode::SET_IP:
     {
         ip = o.op;
         break;
