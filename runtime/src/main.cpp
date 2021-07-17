@@ -8,5 +8,7 @@ int main()
 
     vm.ExecuteProgram();
 
+    // for (auto &ti : vm.)
+
     return 0;
 }

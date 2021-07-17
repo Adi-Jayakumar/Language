@@ -6,9 +6,11 @@
 #include "runtimeobject.h"
 #include "serialise.h"
 #include "stack.h"
+#include "throwinfo.h"
 #include <dlfcn.h>
 #include <fstream>
 #include <iostream>
+#include <stack>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -36,6 +38,9 @@ private:
 
     std::vector<std::pair<LibFunc, size_t>> CLibs;
     std::vector<void *> libHandles;
+
+    std::vector<ThrowInfo> throwInfos;
+    std::stack<ThrowInfo> ThrowStack;
 
     // instruction pointer
     size_t ip;
@@ -66,7 +71,7 @@ private:
     void GarbageCollect();
 
 public:
-    VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &);
+    VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &, std::vector<ThrowInfo> &);
     ~VM();
     void Disasemble();
 
@@ -103,4 +108,5 @@ private:
     static std::vector<char> DeserialiseChars(std::ifstream &file);
     static std::vector<std::string> DeserialiseStrings(std::ifstream &file);
     static std::vector<Op> DeserialiseOps(std::ifstream &file);
+    static std::vector<ThrowInfo> DeserialiseThrowInfos(std::ifstream &file);
 };

@@ -229,3 +229,20 @@ void Compiler::SerialiseOps(Function &f, std::ofstream &file)
         file.write(reinterpret_cast<char *>(&op.op), sizeof(op.op));
     }
 }
+
+void Compiler::SerialiseThrowInfo(std::vector<ThrowInfo> &infos, std::ofstream &file)
+{
+    size_t id = THROW_INFO_ID;
+    SerialiseData(&id, 0, id, file);
+
+    size_t numThrows = infos.size();
+    SerialiseData(&numThrows, 0, numThrows, file);
+
+    for (auto &ti : infos)
+    {
+        file.write((char *)&ti.isArray, sizeof(bool));
+        file.write((char *)&ti.type, sizeof(uint8_t));
+        file.write((char *)&ti.func, sizeof(uint8_t));
+        file.write((char *)&ti.index, sizeof(uint8_t));
+    }
+}

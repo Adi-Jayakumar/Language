@@ -1,9 +1,12 @@
 #include "vm.h"
 
-VM::VM(std::vector<Function> &_functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree, std::vector<LibraryFunctionDef> &_syms)
+VM::VM(std::vector<Function> &_functions, size_t mainIndex,
+       std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree,
+       std::vector<LibraryFunctionDef> &_syms, std::vector<ThrowInfo> &_throwInfos)
 {
     functions = _functions;
     StructTree = _StructTree;
+    throwInfos = _throwInfos;
 
     for (auto &lf : _syms)
     {
@@ -412,6 +415,15 @@ void VM::ExecuteInstruction()
 
         // cleaning up the function's constants
         stack.pop_N(stackDiff);
+        break;
+    }
+    case Opcode::PUSH_THROW_INFO:
+    {
+        ThrowStack.push(throwInfos[o.op]);
+        break;
+    }
+    case Opcode::THROW:
+    {
         break;
     }
     case Opcode::NATIVE_CALL:
@@ -867,6 +879,7 @@ VM VM::DeserialiseProgram(std::string fPath)
 
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
     std::vector<LibraryFunctionDef> libFuncs;
+    std::vector<ThrowInfo> throwInfos;
 
     switch (id)
     {
@@ -906,6 +919,11 @@ VM VM::DeserialiseProgram(std::string fPath)
         }
         break;
     }
+    case THROW_INFO_ID:
+    {
+        throwInfos = DeserialiseThrowInfos(file);
+        break;
+    }
     default:
     {
         DeserialisationError("Invalid section identifier " + std::to_string(id));
@@ -914,7 +932,7 @@ VM VM::DeserialiseProgram(std::string fPath)
     }
 
     file.close();
-    return VM(program, mainIndex, StructTree, libFuncs);
+    return VM(program, mainIndex, StructTree, libFuncs, throwInfos);
 }
 
 bool VM::DoesFileExist(std::string &path)
@@ -1073,5 +1091,22 @@ std::vector<Op> VM::DeserialiseOps(std::ifstream &file)
         result.push_back(Op(code, oprand));
     }
 
+    return result;
+}
+
+std::vector<ThrowInfo> VM::DeserialiseThrowInfos(std::ifstream &file)
+{
+    size_t numThrows = ReadSizeT(file);
+    std::vector<ThrowInfo> result;
+
+    for (size_t i = 0; i < numThrows; i++)
+    {
+        ThrowInfo ti = ThrowInfo();
+        file.read((char *)&ti.isArray, sizeof(bool));
+        file.read((char *)&ti.type, sizeof(uint8_t));
+        file.read((char *)&ti.func, sizeof(uint8_t));
+        file.read((char *)&ti.index, sizeof(uint8_t));
+        result.push_back(ti);
+    }
     return result;
 }

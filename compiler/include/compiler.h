@@ -49,4 +49,5 @@ private:
     static void SerialiseChars(Function &f, std::ofstream &file);
     static void SerialiseStrings(Function &f, std::ofstream &file);
     static void SerialiseOps(Function &f, std::ofstream &file);
+    static void SerialiseThrowInfo(std::vector<ThrowInfo> &infos, std::ofstream &file);
 };

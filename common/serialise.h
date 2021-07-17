@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 
 // Ids for serialising attributes of compilers
 // and deserialising them into a VM
@@ -10,3 +11,4 @@
 #define CODE_ID 0xFFFFFFFFFFFFFFFF
 #define STRUCT_TREE_ID 0xABABABABABABABAB
 #define LIB_FUNC_ID 0xBCBCBCBCBCBCBCBC
+#define THROW_INFO_ID 0xCDCDCDCDCDCDCDCD
