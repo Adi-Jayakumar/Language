@@ -566,10 +566,34 @@ void NodeCompiler::CompileBreak(Break *b, Compiler &c)
 
 void NodeCompiler::CompileThrow(Throw *t, Compiler &c)
 {
+    t->exp->NodeCompile(c);
+    c.cur->code.push_back({Opcode::THROW, 0});
 }
 
 void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
 {
+    ThrowInfo ti = ThrowInfo();
+    ti.func = c.cur - &c.Functions[0];
+    ti.type = tc->catchVar.first.type;
+    ti.isArray = tc->catchVar.first.isArray;
+
+    size_t throwInfoSize = c.throwStack.size();
+    if (throwInfoSize > UINT8_MAX)
+        c.CompileError(tc->tryClause->Loc(), "Too many try-catch blocks, maximum number is " + std::to_string(UINT8_MAX));
+
+    c.cur->code.push_back({Opcode::PUSH_THROW_INFO, static_cast<uint8_t>(throwInfoSize)});
+    tc->tryClause->NodeCompile(c);
+
+    size_t sIndex = c.cur->code.size();
+    if (sIndex > UINT8_MAX)
+        c.CompileError(tc->tryClause->Loc(), "Too much code generated from 'try' clause");
+
+    ti.index = static_cast<uint8_t>(sIndex);
+    c.throwStack.push_back(ti);
+
+    std::cout << "ThrowInfo(" << (ti.isArray ? "array" : "") << +ti.type << ", " << +ti.index << ", " << +ti.func << ")" << std::endl;
+
+    tc->catchClause->NodeCompile(c);
 }
 
 //-----------------EXPRESSIONS---------------------//

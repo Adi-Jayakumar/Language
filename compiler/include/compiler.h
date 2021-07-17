@@ -6,6 +6,7 @@
 #include "serialise.h"
 #include "stmtnode.h"
 #include "symboltable.h"
+#include "throwinfo.h"
 #include <fstream>
 #include <stack>
 
@@ -20,6 +21,7 @@ public:
     std::vector<LibraryFunctionDef> libfuncs;
 
     std::stack<std::vector<size_t>> breakIndices;
+    std::vector<ThrowInfo> throwStack;
 
     bool hadError = false;
 

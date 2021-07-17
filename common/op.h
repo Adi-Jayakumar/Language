@@ -39,6 +39,10 @@ enum class Opcode : uint8_t
     CALL_LIBRARY_FUNC,
     RETURN,
     RETURN_VOID,
+
+    PUSH_THROW_INFO,
+    THROW,
+
     NATIVE_CALL,
     PRINT,
 
@@ -229,6 +233,14 @@ inline std::string ToString(Opcode o)
     case Opcode::RETURN_VOID:
     {
         return "RETURN_VOID";
+    }
+    case Opcode::PUSH_THROW_INFO:
+    {
+        return "PUSH_THROW_INFO";
+    }
+    case Opcode::THROW:
+    {
+        return "TRHOW";
     }
     case Opcode::NATIVE_CALL:
     {

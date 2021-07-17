@@ -52,10 +52,10 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    // Compiler c = Compiler();
-    // c.Compile(res);
+    Compiler c = Compiler();
+    c.Compile(res);
 
-    // c.Disassemble();
+    c.Disassemble();
     // // c.Functions[0] = c.Functions[1];
     // // std::ofstream file;
     // // file.open("../test.lo", std::ios::out | std::ios::app | std::ios::binary);
