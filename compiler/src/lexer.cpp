@@ -356,11 +356,11 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 's':
     {
-        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
+        return MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
     }
     case 't':
     {
-        return MatchKeyWord("rue", TokenID::BOOL_L, tok);
+        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("rue", TokenID::BOOL_L, tok);
     }
     case 'v':
     {

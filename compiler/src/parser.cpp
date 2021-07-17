@@ -118,6 +118,25 @@ std::vector<std::shared_ptr<Stmt>> Parser::Parse()
     return res;
 }
 
+std::vector<std::shared_ptr<Expr>> Parser::ParseVerCondition()
+{
+    std::vector<std::shared_ptr<Expr>> post;
+    if (cur.type == TokenID::OPEN_VER)
+    {
+        Advance();
+        while (cur.type != TokenID::CLOSE_VER && cur.type != TokenID::END)
+        {
+            post.push_back(Expression());
+            Check(TokenID::SEMI, "Expect semicolon after verification expressions");
+            Advance();
+        }
+
+        Check(TokenID::CLOSE_VER, "Expect close verification");
+        Advance();
+    }
+    return post;
+}
+
 std::shared_ptr<Stmt> Parser::Statement()
 {
     if (cur.type == TokenID::OPEN_BRACE)
@@ -147,21 +166,7 @@ std::shared_ptr<Stmt> Parser::Statement()
         // advancing over the semicolon
         Advance();
 
-        std::vector<std::shared_ptr<Expr>> post;
-        if (cur.type == TokenID::OPEN_VER)
-        {
-            Advance();
-            while (cur.type != TokenID::CLOSE_VER && cur.type != TokenID::END)
-            {
-                post.push_back(Expression());
-                Check(TokenID::SEMI, "Expect semicolon after verification expressions");
-                Advance();
-            }
-
-            Check(TokenID::CLOSE_VER, "Expect close verification");
-            Advance();
-        }
-
+        std::vector<std::shared_ptr<Expr>> post = ParseVerCondition();
         return std::make_shared<Return>(retVal, post, cur);
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
@@ -173,6 +178,42 @@ std::shared_ptr<Stmt> Parser::Statement()
         Check(TokenID::SEMI, "Expect ';' after 'break'");
         Advance();
         return std::make_shared<Break>(loc);
+    }
+    else if (cur.type == TokenID::THROW)
+    {
+        Token loc = cur;
+        Advance();
+        std::shared_ptr<Expr> exp = Expression();
+        Check(TokenID::SEMI, "Expect ';' after expression of throw");
+        Advance();
+        return std::make_shared<Throw>(exp, loc);
+    }
+    else if (cur.type == TokenID::TRY)
+    {
+        Token loc = cur;
+        Advance();
+
+        std::shared_ptr<Stmt> tryClause = Statement();
+
+        Check(TokenID::CATCH, "Expect 'catch' after 'try' block");
+
+        Advance();
+        Check(TokenID::OPEN_PAR, "Expect '(' after 'catch'");
+
+        Advance();
+        TypeData catchType = ParseType("Expect type in catch statement");
+
+        Check(TokenID::IDEN, "Expect identifier after type in catch statement");
+        std::string catchVarName = cur.literal;
+        std::pair<TypeData, std::string> catchVar(catchType, catchVarName);
+
+        Advance();
+        Check(TokenID::CLOSE_PAR, "Expect ')'");
+
+        Advance();
+        std::shared_ptr<Stmt> catchClause = Statement();
+
+        return std::make_shared<TryCatch>(tryClause, catchClause, catchVar, loc);
     }
     return Declaration();
 }
@@ -261,23 +302,8 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     Advance();
 
-    std::vector<std::shared_ptr<Expr>> pre;
-    if (cur.type == TokenID::OPEN_VER)
-    {
-        Advance();
-        while (cur.type != TokenID::CLOSE_VER && cur.type != TokenID::END)
-        {
-            pre.push_back(Expression());
-            Check(TokenID::SEMI, "Expect semicolon after verification expressions");
-            Advance();
-        }
-
-        Check(TokenID::CLOSE_VER, "Expect close verification");
-        Advance();
-    }
-
+    std::vector<std::shared_ptr<Expr>> pre = ParseVerCondition();
     Check(TokenID::OPEN_BRACE, "Function body must start with an open brace");
-
     depth++;
 
     Advance();

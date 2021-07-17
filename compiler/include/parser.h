@@ -28,6 +28,8 @@ struct Parser
     // parses a file into a list of statements
     std::vector<std::shared_ptr<Stmt>> Parse();
 
+    std::vector<std::shared_ptr<Expr>> ParseVerCondition();
+
     // parses a block
     std::shared_ptr<Block> ParseBlock();
     // parses any declaration

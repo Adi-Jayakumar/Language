@@ -19,7 +19,7 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    // DumpTokens("../verifier_ex/square.txt");
+    DumpTokens("../verifier_ex/square.txt");
     std::cout << std::endl
               << std::endl;
     Parser p("../verifier_ex/square.txt");
@@ -52,36 +52,36 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    Compiler c = Compiler();
-    c.Compile(res);
+    // Compiler c = Compiler();
+    // c.Compile(res);
 
-    c.Disassemble();
-    // c.Functions[0] = c.Functions[1];
-    // std::ofstream file;
-    // file.open("../test.lo", std::ios::out | std::ios::app | std::ios::binary);
+    // c.Disassemble();
+    // // c.Functions[0] = c.Functions[1];
+    // // std::ofstream file;
+    // // file.open("../test.lo", std::ios::out | std::ios::app | std::ios::binary);
 
-    // c.Functions[0].SerialiseFunction(file);
-    // c.Functions[1].SerialiseFunction(file);
+    // // c.Functions[0].SerialiseFunction(file);
+    // // c.Functions[1].SerialiseFunction(file);
 
-    // std::ifstream fil;
-    // fil.open("../test.lo", std::ios::in | std::ios::binary);
-    // Function f = Function::DeserialiseFunction(fil);
-    // f.PrintCode();
-    // Function g = Function::DeserialiseFunction(fil);
-    // g.PrintCode();
+    // // std::ifstream fil;
+    // // fil.open("../test.lo", std::ios::in | std::ios::binary);
+    // // Function f = Function::DeserialiseFunction(fil);
+    // // f.PrintCode();
+    // // Function g = Function::DeserialiseFunction(fil);
+    // // g.PrintCode();
 
-    std::cout << "Struct inheritance tree in main" << std::endl;
+    // std::cout << "Struct inheritance tree in main" << std::endl;
 
-    for (const auto &kv : c.StructTree)
-    {
-        std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
-        for (const auto &ch : kv.second)
-            std::cout << GetTypeStringMap()[ch] << ", ";
-        std::cout << std::endl;
-    }
+    // for (const auto &kv : c.StructTree)
+    // {
+    //     std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
+    //     for (const auto &ch : kv.second)
+    //         std::cout << GetTypeStringMap()[ch] << ", ";
+    //     std::cout << std::endl;
+    // }
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
-    Compiler::SerialiseProgram(c, "../test.lo");
+    // Compiler::SerialiseProgram(c, "../test.lo");
 }
