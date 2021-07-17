@@ -31,6 +31,8 @@
 *.out
 *.app
 bin/*
+compiler/bin/*
+runtime/bin/*
 
 # Example files
 ex/*

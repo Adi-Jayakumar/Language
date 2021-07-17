@@ -343,12 +343,8 @@ void VM::ExecuteInstruction()
     }
     case Opcode::JUMP_IF_FALSE:
     {
-        std::cout << "stack.back() in JIF " << stack.back->ToString() << std::endl;
         if (!stack.back->IsTruthy())
-        {
-            std::cout << "JUMP_IF_FALSE taken " << +o.op << std::endl;
             ip += o.op;
-        }
         stack.pop_back();
         break;
     }

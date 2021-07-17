@@ -451,6 +451,8 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
     c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0});
 
+    c.breakIndices.push(std::vector<size_t>());
+
     size_t bodyBeg = c.cur->code.size();
     ws->body->NodeCompile(c);
     c.cur->code.push_back({Opcode::SET_IP, static_cast<uint8_t>(loopBeg - 1)}); // loopBeg - 1 since after each instruction ip is incremented
@@ -460,6 +462,12 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
         c.CompileError(ws->body->Loc(), "Too much code generated from loop body");
 
     c.cur->code[patchIndex].op = static_cast<uint8_t>(patchLoc - bodyBeg);
+
+    std::vector<size_t> breakIndices = c.breakIndices.top();
+    c.breakIndices.pop();
+
+    for (auto b : breakIndices)
+        c.cur->code[b].op = static_cast<uint8_t>(patchLoc);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
