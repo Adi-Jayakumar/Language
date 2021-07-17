@@ -142,3 +142,27 @@ Token Break::Loc()
 {
     return loc;
 }
+
+Throw::Throw(std::shared_ptr<Expr> &_exp, Token &_loc)
+{
+    exp = _exp;
+    loc = _loc;
+}
+
+Token Throw::Loc()
+{
+    return loc;
+}
+
+TryCatch::TryCatch(std::shared_ptr<Stmt> &_tryClause, std::shared_ptr<Stmt> &_catchClause, std::pair<TypeData, std::string> &_catchVar, Token &_loc)
+{
+    tryClause = _tryClause;
+    catchClause = _catchClause;
+    catchVar = _catchVar;
+    loc = _loc;
+}
+
+Token TryCatch::Loc()
+{
+    return loc;
+}

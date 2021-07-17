@@ -328,7 +328,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'c':
     {
-        return MatchKeyWord("har", TokenID::TYPENAME, tok);
+        return MatchKeyWord("atch", TokenID::CATCH, tok) || MatchKeyWord("har", TokenID::TYPENAME, tok);
     }
     case 'd':
     {
@@ -356,7 +356,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 's':
     {
-        return MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
+        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
     }
     case 't':
     {

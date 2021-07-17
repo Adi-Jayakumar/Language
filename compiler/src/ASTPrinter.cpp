@@ -279,6 +279,22 @@ void ASTPrinter::PrintBreak(Break *, std::ostream &out)
     out << "break;";
 }
 
+void ASTPrinter::PrintThrow(Throw *t, std::ostream &out)
+{
+    out << "throw ";
+    t->exp->Print(out);
+    out << std::endl;
+}
+
+void ASTPrinter::PrintTryCatch(TryCatch *tc, std::ostream &out)
+{
+    out << "try" << std::endl;
+    tc->tryClause->Print(out);
+    out << std::endl;
+    out << "catch(" << tc->catchVar.first << " " << tc->catchVar.second << ")" << std::endl;
+    tc->catchClause->Print(out);
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)
@@ -386,4 +402,14 @@ void ImportStmt::Print(std::ostream &out)
 void Break::Print(std::ostream &out)
 {
     ASTPrinter::PrintBreak(this, out);
+}
+
+void Throw::Print(std::ostream &out)
+{
+    ASTPrinter::PrintThrow(this, out);
+}
+
+void TryCatch::Print(std::ostream &out)
+{
+    ASTPrinter::PrintTryCatch(this, out);
 }

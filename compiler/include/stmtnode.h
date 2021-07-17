@@ -163,3 +163,29 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
 };
+
+class Throw : public Stmt
+{
+public:
+    std::shared_ptr<Expr> exp;
+    Throw(std::shared_ptr<Expr> &, Token &);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    void Type(StaticAnalyser &t) override;
+    void NodeCompile(Compiler &c) override;
+};
+
+class TryCatch : public Stmt
+{
+public:
+    std::shared_ptr<Stmt> tryClause, catchClause;
+    std::pair<TypeData, std::string> catchVar;
+
+    TryCatch(std::shared_ptr<Stmt> &, std::shared_ptr<Stmt> &, std::pair<TypeData, std::string> &, Token &);
+
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    void Type(StaticAnalyser &t) override;
+    void NodeCompile(Compiler &c) override;
+};

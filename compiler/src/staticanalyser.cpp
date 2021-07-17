@@ -521,6 +521,17 @@ void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
     return;
 }
 
+void StaticAnalyser::TypeOfThrow(Throw *t)
+{
+}
+
+void StaticAnalyser::TypeOfTryCatch(TryCatch *tc)
+{
+    tc->tryClause->Type(*this);
+    Symbols.AddVar(tc->catchVar.first, tc->catchVar.second);
+    tc->catchClause->Type(*this);
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 TypeData Literal::Type(StaticAnalyser &t)
@@ -627,4 +638,14 @@ void ImportStmt::Type(StaticAnalyser &t)
 
 void Break::Type(StaticAnalyser &)
 {
+}
+
+void Throw::Type(StaticAnalyser &t)
+{
+    t.TypeOfThrow(this);
+}
+
+void TryCatch::Type(StaticAnalyser &t)
+{
+    t.TypeOfTryCatch(this);
 }

@@ -564,6 +564,14 @@ void NodeCompiler::CompileBreak(Break *b, Compiler &c)
     c.cur->code.push_back({Opcode::SET_IP, 0});
 }
 
+void NodeCompiler::CompileThrow(Throw *t, Compiler &c)
+{
+}
+
+void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
+{
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::NodeCompile(Compiler &c)
@@ -671,4 +679,14 @@ void ImportStmt::NodeCompile(Compiler &c)
 void Break::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileBreak(this, c);
+}
+
+void Throw::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileThrow(this, c);
+}
+
+void TryCatch::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompilerTryCatch(this, c);
 }

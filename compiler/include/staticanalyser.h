@@ -43,4 +43,6 @@ struct StaticAnalyser
     void TypeOfReturn(Return *r);
     void TypeOfStructDecl(StructDecl *sd);
     void TypeOfImportStmt(ImportStmt *is);
+    void TypeOfThrow(Throw *t);
+    void TypeOfTryCatch(TryCatch *tc);
 };

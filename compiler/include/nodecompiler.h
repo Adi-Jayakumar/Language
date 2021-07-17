@@ -32,4 +32,6 @@ namespace NodeCompiler
     void CompileStructDecl(StructDecl *sd, Compiler &c);
     void CompileImportStmt(ImportStmt *is, Compiler &C);
     void CompileBreak(Break *b, Compiler &c);
+    void CompileThrow(Throw *t, Compiler &c);
+    void CompilerTryCatch(TryCatch *tc, Compiler &c);
 } // namespace NodeCompiler
