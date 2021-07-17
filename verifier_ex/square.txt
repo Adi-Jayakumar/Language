@@ -1,15 +1,6 @@
-struct Animal
+function int Square(int x)
+(|x;|)
 {
-    string sound;
-}
-
-struct Dog : Animal
-{
-    string breed;
-    string name;
-}
-
-function void Main()
-{
-    Animal fido = Dog{"Woof", "Labrador", "Fido Dog"};
+    return x * x;
+    (|result == x * x;|)
 }

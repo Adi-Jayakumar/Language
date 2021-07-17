@@ -26,4 +26,5 @@ namespace ASTPrinter
     void PrintReturn(Return *r, std::ostream &out);
     void PrintStructDecl(StructDecl *sd, std::ostream &out);
     void PrintImportStmt(ImportStmt *is, std::ostream &out);
+    void PrintBreak(Break *b, std::ostream &out);
 }; // namespace ASTPrinter

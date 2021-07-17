@@ -542,6 +542,11 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
     return;
 }
 
+void NodeCompiler::CompileBreak(Break *b, Compiler &c)
+{
+    return;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::NodeCompile(Compiler &c)
@@ -644,4 +649,9 @@ void StructDecl::NodeCompile(Compiler &c)
 void ImportStmt::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileImportStmt(this, c);
+}
+
+void Break::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileBreak(this, c);
 }

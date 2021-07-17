@@ -324,7 +324,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'b':
     {
-        return MatchKeyWord("ool", TokenID::TYPENAME, tok);
+        return MatchKeyWord("ool", TokenID::TYPENAME, tok) || MatchKeyWord("reak", TokenID::BREAK, tok);
     }
     case 'c':
     {

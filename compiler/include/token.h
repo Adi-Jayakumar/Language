@@ -14,12 +14,10 @@ enum class TokenID : uint8_t
 
     // identifier
     IDEN,
-    // type name
     TYPENAME,
-    // function declration
     FUNC,
-    // return keyword
     RETURN,
+    BREAK,
     COMMA,
     DOT,
     NULL_T,

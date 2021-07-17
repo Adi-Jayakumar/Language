@@ -132,3 +132,13 @@ Token ImportStmt::Loc()
 {
     return loc;
 }
+
+Break::Break(Token _loc)
+{
+    loc = _loc;
+}
+
+Token Break::Loc()
+{
+    return loc;
+}

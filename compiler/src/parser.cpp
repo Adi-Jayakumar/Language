@@ -166,6 +166,14 @@ std::shared_ptr<Stmt> Parser::Statement()
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
         return ParseImportStmt();
+    else if (cur.type == TokenID::BREAK)
+    {
+        Token loc = cur;
+        Advance();
+        Check(TokenID::SEMI, "Expect ';' after 'break'");
+        Advance();
+        return std::make_shared<Break>(loc);
+    }
     return Declaration();
 }
 

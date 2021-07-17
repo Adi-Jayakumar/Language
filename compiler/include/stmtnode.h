@@ -2,8 +2,9 @@
 #include "exprnode.h"
 #include <vector>
 
-struct Stmt
+class Stmt
 {
+public:
     Token loc;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
@@ -16,8 +17,9 @@ struct Stmt
 
 std::ostream &operator<<(std::ostream &out, Stmt *s);
 
-struct ExprStmt : Stmt
+class ExprStmt : public Stmt
 {
+public:
     std::shared_ptr<Expr> exp;
     ExprStmt(std::shared_ptr<Expr>, Token);
 
@@ -27,8 +29,9 @@ struct ExprStmt : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct DeclaredVar : Stmt
+class DeclaredVar : public Stmt
 {
+public:
     TypeData t;
     std::string name;
     std::shared_ptr<Expr> value;
@@ -40,8 +43,9 @@ struct DeclaredVar : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct Block : Stmt
+class Block : public Stmt
 {
+public:
     uint8_t depth;
     std::vector<std::shared_ptr<Stmt>> stmts;
     Block(uint8_t, Token);
@@ -52,8 +56,9 @@ struct Block : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct IfStmt : Stmt
+class IfStmt : public Stmt
 {
+public:
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> thenBranch;
     std::shared_ptr<Stmt> elseBranch;
@@ -65,8 +70,9 @@ struct IfStmt : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct WhileStmt : Stmt
+class WhileStmt : public Stmt
 {
+public:
     std::shared_ptr<Expr> cond;
     std::shared_ptr<Stmt> body;
     Token loc;
@@ -79,8 +85,9 @@ struct WhileStmt : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct FuncDecl : Stmt
+class FuncDecl : public Stmt
 {
+public:
     TypeData ret;
     std::string name;
     // TODO - Convert to vector of pairs
@@ -100,8 +107,9 @@ struct FuncDecl : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct Return : Stmt
+class Return : public Stmt
 {
+public:
     std::shared_ptr<Expr> retVal;
     std::vector<std::shared_ptr<Expr>> postConds;
 
@@ -114,8 +122,9 @@ struct Return : Stmt
     void NodeCompile(Compiler &c) override;
 };
 
-struct StructDecl : Stmt
+class StructDecl : public Stmt
 {
+public:
     std::string name;
     TypeData parent;
     std::vector<std::shared_ptr<Stmt>> decls;
@@ -133,11 +142,22 @@ from latin import nominative, accusative
 i.e. import --> comma seperated list of libraries <---- imports everything
 i.e. from --> single module name import comma seperated list of symbols <---- only imports those symbols
 */
-struct ImportStmt : Stmt
+class ImportStmt : public Stmt
 {
+public:
     std::vector<std::string> libraries;
     ImportStmt(std::vector<std::string> &, Token &);
 
+    Token Loc() override;
+    void Print(std::ostream &out) override;
+    void Type(StaticAnalyser &t) override;
+    void NodeCompile(Compiler &c) override;
+};
+
+class Break : public Stmt
+{
+public:
+    Break(Token);
     Token Loc() override;
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;

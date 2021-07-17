@@ -41,6 +41,10 @@ std::string ToString(const TokenID &t)
     {
         return "RETURN";
     }
+    case TokenID::BREAK:
+    {
+        return "BREAK";
+    }
     case TokenID::COMMA:
     {
         return "COMMA";

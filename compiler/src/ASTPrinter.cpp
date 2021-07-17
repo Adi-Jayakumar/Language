@@ -274,6 +274,11 @@ void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
     out << std::endl;
 }
 
+void ASTPrinter::PrintBreak(Break *, std::ostream &out)
+{
+    out << "break;";
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void Literal::Print(std::ostream &out)
@@ -376,4 +381,9 @@ void StructDecl::Print(std::ostream &out)
 void ImportStmt::Print(std::ostream &out)
 {
     ASTPrinter::PrintImportStmt(this, out);
+}
+
+void Break::Print(std::ostream &out)
+{
+    ASTPrinter::PrintBreak(this, out);
 }

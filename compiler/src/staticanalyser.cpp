@@ -624,3 +624,7 @@ void ImportStmt::Type(StaticAnalyser &t)
 {
     t.TypeOfImportStmt(this);
 }
+
+void Break::Type(StaticAnalyser &)
+{
+}
