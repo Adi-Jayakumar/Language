@@ -46,7 +46,7 @@ private:
     size_t ip;
 
     // Call stack
-    CallFrame *cs;
+    std::stack<CallFrame> cs;
 
     // current CallFrame
     CallFrame *curCF;

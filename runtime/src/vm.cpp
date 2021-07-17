@@ -19,20 +19,16 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
         CLibs.push_back({func, lf.arity});
     }
 
-    cs = new CallFrame[STACK_MAX];
-    curCF = cs;
     curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
-    *curCF = {0, mainIndex, 0};
-    curCF++;
-    *curCF = {0, mainIndex, 0};
+    cs.push({0, mainIndex, 0});
+    cs.push({0, mainIndex, 0});
+    curCF = &cs.top();
 
     ip = 0;
 }
 
 VM::~VM()
 {
-    delete[] cs;
-
     if (libHandles.size() > 0)
     {
         std::cout << "Closing libraries" << std::endl;
@@ -108,7 +104,7 @@ void VM::ExecuteProgram()
 {
     if (curFunc == UINT8_MAX)
         return;
-    while (curCF != cs - 1)
+    while (!cs.empty())
     {
         while (ip < functions[curFunc].code.size())
         {
@@ -116,17 +112,18 @@ void VM::ExecuteProgram()
             Jump(1);
         }
 
-        CallFrame *returnCF = curCF;
-        curCF--;
+        CallFrame returnCF = *curCF;
+        cs.pop();
+        curCF = &cs.top();
 
-        ip = returnCF->retIndex;
+        ip = returnCF.retIndex;
         if (curFunc != 0)
             ip++;
 
-        if (curCF != cs - 1)
+        if (!cs.empty())
         {
-            curFunc = returnCF->retFunction;
-            size_t stackDiff = stack.count - returnCF->valStackMin;
+            curFunc = returnCF.retFunction;
+            size_t stackDiff = stack.count - returnCF.valStackMin;
 
             // cleaning up the function's constants
             stack.count -= stackDiff;
@@ -363,12 +360,11 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CALL_F:
     {
-        curCF++;
+        cs.push({ip, curFunc, stack.count - functions[o.op].arity});
+        curCF = &cs.top();
 
-        if (curCF == &cs[STACK_MAX - 1])
-            RuntimeError("CallStack overflow. Used: " + std::to_string(curCF - &cs[0]) + " callstacks");
-
-        *curCF = {ip, curFunc, stack.count - functions[o.op].arity};
+        if (cs.size() > STACK_MAX)
+            RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frams");
 
         curFunc = o.op;
         ip = -1;
@@ -388,13 +384,14 @@ void VM::ExecuteInstruction()
     }
     case Opcode::RETURN:
     {
-        CallFrame *returnCF = curCF;
-        curCF--;
+        CallFrame returnCF = *curCF;
+        cs.pop();
+        curCF = &cs.top();
 
-        ip = returnCF->retIndex;
-        curFunc = returnCF->retFunction;
+        ip = returnCF.retIndex;
+        curFunc = returnCF.retFunction;
 
-        size_t stackDiff = stack.count - returnCF->valStackMin;
+        size_t stackDiff = stack.count - returnCF.valStackMin;
         Object *retVal;
         retVal = stack.back;
 
@@ -405,13 +402,14 @@ void VM::ExecuteInstruction()
     }
     case Opcode::RETURN_VOID:
     {
-        CallFrame *returnCF = curCF;
-        curCF--;
+        CallFrame returnCF = *curCF;
+        cs.pop();
+        curCF = &cs.top();
 
-        ip = returnCF->retIndex;
-        curFunc = returnCF->retFunction;
+        ip = returnCF.retIndex;
+        curFunc = returnCF.retFunction;
 
-        size_t stackDiff = stack.count - returnCF->valStackMin;
+        size_t stackDiff = stack.count - returnCF.valStackMin;
 
         // cleaning up the function's constants
         stack.pop_N(stackDiff);
