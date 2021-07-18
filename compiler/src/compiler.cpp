@@ -127,6 +127,8 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
         file.write((char *)&libfunc.arity, sizeof(size_t));
     }
 
+    SerialiseThrowInfo(prog.throwStack, file);
+
     file.close();
 }
 

@@ -56,32 +56,12 @@ int main()
     c.Compile(res);
 
     c.Disassemble();
-    // // c.Functions[0] = c.Functions[1];
-    // // std::ofstream file;
-    // // file.open("../test.lo", std::ios::out | std::ios::app | std::ios::binary);
 
-    // // c.Functions[0].SerialiseFunction(file);
-    // // c.Functions[1].SerialiseFunction(file);
-
-    // // std::ifstream fil;
-    // // fil.open("../test.lo", std::ios::in | std::ios::binary);
-    // // Function f = Function::DeserialiseFunction(fil);
-    // // f.PrintCode();
-    // // Function g = Function::DeserialiseFunction(fil);
-    // // g.PrintCode();
-
-    // std::cout << "Struct inheritance tree in main" << std::endl;
-
-    // for (const auto &kv : c.StructTree)
-    // {
-    //     std::cout << GetTypeStringMap()[kv.first] << "\t|\t";
-    //     for (const auto &ch : kv.second)
-    //         std::cout << GetTypeStringMap()[ch] << ", ";
-    //     std::cout << std::endl;
-    // }
-
-    // std::cout << std::endl
-    //           << std::endl;
+    std::cout << "THROW STACK" << std::endl;
+    for (auto &ti : c.throwStack)
+    {
+        std::cout << "TrowInfos(" << +ti.func << ", " << +ti.index << ", " << ti.isArray << ", " << +ti.type << ", " << ti.callStackIndex << ")" << std::endl;
+    }
 
     Compiler::SerialiseProgram(c, "../test.lo");
 }

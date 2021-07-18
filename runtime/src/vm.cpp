@@ -56,9 +56,6 @@ VM::~VM()
 
 void VM::Disasemble()
 {
-    std::cout << "NUM FunctionS: " << functions.size() << std::endl
-              << std::endl
-              << std::endl;
     for (size_t i = 0; i < functions.size(); i++)
     {
         std::cout << "Function index: " << i << std::endl
@@ -876,62 +873,65 @@ VM VM::DeserialiseProgram(std::string fPath)
     for (uint8_t i = 0; i < numFunctions; i++)
         program.push_back(DeserialiseFunction(file));
 
-    size_t id = ReadSizeT(file);
-
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
     std::vector<LibraryFunctionDef> libFuncs;
     std::vector<ThrowInfo> throwInfos;
 
-    switch (id)
+    while (file.peek() != EOF)
     {
-    case STRUCT_TREE_ID:
-    {
-        size_t numStructs = ReadSizeT(file);
-
-        for (size_t i = 0; i < numStructs; i++)
+        size_t id = ReadSizeT(file);
+        switch (id)
         {
-            size_t structId = ReadSizeT(file);
-            size_t numParents = ReadSizeT(file);
-
-            for (size_t i = 0; i < numParents; i++)
-                StructTree[structId].insert(ReadSizeT(file));
-        }
-
-        break;
-    }
-    case LIB_FUNC_ID:
-    {
-        size_t numLibFuncs = ReadSizeT(file);
-
-        for (size_t i = 0; i < numLibFuncs; i++)
+        case STRUCT_TREE_ID:
         {
-            size_t nameLen = ReadSizeT(file);
-            char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
-            std::string name(cName, nameLen);
-            delete[] cName;
+            size_t numStructs = ReadSizeT(file);
 
-            size_t libLen = ReadSizeT(file);
-            char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
-            std::string libName(cLibName, libLen);
-            delete[] cLibName;
+            for (size_t i = 0; i < numStructs; i++)
+            {
+                size_t structId = ReadSizeT(file);
+                size_t numParents = ReadSizeT(file);
 
-            size_t arity = ReadSizeT(file);
-            libFuncs.push_back(LibraryFunctionDef(name, libName, arity));
+                for (size_t i = 0; i < numParents; i++)
+                    StructTree[structId].insert(ReadSizeT(file));
+            }
+
+            break;
         }
-        break;
-    }
-    case THROW_INFO_ID:
-    {
-        throwInfos = DeserialiseThrowInfos(file);
-        break;
-    }
-    default:
-    {
-        DeserialisationError("Invalid section identifier " + std::to_string(id));
-        break;
-    }
-    }
+        case LIB_FUNC_ID:
+        {
+            size_t numLibFuncs = ReadSizeT(file);
 
+            for (size_t i = 0; i < numLibFuncs; i++)
+            {
+                size_t nameLen = ReadSizeT(file);
+                char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
+                std::string name(cName, nameLen);
+                delete[] cName;
+
+                size_t libLen = ReadSizeT(file);
+                char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
+                std::string libName(cLibName, libLen);
+                delete[] cLibName;
+
+                size_t arity = ReadSizeT(file);
+                libFuncs.push_back(LibraryFunctionDef(name, libName, arity));
+            }
+            break;
+        }
+        case THROW_INFO_ID:
+        {
+            std::cout << "RUNNING" << std::endl;
+            throwInfos = DeserialiseThrowInfos(file);
+            std::cout << "THROW INFOS SIZE IN DESERIALSIE " << throwInfos.size() << std::endl;
+            break;
+        }
+        default:
+        {
+            DeserialisationError("Invalid section identifier " + std::to_string(id));
+            break;
+        }
+        }
+    }
     file.close();
     return VM(program, mainIndex, StructTree, libFuncs, throwInfos);
 }
