@@ -574,8 +574,12 @@ void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
 {
     ThrowInfo ti = ThrowInfo();
     ti.func = c.cur - &c.Functions[0];
-    ti.type = tc->catchVar.first.type;
-    ti.isArray = tc->catchVar.first.isArray;
+
+    TypeData catchType = tc->catchVar.first;
+    std::string catchVarName = tc->catchVar.second;
+
+    ti.type = catchType.type;
+    ti.isArray = catchType.isArray;
 
     size_t throwInfoSize = c.throwStack.size();
     if (throwInfoSize > UINT8_MAX)
@@ -593,6 +597,7 @@ void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
 
     std::cout << "ThrowInfo(" << (ti.isArray ? "array" : "") << +ti.type << ", " << +ti.index << ", " << +ti.func << ")" << std::endl;
 
+    c.Symbols.AddVar(catchType, catchVarName);
     tc->catchClause->NodeCompile(c);
 }
 
