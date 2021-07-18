@@ -81,6 +81,7 @@ public:
         return stack.count;
     };
     void PrintStack();
+    void PrintCallStack();
     void ExecuteProgram();
 
     // adds a list of Create*()'ed objects to the VM's heap
@@ -101,6 +102,8 @@ public:
     static VM DeserialiseProgram(std::string fPath);
 
 private:
+    bool MatchType(Object *obj, size_t isArray, uint8_t type);
+
     static bool DoesFileExist(std::string &path);
     static void DeserialisationError(std::string err);
     static Function DeserialiseFunction(std::ifstream &file);

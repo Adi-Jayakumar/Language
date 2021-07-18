@@ -80,6 +80,12 @@ void VM::PrintStack()
               << std::endl;
 }
 
+void VM::PrintCallStack()
+{
+    for (auto &cf : cs)
+        std::cout << "(" << cf.retIndex << ", " << cf.retFunction << ", " << cf.valStackMin << ")" << std::endl;
+}
+
 void VM::AddToHeap(Object **objs, size_t numObjs)
 {
     for (size_t i = 0; i < numObjs; i++)
@@ -112,6 +118,7 @@ void VM::ExecuteProgram()
 
         if (!cs.empty())
         {
+
             CallFrame returnCF = *curCF;
             cs.pop_back();
             curCF = &cs.back();
@@ -856,6 +863,63 @@ void VM::NativeToString()
     stack.push_back(new String(strcpy(c, str.c_str()), str.length()));
 }
 
+void VM::ThrowObject()
+{
+    Object *throwObj = stack.back;
+    stack.pop_back();
+
+    while (!ThrowStack.empty())
+    {
+        if (MatchType(throwObj, ThrowStack.top().isArray, ThrowStack.top().type))
+        {
+            ThrowInfo loc = ThrowStack.top();
+            ThrowStack.pop();
+            curFunc = loc.func;
+            ip = loc.index - 1;
+
+            cs.erase(cs.begin() + loc.callStackIndex, cs.end());
+            curCF = &cs[loc.callStackIndex];
+
+            stack.count = cs[loc.callStackIndex].valStackMin;
+            stack.back = stack[stack.count];
+
+            stack.push_back(throwObj);
+            return;
+        }
+        ThrowStack.pop();
+    }
+    RuntimeError("Uncaught throw");
+}
+
+bool VM::MatchType(Object *obj, size_t isArray, uint8_t type)
+{
+    Int *i = dynamic_cast<Int *>(obj);
+    if (i != nullptr)
+        return (isArray == 0) && (type == 1);
+
+    Double *d = dynamic_cast<Double *>(obj);
+    if (d != nullptr)
+        return (isArray == 0) && (type == 2);
+
+    Bool *b = dynamic_cast<Bool *>(obj);
+    if (b != nullptr)
+        return (isArray == 0) && (type == 3);
+
+    Struct *s = dynamic_cast<Struct *>(obj);
+    if (s != nullptr)
+        return (isArray == 0) && (type == GetStructType(obj));
+
+    Char *c = dynamic_cast<Char *>(obj);
+    if (c != nullptr)
+        return (isArray == 0) && (type == 5);
+
+    String *str = dynamic_cast<String *>(obj);
+    if (str != nullptr)
+        return (isArray == 0) && (type == 4);
+
+    return false;
+}
+
 VM VM::DeserialiseProgram(std::string fPath)
 {
     std::ifstream file;
@@ -921,9 +985,7 @@ VM VM::DeserialiseProgram(std::string fPath)
         }
         case THROW_INFO_ID:
         {
-            std::cout << "RUNNING" << std::endl;
             throwInfos = DeserialiseThrowInfos(file);
-            std::cout << "THROW INFOS SIZE IN DESERIALSIE " << throwInfos.size() << std::endl;
             break;
         }
         default:
