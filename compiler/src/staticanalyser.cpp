@@ -181,15 +181,13 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
 TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
 {
     TypeData nameT = ai->name->Type(*this);
-    TypeData stringT = {false, 4};
 
-    if (!nameT.isArray && nameT != stringT)
+    if (!nameT.isArray && nameT != STRING_TYPE)
         TypeError(ai->Loc(), "Cannot index into object of type " + ToString(nameT));
 
     TypeData idxT = ai->index->Type(*this);
-    TypeData intT = {false, 1};
 
-    if (idxT != intT)
+    if (idxT != INT_TYPE)
         TypeError(ai->Loc(), "Index into string/array must be of type int not " + ToString(idxT));
 
     if (nameT.isArray)
@@ -198,8 +196,8 @@ TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
         ai->t.isArray--;
     }
 
-    if (nameT == stringT)
-        ai->t = {false, 5};
+    if (nameT == STRING_TYPE)
+        ai->t = CHAR_TYPE;
 
     return ai->t;
 }
@@ -263,7 +261,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
 TypeData StaticAnalyser::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 {
     TypeData sizeType = da->size->Type(*this);
-    TypeData intType = {false, 1};
+    TypeData intType = INT_TYPE;
 
     if (sizeType != intType)
         TypeError(da->Loc(), "Size of dynamically allocated array must have type int");

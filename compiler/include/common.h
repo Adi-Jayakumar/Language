@@ -1,14 +1,9 @@
 #pragma once
 #include "token.h"
+#include "typedata.h"
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
-#define COMMON_H_INCLUDED
-
-typedef uint8_t TypeID;
-
-#define NUM_DEF_TYPES 7U
 
 // map from literal TokenIDs to
 static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
@@ -19,14 +14,10 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::CHAR_L, 5},
     {TokenID::NULL_T, 6}};
 
-class TypeData
-{
-public:
-    size_t isArray = 0;
-    TypeID type = 0;
-    TypeData() = default;
-    TypeData(size_t _isArray, TypeID _type) : isArray(_isArray), type(_type){};
-};
+bool operator==(const TypeData &left, const TypeData &right);
+bool operator!=(const TypeData &left, const TypeData &right);
+std::string ToString(const TypeData &td);
+std::ostream &operator<<(std::ostream &out, const TypeData &td);
 
 struct TypeDataHasher
 {
@@ -40,8 +31,6 @@ struct TypeDataHasher
 
 std::string ToString(const TypeData &td);
 std::ostream &operator<<(std::ostream &out, const TypeData &td);
-bool operator==(const TypeData &left, const TypeData &right);
-bool operator!=(const TypeData &left, const TypeData &right);
 
 class TypeInfo
 {
@@ -81,62 +70,62 @@ bool CheckUnaryOperatorUse(const TypeInfo &);
 static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
     OperatorMap{
         // binary plus
-        {{{false, 1}, TokenID::PLUS, {false, 1}}, {false, 1}},
-        {{{false, 1}, TokenID::PLUS, {false, 2}}, {false, 2}},
-        {{{false, 2}, TokenID::PLUS, {false, 1}}, {false, 2}},
-        {{{false, 2}, TokenID::PLUS, {false, 2}}, {false, 2}},
+        {{INT_TYPE, TokenID::PLUS, INT_TYPE}, INT_TYPE},
+        {{INT_TYPE, TokenID::PLUS, DOUBLE_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::PLUS, INT_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::PLUS, DOUBLE_TYPE}, DOUBLE_TYPE},
         // binary mins
-        {{{false, 1}, TokenID::MINUS, {false, 1}}, {false, 1}},
-        {{{false, 1}, TokenID::MINUS, {false, 2}}, {false, 2}},
-        {{{false, 2}, TokenID::MINUS, {false, 1}}, {false, 2}},
-        {{{false, 2}, TokenID::MINUS, {false, 2}}, {false, 2}},
+        {{INT_TYPE, TokenID::MINUS, INT_TYPE}, INT_TYPE},
+        {{INT_TYPE, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::MINUS, INT_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
         // unary minus
-        {{{0, false}, TokenID::MINUS, {false, 1}}, {false, 1}},
-        {{{0, false}, TokenID::MINUS, {false, 2}}, {false, 2}},
+        {{{0, false}, TokenID::MINUS, INT_TYPE}, INT_TYPE},
+        {{{0, false}, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
         // binary mult
-        {{{false, 1}, TokenID::STAR, {false, 1}}, {false, 1}},
-        {{{false, 1}, TokenID::STAR, {false, 2}}, {false, 2}},
-        {{{false, 2}, TokenID::STAR, {false, 1}}, {false, 2}},
-        {{{false, 2}, TokenID::STAR, {false, 2}}, {false, 2}},
+        {{INT_TYPE, TokenID::STAR, INT_TYPE}, INT_TYPE},
+        {{INT_TYPE, TokenID::STAR, DOUBLE_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::STAR, INT_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::STAR, DOUBLE_TYPE}, DOUBLE_TYPE},
         // binary div
-        {{{false, 1}, TokenID::SLASH, {false, 1}}, {false, 1}},
-        {{{false, 1}, TokenID::SLASH, {false, 2}}, {false, 2}},
-        {{{false, 2}, TokenID::SLASH, {false, 1}}, {false, 2}},
-        {{{false, 2}, TokenID::SLASH, {false, 2}}, {false, 2}},
+        {{INT_TYPE, TokenID::SLASH, INT_TYPE}, INT_TYPE},
+        {{INT_TYPE, TokenID::SLASH, DOUBLE_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::SLASH, INT_TYPE}, DOUBLE_TYPE},
+        {{DOUBLE_TYPE, TokenID::SLASH, DOUBLE_TYPE}, DOUBLE_TYPE},
         // binary greater than
-        {{{false, 1}, TokenID::GT, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::GT, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::GT, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::GT, {false, 2}}, {false, 3}},
+        {{INT_TYPE, TokenID::GT, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::GT, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::GT, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::GT, DOUBLE_TYPE}, BOOL_TYPE},
         // unary less than
-        {{{false, 1}, TokenID::LT, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::LT, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::LT, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::LT, {false, 2}}, {false, 3}},
+        {{INT_TYPE, TokenID::LT, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::LT, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::LT, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::LT, DOUBLE_TYPE}, BOOL_TYPE},
         // binary greater than or equal
-        {{{false, 1}, TokenID::GEQ, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::GEQ, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::GEQ, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::GEQ, {false, 2}}, {false, 3}},
+        {{INT_TYPE, TokenID::GEQ, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::GEQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::GEQ, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::GEQ, DOUBLE_TYPE}, BOOL_TYPE},
         // binary less than or equal
-        {{{false, 1}, TokenID::LEQ, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::LEQ, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::LEQ, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::LEQ, {false, 2}}, {false, 3}},
+        {{INT_TYPE, TokenID::LEQ, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::LEQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::LEQ, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::LEQ, DOUBLE_TYPE}, BOOL_TYPE},
         // binary eqality
-        {{{false, 1}, TokenID::EQ_EQ, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::EQ_EQ, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::EQ_EQ, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::EQ_EQ, {false, 2}}, {false, 3}},
-        {{{false, 3}, TokenID::EQ_EQ, {false, 3}}, {false, 3}},
+        {{INT_TYPE, TokenID::EQ_EQ, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::EQ_EQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::EQ_EQ, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::EQ_EQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{BOOL_TYPE, TokenID::EQ_EQ, BOOL_TYPE}, BOOL_TYPE},
         // binary not equality
-        {{{false, 1}, TokenID::BANG_EQ, {false, 1}}, {false, 3}},
-        {{{false, 1}, TokenID::BANG_EQ, {false, 2}}, {false, 3}},
-        {{{false, 2}, TokenID::BANG_EQ, {false, 1}}, {false, 3}},
-        {{{false, 2}, TokenID::BANG_EQ, {false, 2}}, {false, 3}},
-        {{{false, 3}, TokenID::BANG_EQ, {false, 3}}, {false, 3}},
+        {{INT_TYPE, TokenID::BANG_EQ, INT_TYPE}, BOOL_TYPE},
+        {{INT_TYPE, TokenID::BANG_EQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::BANG_EQ, INT_TYPE}, BOOL_TYPE},
+        {{DOUBLE_TYPE, TokenID::BANG_EQ, DOUBLE_TYPE}, BOOL_TYPE},
+        {{BOOL_TYPE, TokenID::BANG_EQ, BOOL_TYPE}, BOOL_TYPE},
         // unary negation
-        {{{0, false}, TokenID::BANG, {false, 3}}, {false, 3}},
+        {{{0, false}, TokenID::BANG, BOOL_TYPE}, BOOL_TYPE},
         // string concatenation
-        {{{false, 4}, TokenID::PLUS, {false, 4}}, {false, 4}},
+        {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
     };

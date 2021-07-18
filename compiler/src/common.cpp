@@ -2,7 +2,7 @@
 
 std::unordered_map<std::string, TypeData> &GetTypeNameMap()
 {
-    static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {0, false}}, {"int", {false, 1}}, {"double", {false, 2}}, {"bool", {false, 3}}, {"string", {false, 4}}, {"char", {false, 5}}, {"null_t", {false, 6}}};
+    static std::unordered_map<std::string, TypeData> TypeNameMap{{"void", {0, false}}, {"int", INT_TYPE}, {"double", DOUBLE_TYPE}, {"bool", BOOL_TYPE}, {"string", STRING_TYPE}, {"char", CHAR_TYPE}, {"null_t", NULL_TYPE}};
     return TypeNameMap;
 }
 
@@ -10,6 +10,16 @@ std::unordered_map<TypeID, std::string> &GetTypeStringMap()
 {
     static std::unordered_map<TypeID, std::string> TypeStringMap{{0, "void"}, {1, "int"}, {2, "double"}, {3, "bool"}, {4, "string"}, {5, "char"}, {6, "null_t"}};
     return TypeStringMap;
+}
+
+bool operator==(const TypeData &left, const TypeData &right)
+{
+    return (left.type == right.type) && (left.isArray == right.isArray);
+}
+
+bool operator!=(const TypeData &left, const TypeData &right)
+{
+    return (left.type != right.type) || (left.isArray != right.isArray);
 }
 
 std::string ToString(const TypeData &td)
@@ -24,16 +34,6 @@ std::ostream &operator<<(std::ostream &out, const TypeData &td)
     return out;
 }
 
-bool operator==(const TypeData &left, const TypeData &right)
-{
-    return (left.type == right.type) && (left.isArray == right.isArray);
-}
-
-bool operator!=(const TypeData &left, const TypeData &right)
-{
-    return (left.type != right.type) || (left.isArray != right.isArray);
-}
-
 bool operator==(const TypeInfo &l, const TypeInfo &r)
 {
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
@@ -41,13 +41,11 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
 
 bool CheckBinaryOperatorUse(const TypeInfo &ti)
 {
-    TypeData nullT = {false, 6};
-
     if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
     {
-        if (ti.left == nullT)
+        if (ti.left == NULL_TYPE)
             return true;
-        else if (ti.right == nullT)
+        else if (ti.right == NULL_TYPE)
             return true;
     }
     return OperatorMap.find(ti) != OperatorMap.end();
@@ -55,14 +53,12 @@ bool CheckBinaryOperatorUse(const TypeInfo &ti)
 
 TypeData GetBinaryOperatorType(const TypeInfo &ti)
 {
-    TypeData nullT = {false, 6};
-
     if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
     {
-        if (ti.left == nullT)
-            return {false, 3};
-        else if (ti.right == nullT)
-            return {false, 3};
+        if (ti.left == NULL_TYPE)
+            return BOOL_TYPE;
+        else if (ti.right == NULL_TYPE)
+            return BOOL_TYPE;
     }
     return OperatorMap.at(ti);
 }
