@@ -157,7 +157,6 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
     if (index == SIZE_MAX)
     {
         size_t nativeIndex = Symbols.FindNativeFunctions(argtypes, fc->name);
-        std::cout << "names " << nativeIndex << " in typechecker" << std::endl;
         if (nativeIndex != SIZE_MAX)
         {
             fc->t = Symbols.nativeFunctions[nativeIndex].ret;
@@ -523,6 +522,7 @@ void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
 
 void StaticAnalyser::TypeOfThrow(Throw *t)
 {
+    t->exp->Type(*this);
 }
 
 void StaticAnalyser::TypeOfTryCatch(TryCatch *tc)

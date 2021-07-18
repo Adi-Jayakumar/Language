@@ -95,6 +95,9 @@ public:
     void NativePrint(int arity); // opcode: 0
     void NativeToString();       // opcode: 1
 
+    // throws the object at the top of the stack
+    void ThrowObject();
+
     static VM DeserialiseProgram(std::string fPath);
 
 private:

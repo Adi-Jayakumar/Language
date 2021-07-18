@@ -595,8 +595,6 @@ void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
     ti.index = static_cast<uint8_t>(sIndex);
     c.throwStack.push_back(ti);
 
-    std::cout << "ThrowInfo(" << (ti.isArray ? "array" : "") << +ti.type << ", " << +ti.index << ", " << +ti.func << ")" << std::endl;
-
     c.Symbols.AddVar(catchType, catchVarName);
     tc->catchClause->NodeCompile(c);
 }

@@ -422,6 +422,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::THROW:
     {
+        ThrowObject();
         break;
     }
     case Opcode::NATIVE_CALL:
