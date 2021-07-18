@@ -83,5 +83,5 @@ int main()
     // std::cout << std::endl
     //           << std::endl;
 
-    // Compiler::SerialiseProgram(c, "../test.lo");
+    Compiler::SerialiseProgram(c, "../test.lo");
 }

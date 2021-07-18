@@ -32,7 +32,8 @@ public:
 
 class VM
 {
-private:
+    // private:
+public:
     std::vector<Function> functions;
     std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
 
@@ -46,7 +47,7 @@ private:
     size_t ip;
 
     // Call stack
-    std::stack<CallFrame> cs;
+    std::vector<CallFrame> cs;
 
     // current CallFrame
     CallFrame *curCF;

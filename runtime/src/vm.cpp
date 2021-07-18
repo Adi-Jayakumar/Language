@@ -20,9 +20,9 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
     }
 
     curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
-    cs.push({0, mainIndex, 0});
-    cs.push({0, mainIndex, 0});
-    curCF = &cs.top();
+    cs.push_back({0, mainIndex, 0});
+    // cs.push({0, mainIndex, 0});
+    curCF = &cs.back();
 
     ip = 0;
 }
@@ -104,24 +104,25 @@ void VM::ExecuteProgram()
 {
     if (curFunc == UINT8_MAX)
         return;
-    while (!cs.empty())
+    while (true)
     {
+
         while (ip < functions[curFunc].code.size())
         {
             ExecuteInstruction();
             Jump(1);
         }
 
-        CallFrame returnCF = *curCF;
-        cs.pop();
-        curCF = &cs.top();
-
-        ip = returnCF.retIndex;
-        if (curFunc != 0)
-            ip++;
-
         if (!cs.empty())
         {
+            CallFrame returnCF = *curCF;
+            cs.pop_back();
+            curCF = &cs.back();
+            ip = returnCF.retIndex;
+
+            if (curFunc != 0)
+                ip++;
+
             curFunc = returnCF.retFunction;
             size_t stackDiff = stack.count - returnCF.valStackMin;
 
@@ -129,6 +130,8 @@ void VM::ExecuteProgram()
             stack.count -= stackDiff;
             stack.back = stack[stack.count];
         }
+        else
+            return;
     }
 }
 
@@ -360,8 +363,8 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CALL_F:
     {
-        cs.push({ip, curFunc, stack.count - functions[o.op].arity});
-        curCF = &cs.top();
+        cs.push_back({ip, curFunc, stack.count - functions[o.op].arity});
+        curCF = &cs.back();
 
         if (cs.size() > STACK_MAX)
             RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frams");
@@ -385,8 +388,8 @@ void VM::ExecuteInstruction()
     case Opcode::RETURN:
     {
         CallFrame returnCF = *curCF;
-        cs.pop();
-        curCF = &cs.top();
+        cs.pop_back();
+        curCF = &cs.back();
 
         ip = returnCF.retIndex;
         curFunc = returnCF.retFunction;
@@ -403,8 +406,8 @@ void VM::ExecuteInstruction()
     case Opcode::RETURN_VOID:
     {
         CallFrame returnCF = *curCF;
-        cs.pop();
-        curCF = &cs.top();
+        cs.pop_back();
+        curCF = &cs.back();
 
         ip = returnCF.retIndex;
         curFunc = returnCF.retFunction;

@@ -7,8 +7,8 @@ int main()
     vm.Disasemble();
 
     vm.ExecuteProgram();
-
-    // for (auto &ti : vm.)
+    // std::cout << vm.cs.size() << std::endl;
+    // // for (auto &ti : vm.)
 
     return 0;
 }
