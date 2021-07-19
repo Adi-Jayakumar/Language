@@ -33,12 +33,6 @@ An implementation of a C-style statically typed language that compiles down to a
  - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
 # Known bugs TODO
- - [ ] Parsing arithmetic comparison statements like 'n < 10' and thinking it is a cast
-    - MWE:
-        ```C
-        int n = 10;
-        bool ex = n < 100;
-        ```
  - [ ] Overloading of functions where the overloaded types are assignable to each other
     - MWE:
         ```C
