@@ -155,7 +155,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
     u->right->NodeCompile(c);
-    c.cur->code.push_back({TokenToOpcode({0, false}, u->op.type, u->right->GetType(), true), 1});
+    c.cur->code.push_back({TokenToOpcode(VOID_TYPE, u->op.type, u->right->GetType(), true), 1});
 }
 
 void NodeCompiler::CompileBinary(Binary *b, Compiler &c)

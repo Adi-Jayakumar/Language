@@ -80,8 +80,8 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{DOUBLE_TYPE, TokenID::MINUS, INT_TYPE}, DOUBLE_TYPE},
         {{DOUBLE_TYPE, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
         // unary minus
-        {{{0, false}, TokenID::MINUS, INT_TYPE}, INT_TYPE},
-        {{{0, false}, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
+        {{VOID_TYPE, TokenID::MINUS, INT_TYPE}, INT_TYPE},
+        {{VOID_TYPE, TokenID::MINUS, DOUBLE_TYPE}, DOUBLE_TYPE},
         // binary mult
         {{INT_TYPE, TokenID::STAR, INT_TYPE}, INT_TYPE},
         {{INT_TYPE, TokenID::STAR, DOUBLE_TYPE}, DOUBLE_TYPE},
@@ -125,7 +125,7 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{DOUBLE_TYPE, TokenID::BANG_EQ, DOUBLE_TYPE}, BOOL_TYPE},
         {{BOOL_TYPE, TokenID::BANG_EQ, BOOL_TYPE}, BOOL_TYPE},
         // unary negation
-        {{{0, false}, TokenID::BANG, BOOL_TYPE}, BOOL_TYPE},
+        {{VOID_TYPE, TokenID::BANG, BOOL_TYPE}, BOOL_TYPE},
         // string concatenation
         {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
     };

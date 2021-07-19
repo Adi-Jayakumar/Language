@@ -73,7 +73,7 @@ TypeData StaticAnalyser::TypeOfLiteral(Literal *l)
 TypeData StaticAnalyser::TypeOfUnary(Unary *u)
 {
     TypeData opType = u->right->Type(*this);
-    TypeInfo info = {{0, false}, u->op.type, opType};
+    TypeInfo info = {VOID_TYPE, u->op.type, opType};
 
     if (CheckUnaryOperatorUse(info))
     {
@@ -83,7 +83,7 @@ TypeData StaticAnalyser::TypeOfUnary(Unary *u)
     else
         TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + ToString(opType));
 
-    return {0, false};
+    return VOID_TYPE;
 }
 
 TypeData StaticAnalyser::TypeOfBinary(Binary *b)
@@ -99,7 +99,7 @@ TypeData StaticAnalyser::TypeOfBinary(Binary *b)
     }
     else
         TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + ToString(lType) + " and: " + ToString(rType));
-    return {0, false};
+    return VOID_TYPE;
 }
 
 TypeData StaticAnalyser::TypeOfAssign(Assign *a)
@@ -205,7 +205,7 @@ TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
 TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
 {
     if (bi->size == 0)
-        return {0, false};
+        return VOID_TYPE;
 
     std::vector<TypeData> types;
 
@@ -255,7 +255,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
             TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
     }
     // dummy return, never reached
-    return {0, false};
+    return VOID_TYPE;
 }
 
 TypeData StaticAnalyser::TypeOfDynamicAllocArray(DynamicAllocArray *da)
