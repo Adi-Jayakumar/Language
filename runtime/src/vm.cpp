@@ -86,11 +86,11 @@ void VM::PrintCallStack()
         std::cout << "(" << cf.retIndex << ", " << cf.retFunction << ", " << cf.valStackMin << ")" << std::endl;
 }
 
-void VM::AddToHeap(Object **objs, size_t numObjs)
-{
-    for (size_t i = 0; i < numObjs; i++)
-        heap.AddObject(objs[i]);
-}
+// void VM::AddToHeap(Object **objs, size_t numObjs)
+// {
+//     for (size_t i = 0; i < numObjs; i++)
+//         heap.AddObject(objs[i]);
+// }
 
 void VM::RuntimeError(std::string msg)
 {
@@ -139,26 +139,82 @@ void VM::ExecuteProgram()
     }
 }
 
+Object *VM::NewInt(int i)
+{
+    Object *obj = CreateInt(i);
+    heap.AddObject(obj, sizeof(int));
+    return obj;
+}
+
+Object *VM::NewDouble(double d)
+{
+    Object *obj = CreateDouble(d);
+    heap.AddObject(obj, sizeof(double));
+    return obj;
+}
+
+Object *VM::NewBool(bool b)
+{
+    Object *obj = CreateBool(b);
+    heap.AddObject(obj, sizeof(bool));
+    return obj;
+}
+
+Object *VM::NewArray(Object **arr, size_t n)
+{
+    Object *obj = CreateArray(arr, n);
+    heap.AddObject(obj, n * sizeof(Object *));
+    return obj;
+}
+
+Object *VM::NewStruct(Object **data, size_t n, TypeID t)
+{
+    Object *obj = CreateStruct(data, n, t);
+    heap.AddObject(obj, n * sizeof(Object *) + sizeof(TypeID));
+    return obj;
+}
+
+Object *VM::NewChar(char c)
+{
+    Object *obj = CreateChar(c);
+    heap.AddObject(obj, sizeof(char));
+    return obj;
+}
+
+Object *VM::NewString(char *str, size_t n)
+{
+    Object *obj = CreateString(str, n);
+    heap.AddObject(obj, n * sizeof(char));
+    return obj;
+}
+
+Object *VM::NewNull_T()
+{
+    Object *obj = CreateNull_T();
+    heap.AddObject(obj, sizeof(Null_T));
+    return obj;
+}
+
 #define BINARY_I_OP(l, op, r) \
-    CreateInt(GetInt(l) op GetInt(r))
+    NewInt(GetInt(l) op GetInt(r))
 
 #define BINARY_DI_OP(l, op, r) \
-    CreateDouble(GetDouble(l) op GetInt(r))
+    NewDouble(GetDouble(l) op GetInt(r))
 
 #define BINARY_ID_OP(l, op, r) \
-    CreateDouble(GetInt(l) op GetDouble(r))
+    NewDouble(GetInt(l) op GetDouble(r))
 
 #define BINARY_D_OP(l, op, r) \
-    CreateDouble(GetDouble(l) op GetDouble(r))
+    NewDouble(GetDouble(l) op GetDouble(r))
 
 #define UNARY_I_OP(op, r) \
-    CreateInt(op GetInt(r))
+    NewInt(op GetInt(r))
 
 #define UNARY_D_OP(op, r) \
-    CreateDouble(op GetDouble(r))
+    NewDouble(op GetDouble(r))
 
 #define UNARY_B_OP(op, r) \
-    CreateBool(op r->as.b)
+    NewBool(op r->as.b)
 
 #define TAKE_LEFT_RIGHT(left, right, stack) \
     right = stack.back;                     \
@@ -179,16 +235,14 @@ void VM::ExecuteInstruction()
     case Opcode::LOAD_INT:
     {
         int i = functions[curFunc].ints[o.op];
-        Object *obj = CreateInt(i);
-        heap.AddObject(obj);
+        Object *obj = NewInt(i);
         stack.push_back(obj);
         break;
     }
     case Opcode::LOAD_DOUBLE:
     {
         double d = functions[curFunc].doubles[o.op];
-        Object *obj = CreateDouble(d);
-        heap.AddObject(obj);
+        Object *obj = NewDouble(d);
         stack.push_back(obj);
         break;
     }
@@ -196,8 +250,7 @@ void VM::ExecuteInstruction()
     {
 
         bool b = functions[curFunc].bools[o.op];
-        Object *obj = CreateBool(b);
-        heap.AddObject(obj);
+        Object *obj = NewBool(b);
         stack.push_back(obj);
         break;
     }
@@ -493,12 +546,12 @@ void VM::ExecuteInstruction()
             RuntimeError("Cannot cast a null value");
         else if (dynamic_cast<Int *>(obj) != nullptr)
         {
-            stack.push_back(CreateDouble((double)GetInt(obj)));
+            stack.push_back(NewDouble((double)GetInt(obj)));
             break;
         }
         else if (dynamic_cast<Double *>(obj) != nullptr)
         {
-            stack.push_back(CreateInt((int)GetDouble(obj)));
+            stack.push_back(NewInt((int)GetDouble(obj)));
             break;
         }
         else if (dynamic_cast<Struct *>(obj) != nullptr)
@@ -569,10 +622,10 @@ void VM::ExecuteInstruction()
             Object *left = stack.back;
             stack.pop_back();
 
-            stack.push_back(CreateInt(GetInt(left) - GetInt(right)));
+            stack.push_back(NewInt(GetInt(left) - GetInt(right)));
         }
         else
-            stack.push_back(CreateInt(-GetInt(right)));
+            stack.push_back(NewInt(-GetInt(right)));
         break;
     }
     case Opcode::DI_SUB:
@@ -601,10 +654,10 @@ void VM::ExecuteInstruction()
             Object *left = stack.back;
             stack.pop_back();
 
-            stack.push_back(CreateDouble(GetDouble(left) - GetDouble(right)));
+            stack.push_back(NewDouble(GetDouble(left) - GetDouble(right)));
         }
         else
-            stack.push_back(CreateDouble(-GetDouble(right)));
+            stack.push_back(NewDouble(-GetDouble(right)));
         break;
     }
     // multiplies the last 2 things on the stack
@@ -760,7 +813,7 @@ void VM::ExecuteInstruction()
     case Opcode::N_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(CreateBool(IsNull_T(left) && IsNull_T(right)));
+        stack.push_back(NewBool(IsNull_T(left) && IsNull_T(right)));
         break;
     }
     // does an equality check on the last 2 things on the stack
@@ -791,13 +844,13 @@ void VM::ExecuteInstruction()
     case Opcode::B_EQ_EQ:
     {
         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(CreateBool(GetBool(left) == GetBool(right)));
+        stack.push_back(NewBool(GetBool(left) == GetBool(right)));
         break;
     }
     case Opcode::N_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(CreateBool(!IsNull_T(left) || !IsNull_T(right)));
+        stack.push_back(NewBool(!IsNull_T(left) || !IsNull_T(right)));
         break;
     }
     // does an inequality check on the last 2 things on the stack
@@ -828,14 +881,14 @@ void VM::ExecuteInstruction()
     case Opcode::B_BANG_EQ:
     {
         TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(CreateBool(GetBool(left) != GetBool(right)));
+        stack.push_back(NewBool(GetBool(left) != GetBool(right)));
         break;
     }
     case Opcode::BANG:
     {
         Object *right = stack.back;
         stack.pop_back();
-        stack.push_back(CreateBool(!GetBool(right)));
+        stack.push_back(NewBool(!GetBool(right)));
         break;
     }
     // Does nothing

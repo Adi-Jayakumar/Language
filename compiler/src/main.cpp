@@ -19,20 +19,20 @@ void DumpTokens(std::string fPath)
 
 int main()
 {
-    DumpTokens("../verifier_ex/square.txt");
-    std::cout << std::endl
-              << std::endl;
+    // DumpTokens("../verifier_ex/square.txt");
+    // std::cout << std::endl
+    //           << std::endl;
     Parser p("../verifier_ex/square.txt");
     std::vector<std::shared_ptr<Stmt>> res = p.Parse();
 
     if (p.hadError)
         exit(2);
 
-    for (auto &s : res)
-        std::cout << s.get() << std::endl;
+    // for (auto &s : res)
+    //     std::cout << s.get() << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
     StaticAnalyser t = StaticAnalyser();
     for (auto &s : res)
@@ -46,11 +46,11 @@ int main()
     std::cout << std::endl
               << std::endl;
 
-    for (auto &s : res)
-        std::cout << s.get() << std::endl;
+    // for (auto &s : res)
+    //     std::cout << s.get() << std::endl;
 
-    std::cout << std::endl
-              << std::endl;
+    // std::cout << std::endl
+    //           << std::endl;
 
     Compiler c = Compiler();
     c.Compile(res);

@@ -642,7 +642,9 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     std::shared_ptr<Expr> res = nullptr;
     if (cur.type == TokenID::NULL_T || IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
-    else if (cur.type == TokenID::IDEN && (next.type == TokenID::OPEN_PAR || next.type == TokenID::LT))
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
+        res = FuncCall();
+    else if (cur.type == TokenID::CAST)
         res = FuncCall();
     else if (cur.type == TokenID::OPEN_PAR)
     {
@@ -679,8 +681,8 @@ std::shared_ptr<Expr> Parser::FuncCall()
     // skipping the name
     Advance();
 
-    TypeData type = GetTypeNameMap()["void"];
-    TypeData voidT = GetTypeNameMap()["void"];
+    TypeData type = VOID_TYPE;
+    TypeData voidT = VOID_TYPE;
 
     if (cur.type == TokenID::LT)
     {
@@ -718,7 +720,7 @@ std::shared_ptr<Expr> Parser::FuncCall()
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
 {
     Token loc = cur;
-    TypeData type = {0, false};
+    TypeData type = VOID_TYPE;
 
     if (cur.type != TokenID::OPEN_BRACE)
         type = ParseType("Malformed type in brace initialiser");

@@ -10,7 +10,7 @@ class StaticAnalyser;
 class Expr
 {
 public:
-    TypeData t = {0, false};
+    TypeData t = VOID_TYPE;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(std::ostream &out) = 0;

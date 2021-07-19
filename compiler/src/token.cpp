@@ -37,6 +37,10 @@ std::string ToString(const TokenID &t)
     {
         return "FUNC";
     }
+    case TokenID::CAST:
+    {
+        return "CAST";
+    }
     case TokenID::THROW:
     {
         return "THROW";

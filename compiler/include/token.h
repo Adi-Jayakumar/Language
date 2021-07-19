@@ -16,6 +16,7 @@ enum class TokenID : uint8_t
     IDEN,
     TYPENAME,
     FUNC,
+    CAST,
 
     THROW,
     TRY,

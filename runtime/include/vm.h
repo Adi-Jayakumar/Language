@@ -20,13 +20,24 @@ typedef Object *(*LibFunc)(VM *, Object **);
 class Heap
 {
     std::vector<Object *> values;
+    // #byets managed before a GC round is done
     size_t threshold;
+    // #bytes managed
+    size_t managed;
 
 public:
     Heap() = default;
+
     size_t Size() { return values.size(); };
+
     Object *operator[](size_t index) { return values[index]; };
-    void AddObject(Object *obj) { values.push_back(obj); };
+
+    void AddObject(Object *obj, size_t numBytes)
+    {
+        values.push_back(obj);
+        managed += numBytes;
+    };
+
     void CleanUp(); // does nothing if the number of unmarked objects is not sufficiently large
 };
 
@@ -84,11 +95,14 @@ public:
     void PrintCallStack();
     void ExecuteProgram();
 
-    // adds a list of Create*()'ed objects to the VM's heap
-    // must be used in C-Libraries after Create*()'ing objects
-    // so that the garbage collector knows about them
-    void AddToHeap(Object **objs, size_t numObjs);
-    void AddSingleToHeap(Object *obj) { heap.AddObject(obj); };
+    Object *NewInt(int);
+    Object *NewDouble(double);
+    Object *NewBool(bool);
+    Object *NewArray(Object **, size_t);
+    Object *NewStruct(Object **, size_t, TypeID);
+    Object *NewChar(char);
+    Object *NewString(char *, size_t);
+    Object *NewNull_T();
 
     void RuntimeError(std::string msg);
 

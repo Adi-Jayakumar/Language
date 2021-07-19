@@ -330,6 +330,10 @@ bool Lexer::CheckKeyword(Token &tok)
     {
         return MatchKeyWord("atch", TokenID::CATCH, tok) || MatchKeyWord("har", TokenID::TYPENAME, tok);
     }
+    case 'C':
+    {
+        return MatchKeyWord("ast", TokenID::CAST, tok);
+    }
     case 'd':
     {
         return MatchKeyWord("ouble", TokenID::TYPENAME, tok);
