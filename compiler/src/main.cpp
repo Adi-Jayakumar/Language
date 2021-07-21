@@ -17,51 +17,69 @@ void DumpTokens(std::string fPath)
     std::cout << t << std::endl;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    // DumpTokens("../verifier_ex/square.txt");
-    // std::cout << std::endl
-    //           << std::endl;
-    Parser p("../verifier_ex/square.txt");
-    std::vector<std::shared_ptr<Stmt>> res = p.Parse();
+    std::string inFilePath(argv[1], strlen(argv[1]));
+    std::string outFilePath(argv[2], strlen(argv[2]));
 
-    if (p.hadError)
-        exit(2);
+    Parser p(inFilePath);
+    std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
-
-    // std::cout << std::endl
-    //           << std::endl;
-
-    StaticAnalyser t = StaticAnalyser();
-    for (auto &s : res)
+    if (argc == 4)
     {
-        t.TypeCheck(s);
+        std::string printParse(argv[3], 2);
+        if (printParse == "-p")
+        {
+            for (auto &stmt : parsed)
+                std::cout << stmt.get() << std::endl;
+        }
     }
 
-    // if (t.hadError)
-    //     exit(3);
+    StaticAnalyser s;
 
-    std::cout << std::endl
-              << std::endl;
+    for (auto &stmt : parsed)
+        stmt->Type(s);
 
-    // for (auto &s : res)
-    //     std::cout << s.get() << std::endl;
-
-    // std::cout << std::endl
-    //           << std::endl;
-
-    Compiler c = Compiler();
-    c.Compile(res);
-
-    c.Disassemble();
-
-    std::cout << "THROW STACK" << std::endl;
-    for (auto &ti : c.throwStack)
+    if (argc == 4)
     {
-        std::cout << "TrowInfos(" << +ti.func << ", " << +ti.index << ", " << ti.isArray << ", " << +ti.type << ", " << ti.callStackIndex << ")" << std::endl;
+        std::string printParse(argv[3], 2);
+        if (printParse == "-t")
+        {
+            for (auto &stmt : parsed)
+                std::cout << stmt.get() << std::endl;
+        }
+    }
+    else if (argc == 5)
+    {
+        std::string printParse(argv[4], 2);
+        if (printParse == "-t")
+        {
+            for (auto &stmt : parsed)
+                std::cout << stmt.get() << std::endl;
+        }
     }
 
-    Compiler::SerialiseProgram(c, "../test.lo");
+    Compiler c;
+    c.Compile(parsed);
+
+    if (argc == 4)
+    {
+        std::string printParse(argv[3], 2);
+        if (printParse == "-c")
+            c.Disassemble();
+    }
+    else if (argc == 5)
+    {
+        std::string printParse(argv[4], 2);
+        if (printParse == "-c")
+            c.Disassemble();
+    }
+    else if (argc == 6)
+    {
+        std::string printParse(argv[4], 2);
+        if (printParse == "-c")
+            c.Disassemble();
+    }
+
+    Compiler::SerialiseProgram(c, outFilePath);
 }
