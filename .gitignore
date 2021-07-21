@@ -42,6 +42,3 @@ verifier_ex/*
 
 # vscode specific
 *.code-workspace
-
-# Makefile
-Makefile

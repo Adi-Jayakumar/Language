@@ -3,6 +3,7 @@
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
+#include "argparser.h"
 #include <chrono>
 
 void DumpTokens(std::string fPath)
@@ -19,67 +20,49 @@ void DumpTokens(std::string fPath)
 
 int main(int argc, char **argv)
 {
-    std::string inFilePath(argv[1], strlen(argv[1]));
-    std::string outFilePath(argv[2], strlen(argv[2]));
+    ArgParser arg;
 
-    Parser p(inFilePath);
+    arg.AddSwitch("-p");
+    arg.AddSwitch("-t");
+    arg.AddSwitch("-c");
+
+    arg.AddArg({"-f", "-o"});
+
+    arg.ParseArgs(argc - 1, argv + 1);
+
+    std::string ifPath = arg.GetArgVal("-f");
+
+    Parser p(ifPath);
     std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
 
-    if (argc == 4)
+    if (arg.IsSwitch("-p"))
     {
-        std::string printParse(argv[3], 2);
-        if (printParse == "-p")
-        {
-            for (auto &stmt : parsed)
-                std::cout << stmt.get() << std::endl;
-        }
+        std::cout << "PARSED" << std::endl;
+        for (auto &stmt : parsed)
+            std::cout << stmt.get() << std::endl;
     }
 
     StaticAnalyser s;
-
     for (auto &stmt : parsed)
         stmt->Type(s);
 
-    if (argc == 4)
+    if (arg.IsSwitch("-t"))
     {
-        std::string printParse(argv[3], 2);
-        if (printParse == "-t")
-        {
-            for (auto &stmt : parsed)
-                std::cout << stmt.get() << std::endl;
-        }
-    }
-    else if (argc == 5)
-    {
-        std::string printParse(argv[4], 2);
-        if (printParse == "-t")
-        {
-            for (auto &stmt : parsed)
-                std::cout << stmt.get() << std::endl;
-        }
+        std::cout << "\n\nANALYSED" << std::endl;
+        for (auto &stmt : parsed)
+            std::cout << stmt.get() << std::endl;
     }
 
     Compiler c;
     c.Compile(parsed);
 
-    if (argc == 4)
+    if (arg.IsSwitch("-c"))
     {
-        std::string printParse(argv[3], 2);
-        if (printParse == "-c")
-            c.Disassemble();
-    }
-    else if (argc == 5)
-    {
-        std::string printParse(argv[4], 2);
-        if (printParse == "-c")
-            c.Disassemble();
-    }
-    else if (argc == 6)
-    {
-        std::string printParse(argv[4], 2);
-        if (printParse == "-c")
-            c.Disassemble();
+        std::cout << "\n\nCOMPILED" << std::endl;
+        c.Disassemble();
     }
 
-    Compiler::SerialiseProgram(c, outFilePath);
+    std::string ofPath = arg.GetArgVal("-o");
+
+    Compiler::SerialiseProgram(c, ofPath);
 }
