@@ -1,9 +1,9 @@
 #include "ASTPrinter.h"
+#include "argparser.h"
 #include "compiler.h"
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
-#include "argparser.h"
 #include <chrono>
 
 void DumpTokens(std::string fPath)
@@ -25,6 +25,7 @@ int main(int argc, char **argv)
     arg.AddSwitch("-p");
     arg.AddSwitch("-t");
     arg.AddSwitch("-c");
+    arg.AddSwitch("--rm-bin");
 
     arg.AddArg({"-f", "-o"});
 
@@ -64,5 +65,12 @@ int main(int argc, char **argv)
 
     std::string ofPath = arg.GetArgVal("-o");
 
+    if (arg.IsSwitchOn("--rm-bin"))
+    {
+        std::string rm = "rm -f " + ofPath;
+        int sysCode = system(rm.c_str());
+        if (sysCode == -1)
+            std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    }
     Compiler::SerialiseProgram(c, ofPath);
 }
