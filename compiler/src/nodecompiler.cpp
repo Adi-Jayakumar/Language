@@ -363,8 +363,8 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     if (c.Symbols.vars.size() > UINT8_MAX)
         c.CompileError(dv->Loc(), "Max number of variables in a Function is " + std::to_string(UINT8_MAX));
 
-    c.Symbols.AddVar(dv->t, dv->name);
     dv->value->NodeCompile(c);
+    c.Symbols.AddVar(dv->t, dv->name);
 
     if (c.Symbols.depth == 0)
         c.cur->code.push_back({Opcode::VAR_D_GLOBAL, 0});

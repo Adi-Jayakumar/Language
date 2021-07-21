@@ -322,8 +322,6 @@ void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
     if (Symbols.IsVarInScope(dv->name))
         TypeError(dv->Loc(), "Variable " + dv->name + " is already defined");
 
-    Symbols.AddVar(dv->t, dv->name);
-
     if (dv->value != nullptr)
     {
         TypeData valType = dv->value->Type(*this);
@@ -334,6 +332,7 @@ void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
         if (dv->t.type < NUM_DEF_TYPES)
             dv->value->t = dv->t;
     }
+    Symbols.AddVar(dv->t, dv->name);
 }
 
 void StaticAnalyser::TypeOfBlock(Block *b)
