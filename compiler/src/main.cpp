@@ -36,7 +36,7 @@ int main(int argc, char **argv)
     Parser p(ifPath);
     std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
 
-    if (arg.IsSwitch("-p"))
+    if (arg.IsSwitchOn("-p"))
     {
         std::cout << "PARSED" << std::endl;
         for (auto &stmt : parsed)
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     for (auto &stmt : parsed)
         stmt->Type(s);
 
-    if (arg.IsSwitch("-t"))
+    if (arg.IsSwitchOn("-t"))
     {
         std::cout << "\n\nANALYSED" << std::endl;
         for (auto &stmt : parsed)
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     Compiler c;
     c.Compile(parsed);
 
-    if (arg.IsSwitch("-c"))
+    if (arg.IsSwitchOn("-c"))
     {
         std::cout << "\n\nCOMPILED" << std::endl;
         c.Disassemble();
