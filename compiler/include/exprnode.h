@@ -20,6 +20,7 @@ public:
     virtual TypeData GetType() = 0;
     // compiles the node - implmented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
+    virtual std::shared_ptr<Expr> Evaluate() = 0;
     // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;
 };
@@ -38,6 +39,8 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
+
     // bool IsTruthy() override;
 };
 
@@ -55,6 +58,8 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
+
     // bool IsTruthy() override;
 };
 
@@ -73,6 +78,8 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
+
     // bool IsTruthy() override;
 };
 
@@ -91,6 +98,8 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
+
     // bool IsTruthy() override;
 };
 
@@ -109,6 +118,8 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
+
     // bool IsTruthy() override;
 };
 
@@ -126,6 +137,7 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };
 
 class ArrayIndex : public Expr
@@ -142,6 +154,7 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };
 
 class BracedInitialiser : public Expr
@@ -158,6 +171,7 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };
 
 class DynamicAllocArray : public Expr
@@ -173,6 +187,7 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };
 
 class FieldAccess : public Expr
@@ -189,6 +204,7 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };
 
 class TypeCast : public Expr
@@ -206,4 +222,5 @@ public:
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Expr> Evaluate() override;
 };

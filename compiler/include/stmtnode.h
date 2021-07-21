@@ -13,6 +13,7 @@ public:
     virtual void Type(StaticAnalyser &t) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
+    virtual std::shared_ptr<Stmt> Evaluate() = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, Stmt *s);
@@ -27,6 +28,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class DeclaredVar : public Stmt
@@ -41,6 +43,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class Block : public Stmt
@@ -54,6 +57,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class IfStmt : public Stmt
@@ -68,6 +72,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class WhileStmt : public Stmt
@@ -83,6 +88,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class FuncDecl : public Stmt
@@ -105,6 +111,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class Return : public Stmt
@@ -120,6 +127,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class StructDecl : public Stmt
@@ -134,6 +142,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 /*
@@ -152,6 +161,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class Break : public Stmt
@@ -162,6 +172,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class Throw : public Stmt
@@ -174,6 +185,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
 
 class TryCatch : public Stmt
@@ -188,4 +200,5 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
+    std::shared_ptr<Stmt> Evaluate() override;
 };
