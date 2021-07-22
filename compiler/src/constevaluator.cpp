@@ -122,7 +122,10 @@ void ConstantEvaluator::EvaluateExprStmt(ExprStmt *es)
 void ConstantEvaluator::EvaluateDeclaredVar(DeclaredVar *dv)
 {
     if (dv->value != nullptr)
+    {
         dv->value = dv->value->Evaluate();
+        dv->value->t = dv->t;
+    }
 }
 
 void ConstantEvaluator::EvaluateBlock(Block *block)
