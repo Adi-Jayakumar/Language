@@ -1,5 +1,10 @@
 #include "constevaluator.h"
 
+bool IsConstant(Expr *e)
+{
+    return dynamic_cast<Literal *>(e) != nullptr;
+}
+
 //------------------EXPRESSION--------------------//
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateLiteral(Literal *l)
