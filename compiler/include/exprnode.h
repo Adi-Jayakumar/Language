@@ -110,7 +110,7 @@ public:
     std::shared_ptr<Expr> target;
     std::shared_ptr<Expr> val;
 
-    Assign(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
+    Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc);
     // ~Assign() override = default;
 
     Token Loc() override;
@@ -130,7 +130,7 @@ public:
     std::string name;
     std::vector<std::shared_ptr<Expr>> args;
 
-    FunctionCall(std::string, std::vector<std::shared_ptr<Expr>>, Token);
+    FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -147,7 +147,7 @@ public:
     std::shared_ptr<Expr> name;
     std::shared_ptr<Expr> index;
 
-    ArrayIndex(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
+    ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -164,7 +164,7 @@ public:
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
 
-    BracedInitialiser(size_t, std::vector<std::shared_ptr<Expr>>, Token);
+    BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -180,7 +180,7 @@ public:
     Token loc;
     std::shared_ptr<Expr> size;
 
-    DynamicAllocArray(TypeData, std::shared_ptr<Expr>, Token);
+    DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -197,7 +197,7 @@ public:
     std::shared_ptr<Expr> accessor;
     std::shared_ptr<Expr> accessee;
 
-    FieldAccess(std::shared_ptr<Expr>, std::shared_ptr<Expr>, Token);
+    FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;
@@ -215,7 +215,7 @@ public:
     std::shared_ptr<Expr> arg;
     bool isDownCast = false;
 
-    TypeCast(TypeData, std::shared_ptr<Expr>, Token);
+    TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc);
 
     Token Loc() override;
     void Print(std::ostream &out) override;

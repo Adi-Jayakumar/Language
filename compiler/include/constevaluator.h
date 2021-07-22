@@ -1,6 +1,5 @@
 #pragma once
-#include "stmtnode.h"
-#include <memory>
+#include "literalevaluator.h"
 
 namespace ConstantEvaluator
 {
@@ -18,15 +17,15 @@ namespace ConstantEvaluator
     std::shared_ptr<Expr> EvaluateTypeCast(TypeCast *gf);
 
     // statment evaluator
-    std::shared_ptr<Stmt> EvaluateExprStmt(ExprStmt *es);
-    std::shared_ptr<Stmt> EvaluateDeclaredVar(DeclaredVar *v);
-    std::shared_ptr<Stmt> EvaluateBlock(Block *b);
-    std::shared_ptr<Stmt> EvaluateIfStmt(IfStmt *i);
-    std::shared_ptr<Stmt> EvaluateWhileStmt(WhileStmt *ws);
-    std::shared_ptr<Stmt> EvaluateFuncDecl(FuncDecl *fd);
-    std::shared_ptr<Stmt> EvaluateReturn(Return *r);
-    std::shared_ptr<Stmt> EvaluateStructDecl(StructDecl *sd);
-    std::shared_ptr<Stmt> EvaluateImportStmt(ImportStmt *is);
-    std::shared_ptr<Stmt> EvaluateThrow(Throw *t);
-    std::shared_ptr<Stmt> EvaluateTryCatch(TryCatch *tc);
+    void EvaluateExprStmt(ExprStmt *es);
+    void EvaluateDeclaredVar(DeclaredVar *v);
+    void EvaluateBlock(Block *b);
+    void EvaluateIfStmt(IfStmt *i);
+    void EvaluateWhileStmt(WhileStmt *ws);
+    void EvaluateFuncDecl(FuncDecl *fd);
+    void EvaluateReturn(Return *r);
+    void EvaluateStructDecl(StructDecl *sd);
+    void EvaluateImportStmt(ImportStmt *is);
+    void EvaluateThrow(Throw *t);
+    void EvaluateTryCatch(TryCatch *tc);
 } // namespace ConstantEvaluator

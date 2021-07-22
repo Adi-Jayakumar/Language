@@ -1,6 +1,7 @@
 #include "ASTPrinter.h"
 #include "argparser.h"
 #include "compiler.h"
+#include "constevaluator.h"
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
@@ -40,7 +41,7 @@ int main(int argc, char **argv)
     {
         std::cout << "PARSED" << std::endl;
         for (auto &stmt : parsed)
-            std::cout << stmt.get() << std::endl;
+            std::cout << stmt << std::endl;
     }
 
     StaticAnalyser s;
@@ -51,7 +52,13 @@ int main(int argc, char **argv)
     {
         std::cout << "\n\nANALYSED" << std::endl;
         for (auto &stmt : parsed)
-            std::cout << stmt.get() << std::endl;
+            std::cout << stmt << std::endl;
+    }
+
+    for (auto &stmt : parsed)
+    {
+        stmt->Evaluate();
+        std::cout << stmt << std::endl;
     }
 
     Compiler c;
