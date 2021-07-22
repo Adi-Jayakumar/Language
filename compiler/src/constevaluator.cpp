@@ -1,10 +1,5 @@
 #include "constevaluator.h"
 
-bool IsConstant(Expr *e)
-{
-    return dynamic_cast<Literal *>(e) != nullptr;
-}
-
 //------------------EXPRESSION--------------------//
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateLiteral(Literal *l)
@@ -77,7 +72,9 @@ std::shared_ptr<Expr> ConstantEvaluator::EvaluateAssign(Assign *a)
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateVarReference(VarReference *vr)
 {
-    return std::make_shared<VarReference>(vr->Loc());
+    std::shared_ptr<Expr> res = std::make_shared<VarReference>(vr->Loc());
+    res->t = vr->t;
+    return res;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateFunctionCall(FunctionCall *fc)

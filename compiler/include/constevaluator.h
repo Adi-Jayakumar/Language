@@ -1,7 +1,6 @@
 #pragma once
 #include "literalevaluator.h"
 
-bool IsConstant(Expr *e);
 
 namespace ConstantEvaluator
 {

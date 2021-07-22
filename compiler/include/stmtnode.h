@@ -14,6 +14,7 @@ public:
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
     virtual void Evaluate() = 0;
+    virtual void Propagate(ConstantPropagator &cp, bool &didSimp) = 0;
 };
 
 std::ostream &operator<<(std::ostream &out, Stmt *s);
@@ -29,6 +30,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class DeclaredVar : public Stmt
@@ -44,6 +46,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class Block : public Stmt
@@ -58,6 +61,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class IfStmt : public Stmt
@@ -73,6 +77,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class WhileStmt : public Stmt
@@ -89,6 +94,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class FuncDecl : public Stmt
@@ -112,6 +118,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class Return : public Stmt
@@ -128,6 +135,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class StructDecl : public Stmt
@@ -143,6 +151,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 /*
@@ -162,6 +171,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class Break : public Stmt
@@ -173,6 +183,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class Throw : public Stmt
@@ -186,6 +197,7 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
 class TryCatch : public Stmt
@@ -201,4 +213,5 @@ public:
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
+    void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };

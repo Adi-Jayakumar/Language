@@ -1,6 +1,7 @@
 #include "ASTPrinter.h"
 #include "argparser.h"
 #include "compiler.h"
+#include "constantpropagator.h"
 #include "constevaluator.h"
 #include "parser.h"
 #include "serialise.h"
@@ -55,9 +56,19 @@ int main(int argc, char **argv)
             std::cout << stmt << std::endl;
     }
 
+    std::cout << "\n\nCONSTANTS EVALUATED" << std::endl;
     for (auto &stmt : parsed)
     {
         stmt->Evaluate();
+        std::cout << stmt << std::endl;
+    }
+
+    std::cout << "\n\nPROPAGATED" << std::endl;
+    ConstantPropagator cp;
+    bool didSimp = false;
+    for (auto &stmt : parsed)
+    {
+        stmt->Propagate(cp, didSimp);
         std::cout << stmt << std::endl;
     }
 
