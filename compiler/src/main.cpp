@@ -56,21 +56,27 @@ int main(int argc, char **argv)
             std::cout << stmt << std::endl;
     }
 
-    std::cout << "\n\nCONSTANTS EVALUATED" << std::endl;
-    for (auto &stmt : parsed)
-    {
-        stmt->Evaluate();
-        std::cout << stmt << std::endl;
-    }
-
-    std::cout << "\n\nPROPAGATED" << std::endl;
+    bool evalSimp = false;
+    bool propSimp = false;
     ConstantPropagator cp;
-    bool didSimp = false;
-    for (auto &stmt : parsed)
+
+    do
     {
-        stmt->Propagate(cp, didSimp);
+        evalSimp = false;
+        propSimp = false;
+
+        // for (auto &stmt : parsed)
+        //     stmt->Evaluate(evalSimp);
+
+        for (auto &stmt : parsed)
+            stmt->Propagate(cp, propSimp);
+
+        std::cout << "evalSimp = " << evalSimp << " propSimp = " << propSimp << std::endl;
+    } while (evalSimp || propSimp);
+
+    std::cout << "\n\nOPTIMISED" << std::endl;
+    for (auto &stmt : parsed)
         std::cout << stmt << std::endl;
-    }
 
     Compiler c;
     c.Compile(parsed);

@@ -2,16 +2,20 @@
 
 //------------------EXPRESSION--------------------//
 
-std::shared_ptr<Expr> ConstantEvaluator::EvaluateLiteral(Literal *l, bool &didSimp)
+std::shared_ptr<Expr> ConstantEvaluator::EvaluateLiteral(Literal *, bool &)
 {
-    return std::make_shared<Literal>(l->Loc());
+    return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateUnary(Unary *u, bool &didSimp)
 {
-    std::shared_ptr<Expr> rSimp = u->right->Evaluate(didSimp);
-    Literal *r = dynamic_cast<Literal *>(rSimp.get());
-    didSimp = r != nullptr;
+    Literal *r = dynamic_cast<Literal *>(u->right.get());
+    if (r == nullptr)
+    {
+        std::shared_ptr<Expr> rSimp = u->right->Evaluate(didSimp);
+        r = dynamic_cast<Literal *>(rSimp.get());
+        didSimp = r != nullptr;
+    }
 
     TokenID op = u->op.type;
 
@@ -25,11 +29,26 @@ std::shared_ptr<Expr> ConstantEvaluator::EvaluateUnary(Unary *u, bool &didSimp)
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateBinary(Binary *b, bool &didSimp)
 {
-    std::shared_ptr<Expr> lSimp = b->left->Evaluate(didSimp);
-    std::shared_ptr<Expr> rSimp = b->right->Evaluate(didSimp);
+    Literal *l = dynamic_cast<Literal *>(b->left.get());
+    Literal *r = dynamic_cast<Literal *>(b->right.get());
+    if (l == nullptr && r == nullptr)
+    {
+        std::shared_ptr<Expr> lSimp = b->left->Evaluate(didSimp);
+        std::shared_ptr<Expr> rSimp = b->right->Evaluate(didSimp);
 
-    Literal *l = dynamic_cast<Literal *>(lSimp.get());
-    Literal *r = dynamic_cast<Literal *>(rSimp.get());
+        l = dynamic_cast<Literal *>(lSimp.get());
+        r = dynamic_cast<Literal *>(rSimp.get());
+    }
+    else if (l == nullptr && r != nullptr)
+    {
+        std::shared_ptr<Expr> rSimp = b->right->Evaluate(didSimp);
+        r = dynamic_cast<Literal *>(rSimp.get());
+    }
+    else if (l != nullptr && r == nullptr)
+    {
+        std::shared_ptr<Expr> lSimp = b->left->Evaluate(didSimp);
+        r = dynamic_cast<Literal *>(lSimp.get());
+    }
 
     didSimp = (l != nullptr) && (r != nullptr);
     TokenID op = b->op.type;
@@ -218,7 +237,7 @@ void ConstantEvaluator::EvaluateStructDecl(StructDecl *sd, bool &didSimp)
         stmt->Evaluate(didSimp);
 }
 
-void ConstantEvaluator::EvaluateImportStmt(ImportStmt *, bool &didSimp)
+void ConstantEvaluator::EvaluateImportStmt(ImportStmt *, bool &)
 {
 }
 
@@ -339,7 +358,7 @@ void ImportStmt::Evaluate(bool &didSimp)
     ConstantEvaluator::EvaluateImportStmt(this, didSimp);
 }
 
-void Break::Evaluate(bool &didSimp)
+void Break::Evaluate(bool &)
 {
 }
 

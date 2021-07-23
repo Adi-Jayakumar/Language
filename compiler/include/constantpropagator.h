@@ -18,7 +18,8 @@ public:
     std::vector<VariableValue> stack;
     ConstantPropagator() = default;
 
-    std::shared_ptr<Expr> GetVariableValue(size_t depth, TypeData type, std::string name);
+    std::shared_ptr<Expr> GetVariableValue(TypeData type, std::string name);
+    void SetVariableValue(TypeData type, std::string name, std::shared_ptr<Expr> val);
     void ClearCurrentDepth();
 
     // expression interface
