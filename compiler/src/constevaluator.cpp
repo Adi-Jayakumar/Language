@@ -11,19 +11,16 @@ std::shared_ptr<Expr> ConstantEvaluator::EvaluateUnary(Unary *u)
 {
     std::shared_ptr<Expr> rSimp = u->right->Evaluate();
     Literal *r = dynamic_cast<Literal *>(rSimp.get());
-    bool isSimp = r != nullptr;
-
-    std::shared_ptr<Expr> result = std::make_shared<Unary>(u->op, u->right);
-    result->t = u->t;
+    bool didSimp = r != nullptr;
 
     TokenID op = u->op.type;
 
-    if (op == TokenID::MINUS && isSimp)
+    if (op == TokenID::MINUS && didSimp)
         return UNARY_MINUS(r);
-    else if (op == TokenID::BANG && isSimp)
+    else if (op == TokenID::BANG && didSimp)
         return UNARY_BANG(r);
     else
-        return result;
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateBinary(Binary *b)
@@ -34,99 +31,135 @@ std::shared_ptr<Expr> ConstantEvaluator::EvaluateBinary(Binary *b)
     Literal *l = dynamic_cast<Literal *>(lSimp.get());
     Literal *r = dynamic_cast<Literal *>(rSimp.get());
 
-    bool isSimp = (l != nullptr) && (r != nullptr);
+    bool didSimp = (l != nullptr) && (r != nullptr);
     TokenID op = b->op.type;
 
-    std::shared_ptr<Expr> result = std::make_shared<Binary>(lSimp, b->op, rSimp);
-    result->t = b->t;
-
-    if (op == TokenID::PLUS && isSimp)
+    if (op == TokenID::PLUS && didSimp)
         return BINARY_PLUS(l, r);
-    else if (op == TokenID::MINUS && isSimp)
+    else if (op == TokenID::MINUS && didSimp)
         return BINARY_MINUS(l, r);
-    else if (op == TokenID::STAR && isSimp)
+    else if (op == TokenID::STAR && didSimp)
         return BINARY_STAR(l, r);
-    else if (op == TokenID::SLASH && isSimp)
+    else if (op == TokenID::SLASH && didSimp)
         return BINARY_SLASH(l, r);
-    else if (op == TokenID::GT && isSimp)
+    else if (op == TokenID::GT && didSimp)
         return BINARY_GT(l, r);
-    else if (op == TokenID::LT && isSimp)
+    else if (op == TokenID::LT && didSimp)
         return BINARY_LT(l, r);
-    else if (op == TokenID::GEQ && isSimp)
+    else if (op == TokenID::GEQ && didSimp)
         return BINARY_GEQ(l, r);
-    else if (op == TokenID::LEQ && isSimp)
+    else if (op == TokenID::LEQ && didSimp)
         return BINARY_LEQ(l, r);
-    else if (op == TokenID::EQ_EQ && isSimp)
+    else if (op == TokenID::EQ_EQ && didSimp)
         return BINARY_EQ_EQ(l, r);
-    else if (op == TokenID::BANG_EQ && isSimp)
+    else if (op == TokenID::BANG_EQ && didSimp)
         return BINARY_BANG_EQ(l, r);
     else
-        return result;
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateAssign(Assign *a)
 {
     std::shared_ptr<Expr> valSimp = a->val->Evaluate();
-    return std::make_shared<Assign>(a->target, a->val, a->Loc());
+    if (valSimp != nullptr)
+        return std::make_shared<Assign>(a->target, a->val, a->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateVarReference(VarReference *vr)
 {
-    std::shared_ptr<Expr> res = std::make_shared<VarReference>(vr->Loc());
-    res->t = vr->t;
-    return res;
+    return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateFunctionCall(FunctionCall *fc)
 {
+    bool didSimp = false;
     for (size_t i = 0; i < fc->args.size(); i++)
-        fc->args[i] = fc->args[i]->Evaluate();
-    return std::make_shared<FunctionCall>(fc->name, fc->args, fc->Loc());
+    {
+        std::shared_ptr<Expr> simp = fc->args[i]->Evaluate();
+        if (simp != nullptr)
+        {
+            didSimp = true;
+            fc->args[i] = simp;
+        }
+    }
+    if (didSimp)
+        return std::make_shared<FunctionCall>(fc->name, fc->args, fc->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateArrayIndex(ArrayIndex *ai)
 {
     std::shared_ptr<Expr> iSimp = ai->index->Evaluate();
-    return std::make_shared<ArrayIndex>(ai->name, ai->index, ai->Loc());
+    if (iSimp != nullptr)
+        return std::make_shared<ArrayIndex>(ai->name, iSimp, ai->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateBracedInitialiser(BracedInitialiser *ia)
 {
+    bool didSimp = false;
     for (size_t i = 0; i < ia->init.size(); i++)
-        ia->init[i] = ia->init[i]->Evaluate();
-    return std::make_shared<BracedInitialiser>(ia->size, ia->init, ia->Loc());
+    {
+        std::shared_ptr<Expr> res = ia->init[i]->Evaluate();
+        if (res != nullptr)
+        {
+            didSimp = true;
+            ia->init[i] = res;
+        }
+    }
+    if (didSimp)
+        return std::make_shared<BracedInitialiser>(ia->size, ia->init, ia->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateDynamicAllocArray(DynamicAllocArray *da)
 {
-    da->size = da->size->Evaluate();
-    return std::make_shared<DynamicAllocArray>(da->GetType(), da->size, da->Loc());
+    std::shared_ptr<Expr> simp = da->size->Evaluate();
+    if (simp != nullptr)
+        return std::make_shared<DynamicAllocArray>(da->GetType(), simp, da->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateFieldAccess(FieldAccess *fa)
 {
-    return std::make_shared<FieldAccess>(fa->accessor, fa->accessee, fa->Loc());
+    return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantEvaluator::EvaluateTypeCast(TypeCast *gf)
 {
-    gf->arg = gf->arg->Evaluate();
-    return std::make_shared<TypeCast>(gf->GetType(), gf->arg, gf->Loc());
+    std::shared_ptr<Expr> simp = gf->arg->Evaluate();
+    if (simp != nullptr)
+        return std::make_shared<TypeCast>(gf->GetType(), simp, gf->Loc());
+    else
+        return nullptr;
 }
 
 //------------------STATEMENTS---------------------//
 
 void ConstantEvaluator::EvaluateExprStmt(ExprStmt *es)
 {
-    es->exp = es->exp->Evaluate();
+    std::shared_ptr<Expr> exp = es->exp->Evaluate();
+    if (exp != nullptr)
+        es->exp = exp;
 }
 
 void ConstantEvaluator::EvaluateDeclaredVar(DeclaredVar *dv)
 {
     if (dv->value != nullptr)
     {
-        dv->value = dv->value->Evaluate();
-        dv->value->t = dv->t;
+        std::cout << "RRUNNING DECLARED VAR" << std::endl;
+        std::shared_ptr<Expr> simp = dv->value->Evaluate();
+        if (simp != nullptr)
+        {
+            dv->value = simp;
+            dv->value->t = dv->t;
+        }
     }
 }
 
@@ -138,7 +171,10 @@ void ConstantEvaluator::EvaluateBlock(Block *block)
 
 void ConstantEvaluator::EvaluateIfStmt(IfStmt *i)
 {
-    i->cond = i->cond->Evaluate();
+    std::shared_ptr<Expr> condSimp = i->cond->Evaluate();
+    if (condSimp != nullptr)
+        i->cond = condSimp;
+
     i->thenBranch->Evaluate();
 
     if (i->elseBranch != nullptr)
@@ -147,7 +183,10 @@ void ConstantEvaluator::EvaluateIfStmt(IfStmt *i)
 
 void ConstantEvaluator::EvaluateWhileStmt(WhileStmt *ws)
 {
-    ws->cond = ws->cond->Evaluate();
+    std::shared_ptr<Expr> condSimp = ws->cond->Evaluate();
+    if (condSimp != nullptr)
+        ws->cond = condSimp;
+
     ws->body->Evaluate();
 }
 
@@ -159,15 +198,16 @@ void ConstantEvaluator::EvaluateFuncDecl(FuncDecl *fd)
 
 void ConstantEvaluator::EvaluateReturn(Return *r)
 {
-    r->retVal = r->retVal->Evaluate();
+    std::shared_ptr<Expr> simp = r->retVal->Evaluate();
+    if (simp != nullptr)
+        r->retVal = simp;
 }
 
 void ConstantEvaluator::EvaluateStructDecl(StructDecl *sd)
 {
     for (auto &stmt : sd->decls)
     {
-        if (stmt != nullptr)
-            stmt->Evaluate();
+        stmt->Evaluate();
     }
 }
 
@@ -177,7 +217,9 @@ void ConstantEvaluator::EvaluateImportStmt(ImportStmt *)
 
 void ConstantEvaluator::EvaluateThrow(Throw *t)
 {
-    t->exp = t->exp->Evaluate();
+    std::shared_ptr<Expr> simp = t->exp->Evaluate();
+    if (simp != nullptr)
+        t->exp = simp;
 }
 
 void ConstantEvaluator::EvaluateTryCatch(TryCatch *tc)
