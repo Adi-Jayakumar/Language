@@ -23,10 +23,12 @@ An implementation of a C-style statically typed language that compiles down to a
  - [x] Interfacing with C/C++ libraries
  - [x] Serialise and de-serialise Functions in order to seperate compilation and execution
  - [ ] Optimiser
-    - [x] Evauluate constant expressions
-    - [x] Push constants through program
+    - [ ] Evaluate constant expressions at compile time
+    - [ ] Propagate constants through program
+    - [ ] Keep performing optimisation passes until the AST does not change
     - [ ] Control flow optimisations
-    - [ ] Perform optimisations until the parse tree stops changing
+    - [ ] Peephole optimisations of bytecode
+    - [ ] Tail-call optimisations
  - [ ] Multiple file programs
  - [ ] Verification
     - [x] Lex and parse verification statements

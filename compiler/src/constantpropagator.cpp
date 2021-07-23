@@ -5,12 +5,12 @@ bool IsConstant(std::shared_ptr<Expr> e)
     return dynamic_cast<Literal *>(e.get()) != nullptr;
 }
 
-std::shared_ptr<Expr> ConstantPropagator::GetVariableValue(size_t depth, TypeData type, std::string name)
+std::shared_ptr<Expr> ConstantPropagator::GetVariableValue(TypeData type, std::string name)
 {
     for (int i = stack.size() - 1; i >= 0; i--)
     {
         VariableValue vv = stack[i];
-        if (depth == vv.depth && type == vv.type && name == vv.name)
+        if (type == vv.type && name == vv.name)
             return vv.value;
     }
     return nullptr;
@@ -23,6 +23,19 @@ void ConstantPropagator::ClearCurrentDepth()
 
     if (stack.size() == 1 && stack[0].depth == depth)
         stack.clear();
+}
+
+void ConstantPropagator::SetVariableValue(TypeData type, std::string name, std::shared_ptr<Expr> val)
+{
+    for (size_t i = stack.size() - 1; i >= 0; i--)
+    {
+        VariableValue vv = stack[i];
+        if (type == vv.type && name == vv.name)
+        {
+            vv.value = val;
+            break;
+        }
+    }
 }
 
 //------------------EXPRESSION--------------------//
@@ -74,12 +87,40 @@ std::shared_ptr<Expr> ConstantPropagator::PropagateBinary(Binary *b, bool &didSi
 
 std::shared_ptr<Expr> ConstantPropagator::PropagateAssign(Assign *a, bool &didSimp)
 {
-    return nullptr;
+    std::shared_ptr<Expr> targetSimp = a->target->Evaluate(didSimp);
+    std::shared_ptr<Expr> valSimp = a->val->Evaluate(didSimp);
+
+    bool canReplace = targetSimp != nullptr;
+    bool isValSimpd = valSimp != nullptr;
+    if (!isValSimpd)
+    {
+        valSimp = std::dynamic_pointer_cast<Literal>(valSimp);
+        isValSimpd = valSimp.get() != nullptr;
+    }
+    didSimp = targetSimp != nullptr;
+
+    VarReference *targetAsVR = canReplace ? dynamic_cast<VarReference *>(targetSimp.get()) : dynamic_cast<VarReference *>(a->target.get());
+    if (targetAsVR != nullptr)
+    {
+        if (isValSimpd)
+            SetVariableValue(targetAsVR->GetType(), targetAsVR->name, valSimp);
+        else
+            SetVariableValue(targetAsVR->GetType(), targetAsVR->name, nullptr);
+    }
+
+    if (canReplace && isValSimpd)
+        return std::make_shared<Assign>(targetSimp, valSimp, a->Loc());
+    else if (canReplace && !isValSimpd)
+        return std::make_shared<Assign>(targetSimp, a->val, a->Loc());
+    else if (!canReplace && isValSimpd)
+        return std::make_shared<Assign>(a->target, valSimp, a->Loc());
+    else
+        return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantPropagator::PropagateVarReference(VarReference *vr, bool &didSimp)
 {
-    std::shared_ptr<Expr> simp = GetVariableValue(depth, vr->GetType(), vr->name);
+    std::shared_ptr<Expr> simp = GetVariableValue(vr->GetType(), vr->name);
     if (simp != nullptr && IsConstant(simp))
     {
         didSimp = true;
@@ -88,25 +129,9 @@ std::shared_ptr<Expr> ConstantPropagator::PropagateVarReference(VarReference *vr
     return simp;
 }
 
-std::shared_ptr<Expr> ConstantPropagator::PropagateFunctionCall(FunctionCall *fc, bool &didSimp)
+std::shared_ptr<Expr> ConstantPropagator::PropagateFunctionCall(FunctionCall *, bool &)
 {
-    for (size_t i = 0; i < fc->args.size(); i++)
-    {
-        std::shared_ptr<Expr> simp = fc->args[i]->Propagate(*this, didSimp);
-        if (simp != nullptr && IsConstant(simp))
-        {
-            didSimp = true;
-            fc->args[i] = simp;
-        }
-    }
-    if (didSimp)
-    {
-        std::shared_ptr<Expr> res = std::make_shared<FunctionCall>(fc->name, fc->args, fc->Loc());
-        res->t = fc->GetType();
-        return res;
-    }
-    else
-        return nullptr;
+    return nullptr;
 }
 
 std::shared_ptr<Expr> ConstantPropagator::PropagateArrayIndex(ArrayIndex *ai, bool &didSimp)
@@ -227,7 +252,6 @@ void ConstantPropagator::PropagateDeclaredVar(DeclaredVar *v, bool &didSimp)
 void ConstantPropagator::PropagateBlock(Block *b, bool &didSimp)
 {
     depth++;
-
     for (auto &stmt : b->stmts)
         stmt->Propagate(*this, didSimp);
 
