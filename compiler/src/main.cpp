@@ -60,16 +60,22 @@ int main(int argc, char **argv)
     bool propSimp = false;
     ConstantPropagator cp;
 
+    int counter = 0;
+
     do
     {
+        counter++;
+        if (counter >= 10)
+            break;
+
         evalSimp = false;
         propSimp = false;
 
-        // for (auto &stmt : parsed)
-        //     stmt->Evaluate(evalSimp);
-
         for (auto &stmt : parsed)
-            stmt->Propagate(cp, propSimp);
+            stmt->Evaluate(evalSimp);
+
+        // for (auto &stmt : parsed)
+        //     stmt->Propagate(cp, propSimp);
 
         std::cout << "evalSimp = " << evalSimp << " propSimp = " << propSimp << std::endl;
     } while (evalSimp || propSimp);
