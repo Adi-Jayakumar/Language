@@ -76,7 +76,7 @@ Token Lexer::NextToken()
         else
         {
             std::string name;
-            while (isalnum(src[index]))
+            while (isalnum(src[index]) || src[index] == '_')
             {
                 name += src[index];
                 index++;
