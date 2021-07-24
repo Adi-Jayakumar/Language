@@ -23,27 +23,27 @@ public:
     void ClearCurrentDepth();
 
     // expression interface
-    std::shared_ptr<Expr> PropagateUnary(Unary *u, bool &didSimp);
-    std::shared_ptr<Expr> PropagateBinary(Binary *b, bool &didSimp);
-    std::shared_ptr<Expr> PropagateAssign(Assign *a, bool &didSimp);
-    std::shared_ptr<Expr> PropagateVarReference(VarReference *vr, bool &didSimp);
-    std::shared_ptr<Expr> PropagateFunctionCall(FunctionCall *fc, bool &didSimp);
-    std::shared_ptr<Expr> PropagateArrayIndex(ArrayIndex *ai, bool &didSimp);
-    std::shared_ptr<Expr> PropagateBracedInitialiser(BracedInitialiser *ia, bool &didSimp);
-    std::shared_ptr<Expr> PropagateDynamicAllocArray(DynamicAllocArray *da, bool &didSimp);
-    std::shared_ptr<Expr> PropagateFieldAccess(FieldAccess *fa, bool &didSimp);
-    std::shared_ptr<Expr> PropagateTypeCast(TypeCast *gf, bool &didSimp);
+    std::shared_ptr<Expr> PropagateUnary(Unary *u);
+    std::shared_ptr<Expr> PropagateBinary(Binary *b);
+    std::shared_ptr<Expr> PropagateAssign(Assign *a);
+    std::shared_ptr<Expr> PropagateVarReference(VarReference *vr);
+    std::shared_ptr<Expr> PropagateFunctionCall(FunctionCall *fc);
+    std::shared_ptr<Expr> PropagateArrayIndex(ArrayIndex *ai);
+    std::shared_ptr<Expr> PropagateBracedInitialiser(BracedInitialiser *ia);
+    std::shared_ptr<Expr> PropagateDynamicAllocArray(DynamicAllocArray *da);
+    std::shared_ptr<Expr> PropagateFieldAccess(FieldAccess *fa);
+    std::shared_ptr<Expr> PropagateTypeCast(TypeCast *gf);
 
     // statment interface
-    void PropagateExprStmt(ExprStmt *es, bool &didSimp);
-    void PropagateDeclaredVar(DeclaredVar *v, bool &didSimp);
-    void PropagateBlock(Block *b, bool &didSimp);
-    void PropagateIfStmt(IfStmt *i, bool &didSimp);
-    void PropagateWhileStmt(WhileStmt *ws, bool &didSimp);
-    void PropagateFuncDecl(FuncDecl *fd, bool &didSimp);
-    void PropagateReturn(Return *r, bool &didSimp);
-    void PropagateStructDecl(StructDecl *sd, bool &didSimp);
-    void PropagateImportStmt(ImportStmt *is, bool &didSimp);
-    void PropagateThrow(Throw *t, bool &didSimp);
-    void PropagateTryCatch(TryCatch *tc, bool &didSimp);
+    void PropagateExprStmt(ExprStmt *es);
+    void PropagateDeclaredVar(DeclaredVar *v);
+    void PropagateBlock(Block *b);
+    void PropagateIfStmt(IfStmt *i);
+    void PropagateWhileStmt(WhileStmt *ws);
+    void PropagateFuncDecl(FuncDecl *fd);
+    void PropagateReturn(Return *r);
+    void PropagateStructDecl(StructDecl *sd);
+    void PropagateImportStmt(ImportStmt *is);
+    void PropagateThrow(Throw *t);
+    void PropagateTryCatch(TryCatch *tc);
 };

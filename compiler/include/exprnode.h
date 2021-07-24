@@ -22,7 +22,7 @@ public:
     // compiles the node - implmented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
     virtual std::shared_ptr<Expr> Evaluate() = 0;
-    virtual std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) = 0;
+    virtual std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) = 0;
     // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;
 };
@@ -42,7 +42,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -61,7 +61,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -81,7 +81,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -101,7 +101,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -121,7 +121,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -140,7 +140,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class ArrayIndex : public Expr
@@ -158,7 +158,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class BracedInitialiser : public Expr
@@ -176,7 +176,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class DynamicAllocArray : public Expr
@@ -193,7 +193,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class FieldAccess : public Expr
@@ -211,7 +211,7 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class TypeCast : public Expr
@@ -230,5 +230,5 @@ public:
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp, bool &didSimp) override;
+    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
