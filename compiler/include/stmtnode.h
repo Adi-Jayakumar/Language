@@ -13,7 +13,7 @@ public:
     virtual void Type(StaticAnalyser &t) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
-    virtual void Evaluate(bool &didSimp) = 0;
+    virtual void Evaluate() = 0;
     virtual void Propagate(ConstantPropagator &cp, bool &didSimp) = 0;
 };
 
@@ -29,7 +29,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -45,7 +45,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -60,7 +60,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -76,7 +76,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -93,7 +93,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -117,7 +117,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -134,7 +134,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -150,7 +150,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -170,7 +170,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -182,7 +182,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -196,7 +196,7 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };
 
@@ -212,6 +212,6 @@ public:
     void Print(std::ostream &out) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
-    void Evaluate(bool &didSimp) override;
+    void Evaluate() override;
     void Propagate(ConstantPropagator &cp, bool &didSimp) override;
 };

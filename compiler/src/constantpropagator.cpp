@@ -39,6 +39,91 @@ void ConstantPropagator::SetVariableValue(TypeData type, std::string name, std::
     }
 }
 
+std::shared_ptr<Expr> ConstantPropagator::PropagateUnary(Unary *u, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateBinary(Binary *b, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateAssign(Assign *a, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateVarReference(VarReference *vr, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateFunctionCall(FunctionCall *fc, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateArrayIndex(ArrayIndex *ai, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateBracedInitialiser(BracedInitialiser *ia, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateDynamicAllocArray(DynamicAllocArray *da, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateFieldAccess(FieldAccess *fa, bool &didSimp)
+{
+    return nullptr;
+}
+
+std::shared_ptr<Expr> ConstantPropagator::PropagateTypeCast(TypeCast *gf, bool &didSimp)
+{
+    return nullptr;
+}
+
+// statment interface
+void ConstantPropagator::PropagateExprStmt(ExprStmt *es, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateDeclaredVar(DeclaredVar *v, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateBlock(Block *b, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateIfStmt(IfStmt *i, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateWhileStmt(WhileStmt *ws, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateFuncDecl(FuncDecl *fd, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateReturn(Return *r, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateStructDecl(StructDecl *sd, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateImportStmt(ImportStmt *is, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateThrow(Throw *t, bool &didSimp)
+{
+}
+void ConstantPropagator::PropagateTryCatch(TryCatch *tc, bool &didSimp)
+{
+}
+
 //------------------EXPRESSION--------------------//
 
 std::shared_ptr<Expr> Literal::Propagate(ConstantPropagator &, bool &)

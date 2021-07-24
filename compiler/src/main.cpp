@@ -56,7 +56,6 @@ int main(int argc, char **argv)
             std::cout << stmt << std::endl;
     }
 
-    bool evalSimp = false;
     bool propSimp = false;
     ConstantPropagator cp;
 
@@ -68,17 +67,16 @@ int main(int argc, char **argv)
         if (counter >= 10)
             break;
 
-        evalSimp = false;
         propSimp = false;
 
         for (auto &stmt : parsed)
-            stmt->Evaluate(evalSimp);
+            stmt->Evaluate();
 
         // for (auto &stmt : parsed)
         //     stmt->Propagate(cp, propSimp);
 
-        std::cout << "evalSimp = " << evalSimp << " propSimp = " << propSimp << std::endl;
-    } while (evalSimp || propSimp);
+        std::cout << " propSimp = " << propSimp << std::endl;
+    } while (propSimp);
 
     std::cout << "\n\nOPTIMISED" << std::endl;
     for (auto &stmt : parsed)
