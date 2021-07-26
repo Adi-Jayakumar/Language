@@ -1,23 +1,12 @@
 #include "ASTPrinter.h"
 
-std::ostream &operator<<(std::ostream &out, Expr *e)
-{
-    e->Print(out);
-    return out;
-}
-
-std::ostream &operator<<(std::ostream &out, Stmt *s)
-{
-
-    s->Print(out);
-    return out;
-}
-
 //-----------------EXPRESSIONS---------------------//
 
-void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
+void ASTPrinter::PrintLiteral(Literal *l)
 {
-    out << l->t;
+    if (printTypes)
+        out << l->GetType();
+
     if (l->t.type == 4)
         out << " \"" << l->loc.literal << "\"";
     else if (l->t.type == 5)
@@ -26,9 +15,12 @@ void ASTPrinter::PrintLiteral(Literal *l, std::ostream &out)
         out << l->loc.literal;
 }
 
-void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
+void ASTPrinter::PrintUnary(Unary *u)
 {
-    out << u->t;
+
+    if (printTypes)
+        out << u->GetType();
+
     if (u->op.type == TokenID::MINUS)
         out << " -";
     else if (u->op.type == TokenID::BANG)
@@ -36,15 +28,17 @@ void ASTPrinter::PrintUnary(Unary *u, std::ostream &out)
     else
         out << u->op;
     out << "(";
-    u->right->Print(out);
-    out << ")";
+    u->right->Print(*this);
+    out << ") ";
 }
 
-void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
+void ASTPrinter::PrintBinary(Binary *b)
 {
-    out << b->t;
+    if (printTypes)
+        out << b->GetType();
+
     out << " (";
-    b->left->Print(out);
+    b->left->Print(*this);
 
     if (b->op.type == TokenID::PLUS)
         out << " + ";
@@ -69,143 +63,169 @@ void ASTPrinter::PrintBinary(Binary *b, std::ostream &out)
     else
         out << b->op;
 
-    b->right->Print(out);
+    b->right->Print(*this);
 
-    out << ")";
+    out << ") ";
 }
 
-void ASTPrinter::PrintAssign(Assign *a, std::ostream &out)
+void ASTPrinter::PrintAssign(Assign *a)
 {
-    a->target->Print(out);
-    if (a->val == nullptr)
-        out << " = null";
-    else
+    a->target->Print(*this);
+    out << " = ";
+    a->val->Print(*this);
+}
+
+void ASTPrinter::PrintVarReference(VarReference *vr)
+{
+    if (printTypes)
+        out << vr->t << " ";
+
+    out << vr->name;
+}
+
+void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
+{
+    if (printTypes)
+        out << fc->t << " ";
+
+    out << fc->name << "(";
+    for (size_t i = 0; i < fc->args.size() - 1; i++)
     {
-        out << " = ";
-        a->val->Print(out);
-    }
-}
-
-void ASTPrinter::PrintVarReference(VarReference *vr, std::ostream &out)
-{
-    out << vr->t << " " << vr->name;
-}
-
-void ASTPrinter::PrintFunctionCall(FunctionCall *fc, std::ostream &out)
-{
-    out << fc->t << " " << fc->name << "(";
-    for (auto &e : fc->args)
-    {
-        e->Print(out);
+        fc->args[i]->Print(*this);
         out << ", ";
     }
+    fc->args[fc->args.size() - 1]->Print(*this);
     out << ")";
 }
 
-void ASTPrinter::PrintArrayIndex(ArrayIndex *ai, std::ostream &out)
+void ASTPrinter::PrintArrayIndex(ArrayIndex *ai)
 {
-    out << ai->t << " (";
-    ai->name->Print(out);
+    if (printTypes)
+        out << ai->t << " (";
+
+    ai->name->Print(*this);
     out << "[";
-    ai->index->Print(out);
-    out << "])";
+    ai->index->Print(*this);
+    out << "]";
+
+    if (printTypes)
+        out << ")";
 }
 
-void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out)
+void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 {
     out << ia->t << " {";
     for (size_t i = 0; i < ia->init.size(); i++)
     {
-        ia->init[i]->Print(out);
+        ia->init[i]->Print(*this);
         if (i != ia->init.size() - 1)
             out << ", ";
     }
     out << "}";
 }
 
-void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out)
+void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da)
 {
     out << da->t << "[";
-    da->size->Print(out);
+    da->size->Print(*this);
     out << "]";
 }
 
-void ASTPrinter::PrintFieldAccess(FieldAccess *fa, std::ostream &out)
+void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 {
-    out << fa->t << " (";
-    fa->accessor->Print(out);
+    if (printTypes)
+        out << fa->t << " (";
+
+    fa->accessor->Print(*this);
     out << ".";
-    fa->accessee->Print(out);
-    out << ")";
+    fa->accessee->Print(*this);
+
+    if (printTypes)
+        out << ")";
 }
 
-void ASTPrinter::PrintTypeCast(TypeCast *gf, std::ostream &out)
+void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
-    out << gf->t << " Cast";
+    if (printTypes)
+        out << gf->t << " Cast";
+    else
+        out << "Cast";
+
     gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
     out << "(" << gf->arg.get() << ")";
 }
 
 //------------------STATEMENTS---------------------//
 
-void ASTPrinter::PrintExprStmt(ExprStmt *es, std::ostream &out)
+void ASTPrinter::PrintExprStmt(ExprStmt *es)
 {
 
-    es->exp->Print(out);
-    out << ";" << std::endl;
+    es->exp->Print(*this);
+    out << ";";
+    NewLine();
 }
 
-void ASTPrinter::PrintDeclaredVar(DeclaredVar *v, std::ostream &out)
+void ASTPrinter::PrintDeclaredVar(DeclaredVar *v)
 {
     out << v->t << " " << v->name;
+
     if (v->value != nullptr)
-        out << " = " << v->value.get();
-    out << ";" << std::endl;
-}
-
-void ASTPrinter::PrintBlock(Block *b, std::ostream &out)
-{
-    out << "DEPTH: " << +b->depth << std::endl;
-    for (uint8_t i = 1; i < b->depth; i++)
-        out << "\t";
-    out << "{\n";
-
-    for (std::shared_ptr<Stmt> &s : b->stmts)
     {
-        for (uint8_t i = 1; i < b->depth; i++)
-            out << "\t";
-        out << "\t" << s.get() << std::endl;
+        out << " = ";
+        v->value->Print(*this);
     }
 
-    for (uint8_t i = 1; i < b->depth; i++)
-        out << "\t";
-    out << "}\n";
+    out << ";";
+    NewLine();
 }
 
-void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
+void ASTPrinter::PrintBlock(Block *b)
+{
+    out << "{";
+    depth++;
+    NewLine();
+
+    for (size_t i = 0; i < b->stmts.size() - 1; i++)
+        b->stmts[i]->Print(*this);
+
+    b->stmts[b->stmts.size() - 1]->Print(*this);
+    depth--;
+    NewLine();
+    out << "}";
+}
+
+void ASTPrinter::PrintIfStmt(IfStmt *i)
 {
     out << "if (";
-    i->cond->Print(out);
-    out << ")\n";
-    i->thenBranch->Print(out);
+    i->cond->Print(*this);
+    out << ")";
+
+    NewLine();
+
+    i->thenBranch->Print(*this);
     if (i->elseBranch != nullptr)
     {
-        out << "\nelse";
-        i->elseBranch->Print(out);
+        NewLine();
+        out << "else";
+        NewLine();
+        i->elseBranch->Print(*this);
     }
 }
 
-void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
+void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 {
     if (ws->body == nullptr)
         return;
-    out << "while(";
-    ws->cond->Print(out);
-    out << ")\n";
-    ws->body->Print(out);
+
+    out << "while (";
+    ws->cond->Print(*this);
+    out << ")";
+
+    NewLine();
+    ws->body->Print(*this);
 }
 
-void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
+void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
     out << fd->ret << " " << fd->name << "(";
 
@@ -216,202 +236,228 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd, std::ostream &out)
             out << ", ";
     }
 
-    out << ")" << std::endl;
+    out << ")";
+
+    NewLine();
 
     if (fd->preConds.size() != 0)
     {
         out << "(|";
         for (auto exp : fd->preConds)
         {
-            exp->Print(out);
+            exp->Print(*this);
             out << ";";
         }
-        out << "|)" << std::endl;
+        out << "|)";
+        NewLine();
     }
 
-    out << "{" << std::endl;
-    for (auto &s : fd->body)
-    {
-        out << "\t";
-        s->Print(out);
-    }
-    out << std::endl
-        << "}";
+    depth++;
+    out << "{";
+    NewLine();
+
+    for (size_t i = 0; i < fd->body.size() - 1; i++)
+        fd->body[i]->Print(*this);
+
+    fd->body[fd->body.size() - 1]->Print(*this);
+
+    depth--;
+    NewLine();
+    out << "}";
+    NewLine();
+    NewLine();
 }
 
-void ASTPrinter::PrintReturn(Return *r, std::ostream &out)
+void ASTPrinter::PrintReturn(Return *r)
 {
     out << "return ";
     if (r->retVal != nullptr)
-        r->retVal->Print(out);
-    out << ";" << std::endl;
+        r->retVal->Print(*this);
+    out << ";";
+
+    NewLine();
 
     if (r->postConds.size() != 0)
     {
         out << "(|";
         for (auto exp : r->postConds)
         {
-            exp->Print(out);
+            exp->Print(*this);
             out << ";";
         }
-        out << "|)" << std::endl;
+        out << "|)";
+        NewLine();
     }
 
     return;
 }
 
-void ASTPrinter::PrintStructDecl(StructDecl *sd, std::ostream &out)
+void ASTPrinter::PrintStructDecl(StructDecl *sd)
 {
-    sd->parent.type ? out << "struct " << sd->name << " : " << ToString(sd->parent) << "\n{\n" : out << "struct " << sd->name << "\n{\n";
+
+    out << sd->name;
+    NewLine();
+    out << "{";
+    NewLine();
+
+    depth++;
     for (auto &d : sd->decls)
-        out << "\t" << d;
+        d->Print(*this);
+    depth--;
     out << "}";
 }
 
-void ASTPrinter::PrintImportStmt(ImportStmt *is, std::ostream &out)
+void ASTPrinter::PrintImportStmt(ImportStmt *is)
 {
     out << "import ";
     for (const auto &str : is->libraries)
         out << str << ", ";
-    out << std::endl;
+
+    NewLine();
 }
 
-void ASTPrinter::PrintBreak(Break *, std::ostream &out)
+void ASTPrinter::PrintBreak(Break *)
 {
     out << "break;";
 }
 
-void ASTPrinter::PrintThrow(Throw *t, std::ostream &out)
+void ASTPrinter::PrintThrow(Throw *t)
 {
     out << "throw ";
-    t->exp->Print(out);
-    out << std::endl;
+    t->exp->Print(*this);
+    out << ";";
+    NewLine();
 }
 
-void ASTPrinter::PrintTryCatch(TryCatch *tc, std::ostream &out)
+void ASTPrinter::PrintTryCatch(TryCatch *tc)
 {
-    out << "try" << std::endl;
-    tc->tryClause->Print(out);
-    out << std::endl;
-    out << "catch(" << tc->catchVar.first << " " << tc->catchVar.second << ")" << std::endl;
-    tc->catchClause->Print(out);
+    out << "try";
+    NewLine();
+
+    tc->tryClause->Print(*this);
+    NewLine();
+
+    out << "catch(" << tc->catchVar.first << " " << tc->catchVar.second << ")";
+    NewLine();
+
+    tc->catchClause->Print(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//
 
-void Literal::Print(std::ostream &out)
+void Literal::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintLiteral(this, out);
+    p.PrintLiteral(this);
 }
 
-void Unary::Print(std::ostream &out)
+void Unary::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintUnary(this, out);
+    p.PrintUnary(this);
 }
 
-void Binary::Print(std::ostream &out)
+void Binary::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintBinary(this, out);
+    p.PrintBinary(this);
 }
 
-void Assign::Print(std::ostream &out)
+void Assign::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintAssign(this, out);
+    p.PrintAssign(this);
 }
 
-void VarReference::Print(std::ostream &out)
+void VarReference::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintVarReference(this, out);
+    p.PrintVarReference(this);
 }
 
-void FunctionCall::Print(std::ostream &out)
+void FunctionCall::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintFunctionCall(this, out);
+    p.PrintFunctionCall(this);
 }
 
-void ArrayIndex::Print(std::ostream &out)
+void ArrayIndex::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintArrayIndex(this, out);
+    p.PrintArrayIndex(this);
 }
 
-void BracedInitialiser::Print(std::ostream &out)
+void BracedInitialiser::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintBracedInitialiser(this, out);
+    p.PrintBracedInitialiser(this);
 }
 
-void DynamicAllocArray::Print(std::ostream &out)
+void DynamicAllocArray::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintDynamicAllocArray(this, out);
+    p.PrintDynamicAllocArray(this);
 }
 
-void FieldAccess::Print(std::ostream &out)
+void FieldAccess::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintFieldAccess(this, out);
+    p.PrintFieldAccess(this);
 }
 
-void TypeCast::Print(std::ostream &out)
+void TypeCast::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintTypeCast(this, out);
+    p.PrintTypeCast(this);
 }
 
 //------------------STATEMENTS---------------------//
 
-void ExprStmt::Print(std::ostream &out)
+void ExprStmt::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintExprStmt(this, out);
+    p.PrintExprStmt(this);
 }
 
-void DeclaredVar::Print(std::ostream &out)
+void DeclaredVar::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintDeclaredVar(this, out);
+    p.PrintDeclaredVar(this);
 }
 
-void Block::Print(std::ostream &out)
+void Block::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintBlock(this, out);
+    p.PrintBlock(this);
 }
 
-void IfStmt::Print(std::ostream &out)
+void IfStmt::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintIfStmt(this, out);
+    p.PrintIfStmt(this);
 }
 
-void WhileStmt::Print(std::ostream &out)
+void WhileStmt::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintWhileStmt(this, out);
+    p.PrintWhileStmt(this);
 }
 
-void FuncDecl::Print(std::ostream &out)
+void FuncDecl::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintFuncDecl(this, out);
+    p.PrintFuncDecl(this);
 }
 
-void Return::Print(std::ostream &out)
+void Return::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintReturn(this, out);
+    p.PrintReturn(this);
 }
 
-void StructDecl::Print(std::ostream &out)
+void StructDecl::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintStructDecl(this, out);
+    p.PrintStructDecl(this);
 }
 
-void ImportStmt::Print(std::ostream &out)
+void ImportStmt::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintImportStmt(this, out);
+    p.PrintImportStmt(this);
 }
 
-void Break::Print(std::ostream &out)
+void Break::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintBreak(this, out);
+    p.PrintBreak(this);
 }
 
-void Throw::Print(std::ostream &out)
+void Throw::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintThrow(this, out);
+    p.PrintThrow(this);
 }
 
-void TryCatch::Print(std::ostream &out)
+void TryCatch::Print(ASTPrinter &p)
 {
-    ASTPrinter::PrintTryCatch(this, out);
+    p.PrintTryCatch(this);
 }

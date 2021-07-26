@@ -4,6 +4,7 @@
 #include <cstring>
 #include <memory>
 
+class ASTPrinter;
 class Compiler;
 class StaticAnalyser;
 class ConstantPropagator;
@@ -14,7 +15,7 @@ public:
     TypeData t = VOID_TYPE;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
-    virtual void Print(std::ostream &out) = 0;
+    virtual void Print(ASTPrinter &p) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual TypeData Type(StaticAnalyser &t) = 0;
     // returns the type after typechecking is done
@@ -27,8 +28,6 @@ public:
     // virtual ~Expr() = 0;
 };
 
-std::ostream &operator<<(std::ostream &out, std::shared_ptr<Expr> &e);
-
 class Literal : public Expr
 {
 public:
@@ -37,7 +36,7 @@ public:
     // ~Literal() override = default;
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -56,7 +55,7 @@ public:
     // ~Unary() override = default;
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -76,7 +75,7 @@ public:
     // ~Binary() override = default;
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -96,7 +95,7 @@ public:
     // ~VarReference() override = default;
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -116,7 +115,7 @@ public:
     // ~Assign() override = default;
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -135,7 +134,7 @@ public:
     FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -153,7 +152,7 @@ public:
     ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -171,7 +170,7 @@ public:
     BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -188,7 +187,7 @@ public:
     DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -206,7 +205,7 @@ public:
     FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;
@@ -225,7 +224,7 @@ public:
     TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
     void NodeCompile(Compiler &c) override;

@@ -8,7 +8,7 @@ public:
     Token loc;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
-    virtual void Print(std::ostream &out) = 0;
+    virtual void Print(ASTPrinter &p) = 0;
     // returns the type of the node - implemented in typechecker.cpp
     virtual void Type(StaticAnalyser &t) = 0;
     // compiles the node - implemented in Compiler.cpp
@@ -17,8 +17,6 @@ public:
     virtual void Propagate(ConstantPropagator &cp) = 0;
 };
 
-std::ostream &operator<<(std::ostream &out, Stmt *s);
-
 class ExprStmt : public Stmt
 {
 public:
@@ -26,7 +24,7 @@ public:
     ExprStmt(std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -42,7 +40,7 @@ public:
     DeclaredVar(TypeData, std::string, std::shared_ptr<Expr>, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -57,7 +55,7 @@ public:
     Block(uint8_t, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -73,7 +71,7 @@ public:
     IfStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, std::shared_ptr<Stmt>, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -90,7 +88,7 @@ public:
     WhileStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -114,7 +112,7 @@ public:
     FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -131,7 +129,7 @@ public:
     Return(std::shared_ptr<Expr>, std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -147,7 +145,7 @@ public:
     StructDecl(std::string &, TypeData &parent, std::vector<std::shared_ptr<Stmt>> &, Token);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -167,7 +165,7 @@ public:
     ImportStmt(std::vector<std::string> &, Token &);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -179,7 +177,7 @@ class Break : public Stmt
 public:
     Break(Token);
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -193,7 +191,7 @@ public:
     Throw(std::shared_ptr<Expr> &, Token &);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
@@ -209,7 +207,7 @@ public:
     TryCatch(std::shared_ptr<Stmt> &, std::shared_ptr<Stmt> &, std::pair<TypeData, std::string> &, Token &);
 
     Token Loc() override;
-    void Print(std::ostream &out) override;
+    void Print(ASTPrinter &p) override;
     void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;

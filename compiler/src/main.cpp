@@ -41,8 +41,11 @@ int main(int argc, char **argv)
     if (arg.IsSwitchOn("-p"))
     {
         std::cout << "PARSED" << std::endl;
+        ASTPrinter ast(false);
+
         for (auto &stmt : parsed)
-            std::cout << stmt << std::endl;
+            stmt->Print(ast);
+        ast.Flush();
     }
 
     StaticAnalyser s;
@@ -52,8 +55,10 @@ int main(int argc, char **argv)
     if (arg.IsSwitchOn("-t"))
     {
         std::cout << "\n\nANALYSED" << std::endl;
+        ASTPrinter ast(true);
         for (auto &stmt : parsed)
-            std::cout << stmt << std::endl;
+            stmt->Print(ast);
+        ast.Flush();
     }
 
     ConstantPropagator cp;
@@ -79,8 +84,10 @@ int main(int argc, char **argv)
     std::cout << "count = " << counter << std::endl;
 
     std::cout << "\n\nOPTIMISED" << std::endl;
+    ASTPrinter ast(true);
     for (auto &stmt : parsed)
-        std::cout << stmt << std::endl;
+        stmt->Print(ast);
+    ast.Flush();
 
     Compiler c;
     c.Compile(parsed);

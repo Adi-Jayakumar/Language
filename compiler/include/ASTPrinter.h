@@ -1,32 +1,56 @@
 #pragma once
 #include "stmtnode.h"
+#include <iostream>
+#include <sstream>
 
-namespace ASTPrinter
+class ASTPrinter
 {
+public:
+    std::ostringstream out;
+    bool printTypes = false;
+    size_t depth = 0;
+    std::string tab = "\t";
+
+    ASTPrinter(bool _printTypes, std::string _tab) : printTypes(_printTypes), tab(_tab){};
+    ASTPrinter(bool _printTypes) : printTypes(_printTypes){};
+    ASTPrinter(std::string _tab) : tab(_tab){};
+
+    void Flush()
+    {
+        std::cout << out.str() << std::endl;
+    }
+
+    void NewLine()
+    {
+        out << '\n';
+        for (size_t i = 0; i < depth; i++)
+            out << tab;
+    }
+
     // expression printing
-    void PrintLiteral(Literal *l, std::ostream &out);
-    void PrintUnary(Unary *u, std::ostream &out);
-    void PrintBinary(Binary *b, std::ostream &out);
-    void PrintAssign(Assign *a, std::ostream &out);
-    void PrintVarReference(VarReference *vr, std::ostream &out);
-    void PrintFunctionCall(FunctionCall *fc, std::ostream &out);
-    void PrintArrayIndex(ArrayIndex *ai, std::ostream &out);
-    void PrintBracedInitialiser(BracedInitialiser *ia, std::ostream &out);
-    void PrintDynamicAllocArray(DynamicAllocArray *da, std::ostream &out);
-    void PrintFieldAccess(FieldAccess *fa, std::ostream &out);
-    void PrintTypeCast(TypeCast *gf, std::ostream &out);
+    void PrintLiteral(Literal *l);
+    void PrintUnary(Unary *u);
+    void PrintBinary(Binary *b);
+    void PrintAssign(Assign *a);
+    void PrintVarReference(VarReference *vr);
+    void PrintFunctionCall(FunctionCall *fc);
+    void PrintArrayIndex(ArrayIndex *ai);
+    void PrintBracedInitialiser(BracedInitialiser *ia);
+    void PrintDynamicAllocArray(DynamicAllocArray *da);
+    void PrintFieldAccess(FieldAccess *fa);
+    void PrintTypeCast(TypeCast *gf);
 
     // statment printing
-    void PrintExprStmt(ExprStmt *es, std::ostream &out);
-    void PrintDeclaredVar(DeclaredVar *v, std::ostream &out);
-    void PrintBlock(Block *b, std::ostream &out);
-    void PrintIfStmt(IfStmt *i, std::ostream &out);
-    void PrintWhileStmt(WhileStmt *ws, std::ostream &out);
-    void PrintFuncDecl(FuncDecl *fd, std::ostream &out);
-    void PrintReturn(Return *r, std::ostream &out);
-    void PrintStructDecl(StructDecl *sd, std::ostream &out);
-    void PrintImportStmt(ImportStmt *is, std::ostream &out);
-    void PrintBreak(Break *b, std::ostream &out);
-    void PrintThrow(Throw *t, std::ostream &out);
-    void PrintTryCatch(TryCatch *tc, std::ostream &out);
+    void PrintExprStmt(ExprStmt *es);
+    void PrintDeclaredVar(DeclaredVar *v);
+    void PrintBlock(Block *b);
+    void PrintIfStmt(IfStmt *i);
+    void PrintWhileStmt(WhileStmt *ws);
+    void PrintFuncDecl(FuncDecl *fd);
+    void PrintReturn(Return *r);
+    void PrintStructDecl(StructDecl *sd);
+    void PrintImportStmt(ImportStmt *is);
+    void PrintBreak(Break *b);
+    void PrintThrow(Throw *t);
+    void PrintTryCatch(TryCatch *tc);
 }; // namespace ASTPrinter
