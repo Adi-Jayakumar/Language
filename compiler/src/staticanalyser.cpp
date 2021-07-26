@@ -20,7 +20,7 @@ bool StaticAnalyser::CanAssign(const TypeData &varType, const TypeData &valType)
         size_t valLoc = Symbols.FindStruct(valType);
         TypeData parent = Symbols.strcts[valLoc].parent;
 
-        if (parent == GetTypeNameMap()["void"])
+        if (parent == VOID_TYPE)
             return varType == valType;
 
         parent.isArray = valType.isArray;
@@ -212,7 +212,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
     for (auto &init : bi->init)
         types.push_back(init->Type(*this));
 
-    if (bi->t == GetTypeNameMap()["void"])
+    if (bi->t == VOID_TYPE)
     {
         TypeData first = types[0];
         for (size_t i = 1; i < types.size(); i++)
@@ -427,10 +427,7 @@ void StaticAnalyser::TypeOfReturn(Return *r)
 
     for (auto e : r->postConds)
     {
-        std::cout << std::endl;
-        e->Print(std::cout);
-        std::cout << std::endl;
-        if (e->Type(tempSA) != GetTypeNameMap()["bool"])
+        if (e->Type(tempSA) != BOOL_TYPE)
             TypeError(r->Loc(), "Post condition expressions must be bools");
     }
 }
@@ -445,7 +442,7 @@ void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
     StructID s;
     s.type = GetTypeNameMap()[sd->name];
 
-    if (sd->parent != GetTypeNameMap()["void"])
+    if (sd->parent != VOID_TYPE)
     {
         size_t parIndex = Symbols.FindStruct(sd->parent);
 

@@ -353,7 +353,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
     FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
 
-    TypeData voidType = GetTypeNameMap()["void"];
+    TypeData voidType = VOID_TYPE;
     if (asFC == nullptr || asFC->GetType() != voidType)
         c.cur->code.push_back({Opcode::POP, 0});
 }
@@ -522,7 +522,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         s.nameTypes[asDV->name] = asDV->t;
     }
 
-    if (sd->parent != GetTypeNameMap()["void"])
+    if (sd->parent != VOID_TYPE)
     {
         size_t sParent = c.Symbols.FindStruct(sd->parent);
         TypeData parent = c.Symbols.strcts[sParent].type;
