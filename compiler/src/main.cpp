@@ -56,7 +56,6 @@ int main(int argc, char **argv)
             std::cout << stmt << std::endl;
     }
 
-    bool propSimp = false;
     ConstantPropagator cp;
 
     int counter = 0;
@@ -67,16 +66,17 @@ int main(int argc, char **argv)
         if (counter >= 10)
             break;
 
-        propSimp = false;
+        cp.didTreeChange = false;
 
         for (auto &stmt : parsed)
             stmt->Evaluate();
 
-        // for (auto &stmt : parsed)
-        //     stmt->Propagate(cp, propSimp);
+        for (auto &stmt : parsed)
+            stmt->Propagate(cp);
 
-        std::cout << " propSimp = " << propSimp << std::endl;
-    } while (propSimp);
+        std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
+    } while (cp.didTreeChange);
+    std::cout << "count = " << counter << std::endl;
 
     std::cout << "\n\nOPTIMISED" << std::endl;
     for (auto &stmt : parsed)

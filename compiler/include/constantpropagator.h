@@ -2,20 +2,22 @@
 
 bool IsConstant(std::shared_ptr<Expr> e);
 
-struct VariableValue
+struct LiteralValue
 {
     size_t depth;
     TypeData type;
     std::string name;
     std::shared_ptr<Expr> value;
-    VariableValue(size_t _depth, TypeData _type, std::string _name, std::shared_ptr<Expr> _value) : depth(_depth), type(_type), name(_name), value(_value){};
+    LiteralValue(size_t _depth, TypeData _type, std::string _name, std::shared_ptr<Expr> _value) : depth(_depth), type(_type), name(_name), value(_value){};
 };
 
 class ConstantPropagator
 {
-public:
     size_t depth;
-    std::vector<VariableValue> stack;
+    std::vector<LiteralValue> stack;
+
+public:
+    bool didTreeChange = false;
     ConstantPropagator() = default;
 
     std::shared_ptr<Expr> GetVariableValue(TypeData type, std::string name);
@@ -23,6 +25,7 @@ public:
     void ClearCurrentDepth();
 
     // expression interface
+    std::shared_ptr<Expr> PropagateLiteral(Literal *l);
     std::shared_ptr<Expr> PropagateUnary(Unary *u);
     std::shared_ptr<Expr> PropagateBinary(Binary *b);
     std::shared_ptr<Expr> PropagateAssign(Assign *a);
