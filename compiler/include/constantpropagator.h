@@ -18,6 +18,7 @@ class ConstantPropagator
 
 public:
     bool didTreeChange = false;
+    bool findOnlyInCurScope = false;
     ConstantPropagator() = default;
 
     std::shared_ptr<Expr> GetVariableValue(TypeData type, std::string name);

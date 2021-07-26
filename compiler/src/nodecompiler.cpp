@@ -440,6 +440,9 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 {
+    if (ws->body == nullptr)
+        return;
+
     size_t loopBeg = c.cur->code.size();
     if (loopBeg > UINT8_MAX)
         c.CompileError(ws->Loc(), "Too much generated code before while statement");

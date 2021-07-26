@@ -11,7 +11,10 @@ std::shared_ptr<Expr> ConstantPropagator::GetVariableValue(TypeData type, std::s
     {
         LiteralValue vv = stack[i];
         if (type == vv.type && name == vv.name)
-            return vv.value;
+        {
+            if (!findOnlyInCurScope || depth == vv.depth)
+                return vv.value;
+        }
     }
     return nullptr;
 }
@@ -236,8 +239,15 @@ void ConstantPropagator::PropagateIfStmt(IfStmt *i)
 
 void ConstantPropagator::PropagateWhileStmt(WhileStmt *ws)
 {
-    ws->cond = ws->cond->Propagate(*this);
-    ws->body->Propagate(*this);
+    bool treeState = didTreeChange;
+    std::shared_ptr<Expr> simp = ws->cond->Propagate(*this);
+
+    if (didTreeChange != treeState)
+        didTreeChange = treeState;
+
+    Literal *lCond = dynamic_cast<Literal *>(simp.get());
+    if (lCond != nullptr && lCond->Loc().literal == "false")
+        ws->body = nullptr;
 }
 
 void ConstantPropagator::PropagateFuncDecl(FuncDecl *fd)
