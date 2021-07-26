@@ -353,7 +353,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
     FunctionCall *asFC = dynamic_cast<FunctionCall *>(es->exp.get());
 
-    TypeData voidType = GetTypeNameMap()["void"];
+    TypeData voidType = VOID_TYPE;
     if (asFC == nullptr || asFC->GetType() != voidType)
         c.cur->code.push_back({Opcode::POP, 0});
 }
@@ -363,8 +363,8 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     if (c.Symbols.vars.size() > UINT8_MAX)
         c.CompileError(dv->Loc(), "Max number of variables in a Function is " + std::to_string(UINT8_MAX));
 
-    c.Symbols.AddVar(dv->t, dv->name);
     dv->value->NodeCompile(c);
+    c.Symbols.AddVar(dv->t, dv->name);
 
     if (c.Symbols.depth == 0)
         c.cur->code.push_back({Opcode::VAR_D_GLOBAL, 0});
@@ -440,6 +440,9 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 {
+    if (ws->body == nullptr)
+        return;
+
     size_t loopBeg = c.cur->code.size();
     if (loopBeg > UINT8_MAX)
         c.CompileError(ws->Loc(), "Too much generated code before while statement");
@@ -519,7 +522,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         s.nameTypes[asDV->name] = asDV->t;
     }
 
-    if (sd->parent != GetTypeNameMap()["void"])
+    if (sd->parent != VOID_TYPE)
     {
         size_t sParent = c.Symbols.FindStruct(sd->parent);
         TypeData parent = c.Symbols.strcts[sParent].type;

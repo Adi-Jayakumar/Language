@@ -197,6 +197,8 @@ void ASTPrinter::PrintIfStmt(IfStmt *i, std::ostream &out)
 
 void ASTPrinter::PrintWhileStmt(WhileStmt *ws, std::ostream &out)
 {
+    if (ws->body == nullptr)
+        return;
     out << "while(";
     ws->cond->Print(out);
     out << ")\n";

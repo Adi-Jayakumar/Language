@@ -135,13 +135,13 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     {
         for (const auto &arg : args)
         {
-            if (arg == GetTypeNameMap()["void"])
+            if (arg == VOID_TYPE)
                 SymbolError("Cannot pass 'void' as a function argument");
         }
         return true;
     }
 
-    if (args.size() == 1 && native.size() == 1 && native[0] == GetTypeNameMap()["void"])
+    if (args.size() == 1 && native.size() == 1 && native[0] == VOID_TYPE)
         return true;
 
     if (native.size() != args.size())

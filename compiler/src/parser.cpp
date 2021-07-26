@@ -654,17 +654,9 @@ std::shared_ptr<Expr> Parser::LiteralNode()
             ParseError(cur, "NEED TO CLOSE THE PARENS");
     }
     else if (cur.type == TokenID::IDEN)
-    {
-        // TODO - Is declaration necessary
-        Token loc = cur;
-        res = std::make_shared<VarReference>(loc);
-    }
+        res = std::make_shared<VarReference>(cur);
     else if (cur.type == TokenID::RESULT)
-    {
-        // TODO - Is declaration necessary
-        Token loc = cur;
-        res = std::make_shared<VarReference>(loc);
-    }
+        res = std::make_shared<VarReference>(cur);
     else if (cur.type == TokenID::TYPENAME || cur.type == TokenID::ARRAY || cur.type == TokenID::OPEN_BRACE)
         res = ParseBracedInitialiser();
     else

@@ -1,10 +1,10 @@
 #pragma once
-#include <string>
+#include "perror.h"
 #include <cstring>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include "perror.h"
 
 class ArgParser
 {
@@ -92,6 +92,8 @@ public:
                 TurnSwitchOn(args[counter]);
                 counter++;
             }
+            else
+                ArgumentError("Unkown argument '" + args[counter] + "'");
         }
     }
 };
