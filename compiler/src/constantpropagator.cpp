@@ -38,6 +38,13 @@ void ConstantPropagator::SetVariableValue(TypeData type, std::string name, std::
     }
 }
 
+void ConstantPropagator::SetArrayIndex(TypeData type, std::string name, size_t index, std::shared_ptr<Expr> value)
+{
+    std::shared_ptr<Expr> array = GetVariableValue(type, name);
+    BracedInitialiser *bi = dynamic_cast<BracedInitialiser *>(array.get());
+    bi->init[index] = value;
+}
+
 //------------------EXPRESSION--------------------//
 
 std::shared_ptr<Expr> ConstantPropagator::PropagateLiteral(Literal *l)
@@ -78,6 +85,35 @@ std::shared_ptr<Expr> ConstantPropagator::PropagateAssign(Assign *a)
     else if (vTarg != nullptr && lVal != nullptr)
         SetVariableValue(vTarg->GetType(), vTarg->name, lVal);
 
+    ArrayIndex *aTarg = dynamic_cast<ArrayIndex *>(a->target.get());
+    if (aTarg != nullptr)
+    {
+        aTarg->index = aTarg->index->Propagate(*this);
+
+        Literal *lIndex = dynamic_cast<Literal *>(aTarg->index.get());
+        VarReference *vName = dynamic_cast<VarReference *>(aTarg->name.get());
+
+        if (vName == nullptr)
+        {
+            aTarg->name = aTarg->name->Propagate(*this);
+            vName = dynamic_cast<VarReference *>(aTarg->name.get());
+        }
+
+        TypeData arrayType = aTarg->GetType();
+        arrayType.isArray++;
+
+        if (vName != nullptr && lIndex != nullptr && lVal != nullptr)
+        {
+            size_t index = std::stoi(lIndex->Loc().literal);
+            SetArrayIndex(arrayType, vName->name, index, lVal);
+        }
+        else if (vName != nullptr && lIndex != nullptr && lVal == nullptr)
+        {
+            size_t index = std::stoi(lIndex->Loc().literal);
+            SetArrayIndex(arrayType, vName->name, index, nullptr);
+        }
+    }
+
     return std::make_shared<Assign>(*a);
 }
 
@@ -85,7 +121,6 @@ std::shared_ptr<Expr> ConstantPropagator::PropagateVarReference(VarReference *vr
 {
     std::shared_ptr<Expr> varVal = GetVariableValue(vr->GetType(), vr->name);
     if (varVal == nullptr)
-
         return std::make_shared<VarReference>(*vr);
 
     didTreeChange = true;
@@ -111,6 +146,7 @@ std::shared_ptr<Expr> ConstantPropagator::PropagateArrayIndex(ArrayIndex *ai)
         if (array != nullptr && l != nullptr)
         {
             BracedInitialiser *bi = dynamic_cast<BracedInitialiser *>(array.get());
+            didTreeChange = true;
             return bi->init[std::stoi(l->Loc().literal)];
         }
     }
@@ -155,12 +191,9 @@ void ConstantPropagator::PropagateDeclaredVar(DeclaredVar *dv)
     {
         std::shared_ptr<Expr> simp = dv->value->Propagate(*this);
         if (dynamic_cast<Literal *>(simp.get()) != nullptr)
-        {
             stack.push_back(LiteralValue(depth, dv->t, dv->name, simp));
-            dv->value = simp;
-        }
 
-        BracedInitialiser *bi = dynamic_cast<BracedInitialiser *>(dv->value.get());
+        BracedInitialiser *bi = dynamic_cast<BracedInitialiser *>(simp.get());
         if (bi != nullptr)
         {
             bool isAllConstant = true;
@@ -174,8 +207,10 @@ void ConstantPropagator::PropagateDeclaredVar(DeclaredVar *dv)
             }
 
             if (isAllConstant)
-                stack.push_back(LiteralValue(depth, dv->value->GetType(), dv->name, dv->value));
+                stack.push_back(LiteralValue(depth, dv->value->GetType(), dv->name, simp));
         }
+
+        dv->value = simp;
     }
 }
 

@@ -22,6 +22,7 @@ public:
 
     std::shared_ptr<Expr> GetVariableValue(TypeData type, std::string name);
     void SetVariableValue(TypeData type, std::string name, std::shared_ptr<Expr> val);
+    void SetArrayIndex(TypeData type, std::string name, size_t index, std::shared_ptr<Expr> val);
     void ClearCurrentDepth();
 
     // expression interface
