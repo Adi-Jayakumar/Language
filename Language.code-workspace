@@ -67,7 +67,8 @@
 			"shared_mutex": "cpp",
 			"thread": "cpp",
 			"variant": "cpp",
-			"cassert": "cpp"
+			"cassert": "cpp",
+			"stack": "cpp"
 		}
 	}
 }

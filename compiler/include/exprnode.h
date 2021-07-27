@@ -33,6 +33,12 @@ class Literal : public Expr
 public:
     Token loc;
     Literal(Token);
+    Literal(int i) { loc.literal = std::to_string(i); };
+    Literal(double d) { loc.literal = std::to_string(d); };
+    Literal(bool b) { loc.literal = b ? "true" : "false"; };
+    Literal(std::string s) { loc.literal = s; };
+    Literal(char c) { loc.literal = std::string(&c, 1); };
+
     // ~Literal() override = default;
 
     Token Loc() override;
