@@ -141,6 +141,14 @@ std::string ToString(const TokenID &t)
     {
         return "BANG_EQ";
     }
+    case TokenID::AND_AND:
+    {
+        return "AND_AND";
+    }
+    case TokenID::OR_OR:
+    {
+        return "OR_OR";
+    }
     case TokenID::EQ:
     {
         return "EQ";

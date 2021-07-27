@@ -21,7 +21,7 @@ enum class TokenID : uint8_t
     THROW,
     TRY,
     CATCH,
-        
+
     RETURN,
     BREAK,
     COMMA,
@@ -51,6 +51,10 @@ enum class TokenID : uint8_t
     // equality opreators
     EQ_EQ,
     BANG_EQ,
+
+    // boolean operators
+    AND_AND,
+    OR_OR,
 
     // assignment operator
     EQ,

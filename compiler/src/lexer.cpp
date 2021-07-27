@@ -157,6 +157,15 @@ Token Lexer::NextToken()
             res = {TokenID::BANG, "!", line};
         break;
     }
+    case '&':
+    {
+        if (src[index + 1] == '&')
+        {
+            res = {TokenID::AND_AND, "&&", line};
+            index++;
+        }
+        break;
+    }
     case ';':
     {
         res = {TokenID::SEMI, ";", line};
@@ -180,7 +189,12 @@ Token Lexer::NextToken()
     }
     case '|':
     {
-        if (src[index + 1] == ')')
+        if (src[index + 1] == '|')
+        {
+            res = {TokenID::OR_OR, "||", line};
+            index++;
+        }
+        else if (src[index + 1] == ')')
         {
             res = {TokenID::CLOSE_VER, "|)", line};
             index++;
