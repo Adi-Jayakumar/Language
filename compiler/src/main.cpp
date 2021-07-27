@@ -6,7 +6,6 @@
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
-#include <chrono>
 
 void DumpTokens(std::string fPath)
 {
