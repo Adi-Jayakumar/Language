@@ -1,6 +1,6 @@
 #pragma once
-#include "function.h"
 #include "exprnode.h"
+#include "function.h"
 #include "perror.h"
 #include <stack>
 
@@ -12,11 +12,11 @@ class Verifier
 {
     std::vector<std::shared_ptr<Expr>> stack;
     Function f;
-    std::vector<std::shared_ptr<Expr>> post;
 
     size_t ip;
 
 public:
+    std::vector<std::shared_ptr<Expr>> post;
     Verifier() = default;
     Verifier(Function &_f) : f(_f){};
 

@@ -2,17 +2,7 @@
 #include "exprnode.h"
 #include "op.h"
 #include <iostream>
-#include <stack>
 #include <vector>
-
-struct PostCondition
-{
-    std::stack<std::shared_ptr<Expr>> stack;
-    Function f;
-
-    void SetFunction(Function &f);
-    std::vector<std::shared_ptr<Expr>> GetPostCondition(std::vector<std::shared_ptr<Expr>> pre);
-};
 
 struct Function
 {

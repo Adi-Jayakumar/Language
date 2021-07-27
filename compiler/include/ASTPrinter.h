@@ -20,6 +20,11 @@ public:
         std::cout << out.str() << std::endl;
     }
 
+    void Clear()
+    {
+        out.clear();
+    }
+
     void NewLine()
     {
         out << '\n';

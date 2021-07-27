@@ -81,7 +81,9 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         }
         case Opcode::RETURN:
         {
-            // do appropriate thing
+            std::shared_ptr<Expr> retVal = stack.back();
+            stack.pop_back();
+            post.push_back(retVal);
             break;
         }
         case Opcode::I_ADD:
@@ -113,6 +115,7 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             std::shared_ptr<Expr> left = stack.back();
             stack.pop_back();
             stack.push_back(std::make_shared<Binary>(left, op, right));
+            break;
         }
         case Opcode::DI_SUB:
         case Opcode::ID_SUB:
@@ -237,7 +240,7 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             stack.pop_back();
 
             Token op(TokenID::BANG, "!", 0);
-            stack.push_back(std::make_shared<Expr>(op, right));
+            stack.push_back(std::make_shared<Unary>(op, right));
             break;
         }
         default:

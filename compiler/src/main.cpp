@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
+#include "verifier.h"
 
 void DumpTokens(std::string fPath)
 {
@@ -96,6 +97,19 @@ int main(int argc, char **argv)
         std::cout << "\n\nCOMPILED" << std::endl;
         c.Disassemble();
     }
+
+    Verifier vf;
+    vf.SetFunction(c.Functions[1]);
+    FuncDecl *fd = dynamic_cast<FuncDecl *>(parsed[1].get());
+    vf.GenerateStrongestPost(fd->preConds);
+
+    ast.Clear();
+    for (auto &e : vf.post)
+    {
+        e->Print(ast);
+        ast.NewLine();
+    }
+    ast.Flush();
 
     std::string ofPath = arg.GetArgVal("-o");
 
