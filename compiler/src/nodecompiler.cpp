@@ -96,6 +96,10 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
         GET_TYPED_BINARY_OP(l, BANG_EQ, r, o);
         return o;
     }
+    else if (t == TokenID::AND_AND)
+        return Opcode::B_AND_AND;
+    else if (t == TokenID::OR_OR)
+        return Opcode::B_OR_OR;
     else if (t == TokenID::BANG)
     {
         return Opcode::BANG;

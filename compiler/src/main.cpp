@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
     Verifier vf;
     vf.SetFunction(c.Functions[1]);
-    FuncDecl *fd = dynamic_cast<FuncDecl *>(parsed[1].get());
+    FuncDecl *fd = dynamic_cast<FuncDecl *>(parsed[0].get());
     vf.GenerateStrongestPost(fd->preConds);
 
     ast.Clear();

@@ -124,6 +124,10 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{DOUBLE_TYPE, TokenID::BANG_EQ, INT_TYPE}, BOOL_TYPE},
         {{DOUBLE_TYPE, TokenID::BANG_EQ, DOUBLE_TYPE}, BOOL_TYPE},
         {{BOOL_TYPE, TokenID::BANG_EQ, BOOL_TYPE}, BOOL_TYPE},
+        // binary booean and
+        {{BOOL_TYPE, TokenID::AND_AND, BOOL_TYPE}, BOOL_TYPE},
+        // binary boolean or
+        {{BOOL_TYPE, TokenID::OR_OR, BOOL_TYPE}, BOOL_TYPE},
         // unary negation
         {{VOID_TYPE, TokenID::BANG, BOOL_TYPE}, BOOL_TYPE},
         // string concatenation

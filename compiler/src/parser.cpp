@@ -492,7 +492,39 @@ std::vector<std::string> Parser::CommaSeparatedStrings()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
-    return Assignment();
+    return Or();
+}
+
+std::shared_ptr<Expr> Parser::Or()
+{
+    std::shared_ptr<Expr> left = And();
+    Token op = cur;
+
+    while (cur.type == TokenID::OR_OR)
+    {
+        Advance();
+        std::shared_ptr<Expr> right = And();
+        left = std::make_shared<Binary>(left, op, right);
+        op = cur;
+    }
+
+    return left;
+}
+
+std::shared_ptr<Expr> Parser::And()
+{
+    std::shared_ptr<Expr> left = Assignment();
+    Token op = cur;
+
+    while (cur.type == TokenID::AND_AND)
+    {
+        Advance();
+        std::shared_ptr<Expr> right = Assignment();
+        left = std::make_shared<Binary>(left, op, right);
+        op = cur;
+    }
+
+    return left;
 }
 
 std::shared_ptr<Expr> Parser::Assignment()

@@ -53,6 +53,10 @@ struct Parser
     std::vector<std::string> CommaSeparatedStrings();
     // parses any expression
     std::shared_ptr<Expr> Expression();
+    // parses an or expression
+    std::shared_ptr<Expr> Or();
+    // parses an and expression
+    std::shared_ptr<Expr> And();
     // parses any field access
     std::shared_ptr<Expr> ParseFieldAccess();
     // parses an inline array

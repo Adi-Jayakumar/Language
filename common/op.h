@@ -118,6 +118,9 @@ enum class Opcode : uint8_t
     D_BANG_EQ,
     B_BANG_EQ,
 
+    B_AND_AND,
+    B_OR_OR,
+
     BANG,
 
     NONE,
@@ -445,6 +448,14 @@ inline std::string ToString(Opcode o)
     case Opcode::B_BANG_EQ:
     {
         return "B_BANG_EQ";
+    }
+    case Opcode::B_AND_AND:
+    {
+        return "B_AND_AND";
+    }
+    case Opcode::B_OR_OR:
+    {
+        return "B_OR_OR";
     }
     case Opcode::BANG:
     {

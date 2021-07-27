@@ -60,6 +60,10 @@ void ASTPrinter::PrintBinary(Binary *b)
         out << " == ";
     else if (b->op.type == TokenID::BANG_EQ)
         out << " != ";
+    else if (b->op.type == TokenID::AND_AND)
+        out << " && ";
+    else if (b->op.type == TokenID::OR_OR)
+        out << " || ";
     else
         out << b->op;
 
