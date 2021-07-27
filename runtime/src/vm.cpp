@@ -884,6 +884,18 @@ void VM::ExecuteInstruction()
         stack.push_back(NewBool(GetBool(left) != GetBool(right)));
         break;
     }
+    case Opcode::B_AND_AND:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(NewBool(GetBool(left) && GetBool(right)));
+        break;
+    }
+    case Opcode::B_OR_OR:
+    {
+        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
+        stack.push_back(NewBool(GetBool(left) || GetBool(right)));
+        break;
+    }
     case Opcode::BANG:
     {
         Object *right = stack.back;
