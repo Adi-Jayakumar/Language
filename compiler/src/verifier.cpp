@@ -234,6 +234,26 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             stack.push_back(std::make_shared<Binary>(left, op, right));
             break;
         }
+        case Opcode::B_AND_AND:
+        {
+            std::shared_ptr<Expr> right = stack.back();
+            stack.pop_back();
+            std::shared_ptr<Expr> left = stack.back();
+            stack.pop_back();
+            Token op(TokenID::AND_AND, "&&", 0);
+            stack.push_back(std::make_shared<Binary>(left, op, right));
+            break;
+        }
+        case Opcode::B_OR_OR:
+        {
+            std::shared_ptr<Expr> right = stack.back();
+            stack.pop_back();
+            std::shared_ptr<Expr> left = stack.back();
+            stack.pop_back();
+            Token op(TokenID::OR_OR, "||", 0);
+            stack.push_back(std::make_shared<Binary>(left, op, right));
+            break;
+        }
         case Opcode::BANG:
         {
             std::shared_ptr<Expr> right = stack.back();
