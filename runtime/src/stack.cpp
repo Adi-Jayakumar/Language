@@ -2,7 +2,7 @@
 
 Stack::Stack()
 {
-    data = (Object **)malloc(DEF_SIZE * sizeof(Object *));
+    data = new Object *[DEF_SIZE * sizeof(Object *)];
     count = 0;
     capacity = DEF_SIZE;
     back = *data;
@@ -23,9 +23,9 @@ void Stack::push_back(Object *cc)
     else
     {
         capacity *= GROW_FAC;
-        Object **more = (Object **)malloc(capacity * sizeof(Object *));
+        Object **more = new Object *[capacity * sizeof(Object *)];
         memcpy(more, data, count * sizeof(Object *));
-        free(data);
+        delete[] data;
         data = more;
         data[count] = cc;
         back = data[count];
