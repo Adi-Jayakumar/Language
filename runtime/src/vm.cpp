@@ -21,7 +21,6 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
 
     curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
     cs.push_back({0, mainIndex, 0});
-    // cs.push({0, mainIndex, 0});
     curCF = &cs.back();
 
     ip = 0;
@@ -85,12 +84,6 @@ void VM::PrintCallStack()
     for (auto &cf : cs)
         std::cout << "(" << cf.retIndex << ", " << cf.retFunction << ", " << cf.valStackMin << ")" << std::endl;
 }
-
-// void VM::AddToHeap(Object **objs, size_t numObjs)
-// {
-//     for (size_t i = 0; i < numObjs; i++)
-//         heap.AddObject(objs[i]);
-// }
 
 void VM::RuntimeError(std::string msg)
 {
