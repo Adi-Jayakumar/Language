@@ -345,7 +345,7 @@ void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
     curFunc = fd;
 
     Symbols.depth++;
-    Symbols.AddFunc(fd->ret, fd->name, fd->argtypes, false);
+    Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, false));
     size_t preFuncSize = Symbols.vars.size();
 
     if (fd->argtypes.size() != fd->paramIdentifiers.size())

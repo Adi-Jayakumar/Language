@@ -73,12 +73,7 @@ size_t SymbolTable::FindVarByName(std::string &name)
     return offsetLoc < 0 ? varIndex : varIndex - funcVarBegin;
 }
 
-void SymbolTable::AddFunc(TypeData ret, std::string name, std::vector<TypeData> argtypes, bool isLibFunc)
-{
-    funcs.push_back(FuncID(ret, name, argtypes, isLibFunc));
-}
-
-void SymbolTable::AddFunc(FuncID &func)
+void SymbolTable::AddFunc(FuncID func)
 {
     funcs.emplace_back(func);
 }
@@ -200,7 +195,7 @@ void LibraryError(const std::string &msg)
     Error e("[LIBRARY ERROR]\n" + msg + "\n");
 }
 
-std::vector<std::string> SplitStringByChar(std::string &s, char c)
+static std::vector<std::string> SplitStringByChar(std::string &s, char c)
 {
     std::stringstream stream(s);
     std::string segment;
@@ -212,7 +207,7 @@ std::vector<std::string> SplitStringByChar(std::string &s, char c)
     return split;
 }
 
-std::string TrimFrontBack(std::string &str)
+static std::string TrimFrontBack(std::string &str)
 {
     size_t first = 0;
     for (size_t i = 0; i < str.length(); i++)

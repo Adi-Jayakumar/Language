@@ -21,8 +21,7 @@ struct SymbolTable
 
     void AddVar(TypeData, std::string);
 
-    void AddFunc(TypeData, std::string, std::vector<TypeData>, bool);
-    void AddFunc(FuncID &);
+    void AddFunc(FuncID );
     void AddStruct(StructID &);
 
     bool IsVarInScope(std::string &);
