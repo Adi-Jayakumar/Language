@@ -26,6 +26,7 @@ int main(int argc, char **argv)
 
     arg.AddSwitch("-p");
     arg.AddSwitch("-t");
+    arg.AddSwitch("-O");
     arg.AddSwitch("-c");
     arg.AddSwitch("--rm-bin");
 
@@ -61,33 +62,28 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    ConstantPropagator cp;
-
-    int counter = 0;
-
-    do
+    if (arg.IsSwitchOn("-O"))
     {
-        counter++;
-        if (counter >= 10)
-            break;
+        ConstantPropagator cp;
+        int counter = 0;
+        do
+        {
+            counter++;
+            if (counter >= 10)
+                break;
 
-        cp.didTreeChange = false;
+            cp.didTreeChange = false;
 
-        for (auto &stmt : parsed)
-            stmt->Evaluate();
+            for (auto &stmt : parsed)
+                stmt->Evaluate();
 
-        for (auto &stmt : parsed)
-            stmt->Propagate(cp);
+            for (auto &stmt : parsed)
+                stmt->Propagate(cp);
 
-        std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
-    } while (cp.didTreeChange);
-    std::cout << "count = " << counter << std::endl;
-
-    std::cout << "\n\nOPTIMISED" << std::endl;
-    ASTPrinter ast(true);
-    for (auto &stmt : parsed)
-        stmt->Print(ast);
-    ast.Flush();
+            std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
+        } while (cp.didTreeChange);
+        std::cout << "count = " << counter << std::endl;
+    }
 
     Compiler c;
     c.Compile(parsed);
@@ -97,19 +93,6 @@ int main(int argc, char **argv)
         std::cout << "\n\nCOMPILED" << std::endl;
         c.Disassemble();
     }
-
-    Verifier vf;
-    vf.SetFunction(c.Functions[1]);
-    FuncDecl *fd = dynamic_cast<FuncDecl *>(parsed[0].get());
-    vf.GenerateStrongestPost(fd->preConds);
-
-    ast.Clear();
-    for (auto &e : vf.post)
-    {
-        e->Print(ast);
-        ast.NewLine();
-    }
-    ast.Flush();
 
     std::string ofPath = arg.GetArgVal("-o");
 
