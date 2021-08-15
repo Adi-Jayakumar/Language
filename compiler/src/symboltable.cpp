@@ -128,6 +128,7 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 
 FuncID *SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
+    std::cout << "name " << name << std::endl;
     for (auto &nf : nativeFunctions)
     {
         if (nf.name == name && MatchToNativeFuncs(nf.argtypes, args))
@@ -141,13 +142,13 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     if (native.size() == 0 && args.size() != 0)
         return false;
 
-    TypeData matchMoreThanOne = {true, 0};
+    TypeData matchMoreThanOne = VOID_ARRAY;
     if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
     {
         for (const auto &arg : args)
         {
             if (arg == VOID_TYPE)
-                SymbolError("Cannot pass 'void' as a function argument");
+                SymbolError("Cannot pass object of type 'void' as a function argument");
         }
         return true;
     }
@@ -258,11 +259,13 @@ StructID *SymbolTable::GetStruct(const TypeData &td)
 void SymbolError(const std::string &msg)
 {
     Error e("[Symbol ERROR]\n" + msg + "\n");
+    throw e;
 }
 
 void LibraryError(const std::string &msg)
 {
     Error e("[LIBRARY ERROR]\n" + msg + "\n");
+    throw e;
 }
 
 std::vector<std::string> SplitStringByChar(std::string &s, char c)

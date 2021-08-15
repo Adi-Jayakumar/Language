@@ -234,6 +234,56 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
+    std::vector<TypeData> argtypes;
+    for (auto &e : fc->args)
+    {
+        e->NodeCompile(c);
+        argtypes.push_back(e->GetType());
+    }
+
+    FuncID *f = c.Symbols.GetFunc(fc->name, argtypes);
+    switch (f->kind)
+    {
+    case FunctionType::USER_DEFINED:
+    {
+        for (size_t i = c.Symbols.funcs.size(); (int)i >= 0; i--)
+        {
+            if (f == &c.Symbols.funcs[i])
+            {
+                c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(i + 1)});
+                break;
+            }
+        }
+        break;
+    }
+    case FunctionType::LIBRARY:
+    {
+        for (size_t i = c.Symbols.clibFunctions.size(); (int)i >= 0; i--)
+        {
+            if (f == &c.Symbols.clibFunctions[i])
+            {
+                c.cur->code.push_back({Opcode::CALL_LIBRARY_FUNC, static_cast<uint8_t>(i)});
+                break;
+            }
+        }
+        break;
+    }
+    case FunctionType::NATIVE:
+    {
+        for (size_t i = c.Symbols.nativeFunctions.size(); (int)i >= 0; i--)
+        {
+            if (f == &c.Symbols.nativeFunctions[i])
+            {
+                if (f->name == "Print")
+                    c.cur->code.push_back({Opcode::PRINT, static_cast<uint8_t>(f->argtypes.size())});
+                else
+                    c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(i)});
+                break;
+            }
+        }
+        break;
+    }
+    }
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)

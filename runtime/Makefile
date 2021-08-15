@@ -7,7 +7,8 @@ C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -O
 
 BIN		:= bin
 SRC		:= src
-INCLUDE	:= include
+INCLUDE_ONE	:= include
+INCLUDE_TWO := ../common
 LIB		:= lib
 
 LIBRARIES	:= -ldl
@@ -27,4 +28,4 @@ run: all
 	./$(BIN)/$(EXECUTABLE)
 
 $(BIN)/$(EXECUTABLE): $(SRC)/*
-	$(CC) $(C_FLAGS) -I$(INCLUDE) -L$(LIB) $^ -o $@ $(LIBRARIES)
+	$(CC) $(C_FLAGS) -I$(INCLUDE_ONE) -I$(INCLUDE_TWO) -L$(LIB) $^ -o $@ $(LIBRARIES)

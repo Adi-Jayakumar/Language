@@ -10,7 +10,7 @@ Stack::Stack()
 
 Stack::~Stack()
 {
-    free(data);
+    delete[] data;
 }
 
 void Stack::push_back(Object *cc)

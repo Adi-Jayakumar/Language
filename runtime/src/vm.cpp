@@ -20,6 +20,7 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
     }
 
     curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
+    cs.push_back({0, 0, 0});
     cs.push_back({0, mainIndex, 0});
     curCF = &cs.back();
 
@@ -28,6 +29,13 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
 
 VM::~VM()
 {
+    if (stack.count > 0)
+    {
+        std::cout << "Stack was not empty" << std::endl;
+        for (size_t i = stack.count - 1; (int)i >= 0; i--)
+            std::cout << stack[i]->ToString() << std::endl;
+    }
+
     if (libHandles.size() > 0)
     {
         std::cout << "Closing libraries" << std::endl;
@@ -437,6 +445,17 @@ void VM::ExecuteInstruction()
     }
     case Opcode::RETURN:
     {
+#ifdef TEST
+        if (cs.empty())
+        {
+            Object *retVal = stack.back;
+            stack.pop_N(stack.count);
+            stack.push_back(retVal);
+            ip = functions[curFunc].code.size();
+            break;
+        }
+#endif
+
         CallFrame returnCF = *curCF;
         cs.pop_back();
         curCF = &cs.back();
@@ -445,8 +464,7 @@ void VM::ExecuteInstruction()
         curFunc = returnCF.retFunction;
 
         size_t stackDiff = stack.count - returnCF.valStackMin;
-        Object *retVal;
-        retVal = stack.back;
+        Object *retVal = stack.back;
 
         // cleaning up the function's constants
         stack.pop_N(stackDiff);
@@ -946,7 +964,7 @@ void VM::ThrowObject()
         }
         ThrowStack.pop();
     }
-    RuntimeError("Uncaught throw");
+    RuntimeError("Uncaught throw. '" + throwObj->ToString() + "' was thrown");
 }
 
 bool VM::MatchType(Object *obj, size_t isArray, uint8_t type)
