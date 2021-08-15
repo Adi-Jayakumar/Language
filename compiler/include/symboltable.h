@@ -17,6 +17,8 @@ struct SymbolTable
 
     SymbolTable();
 
+    bool CanAssign(const TypeData &, const TypeData &);
+
     void AddVar(TypeData, std::string);
 
     void AddFunc(TypeData, std::string, std::vector<TypeData>, bool);

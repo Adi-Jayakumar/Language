@@ -5,6 +5,36 @@ SymbolTable::SymbolTable()
     nativeFunctions = NativeFunctions;
 }
 
+bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
+{
+    if (varType.isArray != valType.isArray)
+        return false;
+
+    if (varType.type == 6 || valType.type == 6)
+        return true;
+    else if (varType.type == 1 && valType.type == 2)
+        return true;
+    else if (varType.type == 2 && valType.type == 1)
+        return true;
+
+    if (varType.type > 6 && valType.type > 6)
+    {
+        if (varType == valType)
+            return true;
+
+        size_t valLoc = FindStruct(valType);
+        TypeData parent = strcts[valLoc].parent;
+
+        if (parent == VOID_TYPE)
+            return varType == valType;
+
+        parent.isArray = valType.isArray;
+        return CanAssign(varType, parent);
+    }
+
+    return varType == valType;
+}
+
 void SymbolTable::AddVar(TypeData type, std::string name)
 {
     vars.push_back(VarID(type, name, depth, vars.size()));
@@ -203,7 +233,7 @@ std::string TrimFrontBack(std::string &str)
     return str.substr(first, last - first + 1);
 }
 
-#define DL_ERROR(error_msg)                 \
+#define DL_ERROR(errorMsg)                  \
     errorMsg = dlerror();                   \
     if (errorMsg != NULL)                   \
     {                                       \

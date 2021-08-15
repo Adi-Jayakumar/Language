@@ -1,34 +1,5 @@
 #include "staticanalyser.h"
 
-bool StaticAnalyser::CanAssign(const TypeData &varType, const TypeData &valType)
-{
-    if (varType.isArray != valType.isArray)
-        return false;
-
-    if (varType.type == 6 || valType.type == 6)
-        return true;
-    else if (varType.type == 1 && valType.type == 2)
-        return true;
-    else if (varType.type == 2 && valType.type == 1)
-        return true;
-
-    if (varType.type > 6 && valType.type > 6)
-    {
-        if (varType == valType)
-            return true;
-
-        size_t valLoc = Symbols.FindStruct(valType);
-        TypeData parent = Symbols.strcts[valLoc].parent;
-
-        if (parent == VOID_TYPE)
-            return varType == valType;
-
-        parent.isArray = valType.isArray;
-        return CanAssign(varType, parent);
-    }
-
-    return varType == valType;
-}
 
 bool IsTruthy(const TypeData &cond)
 {
@@ -45,7 +16,7 @@ bool StaticAnalyser::MatchInitialiserToStruct(const std::vector<TypeData> &membe
 
     for (size_t i = 0; i < member.size(); i++)
     {
-        if (!CanAssign(member[i], init[i]))
+        if (!Symbols.CanAssign(member[i], init[i]))
             return false;
     }
 
@@ -116,7 +87,7 @@ TypeData StaticAnalyser::TypeOfAssign(Assign *a)
 
         TypeData varType = Symbols.vars[varIndex].type;
 
-        if (!CanAssign(varType, valType))
+        if (!Symbols.CanAssign(varType, valType))
             TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
 
         targetAsVr->isArray = varType.isArray;
@@ -128,7 +99,7 @@ TypeData StaticAnalyser::TypeOfAssign(Assign *a)
     }
 
     TypeData targetType = a->target->Type(*this);
-    if (!CanAssign(targetType, valType))
+    if (!Symbols.CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
     a->val->t = targetType;
     return targetType;
@@ -217,7 +188,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
         TypeData first = types[0];
         for (size_t i = 1; i < types.size(); i++)
         {
-            if (!CanAssign(first, types[i]))
+            if (!Symbols.CanAssign(first, types[i]))
                 TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
         }
         bi->t = first;
@@ -230,7 +201,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
         toCompare.isArray--;
         for (size_t i = 0; i < types.size(); i++)
         {
-            if (!CanAssign(toCompare, types[i]))
+            if (!Symbols.CanAssign(toCompare, types[i]))
                 TypeError(bi->init[i]->Loc(), "Type of expression in a braced initaliser must be assignable to the type specified at the beginning");
         }
         return bi->t;
@@ -298,8 +269,8 @@ TypeData StaticAnalyser::TypeOfTypeCast(TypeCast *c)
     TypeData newT = c->type;
     TypeData oldT = c->arg->Type(*this);
 
-    bool isDownCast = CanAssign(newT, oldT);
-    bool isUpCast = CanAssign(oldT, newT);
+    bool isDownCast = Symbols.CanAssign(newT, oldT);
+    bool isUpCast = Symbols.CanAssign(oldT, newT);
 
     if (!isDownCast && !isUpCast)
         TypeError(c->Loc(), "Invalid cast");
@@ -326,7 +297,7 @@ void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
     {
         TypeData valType = dv->value->Type(*this);
 
-        if (!CanAssign(dv->t, valType))
+        if (!Symbols.CanAssign(dv->t, valType))
             TypeError(dv->Loc(), "Cannot assign a value of type " + ToString(valType) + " to variable of type " + ToString(dv->t));
 
         if (dv->t.type < NUM_DEF_TYPES)
