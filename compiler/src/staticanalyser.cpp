@@ -446,8 +446,6 @@ void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
     Symbols.strcts.push_back(s);
     Symbols.CleanUpCurDepth();
     Symbols.depth--;
-
-    return;
 }
 
 // for now all functions of library are imported
@@ -467,7 +465,6 @@ void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
                 TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
         }
     }
-    return;
 }
 
 void StaticAnalyser::TypeOfThrow(Throw *t)
