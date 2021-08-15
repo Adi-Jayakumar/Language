@@ -20,7 +20,7 @@ public:
 
     TypeID NumTypes = 6;
 
-    Lexer(){};
+    Lexer() = default;
     Lexer(const std::string &fPath);
 
     size_t LineSize();

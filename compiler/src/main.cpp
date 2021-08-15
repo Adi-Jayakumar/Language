@@ -20,88 +20,88 @@ void DumpTokens(std::string fPath)
     std::cout << t << std::endl;
 }
 
-int main(int argc, char **argv)
-{
-    ArgParser arg;
+// int main(int argc, char **argv)
+// {
+//     ArgParser arg;
 
-    arg.AddSwitch("-p");
-    arg.AddSwitch("-t");
-    arg.AddSwitch("-O");
-    arg.AddSwitch("-c");
-    arg.AddSwitch("--rm-bin");
+//     arg.AddSwitch("-p");
+//     arg.AddSwitch("-t");
+//     arg.AddSwitch("-O");
+//     arg.AddSwitch("-c");
+//     arg.AddSwitch("--rm-bin");
 
-    arg.AddArg({"-f", "-o"});
+//     arg.AddArg({"-f", "-o"});
 
-    arg.ParseArgs(argc - 1, argv + 1);
+//     arg.ParseArgs(argc - 1, argv + 1);
 
-    std::string ifPath = arg.GetArgVal("-f");
+//     std::string ifPath = arg.GetArgVal("-f");
 
-    Parser p(ifPath);
-    std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
+//     Parser p(ifPath);
+//     std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
 
-    if (arg.IsSwitchOn("-p"))
-    {
-        std::cout << "PARSED" << std::endl;
-        ASTPrinter ast(false);
+//     if (arg.IsSwitchOn("-p"))
+//     {
+//         std::cout << "PARSED" << std::endl;
+//         ASTPrinter ast(false);
 
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
+//         for (auto &stmt : parsed)
+//             stmt->Print(ast);
+//         ast.Flush();
+//     }
 
-    StaticAnalyser s;
-    for (auto &stmt : parsed)
-        stmt->Type(s);
+//     StaticAnalyser s;
+//     for (auto &stmt : parsed)
+//         stmt->Type(s);
 
-    if (arg.IsSwitchOn("-t"))
-    {
-        std::cout << "\n\nANALYSED" << std::endl;
-        ASTPrinter ast(true);
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
+//     if (arg.IsSwitchOn("-t"))
+//     {
+//         std::cout << "\n\nANALYSED" << std::endl;
+//         ASTPrinter ast(true);
+//         for (auto &stmt : parsed)
+//             stmt->Print(ast);
+//         ast.Flush();
+//     }
 
-    if (arg.IsSwitchOn("-O"))
-    {
-        ConstantPropagator cp;
-        int counter = 0;
-        do
-        {
-            counter++;
-            if (counter >= 10)
-                break;
+//     if (arg.IsSwitchOn("-O"))
+//     {
+//         ConstantPropagator cp;
+//         int counter = 0;
+//         do
+//         {
+//             counter++;
+//             if (counter >= 10)
+//                 break;
 
-            cp.didTreeChange = false;
+//             cp.didTreeChange = false;
 
-            for (auto &stmt : parsed)
-                stmt->Evaluate();
+//             for (auto &stmt : parsed)
+//                 stmt->Evaluate();
 
-            for (auto &stmt : parsed)
-                stmt->Propagate(cp);
+//             for (auto &stmt : parsed)
+//                 stmt->Propagate(cp);
 
-            std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
-        } while (cp.didTreeChange);
-        std::cout << "count = " << counter << std::endl;
-    }
+//             std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
+//         } while (cp.didTreeChange);
+//         std::cout << "count = " << counter << std::endl;
+//     }
 
-    Compiler c;
-    c.Compile(parsed);
+//     Compiler c;
+//     c.Compile(parsed);
 
-    if (arg.IsSwitchOn("-c"))
-    {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
-    }
+//     if (arg.IsSwitchOn("-c"))
+//     {
+//         std::cout << "\n\nCOMPILED" << std::endl;
+//         c.Disassemble();
+//     }
 
-    std::string ofPath = arg.GetArgVal("-o");
+//     std::string ofPath = arg.GetArgVal("-o");
 
-    if (arg.IsSwitchOn("--rm-bin"))
-    {
-        std::string rm = "rm -f " + ofPath;
-        int sysCode = system(rm.c_str());
-        if (sysCode == -1)
-            std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    }
-    Compiler::SerialiseProgram(c, ofPath);
-}
+//     if (arg.IsSwitchOn("--rm-bin"))
+//     {
+//         std::string rm = "rm -f " + ofPath;
+//         int sysCode = system(rm.c_str());
+//         if (sysCode == -1)
+//             std::cerr << "Command to remove serialisation of program failed" << std::endl;
+//     }
+//     Compiler::SerialiseProgram(c, ofPath);
+// }

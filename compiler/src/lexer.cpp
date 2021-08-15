@@ -3,6 +3,11 @@
 std::string IO::GetSrcString(std::string fName)
 {
     std::ifstream in = std::ifstream(fName);
+    if (in.fail())
+    {
+        std::cerr << "File '" << fName << "' does not exist" << std::endl;
+        exit(2);
+    }
     std::string src = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     return src;
 }

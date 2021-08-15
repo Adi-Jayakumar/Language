@@ -83,6 +83,7 @@ public:
     void GarbageCollect();
 
 public:
+    VM() = default;
     VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &, std::vector<ThrowInfo> &);
     ~VM();
     void Disasemble();
