@@ -11,7 +11,6 @@ bool IsTruthy(const TypeData &);
 
 struct StaticAnalyser
 {
-
     bool MatchInitialiserToStruct(const std::vector<TypeData> &, const std::vector<TypeData> &);
 
     void TypeError(Token loc, std::string err);

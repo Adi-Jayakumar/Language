@@ -14,14 +14,21 @@ struct VarID
     VarID(TypeData _type, std::string _name, size_t _depth, size_t _index) : type(_type), name(_name), depth(_depth), index(_index){};
 };
 
+enum class FunctionType
+{
+    USER_DEFINED,
+    LIBRARY,
+    NATIVE
+};
+
 struct FuncID
 {
     TypeData ret;
     std::string name;
     std::vector<TypeData> argtypes;
-    size_t isLibFunc; // serves dual purpose of being the index for C-library functions
+    FunctionType kind;
     FuncID() = default;
-    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes, size_t _isLibFunc) : ret(_ret), name(_name), argtypes(_argtypes), isLibFunc(_isLibFunc){};
+    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes, FunctionType _kind) : ret(_ret), name(_name), argtypes(_argtypes), kind(_kind){};
 };
 
 struct FuncIDEq

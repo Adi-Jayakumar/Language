@@ -22,8 +22,8 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
         if (varType == valType)
             return true;
 
-        size_t valLoc = FindStruct(valType);
-        TypeData parent = strcts[valLoc].parent;
+        StructID *sVal = GetStruct(valType);
+        TypeData parent = sVal->parent;
 
         if (parent == VOID_TYPE)
             return varType == valType;
@@ -56,7 +56,7 @@ bool SymbolTable::IsVarInScope(std::string &name)
     return varIndex != SIZE_MAX;
 }
 
-size_t SymbolTable::FindVarByName(std::string &name)
+VarID *SymbolTable::GetVar(std::string &name)
 {
     size_t varIndex = SIZE_MAX;
 
@@ -69,8 +69,29 @@ size_t SymbolTable::FindVarByName(std::string &name)
         }
     }
 
-    int offsetLoc = static_cast<int>(varIndex) - static_cast<int>(funcVarBegin);
-    return offsetLoc < 0 ? varIndex : varIndex - funcVarBegin;
+    if (varIndex == SIZE_MAX)
+        return nullptr;
+
+    return &vars[varIndex];
+}
+
+size_t SymbolTable::GetVarStackLoc(std::string &name)
+{
+    size_t varIndex = SIZE_MAX;
+
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        if (vars[i].name == name)
+        {
+            varIndex = i;
+            break;
+        }
+    }
+
+    if (funcVarBegin == 0)
+        return varIndex;
+    else
+        return varIndex - funcVarBegin;
 }
 
 void SymbolTable::AddFunc(FuncID func)
@@ -78,76 +99,41 @@ void SymbolTable::AddFunc(FuncID func)
     funcs.emplace_back(func);
 }
 
-size_t SymbolTable::FindFunc(std::string &name, std::vector<TypeData> &argtypes)
+void SymbolTable::AddCLibFunc(FuncID func)
 {
-    for (size_t i = funcs.size() - 1; (int)i >= 0; i--)
-    {
-        if (argtypes.size() == funcs[i].argtypes.size() && name == funcs[i].name)
-        {
-            bool doesMatch = true;
-            for (size_t j = 0; j < argtypes.size(); j++)
-            {
-                if (argtypes[j] != funcs[i].argtypes[j])
-                {
-                    doesMatch = false;
-                    break;
-                }
-            }
-            if (doesMatch)
-                return i;
-        }
-    }
-    return SIZE_MAX;
+    clibFunctions.push_back(func);
 }
 
-size_t SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
+FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 {
-    size_t index = SIZE_MAX;
-
-    for (size_t i = 0; i < nativeFunctions.size(); i++)
+    for (auto &f : funcs)
     {
-        if (name == nativeFunctions[i].name && MatchToNativeFuncs(nativeFunctions[i].argtypes, args))
-        {
-            index = i;
-            break;
-        }
+        if (f.name == name && IsEqual(f.argtypes, args))
+            return &f;
     }
 
-    return index;
-}
-
-void SymbolTable::PopUntilSized(size_t size)
-{
-    if (vars.size() <= size)
-        return;
-
-    while (vars.size() > size)
-        vars.pop_back();
-}
-
-void SymbolTable::CleanUpCurDepth()
-{
-    while (vars.size() > 0 && vars.back().depth == depth)
-        vars.pop_back();
-
-    if (vars.size() == 1 && vars[0].depth == depth)
-        vars.clear();
-}
-
-void SymbolTable::AddStruct(StructID &s)
-{
-    strcts.push_back(s);
-}
-
-size_t SymbolTable::FindStruct(const TypeData &td)
-{
-    for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
+    for (auto &f : funcs)
     {
-        if (strcts[i].type.type == td.type)
-            return i;
+        if (f.name == name && CanAssignAll(f.argtypes, args))
+            return &f;
     }
 
-    return SIZE_MAX;
+    FuncID *f = FindCLibraryFunctions(args, name);
+    if (f != nullptr)
+        return f;
+
+    f = FindNativeFunctions(args, name);
+    return f;
+}
+
+FuncID *SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
+{
+    for (auto &nf : nativeFunctions)
+    {
+        if (nf.name == name && MatchToNativeFuncs(nf.argtypes, args))
+            return &nf;
+    }
+    return nullptr;
 }
 
 bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<TypeData> &args)
@@ -185,6 +171,90 @@ bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<T
     return areSame;
 }
 
+FuncID *SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
+{
+    for (auto &lf : clibFunctions)
+    {
+        if (lf.name == name && IsEqual(lf.argtypes, args))
+            return &lf;
+    }
+
+    for (auto &lf : clibFunctions)
+    {
+        if (lf.name == name && CanAssignAll(lf.argtypes, args))
+            return &lf;
+    }
+    return nullptr;
+}
+
+bool SymbolTable::IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given)
+{
+    if (actual.size() != given.size())
+        return false;
+
+    bool equal = true;
+    for (size_t i = 0; i < actual.size(); i++)
+    {
+        if (actual[i] != given[i])
+        {
+            equal = false;
+            break;
+        }
+    }
+    return equal;
+}
+
+bool SymbolTable::CanAssignAll(const std::vector<TypeData> &actual, const std::vector<TypeData> &given)
+{
+    if (actual.size() != given.size())
+        return false;
+
+    bool equal = true;
+    for (size_t i = 0; i < actual.size(); i++)
+    {
+        if (!CanAssign(actual[i], given[i]))
+        {
+            equal = false;
+            break;
+        }
+    }
+    return equal;
+}
+
+void SymbolTable::PopUntilSized(size_t size)
+{
+    if (vars.size() <= size)
+        return;
+
+    while (vars.size() > size)
+        vars.pop_back();
+}
+
+void SymbolTable::CleanUpCurDepth()
+{
+    while (vars.size() > 0 && vars.back().depth == depth)
+        vars.pop_back();
+
+    if (vars.size() == 1 && vars[0].depth == depth)
+        vars.clear();
+}
+
+void SymbolTable::AddStruct(StructID s)
+{
+    strcts.push_back(s);
+}
+
+StructID *SymbolTable::GetStruct(const TypeData &td)
+{
+    for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
+    {
+        if (strcts[i].type.type == td.type)
+            return &strcts[i];
+    }
+
+    return nullptr;
+}
+
 void SymbolError(const std::string &msg)
 {
     Error e("[Symbol ERROR]\n" + msg + "\n");
@@ -195,7 +265,7 @@ void LibraryError(const std::string &msg)
     Error e("[LIBRARY ERROR]\n" + msg + "\n");
 }
 
-static std::vector<std::string> SplitStringByChar(std::string &s, char c)
+std::vector<std::string> SplitStringByChar(std::string &s, char c)
 {
     std::stringstream stream(s);
     std::string segment;
@@ -207,7 +277,7 @@ static std::vector<std::string> SplitStringByChar(std::string &s, char c)
     return split;
 }
 
-static std::string TrimFrontBack(std::string &str)
+std::string TrimFrontBack(std::string &str)
 {
     size_t first = 0;
     for (size_t i = 0; i < str.length(); i++)
@@ -293,5 +363,5 @@ FuncID SymbolTable::ParseLibraryFunction(std::string &func)
         LibraryError("Invalid return type '" + ret + "'");
     TypeData retType = GetTypeNameMap()[ret];
 
-    return FuncID(retType, name, argtypes, true);
+    return FuncID(retType, name, argtypes, FunctionType::LIBRARY);
 }

@@ -19,3 +19,11 @@ public:
 #define STRING_TYPE TypeData(0, 4)
 #define CHAR_TYPE TypeData(0, 5)
 #define NULL_TYPE TypeData(0, 6)
+
+#define VOID_ARRAY TypeData(1, 0)
+#define INT_ARRAY TypeData(1, 1)
+#define DOUBLE_ARRAY TypeData(1, 2)
+#define BOOL_ARRAY TypeData(1, 3)
+#define STRING_ARRAY TypeData(1, 4)
+#define CHAR_ARRAY TypeData(1, 5)
+#define NULL_ARRAY TypeData(1, 6)

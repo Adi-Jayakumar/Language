@@ -182,7 +182,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
     if (targetAsVR != nullptr)
     {
-        size_t varStackLoc = c.Symbols.FindVarByName(targetAsVR->name);
+        size_t varStackLoc = c.Symbols.GetVarStackLoc(targetAsVR->name);
         if (c.Symbols.vars[varStackLoc].depth == 0)
             c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(varStackLoc)});
         else
@@ -201,8 +201,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     if (targetAsFA != nullptr)
     {
         TypeData strct = targetAsFA->accessor->t;
-        size_t index = c.Symbols.FindStruct(strct);
-        StructID sID = c.Symbols.strcts[index];
+        StructID *sid = c.Symbols.GetStruct(strct);
 
         VarReference *acessee = dynamic_cast<VarReference *>(targetAsFA->accessee.get());
         if (acessee == nullptr)
@@ -211,9 +210,9 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         targetAsFA->accessor->NodeCompile(c);
 
         size_t strctMem = SIZE_MAX;
-        for (size_t i = 0; i < sID.memberNames.size(); i++)
+        for (size_t i = 0; i < sid->memberNames.size(); i++)
         {
-            if (sID.memberNames[i] == acessee->name)
+            if (sid->memberNames[i] == acessee->name)
             {
                 strctMem = i;
                 break;
@@ -226,7 +225,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    uint8_t varStackLoc = static_cast<uint8_t>(c.Symbols.FindVarByName(vr->name));
+    uint8_t varStackLoc = static_cast<uint8_t>(c.Symbols.GetVarStackLoc(vr->name));
     if (c.Symbols.vars[varStackLoc].depth == 0)
         c.cur->code.push_back({Opcode::GET_V_GLOBAL, varStackLoc});
     else
@@ -235,38 +234,6 @@ void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
-    std::vector<TypeData> argtypes;
-
-    for (auto &arg : fc->args)
-    {
-        argtypes.push_back(arg->GetType());
-        arg->NodeCompile(c);
-    }
-
-    size_t index = c.Symbols.FindFunc(fc->name, argtypes);
-    if (index != SIZE_MAX)
-    {
-        if (!c.Symbols.funcs[index].isLibFunc)
-            c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(1 + index)});
-        else
-        {
-            uint8_t libindex = static_cast<uint8_t>(c.Symbols.funcs[index].isLibFunc - 1);
-            c.cur->code.push_back({Opcode::CALL_LIBRARY_FUNC, static_cast<uint8_t>(libindex)});
-        }
-    }
-    else
-    {
-        size_t natFunc = c.Symbols.FindNativeFunctions(argtypes, fc->name);
-        if (natFunc == 0)
-        {
-            size_t arity = argtypes.size();
-            if (arity > UINT8_MAX)
-                c.CompileError(fc->Loc(), "Maximum number arguments to Print call is " + std::to_string(UINT8_MAX));
-            c.cur->code.push_back({Opcode::PRINT, static_cast<uint8_t>(arity)});
-        }
-        else
-            c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(natFunc)});
-    }
 }
 
 void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
@@ -321,9 +288,7 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
     TypeData strct = fa->accessor->t;
-    size_t index = c.Symbols.FindStruct(strct);
-    std::cout << "Index " << index << std::endl;
-    StructID sID = c.Symbols.strcts[index];
+    StructID *sid = c.Symbols.GetStruct(strct);
 
     VarReference *acessee = dynamic_cast<VarReference *>(fa->accessee.get());
     if (acessee == nullptr)
@@ -332,9 +297,9 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     fa->accessor->NodeCompile(c);
 
     size_t strctMem = SIZE_MAX;
-    for (size_t i = 0; i < sID.memberNames.size(); i++)
+    for (size_t i = 0; i < sid->memberNames.size(); i++)
     {
-        if (sID.memberNames[i] == acessee->name)
+        if (sid->memberNames[i] == acessee->name)
         {
             strctMem = i;
             break;
@@ -485,7 +450,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.Symbols.funcVarBegin = c.Symbols.vars.size();
 
-    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, false));
+    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, FunctionType::USER_DEFINED));
     c.Symbols.depth++;
 
     for (size_t i = 0; i < fd->argtypes.size(); i++)
@@ -528,8 +493,8 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 
     if (sd->parent != VOID_TYPE)
     {
-        size_t sParent = c.Symbols.FindStruct(sd->parent);
-        TypeData parent = c.Symbols.strcts[sParent].type;
+        StructID *sid = c.Symbols.GetStruct(sd->parent);
+        TypeData parent = sid->type;
         c.StructTree[GetTypeNameMap()[sd->name].type].insert(parent.type);
     }
 
@@ -547,7 +512,6 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
         for (auto &lf : libraryFuncs)
         {
             FuncID func = c.Symbols.ParseLibraryFunction(lf);
-            func.isLibFunc = c.libfuncs.size() + 1;
             c.Symbols.AddFunc(func);
 
             if (c.Symbols.funcs.size() > UINT8_MAX)

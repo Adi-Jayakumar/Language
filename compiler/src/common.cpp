@@ -24,8 +24,8 @@ bool operator!=(const TypeData &left, const TypeData &right)
 
 std::string ToString(const TypeData &td)
 {
-    std::string aString = (td.isArray ? "Array<" + std::to_string(td.isArray) + ", " : "<");
-    return aString + GetTypeStringMap()[td.type] + ">";
+    std::string aString = (td.isArray ? "Array<" + std::to_string(td.isArray) + ", " : "");
+    return aString + GetTypeStringMap()[td.type] + (td.isArray ? ">" : " ");
 }
 
 std::ostream &operator<<(std::ostream &out, const TypeData &td)

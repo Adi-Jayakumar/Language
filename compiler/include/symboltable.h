@@ -10,6 +10,7 @@ struct SymbolTable
     std::vector<VarID> vars;
     std::vector<FuncID> funcs;
     std::vector<FuncID> nativeFunctions;
+    std::vector<FuncID> clibFunctions;
     std::vector<StructID> strcts;
 
     size_t depth = 0;
@@ -20,19 +21,24 @@ struct SymbolTable
     bool CanAssign(const TypeData &, const TypeData &);
 
     void AddVar(TypeData, std::string);
+    void AddFunc(FuncID);
+    void AddCLibFunc(FuncID);
+    void AddStruct(StructID);
 
-    void AddFunc(FuncID );
-    void AddStruct(StructID &);
+    bool IsVarInScope(std::string &name);
+    VarID *GetVar(std::string &name);
+    FuncID *GetFunc(std::string &name, std::vector<TypeData> &argtypes);
+    FuncID *FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name);
+    FuncID *FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
+    StructID *GetStruct(const TypeData &type);
 
-    bool IsVarInScope(std::string &);
-    size_t FindVarByName(std::string &);
-    size_t FindFunc(std::string &, std::vector<TypeData> &);
-    size_t FindNativeFunctions(const std::vector<TypeData> &, const std::string &);
+    bool IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
+    bool CanAssignAll(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
+
+    size_t GetVarStackLoc(std::string &name);
 
     void PopUntilSized(size_t size);
     void CleanUpCurDepth();
-
-    size_t FindStruct(const TypeData &);
 
     //-------------------LIBRARY-------------------//
     std::vector<std::string> GetLibraryFunctionNames(const std::string &libname);

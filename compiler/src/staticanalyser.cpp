@@ -1,6 +1,5 @@
 #include "staticanalyser.h"
 
-
 bool IsTruthy(const TypeData &cond)
 {
     if (cond.isArray)
@@ -80,12 +79,11 @@ TypeData StaticAnalyser::TypeOfAssign(Assign *a)
 
     if (targetAsVr != nullptr)
     {
-        size_t varIndex = Symbols.FindVarByName(targetAsVr->name);
+        VarID *vidTarg = Symbols.GetVar(targetAsVr->name);
+        if (vidTarg == nullptr)
+            TypeError(targetAsVr->Loc(), "Variable '" + targetAsVr->name + "' has not been defined");
 
-        if (varIndex == SIZE_MAX)
-            TypeError(targetAsVr->Loc(), "Variable reference '" + targetAsVr->name + "' has not been defined before");
-
-        TypeData varType = Symbols.vars[varIndex].type;
+        TypeData varType = vidTarg->type;
 
         if (!Symbols.CanAssign(varType, valType))
             TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
@@ -107,13 +105,12 @@ TypeData StaticAnalyser::TypeOfAssign(Assign *a)
 
 TypeData StaticAnalyser::TypeOfVarReference(VarReference *vr)
 {
-    size_t index = Symbols.FindVarByName(vr->name);
+    VarID *vid = Symbols.GetVar(vr->name);
+    if (vid == nullptr)
+        TypeError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
 
-    if (index == SIZE_MAX)
-        TypeError(vr->Loc(), "Variable reference '" + vr->name + "' has not been defined before");
-
-    vr->t = Symbols.vars[index].type;
-    return Symbols.vars[index].type;
+    vr->t = vid->type;
+    return vid->type;
 }
 
 TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
@@ -123,30 +120,22 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
 
-    size_t index = Symbols.FindFunc(fc->name, argtypes);
-
-    if (index == SIZE_MAX)
+    FuncID *fid = Symbols.GetFunc(fc->name, argtypes);
+    if (fid == nullptr)
     {
-        size_t nativeIndex = Symbols.FindNativeFunctions(argtypes, fc->name);
-        if (nativeIndex != SIZE_MAX)
+        std::string errStr = fc->name + "(";
+        for (size_t i = 0; i < fc->args.size(); i++)
         {
-            fc->t = Symbols.nativeFunctions[nativeIndex].ret;
-            return Symbols.nativeFunctions[nativeIndex].ret;
+            errStr += ToString(argtypes[i]);
+            if (i != fc->args.size() - 1)
+                errStr += ", ";
         }
-        std::string err = "Function '" + fc->name + "(";
-
-        for (const auto &arg : argtypes)
-            err += ToString(arg) + ", ";
-
-        err += ")' has not been defined before";
-        TypeError(fc->Loc(), err);
+        errStr += ";";
+        TypeError(fc->Loc(), "Function '" + errStr + "' has not been defined");
     }
 
-    if (index > UINT8_MAX)
-        TypeError(fc->Loc(), "Cannot have more than " + std::to_string(UINT8_MAX) + " functions");
-
-    fc->t = Symbols.funcs[index].ret;
-    return Symbols.funcs[index].ret;
+    fc->t = fid->ret;
+    return fid->ret;
 }
 
 TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
@@ -211,16 +200,16 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
         if (bi->t.type < NUM_DEF_TYPES)
             TypeError(bi->Loc(), "Cannot declare a braced initialiser with " + ToString(bi->t) + " type");
 
-        size_t strctNum = Symbols.FindStruct(bi->t);
-        if (strctNum == SIZE_MAX)
-            TypeError(bi->Loc(), "Expect valid struct name in front of braced initialiser");
+        StructID *strct = Symbols.GetStruct(bi->t);
+        if (strct == nullptr)
+            TypeError(bi->Loc(), "Expect valid struct name before a braced initialiser");
 
-        if (MatchInitialiserToStruct(Symbols.strcts[strctNum].memTypes, types))
+        if (MatchInitialiserToStruct(strct->memTypes, types))
         {
             for (size_t i = 0; i < bi->init.size(); i++)
-                bi->init[i]->t = Symbols.strcts[strctNum].memTypes[i];
+                bi->init[i]->t = strct->memTypes[i];
 
-            return Symbols.strcts[strctNum].type;
+            return strct->type;
         }
         else
             TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
@@ -244,22 +233,19 @@ TypeData StaticAnalyser::TypeOfFieldAccess(FieldAccess *fa)
 {
     TypeData accessorType = fa->accessor->Type(*this);
 
-    size_t structIndex = Symbols.FindStruct(accessorType);
-
-    if (structIndex == SIZE_MAX)
+    StructID *sid = Symbols.GetStruct(accessorType);
+    if (sid == nullptr)
         TypeError(fa->Loc(), "Type " + ToString(accessorType) + " cannot be accesed into");
 
-    StructID s = Symbols.strcts[structIndex];
     Symbols.depth++;
-    size_t preVarSize = Symbols.vars.size();
 
-    for (const auto &kv : s.nameTypes)
+    for (const auto &kv : sid->nameTypes)
         Symbols.AddVar(kv.second, kv.first);
 
     TypeData accesseeType = fa->accessee->Type(*this);
     fa->t = accesseeType;
 
-    Symbols.PopUntilSized(preVarSize);
+    Symbols.CleanUpCurDepth();
     Symbols.depth--;
     return accesseeType;
 }
@@ -345,7 +331,7 @@ void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
     curFunc = fd;
 
     Symbols.depth++;
-    Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, false));
+    Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, FunctionType::USER_DEFINED));
     size_t preFuncSize = Symbols.vars.size();
 
     if (fd->argtypes.size() != fd->paramIdentifiers.size())
@@ -415,24 +401,23 @@ void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
 
     if (sd->parent != VOID_TYPE)
     {
-        size_t parIndex = Symbols.FindStruct(sd->parent);
+        StructID *parent = Symbols.GetStruct(sd->parent);
 
-        if (parIndex == SIZE_MAX)
+        if (parent == nullptr)
             TypeError(sd->Loc(), "Invalid parent struct");
 
-        StructID par = Symbols.strcts[parIndex];
-        s.parent = par.type;
+        s.parent = parent->type;
 
-        for (const std::string &name : par.memberNames)
+        for (const std::string &name : parent->memberNames)
             s.memberNames.push_back(name);
 
-        for (const TypeData &type : par.memTypes)
+        for (const TypeData &type : parent->memTypes)
             s.memTypes.push_back(type);
 
-        for (const auto &e : par.init)
+        for (const auto &e : parent->init)
             s.init.push_back(e);
 
-        for (const auto kv : par.nameTypes)
+        for (const auto kv : parent->nameTypes)
             s.nameTypes[kv.first] = kv.second;
     }
 
@@ -476,7 +461,7 @@ void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
         for (auto &lf : libraryFuncs)
         {
             FuncID func = Symbols.ParseLibraryFunction(lf);
-            Symbols.AddFunc(func);
+            Symbols.AddCLibFunc(func);
 
             if (Symbols.funcs.size() > UINT8_MAX)
                 TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
