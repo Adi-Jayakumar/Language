@@ -5,7 +5,7 @@
 
 struct Function
 {
-    opcode_t arity;
+    oprand_t arity;
     std::vector<Op> code;
 
     // constants
@@ -16,7 +16,7 @@ struct Function
     std::vector<std::string> strings;
 
     Function() = default;
-    Function(opcode_t _arity, std::vector<Op> _code, std::vector<int> _ints, std::vector<double> _doubles, std::vector<bool> _bools, std::vector<char> _chars, std::vector<std::string> _strings) : arity(_arity), code(_code), ints(_ints), doubles(_doubles), bools(_bools), chars(_chars), strings(_strings){};
+    Function(oprand_t _arity, std::vector<Op> _code, std::vector<int> _ints, std::vector<double> _doubles, std::vector<bool> _bools, std::vector<char> _chars, std::vector<std::string> _strings) : arity(_arity), code(_code), ints(_ints), doubles(_doubles), bools(_bools), chars(_chars), strings(_strings){};
 
     void PrintCode()
     {

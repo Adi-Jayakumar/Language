@@ -77,15 +77,14 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     file.write((char *)&prog.mainIndex, sizeof(prog.mainIndex));
 
     // serialising the number of functions
-    opcode_t numFunctions = static_cast<opcode_t>(prog.Functions.size());
+    oprand_t numFunctions = static_cast<oprand_t>(prog.Functions.size());
     file.write((char *)&numFunctions, sizeof(numFunctions));
 
     for (Function &func : prog.Functions)
         SerialiseFunction(func, file);
 
     // serialising the struct tree
-    size_t structTreeID = STRUCT_TREE_ID;
-    file.write((char *)&structTreeID, sizeof(structTreeID));
+    file.write((char *)&STRUCT_TREE_ID, sizeof(STRUCT_TREE_ID));
 
     // writing the number of structs
     TypeID numStructs = static_cast<TypeID>(prog.StructTree.size());

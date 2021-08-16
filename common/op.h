@@ -130,8 +130,8 @@ enum class Opcode : op_t
 struct Op
 {
     Opcode code;
-    opcode_t op;
-    Op(Opcode _code, opcode_t _op) : code(_code), op(_op){};
+    oprand_t op;
+    Op(Opcode _code, oprand_t _op) : code(_code), op(_op){};
 };
 
 inline std::string ToString(Opcode o)

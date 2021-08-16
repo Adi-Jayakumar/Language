@@ -8,10 +8,10 @@ public:
     bool isArray;
     TypeID type;
     // function to return to
-    opcode_t func;
+    oprand_t func;
     // index of the function's code with
     // the beginning of the catch statement
-    opcode_t index;
+    oprand_t index;
     // index on the call stack to pop call frames
     // off until
     size_t callStackIndex;

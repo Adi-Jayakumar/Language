@@ -13,7 +13,7 @@
 class Compiler
 {
 public:
-    opcode_t mainIndex;
+    oprand_t mainIndex;
     std::vector<Function> Functions;
     std::unordered_map<TypeID, std::unordered_set<TypeID>> StructTree;
 
