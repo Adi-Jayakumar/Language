@@ -29,20 +29,24 @@ VM::VM(std::vector<Function> &_functions, size_t mainIndex,
 
 VM::~VM()
 {
+#ifndef VM_SILENT_DESTRUCT
     if (stack.count > 0)
     {
         std::cout << "Stack was not empty" << std::endl;
         for (size_t i = stack.count - 1; (int)i >= 0; i--)
             std::cout << stack[i]->ToString() << std::endl;
     }
+#endif
 
     if (libHandles.size() > 0)
     {
+#ifndef VM_SILENT_DESTRUCT
         std::cout << "Closing libraries" << std::endl;
+#endif
         for (auto &handle : libHandles)
             dlclose(handle);
     }
-
+#ifndef VM_SILENT_DESTRUCT
     std::cout << "====================HEAP====================" << std::endl
               << std::endl
               << std::endl;
@@ -52,6 +56,7 @@ VM::~VM()
 
     std::cout << std::endl
               << std::endl;
+#endif
 
     for (size_t i = 0; i < heap.Size(); i++)
     {

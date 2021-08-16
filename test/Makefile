@@ -3,7 +3,7 @@ CC		:= g++
 # -fsanitize=leak -fsanitize=address -fsanitize=undefined
 
 
-C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra -march=native
+C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra -march=native -DCOMPILE_FOR_TEST -DVM_SILENT_DESTRUCT
 
 BIN					:= bin
 COMPILER_SRC		:= ../compiler/src

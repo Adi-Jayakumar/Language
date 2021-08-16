@@ -1,12 +1,16 @@
 #define TEST
 #include "vm.h"
 
-// int main()
-// {
-//     VM vm = VM::DeserialiseProgram("../lbin/test.lo");
+#ifdef COMPILE_FOR_TEST
+#define main not_main
+#endif
 
-//     vm.Disasemble();
-//     vm.ExecuteProgram();
+int main()
+{
+    VM vm = VM::DeserialiseProgram("../lbin/test.lo");
 
-//     return 0;
-// }
+    vm.Disasemble();
+    vm.ExecuteProgram();
+
+    return 0;
+}

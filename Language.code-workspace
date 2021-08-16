@@ -71,7 +71,8 @@
 			"stack": "cpp",
 			"compare": "cpp",
 			"concepts": "cpp",
-			"ranges": "cpp"
+			"ranges": "cpp",
+			"stop_token": "cpp"
 		}
 	}
 }
