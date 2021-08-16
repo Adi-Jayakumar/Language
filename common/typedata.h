@@ -1,8 +1,9 @@
+#include "internaltypes.h"
 #include <cstddef>
 #include <cstdint>
 
 #define NUM_DEF_TYPES 7U
-typedef uint8_t TypeID;
+
 class TypeData
 {
 public:

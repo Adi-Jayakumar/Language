@@ -6,12 +6,12 @@ class ThrowInfo
 public:
     // type of catch variable type
     bool isArray;
-    uint8_t type;
+    TypeID type;
     // function to return to
-    uint8_t func;
+    opcode_t func;
     // index of the function's code with
     // the beginning of the catch statement
-    uint8_t index;
+    opcode_t index;
     // index on the call stack to pop call frames
     // off until
     size_t callStackIndex;

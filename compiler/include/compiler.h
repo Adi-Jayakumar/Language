@@ -13,9 +13,9 @@
 class Compiler
 {
 public:
-    size_t mainIndex;
+    opcode_t mainIndex;
     std::vector<Function> Functions;
-    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
+    std::unordered_map<TypeID, std::unordered_set<TypeID>> StructTree;
 
     SymbolTable Symbols;
     std::vector<LibraryFunctionDef> libfuncs;

@@ -1,7 +1,8 @@
 #pragma once
+#include "internaltypes.h"
 #include <string>
 
-enum class Opcode : uint8_t
+enum class Opcode : op_t
 {
     POP,
     LOAD_INT,
@@ -129,8 +130,8 @@ enum class Opcode : uint8_t
 struct Op
 {
     Opcode code;
-    uint8_t op;
-    Op(Opcode _code, uint8_t _op) : code(_code), op(_op){};
+    opcode_t op;
+    Op(Opcode _code, opcode_t _op) : code(_code), op(_op){};
 };
 
 inline std::string ToString(Opcode o)

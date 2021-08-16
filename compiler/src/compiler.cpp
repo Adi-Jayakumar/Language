@@ -15,7 +15,7 @@ void Compiler::CompileError(Token loc, std::string err)
 
 void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
-    mainIndex = SIZE_MAX;
+    mainIndex = MAX_OPCODE;
     size_t numFunctions = 0;
     for (size_t i = 0; i < s.size(); i++)
     {
@@ -26,7 +26,7 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
             FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
             if (asFD->argtypes.size() == 0 && asFD->name == "Main")
             {
-                if (mainIndex != SIZE_MAX)
+                if (mainIndex != MAX_OPCODE)
                     CompileError(asFD->Loc(), "Main function already defined");
                 mainIndex = numFunctions;
             }
@@ -74,61 +74,58 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     file.open(fPath, std::ios::out | std::ios::app | std::ios::binary);
 
     // serialising the index of the 'void Main()' function
-    uint8_t mainIndex = static_cast<uint8_t>(prog.mainIndex);
-    file.write((char *)&mainIndex, sizeof(uint8_t));
+    file.write((char *)&prog.mainIndex, sizeof(prog.mainIndex));
 
     // serialising the number of functions
-    uint8_t numFunctions = static_cast<uint8_t>(prog.Functions.size());
-    file.write((char *)&numFunctions, sizeof(uint8_t));
+    opcode_t numFunctions = static_cast<opcode_t>(prog.Functions.size());
+    file.write((char *)&numFunctions, sizeof(numFunctions));
 
     for (Function &func : prog.Functions)
         SerialiseFunction(func, file);
 
     // serialising the struct tree
     size_t structTreeID = STRUCT_TREE_ID;
-    file.write((char *)&structTreeID, sizeof(size_t));
+    file.write((char *)&structTreeID, sizeof(structTreeID));
 
     // writing the number of structs
-    size_t numStructs = prog.StructTree.size();
-    file.write((char *)&numStructs, sizeof(size_t));
+    TypeID numStructs = static_cast<TypeID>(prog.StructTree.size());
+    file.write((char *)&numStructs, sizeof(numStructs));
 
+    // writing: struct id, number of parents, parent ids for each struct
     for (auto &s : prog.StructTree)
     {
-        // writing the struct id
-        file.write((char *)&s.first, sizeof(size_t));
+        file.write((char *)&s.first, sizeof(s.first));
 
         size_t numParents = s.second.size();
-        // writing the number of parents
-        file.write((char *)&numParents, sizeof(size_t));
-        // writing the parent ids
+        file.write((char *)&numParents, sizeof(numParents));
+
         for (auto &parent : s.second)
-            file.write((char *)&parent, sizeof(size_t));
+            file.write((char *)&parent, sizeof(parent));
     }
 
     size_t libFuncID = LIB_FUNC_ID;
-    file.write((char *)&libFuncID, sizeof(size_t));
+    file.write((char *)&libFuncID, sizeof(LIB_FUNC_ID));
 
     size_t numLibFuncs = prog.libfuncs.size();
-    file.write((char *)&numLibFuncs, sizeof(size_t));
+    file.write((char *)&numLibFuncs, sizeof(numLibFuncs));
 
     for (auto &libfunc : prog.libfuncs)
     {
         // writing the name of the function
         size_t nameLen = libfunc.name.length();
-        file.write((char *)&nameLen, sizeof(size_t));
+        file.write((char *)&nameLen, sizeof(nameLen));
         SerialiseData(&libfunc.name[0], sizeof(char), nameLen, file);
 
         // writing the library
         size_t libLen = libfunc.library.length();
-        file.write((char *)&libLen, sizeof(size_t));
+        file.write((char *)&libLen, sizeof(libLen));
         SerialiseData(&libfunc.library[0], sizeof(char), libLen, file);
 
         // writing the arity of the library function
-        file.write((char *)&libfunc.arity, sizeof(size_t));
+        file.write((char *)&libfunc.arity, sizeof(libfunc.arity));
     }
 
     SerialiseThrowInfo(prog.throwStack, file);
-
     file.close();
 }
 
@@ -146,7 +143,7 @@ bool Compiler::DoesFileExist(std::string &path)
 void Compiler::SerialiseFunction(Function &f, std::ofstream &file)
 {
     // write arity
-    file.write((char *)&f.arity, sizeof(uint8_t));
+    file.write((char *)&f.arity, sizeof(f.arity));
 
     // write constants and code
     SerialiseInts(f, file);
@@ -161,55 +158,42 @@ void Compiler::SerialiseFunction(Function &f, std::ofstream &file)
 //=================================SERIALISATION=================================//
 void Compiler::SerialiseData(void *data, size_t typeSize, size_t numElements, std::ofstream &file)
 {
-    // write the number of elements
-    file.write(reinterpret_cast<char *>(&numElements), sizeof(size_t));
-    // then the elements themselves
-    file.write(reinterpret_cast<char *>(data), typeSize * numElements);
+    file.write((char *)&numElements, sizeof(numElements));
+    file.write((char *)data, typeSize * numElements);
 }
 
 void Compiler::SerialiseInts(Function &f, std::ofstream &file)
 {
-    size_t id = INT_ID;
-    SerialiseData(&id, 0, id, file);
-
+    file.write((char *)&INT_ID, sizeof(INT_ID));
     SerialiseData(f.ints.data(), sizeof(int), f.ints.size(), file);
 }
 
 void Compiler::SerialiseDoubles(Function &f, std::ofstream &file)
 {
-    size_t id = DOUBLE_ID;
-    SerialiseData(&id, 0, id, file);
-
+    file.write((char *)&DOUBLE_ID, sizeof(DOUBLE_ID));
     SerialiseData(f.doubles.data(), sizeof(double), f.doubles.size(), file);
 }
 
 void Compiler::SerialiseBools(Function &f, std::ofstream &file)
 {
-    size_t id = BOOL_ID;
-    SerialiseData(&id, 0, id, file);
-
+    file.write((char *)&BOOL_ID, sizeof(BOOL_ID));
     bool *data = new bool[f.bools.size()];
     std::copy(std::begin(f.bools), std::end(f.bools), data);
     SerialiseData(data, sizeof(bool), f.bools.size(), file);
-
     delete[] data;
 }
 
 void Compiler::SerialiseChars(Function &f, std::ofstream &file)
 {
-    size_t id = CHAR_ID;
-    SerialiseData(&id, 0, id, file);
+    file.write((char *)&CHAR_ID, sizeof(CHAR_ID));
     SerialiseData(f.chars.data(), sizeof(char), f.chars.size(), file);
 }
 
 void Compiler::SerialiseStrings(Function &f, std::ofstream &file)
 {
-    size_t id = STRING_ID;
-    SerialiseData(&id, 0, id, file);
-
+    file.write((char *)&STRING_ID, sizeof(STRING_ID));
     size_t numStrings = f.strings.size();
-    // writing the number of strings to the file once
-    SerialiseData(&numStrings, 0, numStrings, file);
+    file.write((char *)&numStrings, sizeof(numStrings));
 
     for (std::string &str : f.strings)
         SerialiseData(&str[0], sizeof(char), str.length(), file);
@@ -217,34 +201,31 @@ void Compiler::SerialiseStrings(Function &f, std::ofstream &file)
 
 void Compiler::SerialiseOps(Function &f, std::ofstream &file)
 {
-    size_t id = CODE_ID;
-    SerialiseData(&id, 0, id, file);
+    file.write((char *)&CODE_ID, sizeof(INT_ID));
 
     size_t numOps = f.code.size();
-    SerialiseData(&numOps, 0, numOps, file);
+    file.write((char *)&numOps, sizeof(numOps));
 
     for (auto &op : f.code)
     {
-        uint8_t codeAsNum = static_cast<uint8_t>(op.code);
-        file.write(reinterpret_cast<char *>(&codeAsNum), sizeof(codeAsNum));
-
-        file.write(reinterpret_cast<char *>(&op.op), sizeof(op.op));
+        op_t codeAsNum = static_cast<op_t>(op.code);
+        file.write((char *)&codeAsNum, sizeof(codeAsNum));
+        file.write((char *)&op.op, sizeof(op.op));
     }
 }
 
 void Compiler::SerialiseThrowInfo(std::vector<ThrowInfo> &infos, std::ofstream &file)
 {
-    size_t id = THROW_INFO_ID;
-    SerialiseData(&id, 0, id, file);
+    file.write((char *)&THROW_INFO_ID, sizeof(INT_ID));
 
     size_t numThrows = infos.size();
     SerialiseData(&numThrows, 0, numThrows, file);
 
     for (auto &ti : infos)
     {
-        file.write((char *)&ti.isArray, sizeof(bool));
-        file.write((char *)&ti.type, sizeof(uint8_t));
-        file.write((char *)&ti.func, sizeof(uint8_t));
-        file.write((char *)&ti.index, sizeof(uint8_t));
+        file.write((char *)&ti.isArray, sizeof(ti.isArray));
+        file.write((char *)&ti.type, sizeof(ti.type));
+        file.write((char *)&ti.func, sizeof(ti.func));
+        file.write((char *)&ti.index, sizeof(ti.index));
     }
 }
