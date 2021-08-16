@@ -1,6 +1,7 @@
 #pragma once
 #include "ASTPrinter.h"
 #include "compiler.h"
+#include "internaltypes.h"
 #include <cassert>
 
 Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);

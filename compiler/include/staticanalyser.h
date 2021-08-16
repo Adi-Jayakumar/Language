@@ -5,6 +5,7 @@
 #include "perror.h"
 #include "stmtnode.h"
 #include "symboltable.h"
+#include "internaltypes.h"
 #include <cassert>
 
 bool IsTruthy(const TypeData &);

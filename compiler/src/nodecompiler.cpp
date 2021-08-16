@@ -117,42 +117,42 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
     if (type == 1)
     {
         cur->ints.push_back(std::stoi(literal));
-        if (cur->ints.size() > UINT8_MAX)
-            c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(UINT8_MAX));
+        if (cur->ints.size() > MAX_OPCODE)
+            c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(MAX_OPCODE));
 
-        cur->code.push_back({Opcode::LOAD_INT, static_cast<uint8_t>(cur->ints.size() - 1)});
+        cur->code.push_back({Opcode::LOAD_INT, static_cast<opcode_t>(cur->ints.size() - 1)});
     }
     else if (type == 2)
     {
         cur->doubles.push_back(std::stod(literal));
-        if (cur->doubles.size() > UINT8_MAX)
-            c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(UINT8_MAX));
+        if (cur->doubles.size() > MAX_OPCODE)
+            c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(MAX_OPCODE));
 
-        cur->code.push_back({Opcode::LOAD_DOUBLE, static_cast<uint8_t>(cur->doubles.size() - 1)});
+        cur->code.push_back({Opcode::LOAD_DOUBLE, static_cast<opcode_t>(cur->doubles.size() - 1)});
     }
     else if (type == 3)
     {
         cur->bools.push_back(literal == "true" ? true : false);
-        if (cur->bools.size() > UINT8_MAX)
-            c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(UINT8_MAX));
+        if (cur->bools.size() > MAX_OPCODE)
+            c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(MAX_OPCODE));
 
-        cur->code.push_back({Opcode::LOAD_BOOL, static_cast<uint8_t>(cur->bools.size() - 1)});
+        cur->code.push_back({Opcode::LOAD_BOOL, static_cast<opcode_t>(cur->bools.size() - 1)});
     }
     else if (type == 4)
     {
         cur->strings.push_back(literal);
-        if (cur->strings.size() > UINT8_MAX)
-            c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(UINT8_MAX));
+        if (cur->strings.size() > MAX_OPCODE)
+            c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(MAX_OPCODE));
 
-        cur->code.push_back({Opcode::LOAD_STRING, static_cast<uint8_t>(cur->strings.size() - 1)});
+        cur->code.push_back({Opcode::LOAD_STRING, static_cast<opcode_t>(cur->strings.size() - 1)});
     }
     else if (type == 5)
     {
         cur->chars.push_back(literal[0]);
-        if (cur->chars.size() > UINT8_MAX)
-            c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(UINT8_MAX));
+        if (cur->chars.size() > MAX_OPCODE)
+            c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(MAX_OPCODE));
 
-        cur->code.push_back({Opcode::LOAD_CHAR, static_cast<uint8_t>(cur->chars.size() - 1)});
+        cur->code.push_back({Opcode::LOAD_CHAR, static_cast<opcode_t>(cur->chars.size() - 1)});
     }
 }
 
@@ -183,10 +183,14 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     if (targetAsVR != nullptr)
     {
         size_t varStackLoc = c.Symbols.GetVarStackLoc(targetAsVR->name);
+
+        if (varStackLoc > MAX_OPCODE)
+            c.CompileError(targetAsVR->Loc(), "Too many variables");
+
         if (c.Symbols.vars[varStackLoc].depth == 0)
-            c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<uint8_t>(varStackLoc)});
+            c.cur->code.push_back({Opcode::VAR_A_GLOBAL, static_cast<opcode_t>(varStackLoc)});
         else
-            c.cur->code.push_back({Opcode::VAR_A, static_cast<uint8_t>(varStackLoc)});
+            c.cur->code.push_back({Opcode::VAR_A, static_cast<opcode_t>(varStackLoc)});
     }
 
     ArrayIndex *targetAsAI = dynamic_cast<ArrayIndex *>(a->target.get());
@@ -219,17 +223,20 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
             }
         }
 
-        c.cur->code.push_back({Opcode::STRUCT_MEMBER_SET, static_cast<uint8_t>(strctMem)});
+        c.cur->code.push_back({Opcode::STRUCT_MEMBER_SET, static_cast<opcode_t>(strctMem)});
     }
 }
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    uint8_t varStackLoc = static_cast<uint8_t>(c.Symbols.GetVarStackLoc(vr->name));
+    size_t varStackLoc = c.Symbols.GetVarStackLoc(vr->name);
+    if (varStackLoc > MAX_OPCODE)
+        c.CompileError(vr->Loc(), "Too many variables");
+
     if (c.Symbols.vars[varStackLoc].depth == 0)
-        c.cur->code.push_back({Opcode::GET_V_GLOBAL, varStackLoc});
+        c.cur->code.push_back({Opcode::GET_V_GLOBAL, static_cast<opcode_t>(varStackLoc)});
     else
-        c.cur->code.push_back({Opcode::GET_V, varStackLoc});
+        c.cur->code.push_back({Opcode::GET_V, static_cast<opcode_t>(varStackLoc)});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
@@ -250,7 +257,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         {
             if (f == &c.Symbols.funcs[i])
             {
-                c.cur->code.push_back({Opcode::CALL_F, static_cast<uint8_t>(i + 1)});
+                c.cur->code.push_back({Opcode::CALL_F, static_cast<opcode_t>(i + 1)});
                 break;
             }
         }
@@ -262,7 +269,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         {
             if (f == &c.Symbols.clibFunctions[i])
             {
-                c.cur->code.push_back({Opcode::CALL_LIBRARY_FUNC, static_cast<uint8_t>(i)});
+                c.cur->code.push_back({Opcode::CALL_LIBRARY_FUNC, static_cast<opcode_t>(i)});
                 break;
             }
         }
@@ -275,9 +282,9 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
             if (f == &c.Symbols.nativeFunctions[i])
             {
                 if (f->name == "Print")
-                    c.cur->code.push_back({Opcode::PRINT, static_cast<uint8_t>(f->argtypes.size())});
+                    c.cur->code.push_back({Opcode::PRINT, static_cast<opcode_t>(f->argtypes.size())});
                 else
-                    c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<uint8_t>(i)});
+                    c.cur->code.push_back({Opcode::NATIVE_CALL, static_cast<opcode_t>(i)});
                 break;
             }
         }
@@ -295,20 +302,17 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
-    if (bi->size > UINT8_MAX)
-        c.CompileError(bi->Loc(), "Inline arrays' max size is " + std::to_string(UINT8_MAX));
-
-    if (bi->size > UINT8_MAX)
-        c.CompileError(bi->Loc(), "Braced initialisers can only have " + std::to_string(UINT8_MAX) + " elements");
+    if (bi->size > MAX_OPCODE)
+        c.CompileError(bi->Loc(), "Braced initialisers can only have " + std::to_string(MAX_OPCODE) + " elements");
 
     if (bi->GetType().isArray)
-        c.cur->code.push_back({Opcode::ARR_ALLOC, static_cast<uint8_t>(bi->size)});
+        c.cur->code.push_back({Opcode::ARR_ALLOC, static_cast<opcode_t>(bi->size)});
     else
     {
-        c.cur->code.push_back({Opcode::STRUCT_ALLOC, static_cast<uint8_t>(bi->size)});
+        c.cur->code.push_back({Opcode::STRUCT_ALLOC, static_cast<opcode_t>(bi->size)});
 
         c.cur->ints.push_back(static_cast<int>(bi->t.type));
-        c.cur->code.push_back({Opcode::LOAD_INT, static_cast<uint8_t>(c.cur->ints.size() - 1)});
+        c.cur->code.push_back({Opcode::LOAD_INT, static_cast<opcode_t>(c.cur->ints.size() - 1)});
     }
 
     for (auto &e : bi->init)
@@ -324,9 +328,9 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         }
     }
     if (bi->GetType().isArray)
-        c.cur->code.push_back({Opcode::ARR_D, static_cast<uint8_t>(bi->size)});
+        c.cur->code.push_back({Opcode::ARR_D, static_cast<opcode_t>(bi->size)});
     else
-        c.cur->code.push_back({Opcode::STRUCT_D, static_cast<uint8_t>(bi->size)});
+        c.cur->code.push_back({Opcode::STRUCT_D, static_cast<opcode_t>(bi->size)});
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
@@ -356,7 +360,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
         }
     }
 
-    c.cur->code.push_back({Opcode::STRUCT_MEMBER, static_cast<uint8_t>(strctMem)});
+    c.cur->code.push_back({Opcode::STRUCT_MEMBER, static_cast<opcode_t>(strctMem)});
 }
 
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
@@ -379,8 +383,8 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
-    if (c.Symbols.vars.size() > UINT8_MAX)
-        c.CompileError(dv->Loc(), "Max number of variables in a Function is " + std::to_string(UINT8_MAX));
+    if (c.Symbols.vars.size() > MAX_OPCODE)
+        c.CompileError(dv->Loc(), "Max number of variables in a Function is " + std::to_string(MAX_OPCODE));
 
     dv->value->NodeCompile(c);
     c.Symbols.AddVar(dv->t, dv->name);
@@ -423,10 +427,10 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     size_t sizeDiff = c.cur->code.size() - befSize;
 
-    if (sizeDiff > UINT8_MAX)
+    if (sizeDiff > MAX_OPCODE)
         c.CompileError(i->Loc(), "Too much code to junmp over");
 
-    c.cur->code[patchIndex].op = static_cast<uint8_t>(sizeDiff);
+    c.cur->code[patchIndex].op = static_cast<opcode_t>(sizeDiff);
 
     if (i->elseBranch == nullptr)
         return;
@@ -452,9 +456,9 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     }
 
     sizeDiff = c.cur->code.size() - befSize;
-    if (sizeDiff > UINT8_MAX)
+    if (sizeDiff > MAX_OPCODE)
         c.CompileError(i->Loc(), "Too much code to junmp over");
-    c.cur->code[patchIndex].op = static_cast<uint8_t>(sizeDiff);
+    c.cur->code[patchIndex].op = static_cast<opcode_t>(sizeDiff);
 }
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
@@ -463,12 +467,12 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
         return;
 
     size_t loopBeg = c.cur->code.size();
-    if (loopBeg > UINT8_MAX)
+    if (loopBeg > MAX_OPCODE)
         c.CompileError(ws->Loc(), "Too much generated code before while statement");
     ws->cond->NodeCompile(c);
 
     size_t patchIndex = c.cur->code.size();
-    if (patchIndex > UINT8_MAX)
+    if (patchIndex > MAX_OPCODE)
         c.CompileError(ws->cond->Loc(), "Too much code generated from loop condition");
 
     c.cur->code.push_back({Opcode::JUMP_IF_FALSE, 0});
@@ -477,19 +481,19 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
     size_t bodyBeg = c.cur->code.size();
     ws->body->NodeCompile(c);
-    c.cur->code.push_back({Opcode::SET_IP, static_cast<uint8_t>(loopBeg - 1)}); // loopBeg - 1 since after each instruction ip is incremented
+    c.cur->code.push_back({Opcode::SET_IP, static_cast<opcode_t>(loopBeg - 1)}); // loopBeg - 1 since after each instruction ip is incremented
 
     size_t patchLoc = c.cur->code.size();
-    if (patchLoc - bodyBeg > UINT8_MAX)
+    if (patchLoc - bodyBeg > MAX_OPCODE)
         c.CompileError(ws->body->Loc(), "Too much code generated from loop body");
 
-    c.cur->code[patchIndex].op = static_cast<uint8_t>(patchLoc - bodyBeg);
+    c.cur->code[patchIndex].op = static_cast<opcode_t>(patchLoc - bodyBeg);
 
     std::vector<size_t> breakIndices = c.breakIndices.top();
     c.breakIndices.pop();
 
     for (auto b : breakIndices)
-        c.cur->code[b].op = static_cast<uint8_t>(patchLoc);
+        c.cur->code[b].op = static_cast<opcode_t>(patchLoc);
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
@@ -564,8 +568,8 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
             FuncID func = c.Symbols.ParseLibraryFunction(lf);
             c.Symbols.AddFunc(func);
 
-            if (c.Symbols.funcs.size() > UINT8_MAX)
-                c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
+            if (c.Symbols.funcs.size() > MAX_OPCODE)
+                c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPCODE) + " library functions in total");
 
             c.libfuncs.emplace_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
         }
@@ -603,17 +607,17 @@ void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
     ti.isArray = catchType.isArray;
 
     size_t throwInfoSize = c.throwStack.size();
-    if (throwInfoSize > UINT8_MAX)
-        c.CompileError(tc->tryClause->Loc(), "Too many try-catch blocks, maximum number is " + std::to_string(UINT8_MAX));
+    if (throwInfoSize > MAX_OPCODE)
+        c.CompileError(tc->tryClause->Loc(), "Too many try-catch blocks, maximum number is " + std::to_string(MAX_OPCODE));
 
-    c.cur->code.push_back({Opcode::PUSH_THROW_INFO, static_cast<uint8_t>(throwInfoSize)});
+    c.cur->code.push_back({Opcode::PUSH_THROW_INFO, static_cast<opcode_t>(throwInfoSize)});
     tc->tryClause->NodeCompile(c);
 
     size_t sIndex = c.cur->code.size();
-    if (sIndex > UINT8_MAX)
+    if (sIndex > MAX_OPCODE)
         c.CompileError(tc->tryClause->Loc(), "Too much code generated from 'try' clause");
 
-    ti.index = static_cast<uint8_t>(sIndex);
+    ti.index = static_cast<opcode_t>(sIndex);
     c.throwStack.push_back(ti);
 
     c.Symbols.AddVar(catchType, catchVarName);

@@ -325,8 +325,8 @@ void StaticAnalyser::TypeOfWhileStmt(WhileStmt *ws)
 
 void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
 {
-    if (Symbols.funcs.size() > UINT8_MAX)
-        TypeError(fd->Loc(), "Maximum number of functions is " + std::to_string(UINT8_MAX));
+    if (Symbols.funcs.size() > MAX_OPCODE)
+        TypeError(fd->Loc(), "Maximum number of functions is " + std::to_string(MAX_OPCODE));
 
     curFunc = fd;
 
@@ -391,8 +391,8 @@ void StaticAnalyser::TypeOfReturn(Return *r)
 
 void StaticAnalyser::TypeOfStructDecl(StructDecl *sd)
 {
-    if (sd->decls.size() > UINT8_MAX)
-        TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(UINT8_MAX) + " members");
+    if (sd->decls.size() > MAX_OPCODE)
+        TypeError(sd->Loc(), "Structs can only have a maximum of " + std::to_string(MAX_OPCODE) + " members");
 
     Symbols.depth++;
 
@@ -461,8 +461,8 @@ void StaticAnalyser::TypeOfImportStmt(ImportStmt *is)
             FuncID func = Symbols.ParseLibraryFunction(lf);
             Symbols.AddCLibFunc(func);
 
-            if (Symbols.funcs.size() > UINT8_MAX)
-                TypeError(is->Loc(), "Cannot import more than " + std::to_string(UINT8_MAX) + " library functions in total");
+            if (Symbols.funcs.size() > MAX_OPCODE)
+                TypeError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPCODE) + " library functions in total");
         }
     }
 }
