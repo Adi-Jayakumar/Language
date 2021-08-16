@@ -46,7 +46,7 @@ class VM
     // private:
 public:
     std::vector<Function> functions;
-    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
+    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> StructTree;
 
     std::vector<std::pair<LibFunc, size_t>> CLibs;
     std::vector<void *> libHandles;
@@ -84,7 +84,12 @@ public:
 
 public:
     VM() = default;
-    VM(std::vector<Function> &functions, size_t mainIndex, std::unordered_map<size_t, std::unordered_set<size_t>> &StructTree, std::vector<LibraryFunctionDef> &, std::vector<ThrowInfo> &);
+    VM(std::vector<Function> &functions,
+       oprand_t mainIndex,
+       std::unordered_map<oprand_t, std::unordered_set<oprand_t>> &StructTree,
+       std::vector<LibraryFunctionDef> &,
+       std::vector<ThrowInfo> &);
+
     ~VM();
     void Disasemble();
 
@@ -117,7 +122,7 @@ public:
     static VM DeserialiseProgram(std::string fPath);
 
 private:
-    bool MatchType(Object *obj, size_t isArray, uint8_t type);
+    bool MatchType(Object *obj, size_t isArray, TypeID type);
 
     static bool DoesFileExist(std::string &path);
     static void DeserialisationError(std::string err);

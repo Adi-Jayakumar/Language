@@ -1,8 +1,8 @@
 #pragma once
+#include "internaltypes.h"
 #include <cstdint>
 #include <sstream>
 
-typedef uint8_t TypeID;
 enum class GCState
 {
     FREED,

@@ -1,8 +1,9 @@
 #include "vm.h"
 
-VM::VM(std::vector<Function> &_functions, size_t mainIndex,
-       std::unordered_map<size_t, std::unordered_set<size_t>> &_StructTree,
-       std::vector<LibraryFunctionDef> &_syms, std::vector<ThrowInfo> &_throwInfos)
+VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
+       std::unordered_map<oprand_t, std::unordered_set<oprand_t>> &_StructTree,
+       std::vector<LibraryFunctionDef> &_syms,
+       std::vector<ThrowInfo> &_throwInfos)
 {
     functions = _functions;
     StructTree = _StructTree;
@@ -1009,17 +1010,17 @@ VM VM::DeserialiseProgram(std::string fPath)
 
     file.open(fPath, std::ios::in | std::ios::binary);
 
-    uint8_t mainIndex;
-    file.read((char *)&mainIndex, sizeof(uint8_t));
+    oprand_t mainIndex;
+    file.read((char *)&mainIndex, sizeof(mainIndex));
 
-    uint8_t numFunctions;
-    file.read((char *)&numFunctions, sizeof(uint8_t));
+    oprand_t numFunctions;
+    file.read((char *)&numFunctions, sizeof(numFunctions));
 
     std::vector<Function> program;
-    for (uint8_t i = 0; i < numFunctions; i++)
+    for (oprand_t i = 0; i < numFunctions; i++)
         program.push_back(DeserialiseFunction(file));
 
-    std::unordered_map<size_t, std::unordered_set<size_t>> StructTree;
+    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> StructTree;
     std::vector<LibraryFunctionDef> libFuncs;
     std::vector<ThrowInfo> throwInfos;
 
@@ -1030,17 +1031,23 @@ VM VM::DeserialiseProgram(std::string fPath)
         {
         case STRUCT_TREE_ID:
         {
-            size_t numStructs = ReadSizeT(file);
+            TypeID numStructs;
+            file.read((char *)&numStructs, sizeof(numStructs));
 
             for (size_t i = 0; i < numStructs; i++)
             {
-                size_t structId = ReadSizeT(file);
+                TypeID structId;
+                file.read((char *)&structId, sizeof(structId));
+
                 size_t numParents = ReadSizeT(file);
 
                 for (size_t i = 0; i < numParents; i++)
-                    StructTree[structId].insert(ReadSizeT(file));
+                {
+                    TypeID parent;
+                    file.read((char *)&parent, sizeof(parent));
+                    StructTree[structId].insert(parent);
+                }
             }
-
             break;
         }
         case LIB_FUNC_ID:
@@ -1093,8 +1100,8 @@ void VM::DeserialisationError(std::string err)
 
 Function VM::DeserialiseFunction(std::ifstream &file)
 {
-    uint8_t arity;
-    file.read((char *)&arity, sizeof(uint8_t));
+    oprand_t arity;
+    file.read((char *)&arity, sizeof(arity));
 
     std::vector<int> Ints;
     std::vector<double> Doubles;
@@ -1225,14 +1232,11 @@ std::vector<Op> VM::DeserialiseOps(std::ifstream &file)
 
     for (size_t i = 0; i < numOps; i++)
     {
-        void *vCode = DeserialiseData(1, sizeof(Opcode), file);
-        Opcode code = static_cast<Opcode>(*(uint8_t *)vCode);
-        delete[](char *) vCode;
+        Opcode code;
+        file.read((char *)&code, sizeof(code));
 
-        void *vOprand = DeserialiseData(1, sizeof(uint8_t), file);
-        uint8_t oprand = static_cast<uint8_t>(*(uint8_t *)vOprand);
-        delete[](char *) vOprand;
-
+        oprand_t oprand;
+        file.read((char *)&oprand, sizeof(oprand));
         result.push_back(Op(code, oprand));
     }
 
@@ -1248,9 +1252,9 @@ std::vector<ThrowInfo> VM::DeserialiseThrowInfos(std::ifstream &file)
     {
         ThrowInfo ti = ThrowInfo();
         file.read((char *)&ti.isArray, sizeof(bool));
-        file.read((char *)&ti.type, sizeof(uint8_t));
-        file.read((char *)&ti.func, sizeof(uint8_t));
-        file.read((char *)&ti.index, sizeof(uint8_t));
+        file.read((char *)&ti.type, sizeof(ti.type));
+        file.read((char *)&ti.func, sizeof(ti.func));
+        file.read((char *)&ti.index, sizeof(ti.index));
         result.push_back(ti);
     }
     return result;

@@ -7,7 +7,7 @@
 
 int main()
 {
-    VM vm = VM::DeserialiseProgram("../lbin/add.lo");
+    VM vm = VM::DeserialiseProgram("../lbin/test.lo");
 
     vm.Disasemble();
     vm.ExecuteProgram();
