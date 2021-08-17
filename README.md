@@ -38,16 +38,17 @@ An implementation of a C-style statically typed language that compiles down to a
  - [ ] Improve garbage collector heuristics to minimise loss of program execution time
 
 # Known bugs TODO
- - [ ] Overloading of functions where the overloaded types are assignable to each other
+ - [x] Overloading of functions where the overloaded types are assignable to each other
     - MWE:
         ```C
         function void Foo(int i){...}
         function void Foo(double d){...}
 
-        Foo(3.14); // calls the int version not the double version as it appears first and
-                   // ints can be assigned to doubles 
+        Foo(3.14); // would have called the int version
+                   // not the double version as it appears
+                   // first and ints can be assigned to doubles 
         ```
- - [ ] Put parsed library functions into different container than normal functions
+ - [x] Put parsed library functions into different container than normal functions
 
 # Example Programs
 
