@@ -128,7 +128,6 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 
 FuncID *SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
-    std::cout << "name " << name << std::endl;
     for (auto &nf : nativeFunctions)
     {
         if (nf.name == name && MatchToNativeFuncs(nf.argtypes, args))
