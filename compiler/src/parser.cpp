@@ -349,7 +349,10 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     Check(TokenID::STRUCT, "Struct declaration must begin with 'struct'");
     Advance();
 
-    Check(TokenID::TYPENAME, "Struct declaration must be 'struct' followed by a type name");
+    Check(TokenID::TYPENAME_KW, "Must have keyword 'typename' here");
+    Advance();
+
+    Check(TokenID::IDEN, "Struct declaration must be 'struct' followed by a type name");
     std::string name = cur.literal;
     Advance();
 

@@ -305,16 +305,19 @@ void ASTPrinter::PrintReturn(Return *r)
 void ASTPrinter::PrintStructDecl(StructDecl *sd)
 {
 
-    out << sd->name;
+    out << "struct typename " << sd->name;
     NewLine();
     out << "{";
-    NewLine();
 
     depth++;
+    NewLine();
     for (auto &d : sd->decls)
         d->Print(*this);
     depth--;
+    NewLine();
     out << "}";
+    NewLine();
+    NewLine();
 }
 
 void ASTPrinter::PrintImportStmt(ImportStmt *is)
