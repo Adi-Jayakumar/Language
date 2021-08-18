@@ -31,7 +31,7 @@ An implementation of a C-style statically typed language that compiles down to a
  - [ ] Multiple file programs
  - [ ] Verification
     - [x] Lex and parse verification statements
-    - [ ] Push precondition through program
+    - [x] Push precondition through bytecode for a subset of the language
     - [ ] Verify output
 
 # Long-term Goals
