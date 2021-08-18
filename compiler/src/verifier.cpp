@@ -52,7 +52,7 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         if (dynamic_cast<VarReference *>(p.get()) != nullptr)
             stack.push_back(p);
         else if (dynamic_cast<Assign *>(p.get()) != nullptr)
-            stack.push_back(dynamic_cast<Assign *>(p.get())->target); // TODO - Need to checkt that LHS = appropriate 'VarReference'
+            stack.push_back(dynamic_cast<Assign *>(p.get())->val); // TODO - Need to checkt that LHS = appropriate 'VarReference'
         else
             VerificationError("Inappropriate pre condition type");
     }
@@ -104,7 +104,6 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         case Opcode::GET_V:
         {
             stack.push_back(stack[o.op]);
-
             break;
         }
         case Opcode::JUMP_IF_FALSE:
