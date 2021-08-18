@@ -10,14 +10,15 @@
 
 void DumpTokens(std::string fPath)
 {
-    Lexer l = Lexer(fPath);
-    Token t = l.NextToken();
-    while (t.type != TokenID::END)
+    // Lexer l = Lexer(fPath);
+    Parser p(fPath);
+
+    while (p.cur.type != TokenID::END)
     {
-        std::cout << t << std::endl;
-        t = l.NextToken();
+        std::cout << p.cur << std::endl;
+        p.Advance();
     }
-    std::cout << t << std::endl;
+    std::cout << p.cur << std::endl;
 }
 
 #ifdef COMPILE_FOR_TEST
@@ -26,115 +27,117 @@ void DumpTokens(std::string fPath)
 
 int main(int argc, char **argv)
 {
-    ArgParser arg;
 
-    arg.AddSwitch("-p");
-    arg.AddSwitch("-t");
-    arg.AddSwitch("-O");
-    arg.AddSwitch("-c");
-    arg.AddSwitch("--rm-bin");
+    DumpTokens("../verifier_ex/square.txt");
+    //     ArgParser arg;
 
-    arg.AddArg({"-f", "-o"});
+    //     arg.AddSwitch("-p");
+    //     arg.AddSwitch("-t");
+    //     arg.AddSwitch("-O");
+    //     arg.AddSwitch("-c");
+    //     arg.AddSwitch("--rm-bin");
 
-    arg.ParseArgs(argc - 1, argv + 1);
+    //     arg.AddArg({"-f", "-o"});
 
-    std::string ifPath = arg.GetArgVal("-f");
+    //     arg.ParseArgs(argc - 1, argv + 1);
 
-    Parser p(ifPath);
-    std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
+    //     std::string ifPath = arg.GetArgVal("-f");
 
-    if (arg.IsSwitchOn("-p"))
-    {
-        std::cout << "PARSED" << std::endl;
-        ASTPrinter ast(false);
+    //     Parser p(ifPath);
+    //     std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
 
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
+    //     if (arg.IsSwitchOn("-p"))
+    //     {
+    //         std::cout << "PARSED" << std::endl;
+    //         ASTPrinter ast(false);
 
-    StaticAnalyser s;
-    for (auto &stmt : parsed)
-        stmt->Type(s);
+    //         for (auto &stmt : parsed)
+    //             stmt->Print(ast);
+    //         ast.Flush();
+    //     }
 
-    if (arg.IsSwitchOn("-t"))
-    {
-        std::cout << "\n\nANALYSED" << std::endl;
-        ASTPrinter ast(true);
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
+    //     StaticAnalyser s;
+    //     for (auto &stmt : parsed)
+    //         stmt->Type(s);
 
-    if (arg.IsSwitchOn("-O"))
-    {
-        ConstantPropagator cp;
-        int counter = 0;
-        do
-        {
-            counter++;
-            if (counter >= 10)
-                break;
+    //     if (arg.IsSwitchOn("-t"))
+    //     {
+    //         std::cout << "\n\nANALYSED" << std::endl;
+    //         ASTPrinter ast(true);
+    //         for (auto &stmt : parsed)
+    //             stmt->Print(ast);
+    //         ast.Flush();
+    //     }
 
-            cp.didTreeChange = false;
+    //     if (arg.IsSwitchOn("-O"))
+    //     {
+    //         ConstantPropagator cp;
+    //         int counter = 0;
+    //         do
+    //         {
+    //             counter++;
+    //             if (counter >= 10)
+    //                 break;
 
-            for (auto &stmt : parsed)
-                stmt->Evaluate();
+    //             cp.didTreeChange = false;
 
-            for (auto &stmt : parsed)
-                stmt->Propagate(cp);
+    //             for (auto &stmt : parsed)
+    //                 stmt->Evaluate();
 
-            std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
-        } while (cp.didTreeChange);
-        std::cout << "count = " << counter << std::endl;
-    }
+    //             for (auto &stmt : parsed)
+    //                 stmt->Propagate(cp);
 
-    Compiler c;
-    c.Compile(parsed);
+    //             std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
+    //         } while (cp.didTreeChange);
+    //         std::cout << "count = " << counter << std::endl;
+    //     }
 
-    if (arg.IsSwitchOn("-c"))
-    {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
-    }
+    //     Compiler c;
+    //     c.Compile(parsed);
 
-    Verifier v;
-    v.SetFunction(c.Functions[1]);
-    v.GenerateStrongestPost(dynamic_cast<FuncDecl *>(parsed[0].get())->preConds);
+    //     if (arg.IsSwitchOn("-c"))
+    //     {
+    //         std::cout << "\n\nCOMPILED" << std::endl;
+    //         c.Disassemble();
+    //     }
 
-    // langle 〈
-    ASTPrinter ast(false);
-    ast << "[";
-    for (size_t i = 0; i < v.post.size(); i++)
-    {
-        std::vector<std::shared_ptr<Expr>> conj = v.post[i];
+    //     Verifier v;
+    //     v.SetFunction(c.Functions[1]);
+    //     v.GenerateStrongestPost(dynamic_cast<FuncDecl *>(parsed[0].get())->preConds);
 
-        ast << "\u3008";
-        for (size_t j = 0; j < conj.size(); j++)
-        {
-            conj[j]->Print(ast);
+    //     // langle 〈
+    //     ASTPrinter ast(false);
+    //     ast << "[";
+    //     for (size_t i = 0; i < v.post.size(); i++)
+    //     {
+    //         std::vector<std::shared_ptr<Expr>> conj = v.post[i];
 
-            if (j != conj.size() - 1)
-                ast << " && ";
-        }
-        ast << "\u3009";
+    //         ast << "\u3008";
+    //         for (size_t j = 0; j < conj.size(); j++)
+    //         {
+    //             conj[j]->Print(ast);
 
-        if (i != v.post.size() - 1)
-            ast << " || ";
-    }
-    // rangle 〉
-    ast << "]"
-        << "\n";
-    ast.Flush();
-    std::string ofPath = arg.GetArgVal("-o");
+    //             if (j != conj.size() - 1)
+    //                 ast << " && ";
+    //         }
+    //         ast << "\u3009";
 
-    if (arg.IsSwitchOn("--rm-bin"))
-    {
-        std::string rm = "rm -f " + ofPath;
-        int sysCode = system(rm.c_str());
-        if (sysCode == -1)
-            std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    }
-    Compiler::SerialiseProgram(c, ofPath);
-    return 0;
+    //         if (i != v.post.size() - 1)
+    //             ast << " || ";
+    //     }
+    //     // rangle 〉
+    //     ast << "]"
+    //         << "\n";
+    //     ast.Flush();
+    //     std::string ofPath = arg.GetArgVal("-o");
+
+    //     if (arg.IsSwitchOn("--rm-bin"))
+    //     {
+    //         std::string rm = "rm -f " + ofPath;
+    //         int sysCode = system(rm.c_str());
+    //         if (sysCode == -1)
+    //             std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    //     }
+    //     Compiler::SerialiseProgram(c, ofPath);
+    //     return 0;
 }

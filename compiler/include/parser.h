@@ -9,6 +9,8 @@ struct Parser
     Token cur;
     Token next;
 
+    size_t numTypes = NUM_DEF_TYPES;
+
     uint8_t depth = 1;
     bool hadError = false;
 

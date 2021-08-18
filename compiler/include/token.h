@@ -14,7 +14,10 @@ enum class TokenID : uint8_t
 
     // identifier
     IDEN,
+    // an actual typename
     TYPENAME,
+    // the keyword 'typename'
+    TYPENAME_KW,
     FUNC,
     CAST,
 

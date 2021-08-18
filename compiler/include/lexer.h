@@ -18,8 +18,6 @@ public:
     size_t line;
     std::string src;
 
-    TypeID NumTypes = 6;
-
     Lexer() = default;
     Lexer(const std::string &fPath);
 

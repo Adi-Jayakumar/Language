@@ -47,6 +47,14 @@ void Parser::Advance()
     cur = next;
     if (cur.type != TokenID::END)
         next = lex.NextToken();
+
+    if (prev.type == TokenID::STRUCT && cur.type == TokenID::TYPENAME_KW)
+    {
+        TypeData newType(0, numTypes);
+        numTypes++;
+        GetTypeNameMap()[next.literal] = newType;
+        GetTypeStringMap()[newType.type] = next.literal;
+    }
 }
 
 TypeData Parser::ParseType(std::string err)

@@ -101,6 +101,10 @@ std::string ToString(const TokenID &t)
     {
         return "TYPENAME";
     }
+    case TokenID::TYPENAME_KW:
+    {
+        return "TYPENAME_KW";
+    }
     case TokenID::PLUS:
     {
         return "PLUS";

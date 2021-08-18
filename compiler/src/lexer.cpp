@@ -53,29 +53,6 @@ Token Lexer::NextToken()
         if (CheckKeyword(t))
         {
             index += t.literal.length();
-
-            if (t.type == TokenID::STRUCT)
-            {
-                size_t j = index;
-                SkipWhiteSpace(j);
-
-                std::string name;
-                if (isalpha(src[j]))
-                {
-                    while (isalnum(src[j]))
-                    {
-                        name += src[j];
-                        j++;
-                    }
-                }
-
-                if (NumTypes + 1 > UINT8_MAX)
-                    LexError("Too many struct declarations");
-
-                GetTypeStringMap()[NumTypes + 1] = name;
-                GetTypeNameMap()[name] = {false, static_cast<TypeID>(NumTypes + 1)};
-                NumTypes++;
-            }
             return t;
         }
         else
@@ -383,7 +360,7 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 't':
     {
-        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("rue", TokenID::BOOL_L, tok);
+        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("rue", TokenID::BOOL_L, tok) || MatchKeyWord("ypename", TokenID::TYPENAME_KW, tok);
     }
     case 'v':
     {
