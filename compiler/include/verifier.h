@@ -2,7 +2,22 @@
 #include "exprnode.h"
 #include "function.h"
 #include "perror.h"
-#include <stack>
+
+enum class ConditionOperation : uint8_t
+{
+    POP,
+    NEGATE_TOP
+};
+
+std::string ToString(ConditionOperation c);
+std::ostream &operator<<(std::ostream &out, ConditionOperation c);
+
+struct ConditionStackOp
+{
+    ConditionOperation op;
+    size_t idx;
+    ConditionStackOp(ConditionOperation _op, size_t _idx) : op(_op), idx(_idx){};
+};
 
 // TODO - In static analysis ensure that top level
 // verification expressions are only of types
@@ -11,21 +26,22 @@
 class Verifier
 {
     std::vector<std::shared_ptr<Expr>> stack;
+    std::vector<std::shared_ptr<Expr>> conditions;
+    std::vector<ConditionStackOp> conditionPop;
     Function f;
 
-    size_t ip;
-
 public:
-    std::vector<std::shared_ptr<Expr>> post;
+    std::vector<std::vector<std::shared_ptr<Expr>>> post;
     Verifier() = default;
     Verifier(Function &_f) : f(_f){};
 
     void VerificationError(std::string msg);
-
     void SetFunction(const Function &_f)
     {
         f = _f;
     }
+
+    std::vector<std::shared_ptr<Expr>> GetAssumptions();
 
     // populates 'post' with the strongest post condition for the
     // supplied pre condition

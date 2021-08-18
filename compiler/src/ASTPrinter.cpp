@@ -1,5 +1,11 @@
 #include "ASTPrinter.h"
 
+ASTPrinter &operator<<(ASTPrinter &ast, std::string str)
+{
+    ast.out << str;
+    return ast;
+}
+
 //-----------------EXPRESSIONS---------------------//
 
 void ASTPrinter::PrintLiteral(Literal *l)

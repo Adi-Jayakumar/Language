@@ -18,6 +18,7 @@ public:
     void Flush()
     {
         std::cout << out.str() << std::endl;
+        Clear();
     }
 
     void Clear()
@@ -59,3 +60,5 @@ public:
     void PrintThrow(Throw *t);
     void PrintTryCatch(TryCatch *tc);
 }; // namespace ASTPrinter
+
+ASTPrinter &operator<<(ASTPrinter &ast, std::string str);

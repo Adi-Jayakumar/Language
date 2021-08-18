@@ -6,8 +6,47 @@ void Verifier::VerificationError(std::string msg)
     throw e;
 }
 
+std::string ToString(ConditionOperation c)
+{
+    switch (c)
+    {
+    case ConditionOperation::POP:
+    {
+        return "POP";
+    }
+    case ConditionOperation::NEGATE_TOP:
+    {
+        return "PUSH_NEGATE_TOP";
+    }
+    }
+    return "";
+}
+
+std::ostream &operator<<(std::ostream &out, ConditionOperation c)
+{
+    out << ToString(c);
+    return out;
+}
+
+std::vector<std::shared_ptr<Expr>> Verifier::GetAssumptions()
+{
+    std::vector<std::shared_ptr<Expr>> res;
+    for (auto &h : conditions)
+        res.push_back(h);
+    return res;
+}
+
+std::shared_ptr<Expr> GetResult(std::shared_ptr<Expr> returnVal)
+{
+    std::shared_ptr<VarReference> result = std::make_shared<VarReference>(Token(TokenID::IDEN, "result", 0));
+    return std::make_shared<Binary>(result, Token(TokenID::EQ_EQ, "==", 0), returnVal);
+}
+
 void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
 {
+    if (pre.size() != f.arity)
+        VerificationError("Trying to verify a function with an inappropriate number of preconditions");
+
     for (auto &p : pre)
     {
         if (dynamic_cast<VarReference *>(p.get()) != nullptr)
@@ -26,7 +65,10 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         {
         case Opcode::POP:
         {
-            stack.pop_back();
+            if (stack.size() == 1)
+                stack.clear();
+            else
+                stack.pop_back();
             break;
         }
         case Opcode::LOAD_INT:
@@ -62,28 +104,51 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         case Opcode::GET_V:
         {
             stack.push_back(stack[o.op]);
+
             break;
         }
         case Opcode::JUMP_IF_FALSE:
         {
-            // do checks
+            Op jumped = f.code[i + o.op];
+            Opcode jumpedCode = jumped.code;
+
+            if (jumpedCode == Opcode::SET_IP)
+                VerificationError("There is a while loop in this function for which the strongest post condition cannot be calculated");
+
+            std::shared_ptr<Expr> condition = stack.back();
+            stack.pop_back();
+
+            // there is an else branch
+            bool isThereElse = jumpedCode == Opcode::JUMP;
+            conditions.push_back(condition);
+            size_t ifEnd = i + o.op;
+
+            if (isThereElse)
+            {
+                size_t elseEnd = ifEnd + jumped.op;
+                conditionPop.push_back(ConditionStackOp(ConditionOperation::POP, elseEnd));
+                conditionPop.push_back(ConditionStackOp(ConditionOperation::NEGATE_TOP, ifEnd));
+            }
             break;
         }
         case Opcode::JUMP:
         {
-            // do checks;
             break;
         }
         case Opcode::SET_IP:
         {
             // do checks
+            VerificationError("There is a while loop in this function for which the strongest post condition cannot be calculated");
             break;
         }
         case Opcode::RETURN:
         {
             std::shared_ptr<Expr> retVal = stack.back();
             stack.pop_back();
-            post.push_back(retVal);
+            std::vector<std::shared_ptr<Expr>> assumptions = GetAssumptions();
+
+            assumptions.push_back(GetResult(retVal));
+            post.push_back(assumptions);
             break;
         }
         case Opcode::I_ADD:
@@ -268,6 +333,32 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             VerificationError("Cannot generate post condition using opcode " + ToString(o.code));
             break;
         }
+        }
+
+        if (!conditionPop.empty())
+        {
+            ConditionStackOp cso = conditionPop.back();
+            if (i == cso.idx)
+            {
+                switch (cso.op)
+                {
+                case ConditionOperation::POP:
+                {
+                    conditions.pop_back();
+                    break;
+                }
+                case ConditionOperation::NEGATE_TOP:
+                {
+                    std::shared_ptr<Expr> condition = conditions.back();
+                    conditions.pop_back();
+                    Token bang(TokenID::BANG, "!", 0);
+                    std::shared_ptr<Expr> negated = std::make_shared<Unary>(bang, condition);
+                    conditions.push_back(negated);
+                    break;
+                }
+                }
+                conditionPop.pop_back();
+            }
         }
     }
 }
