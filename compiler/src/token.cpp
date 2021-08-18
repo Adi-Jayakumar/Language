@@ -105,6 +105,10 @@ std::string ToString(const TokenID &t)
     {
         return "TYPENAME_KW";
     }
+    case TokenID::TEMPLATE:
+    {
+        return "TEMPLATE";
+    }
     case TokenID::PLUS:
     {
         return "PLUS";
@@ -180,6 +184,14 @@ std::string ToString(const TokenID &t)
     case TokenID::CLOSE_VER:
     {
         return "CLOSE_VER";
+    }
+    case TokenID::OPEN_TEMPLATE:
+    {
+        return "OPEN_TEMPLATE";
+    }
+    case TokenID::CLOSE_TEMPLATE:
+    {
+        return "CLOSE_TEMPLATE";
     }
     case TokenID::RESULT:
     {

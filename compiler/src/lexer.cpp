@@ -113,6 +113,11 @@ Token Lexer::NextToken()
             res = {TokenID::LEQ, "<=", line};
             index++;
         }
+        else if (src[index + 1] == '|')
+        {
+            res = {TokenID::OPEN_TEMPLATE, "<|", line};
+            index++;
+        }
         else
             res = {TokenID::LT, "<", line};
         break;
@@ -179,6 +184,11 @@ Token Lexer::NextToken()
         else if (src[index + 1] == ')')
         {
             res = {TokenID::CLOSE_VER, "|)", line};
+            index++;
+        }
+        else if (src[index + 1] == '>')
+        {
+            res = {TokenID::CLOSE_TEMPLATE, "|>", line};
             index++;
         }
         break;
@@ -320,11 +330,13 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'b':
     {
-        return MatchKeyWord("ool", TokenID::TYPENAME, tok) || MatchKeyWord("reak", TokenID::BREAK, tok);
+        return MatchKeyWord("ool", TokenID::TYPENAME, tok) ||
+               MatchKeyWord("reak", TokenID::BREAK, tok);
     }
     case 'c':
     {
-        return MatchKeyWord("atch", TokenID::CATCH, tok) || MatchKeyWord("har", TokenID::TYPENAME, tok);
+        return MatchKeyWord("atch", TokenID::CATCH, tok) ||
+               MatchKeyWord("har", TokenID::TYPENAME, tok);
     }
     case 'C':
     {
@@ -340,11 +352,15 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'f':
     {
-        return MatchKeyWord("unction", TokenID::FUNC, tok) || MatchKeyWord("alse", TokenID::BOOL_L, tok) || MatchKeyWord("rom", TokenID::FROM, tok);
+        return MatchKeyWord("unction", TokenID::FUNC, tok) ||
+               MatchKeyWord("alse", TokenID::BOOL_L, tok) ||
+               MatchKeyWord("rom", TokenID::FROM, tok);
     }
     case 'i':
     {
-        return MatchKeyWord("nt", TokenID::TYPENAME, tok) || MatchKeyWord("f", TokenID::IF, tok) || MatchKeyWord("mport", TokenID::IMPORT, tok);
+        return MatchKeyWord("nt", TokenID::TYPENAME, tok) ||
+               MatchKeyWord("f", TokenID::IF, tok) ||
+               MatchKeyWord("mport", TokenID::IMPORT, tok);
     }
     case 'n':
     {
@@ -352,15 +368,21 @@ bool Lexer::CheckKeyword(Token &tok)
     }
     case 'r':
     {
-        return MatchKeyWord("eturn", TokenID::RETURN, tok) || MatchKeyWord("esult", TokenID::RESULT, tok);
+        return MatchKeyWord("eturn", TokenID::RETURN, tok) ||
+               MatchKeyWord("esult", TokenID::RESULT, tok);
     }
     case 's':
     {
-        return MatchKeyWord("tring", TokenID::TYPENAME, tok) || MatchKeyWord("truct", TokenID::STRUCT, tok);
+        return MatchKeyWord("tring", TokenID::TYPENAME, tok) ||
+               MatchKeyWord("truct", TokenID::STRUCT, tok);
     }
     case 't':
     {
-        return MatchKeyWord("hrow", TokenID::THROW, tok) || MatchKeyWord("ry", TokenID::TRY, tok) || MatchKeyWord("rue", TokenID::BOOL_L, tok) || MatchKeyWord("ypename", TokenID::TYPENAME_KW, tok);
+        return MatchKeyWord("emplate", TokenID::TEMPLATE, tok) ||
+               MatchKeyWord("hrow", TokenID::THROW, tok) ||
+               MatchKeyWord("ry", TokenID::TRY, tok) ||
+               MatchKeyWord("rue", TokenID::BOOL_L, tok) ||
+               MatchKeyWord("ypename", TokenID::TYPENAME_KW, tok);
     }
     case 'v':
     {
