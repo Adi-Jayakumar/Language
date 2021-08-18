@@ -92,52 +92,52 @@ int main(int argc, char **argv)
         std::cout << "count = " << counter << std::endl;
     }
 
-    Compiler c;
-    c.Compile(parsed);
+    // Compiler c;
+    // c.Compile(parsed);
 
-    if (arg.IsSwitchOn("-c"))
-    {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
-    }
+    // if (arg.IsSwitchOn("-c"))
+    // {
+    //     std::cout << "\n\nCOMPILED" << std::endl;
+    //     c.Disassemble();
+    // }
 
-    Verifier v;
-    v.SetFunction(c.Functions[1]);
-    v.GenerateStrongestPost(dynamic_cast<FuncDecl *>(parsed[0].get())->preConds);
+    // Verifier v;
+    // v.SetFunction(c.Functions[1]);
+    // v.GenerateStrongestPost(dynamic_cast<FuncDecl *>(parsed[0].get())->preConds);
 
-    // langle 〈
-    ASTPrinter ast(false);
-    ast << "[";
-    for (size_t i = 0; i < v.post.size(); i++)
-    {
-        std::vector<std::shared_ptr<Expr>> conj = v.post[i];
+    // // langle 〈
+    // ASTPrinter ast(false);
+    // ast << "[";
+    // for (size_t i = 0; i < v.post.size(); i++)
+    // {
+    //     std::vector<std::shared_ptr<Expr>> conj = v.post[i];
 
-        ast << "\u3008";
-        for (size_t j = 0; j < conj.size(); j++)
-        {
-            conj[j]->Print(ast);
+    //     ast << "\u3008";
+    //     for (size_t j = 0; j < conj.size(); j++)
+    //     {
+    //         conj[j]->Print(ast);
 
-            if (j != conj.size() - 1)
-                ast << " && ";
-        }
-        ast << "\u3009";
+    //         if (j != conj.size() - 1)
+    //             ast << " && ";
+    //     }
+    //     ast << "\u3009";
 
-        if (i != v.post.size() - 1)
-            ast << " || ";
-    }
-    // rangle 〉
-    ast << "]"
-        << "\n";
-    ast.Flush();
-    std::string ofPath = arg.GetArgVal("-o");
+    //     if (i != v.post.size() - 1)
+    //         ast << " || ";
+    // }
+    // // rangle 〉
+    // ast << "]"
+    //     << "\n";
+    // ast.Flush();
+    // std::string ofPath = arg.GetArgVal("-o");
 
-    if (arg.IsSwitchOn("--rm-bin"))
-    {
-        std::string rm = "rm -f " + ofPath;
-        int sysCode = system(rm.c_str());
-        if (sysCode == -1)
-            std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    }
-    Compiler::SerialiseProgram(c, ofPath);
+    // if (arg.IsSwitchOn("--rm-bin"))
+    // {
+    //     std::string rm = "rm -f " + ofPath;
+    //     int sysCode = system(rm.c_str());
+    //     if (sysCode == -1)
+    //         std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    // }
+    // Compiler::SerialiseProgram(c, ofPath);
     return 0;
 }

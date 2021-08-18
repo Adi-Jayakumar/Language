@@ -223,6 +223,43 @@ std::shared_ptr<Stmt> Parser::Statement()
 
         return std::make_shared<TryCatch>(tryClause, catchClause, catchVar, loc);
     }
+    else if (cur.type == TokenID::TEMPLATE)
+    {
+        Advance();
+        Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
+
+        Advance();
+        std::vector<std::pair<TypeData, std::string>> addedTypes;
+
+        size_t count = 0;
+        while (cur.type == TokenID::IDEN && cur.type != TokenID::END)
+        {
+            TypeData newType(0, MAX_TYPE - count);
+            std::string name = cur.literal;
+
+            GetTypeNameMap()[name] = newType;
+            GetTypeStringMap()[newType.type] = name;
+
+            addedTypes.push_back({newType, name});
+            count++;
+            Advance();
+        }
+
+        Check(TokenID::CLOSE_TEMPLATE, "Expect '|>' after template declaration");
+        Advance();
+
+        std::shared_ptr<Stmt> function = Statement();
+
+        for (size_t i = 0; i < addedTypes.size(); i++)
+        {
+            GetTypeNameMap().erase(addedTypes[i].second);
+            GetTypeStringMap().erase(addedTypes[i].first.type);
+        }
+
+        FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
+        fd->templates = addedTypes;
+        return function;
+    }
     return Declaration();
 }
 

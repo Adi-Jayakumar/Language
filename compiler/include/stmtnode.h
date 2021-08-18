@@ -105,11 +105,15 @@ public:
     std::vector<std::string> paramIdentifiers;
 
     std::vector<std::shared_ptr<Stmt>> body;
-
     std::vector<std::shared_ptr<Expr>> preConds;
 
-    // FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, Token);
-    FuncDecl(TypeData, std::string &, std::vector<TypeData> &, std::vector<std::string> &, std::vector<std::shared_ptr<Stmt>> &, std::vector<std::shared_ptr<Expr>> &, Token);
+    std::vector<std::pair<TypeData, std::string>> templates;
+
+    FuncDecl(TypeData, std::string &,
+             std::vector<TypeData> &,
+             std::vector<std::string> &,
+             std::vector<std::shared_ptr<Stmt>> &,
+             std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
