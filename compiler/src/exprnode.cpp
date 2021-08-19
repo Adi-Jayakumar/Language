@@ -82,9 +82,10 @@ TypeData VarReference::GetType()
     return t;
 }
 
-FunctionCall::FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
+FunctionCall::FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
 {
     name = _name;
+    templates = _templates;
     args = _args;
     loc = _loc;
 }

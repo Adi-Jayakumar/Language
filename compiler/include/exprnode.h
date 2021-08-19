@@ -135,9 +135,10 @@ class FunctionCall : public Expr
 public:
     Token loc;
     std::string name;
+    std::vector<TypeData> templates;
     std::vector<std::shared_ptr<Expr>> args;
 
-    FunctionCall(std::string _name, std::vector<std::shared_ptr<Expr>> _args, Token _loc);
+    FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<std::shared_ptr<Expr>> _args, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

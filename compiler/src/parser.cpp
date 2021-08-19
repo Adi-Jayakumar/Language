@@ -280,7 +280,7 @@ std::shared_ptr<Stmt> Parser::Declaration()
 std::shared_ptr<Stmt> Parser::VarDeclaration()
 {
     TypeData type = ParseType("Expect type name at the beginning of a variable decaration");
-    if (type.type == 0)
+    if (type == VOID_TYPE)
         ParseError(cur, "A variable cannot have 'void' type");
 
     Check(TokenID::IDEN, "Expect identifier after type name of a variable declaration");
@@ -724,6 +724,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
         res = std::make_shared<Literal>(cur);
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_TEMPLATE)
+        res = FuncCall();
     else if (cur.type == TokenID::CAST)
         res = FuncCall();
     else if (cur.type == TokenID::OPEN_PAR)
@@ -754,13 +756,22 @@ std::shared_ptr<Expr> Parser::FuncCall()
     Advance();
 
     TypeData type = VOID_TYPE;
-    TypeData voidT = VOID_TYPE;
+    std::vector<TypeData> templates;
 
     if (cur.type == TokenID::LT)
     {
         Advance();
         type = ParseType("Invalid type for generic function call");
         Check(TokenID::GT, "Missing '>'");
+        Advance();
+    }
+    else if (cur.type == TokenID::OPEN_TEMPLATE)
+    {
+        Advance();
+        while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+            templates.push_back(ParseType("Expect type in a template list"));
+
+        Check(TokenID::CLOSE_TEMPLATE, "Missing '|>'");
         Advance();
     }
 
@@ -774,19 +785,10 @@ std::shared_ptr<Expr> Parser::FuncCall()
     }
 
     Check(TokenID::CLOSE_PAR, "Need to close parenthesis");
-
-    if (type == voidT)
-        return std::make_shared<FunctionCall>(name, args, loc);
-    else
-    {
-        if (name != "Cast")
-            ParseError(loc, "Invalid generic function");
-
-        if (args.size() != 1)
-            ParseError(loc, "Cast takes 1 argument");
-
+    if (name == "Cast")
         return std::make_shared<TypeCast>(type, args[0], loc);
-    }
+    else
+        return std::make_shared<FunctionCall>(name, templates, args, loc);
 }
 
 std::shared_ptr<Expr> Parser::ParseBracedInitialiser()

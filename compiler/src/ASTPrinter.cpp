@@ -98,7 +98,17 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
     if (printTypes)
         out << fc->t << " ";
 
-    out << fc->name << "(";
+    out << fc->name;
+
+    if (fc->templates.size() != 0)
+    {
+        out << "<|";
+        for (auto &t : fc->templates)
+            out << t << ", ";
+        out << "|>";
+    }
+
+    out << "(";
     for (size_t i = 0; i < fc->args.size() - 1; i++)
     {
         fc->args[i]->Print(*this);
@@ -237,6 +247,19 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
+
+    if (fd->templates.size() != 0)
+    {
+        out << "template<|";
+        for (auto &t : fd->templates)
+        {
+            GetTypeStringMap()[t.first.type] = t.second;
+            out << t.first << ", ";
+        }
+        out << "|>";
+        NewLine();
+    }
+
     out << fd->ret << " " << fd->name << "(";
 
     for (size_t i = 0; i < fd->argtypes.size(); i++)
@@ -276,6 +299,9 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     out << "}";
     NewLine();
     NewLine();
+
+    for (auto &t : fd->templates)
+        GetTypeStringMap().erase(t.first.type);
 }
 
 void ASTPrinter::PrintReturn(Return *r)
