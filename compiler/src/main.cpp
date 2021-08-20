@@ -28,9 +28,9 @@ void DumpTokens(std::string fPath)
 int main(int argc, char **argv)
 {
 
-    DumpTokens("../verifier_ex/square.txt");
     ArgParser arg;
 
+    arg.AddSwitch("-l");
     arg.AddSwitch("-p");
     arg.AddSwitch("-t");
     arg.AddSwitch("-O");
@@ -45,6 +45,12 @@ int main(int argc, char **argv)
 
     Parser p(ifPath);
     std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
+
+    if (arg.IsSwitchOn("-l"))
+    {
+        std::cout << "Dumping tokens" << std::endl;
+        DumpTokens(ifPath);
+    }
 
     if (arg.IsSwitchOn("-p"))
     {
