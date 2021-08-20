@@ -140,12 +140,9 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
 
     for (size_t j = 0; j < f_args.size(); j++)
     {
-        std::cout << "replacement type " << templateMap[f_args[j].type] << std::endl;
         TypeData replacement = templateMap[f_args[j].type];
         f_args[j].type = replacement.type;
         f_args[j].isArray += replacement.isArray;
-
-        std::cout << "final arg type " << f_args[j] << std::endl;
     }
 
     return IsEqual(f_args, args) || CanAssignAll(f_args, args);
