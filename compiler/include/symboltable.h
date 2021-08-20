@@ -2,6 +2,7 @@
 #include "idstructs.h"
 #include "nativefuncs.h"
 #include "perror.h"
+#include "templateutils.h"
 #include <dlfcn.h>
 #include <sstream>
 

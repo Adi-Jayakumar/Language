@@ -1,6 +1,8 @@
+#pragma once
 #include "internaltypes.h"
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 #define NUM_DEF_TYPES 7U
 
@@ -20,6 +22,8 @@ public:
 #define STRING_TYPE TypeData(0, 4)
 #define CHAR_TYPE TypeData(0, 5)
 #define NULL_TYPE TypeData(0, 6)
+
+const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE, STRING_TYPE, CHAR_TYPE, NULL_TYPE};
 
 #define VOID_ARRAY TypeData(1, 0)
 #define INT_ARRAY TypeData(1, 1)

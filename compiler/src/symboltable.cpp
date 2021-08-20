@@ -134,7 +134,7 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
     if (templates.size() != f_templates.size() || args.size() != f_args.size())
         return false;
 
-    std::unordered_map<TypeID, TypeData> templateMap;
+    std::unordered_map<TypeID, TypeData> templateMap = GetTemplateMap();
     for (size_t i = 0; i < templates.size(); i++)
         templateMap[f_templates[i].type] = templates[i];
 
