@@ -31,8 +31,8 @@ void StaticAnalyser::TypeError(Token loc, std::string err)
 void StaticAnalyser::operator()(std::vector<std::shared_ptr<Stmt>> &_prog)
 {
     prog = _prog;
-    for (auto &stmt : prog)
-        TypeCheck(stmt);
+    for (index = 0; index < prog.size(); index++)
+        TypeCheck(prog[index]);
 }
 
 void StaticAnalyser::TypeCheck(std::shared_ptr<Stmt> &s)
@@ -127,7 +127,9 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         argtypes.push_back(e->Type(*this));
 
-    FuncID *fid = Symbols.GetFunc(fc->name, argtypes);
+    FuncID *fid = Symbols.GetFunc(fc->name, fc->templates, argtypes);
+    std::cout << fid->name << " num_args " << fid->argtypes.size() << " parse_index = " << fid->parseIndex << std::endl;
+    assert(false);
     if (fid == nullptr)
     {
         std::string errStr = fc->name + "(";
@@ -137,7 +139,7 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
             if (i != fc->args.size() - 1)
                 errStr += ", ";
         }
-        errStr += ";";
+        errStr += ");";
         TypeError(fc->Loc(), "Function '" + errStr + "' has not been defined");
     }
 
@@ -337,13 +339,23 @@ void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
 
     curFunc = fd;
 
+    std::vector<TypeData> templates;
+    for (auto &t : fd->templates)
+        templates.push_back(t.first);
+
     Symbols.depth++;
-    Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, FunctionType::USER_DEFINED));
+    FunctionType kind = templates.size() == 0 ? FunctionType::USER_DEFINED : FunctionType::USER_DEFINED_TEMPLATE;
+
+    Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, fd->argtypes, kind, index));
+
+    if (fd->templates.size() > 0)
+        return;
+
     size_t preFuncSize = Symbols.vars.size();
 
     if (fd->argtypes.size() != fd->paramIdentifiers.size())
     {
-        std::cout << "SOMETHING FUNDAMENTAL WENT WRONG HERE" << std::endl;
+        std::cerr << "SOMETHING FUNDAMENTAL WENT WRONG HERE" << std::endl;
         exit(14);
     }
 

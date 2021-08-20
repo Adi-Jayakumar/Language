@@ -248,7 +248,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         argtypes.push_back(e->GetType());
     }
 
-    FuncID *f = c.Symbols.GetFunc(fc->name, argtypes);
+    FuncID *f = c.Symbols.GetFunc(fc->name, fc->templates, argtypes);
     switch (f->kind)
     {
     case FunctionType::USER_DEFINED:
@@ -504,7 +504,11 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.Symbols.funcVarBegin = c.Symbols.vars.size();
 
-    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, fd->argtypes, FunctionType::USER_DEFINED));
+    std::vector<TypeData> templates;
+    for (auto &t : fd->templates)
+        templates.push_back(t.first);
+
+    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, fd->argtypes, FunctionType::USER_DEFINED, 0));
     c.Symbols.depth++;
 
     for (size_t i = 0; i < fd->argtypes.size(); i++)

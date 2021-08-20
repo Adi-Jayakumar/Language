@@ -104,11 +104,13 @@ void SymbolTable::AddCLibFunc(FuncID func)
     clibFunctions.push_back(func);
 }
 
-FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
+FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &args)
 {
     for (auto &f : funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
+            return &f;
+        if (f.name == name && MatchTemplateFunction(templates, args, f.templates, f.argtypes))
             return &f;
     }
 
@@ -124,6 +126,29 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 
     f = FindNativeFunctions(args, name);
     return f;
+}
+
+bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
+                                        std::vector<TypeData> f_templates, std::vector<TypeData> f_args)
+{
+    if (templates.size() != f_templates.size() || args.size() != f_args.size())
+        return false;
+
+    std::unordered_map<TypeID, TypeData> templateMap;
+    for (size_t i = 0; i < templates.size(); i++)
+        templateMap[f_templates[i].type] = templates[i];
+
+    for (size_t j = 0; j < f_args.size(); j++)
+    {
+        std::cout << "replacement type " << templateMap[f_args[j].type] << std::endl;
+        TypeData replacement = templateMap[f_args[j].type];
+        f_args[j].type = replacement.type;
+        f_args[j].isArray += replacement.isArray;
+
+        std::cout << "final arg type " << f_args[j] << std::endl;
+    }
+
+    return IsEqual(f_args, args) || CanAssignAll(f_args, args);
 }
 
 FuncID *SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
@@ -365,5 +390,5 @@ FuncID SymbolTable::ParseLibraryFunction(std::string &func)
         LibraryError("Invalid return type '" + ret + "'");
     TypeData retType = GetTypeNameMap()[ret];
 
-    return FuncID(retType, name, argtypes, FunctionType::LIBRARY);
+    return FuncID(retType, name, std::vector<TypeData>(), argtypes, FunctionType::LIBRARY, 0);
 }

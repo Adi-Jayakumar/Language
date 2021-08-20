@@ -3,6 +3,6 @@
 #include "idstructs.h"
 
 const std::vector<FuncID> NativeFunctions{
-    FuncID(GetTypeNameMap()["void"], "Print", {VOID_ARRAY}, FunctionType::NATIVE),
-    FuncID(GetTypeNameMap()["void"], "ToString", {GetTypeNameMap()["void"]}, FunctionType::NATIVE),
+    FuncID(GetTypeNameMap()["void"], "Print", std::vector<TypeData>(), {VOID_ARRAY}, FunctionType::NATIVE, 0),
+    FuncID(GetTypeNameMap()["void"], "ToString", std::vector<TypeData>(), {VOID_TYPE}, FunctionType::NATIVE, 0),
 };

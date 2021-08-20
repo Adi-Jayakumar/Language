@@ -14,6 +14,7 @@ struct StaticAnalyser
 {
     SymbolTable Symbols;
     FuncDecl *curFunc = nullptr;
+    size_t index;
     std::vector<std::shared_ptr<Stmt>> prog;
 
     void TypeError(Token loc, std::string err);

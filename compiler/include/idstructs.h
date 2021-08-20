@@ -17,6 +17,7 @@ struct VarID
 enum class FunctionType
 {
     USER_DEFINED,
+    USER_DEFINED_TEMPLATE,
     LIBRARY,
     NATIVE
 };
@@ -25,10 +26,27 @@ struct FuncID
 {
     TypeData ret;
     std::string name;
+    std::vector<TypeData> templates;
     std::vector<TypeData> argtypes;
     FunctionType kind;
+    // necessary for trigerring analysis/compilation of
+    // a template function upon encountering a template
+    // function call
+    size_t parseIndex;
     FuncID() = default;
-    FuncID(TypeData _ret, std::string _name, std::vector<TypeData> _argtypes, FunctionType _kind) : ret(_ret), name(_name), argtypes(_argtypes), kind(_kind){};
+
+    FuncID(TypeData _ret,
+           std::string _name,
+           std::vector<TypeData> _templates,
+           std::vector<TypeData> _argtypes,
+           FunctionType _kind,
+           size_t _parseIndex)
+        : ret(_ret),
+          name(_name),
+          templates(_templates),
+          argtypes(_argtypes),
+          kind(_kind),
+          parseIndex(_parseIndex){};
 };
 
 struct FuncIDEq

@@ -27,9 +27,11 @@ struct SymbolTable
 
     bool IsVarInScope(std::string &name);
     VarID *GetVar(std::string &name);
-    FuncID *GetFunc(std::string &name, std::vector<TypeData> &argtypes);
+    FuncID *GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
     StructID *GetStruct(const TypeData &type);
 
+    bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
+                               std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
     FuncID *FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name);
     FuncID *FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
 
