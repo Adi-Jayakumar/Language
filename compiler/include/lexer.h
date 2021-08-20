@@ -28,7 +28,8 @@ public:
     // lexes the token starting from where the current character is
     Token NextToken();
 
-    void SkipWhiteSpace(size_t &i);
+    void SkipWhiteSpace();
+    void SkipComment();
     Token LexLiteral();
 
     Token LexNumber();

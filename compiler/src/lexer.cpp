@@ -39,7 +39,8 @@ size_t Lexer::LineSize()
 
 Token Lexer::NextToken()
 {
-    SkipWhiteSpace(index);
+    SkipComment();
+    SkipWhiteSpace();
 
     if (index == src.length())
         return {TokenID::END, "", line};
@@ -280,13 +281,44 @@ Token Lexer::NextToken()
     return res;
 }
 
-void Lexer::SkipWhiteSpace(size_t &i)
+void Lexer::SkipWhiteSpace()
 {
-    while (isspace(src[i]))
+    if (index == src.length() - 1)
     {
-        if (src[i] == '\n')
+        index++;
+        return;
+    }
+
+    while (isspace(src[index]))
+    {
+        if (src[index] == '\n')
             line++;
-        i++;
+        index++;
+    }
+}
+
+void Lexer::SkipComment()
+{
+    SkipWhiteSpace();
+
+    if (index > src.length() - 2 && index < src.length())
+    {
+        if (src[index] != '/')
+            return;
+    }
+
+    while (src[index] == '/' && src[index + 1] == '/')
+    {
+        index += 2;
+        while (src[index] != '\n' && index < src.length())
+            index++;
+
+        if (src[index] == '\n')
+        {
+            index++;
+            line++;
+            SkipWhiteSpace();
+        }
     }
 }
 
