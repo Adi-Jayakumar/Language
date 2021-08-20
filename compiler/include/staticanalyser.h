@@ -1,22 +1,26 @@
 #pragma once
 #include "common.h"
 #include "idstructs.h"
+#include "internaltypes.h"
 #include "op.h"
 #include "perror.h"
 #include "stmtnode.h"
 #include "symboltable.h"
-#include "internaltypes.h"
 #include <cassert>
 
 bool IsTruthy(const TypeData &);
 
 struct StaticAnalyser
 {
-    bool MatchInitialiserToStruct(const std::vector<TypeData> &, const std::vector<TypeData> &);
-
-    void TypeError(Token loc, std::string err);
     SymbolTable Symbols;
     FuncDecl *curFunc = nullptr;
+    std::vector<std::shared_ptr<Stmt>> prog;
+
+    void TypeError(Token loc, std::string err);
+    bool MatchInitialiserToStruct(const std::vector<TypeData> &, const std::vector<TypeData> &);
+
+    StaticAnalyser() = default;
+    void operator()(std::vector<std::shared_ptr<Stmt>> &_prog);
 
     void TypeCheck(std::shared_ptr<Stmt> &s);
 

@@ -28,7 +28,7 @@ void DumpTokens(std::string fPath)
 int main(int argc, char **argv)
 {
 
-    // DumpTokens("../verifier_ex/square.txt");
+    DumpTokens("../verifier_ex/square.txt");
     ArgParser arg;
 
     arg.AddSwitch("-p");
@@ -57,8 +57,7 @@ int main(int argc, char **argv)
     }
 
     StaticAnalyser s;
-    for (auto &stmt : parsed)
-        stmt->Type(s);
+    s(parsed);
 
     if (arg.IsSwitchOn("-t"))
     {

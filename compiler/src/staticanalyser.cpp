@@ -28,6 +28,13 @@ void StaticAnalyser::TypeError(Token loc, std::string err)
     throw e;
 }
 
+void StaticAnalyser::operator()(std::vector<std::shared_ptr<Stmt>> &_prog)
+{
+    prog = _prog;
+    for (auto &stmt : prog)
+        TypeCheck(stmt);
+}
+
 void StaticAnalyser::TypeCheck(std::shared_ptr<Stmt> &s)
 {
     s->Type(*this);

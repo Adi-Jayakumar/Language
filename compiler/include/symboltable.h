@@ -28,9 +28,10 @@ struct SymbolTable
     bool IsVarInScope(std::string &name);
     VarID *GetVar(std::string &name);
     FuncID *GetFunc(std::string &name, std::vector<TypeData> &argtypes);
+    StructID *GetStruct(const TypeData &type);
+
     FuncID *FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name);
     FuncID *FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
-    StructID *GetStruct(const TypeData &type);
 
     bool IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
     bool CanAssignAll(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);

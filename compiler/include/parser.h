@@ -49,6 +49,8 @@ struct Parser
     std::shared_ptr<Stmt> FuncDeclaration();
     // parses a struct declaration
     std::shared_ptr<Stmt> ParseStructDecl();
+    // parses a template function
+    std::shared_ptr<Stmt> TemplateFunction();
     // parses an expression statement
     std::shared_ptr<Stmt> ExpressionStatement();
     // parses an import statement

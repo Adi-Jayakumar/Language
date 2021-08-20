@@ -225,40 +225,6 @@ std::shared_ptr<Stmt> Parser::Statement()
     }
     else if (cur.type == TokenID::TEMPLATE)
     {
-        Advance();
-        Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
-
-        Advance();
-        std::vector<std::pair<TypeData, std::string>> addedTypes;
-
-        size_t count = 0;
-        while (cur.type == TokenID::IDEN && cur.type != TokenID::END)
-        {
-            TypeData newType(0, MAX_TYPE - count);
-            std::string name = cur.literal;
-
-            GetTypeNameMap()[name] = newType;
-            GetTypeStringMap()[newType.type] = name;
-
-            addedTypes.push_back({newType, name});
-            count++;
-            Advance();
-        }
-
-        Check(TokenID::CLOSE_TEMPLATE, "Expect '|>' after template declaration");
-        Advance();
-
-        std::shared_ptr<Stmt> function = Statement();
-
-        for (size_t i = 0; i < addedTypes.size(); i++)
-        {
-            GetTypeNameMap().erase(addedTypes[i].second);
-            GetTypeStringMap().erase(addedTypes[i].first.type);
-        }
-
-        FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
-        fd->templates = addedTypes;
-        return function;
     }
     return Declaration();
 }
@@ -273,6 +239,8 @@ std::shared_ptr<Stmt> Parser::Declaration()
         return FuncDeclaration();
     else if (cur.type == TokenID::STRUCT)
         return ParseStructDecl();
+    else if (cur.type == TokenID::TEMPLATE)
+        return TemplateFunction();
     else
         return ExpressionStatement();
 }
@@ -424,6 +392,48 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     Advance();
     return std::make_shared<StructDecl>(name, parent, decls, loc);
+}
+
+std::shared_ptr<Stmt> Parser::TemplateFunction()
+{
+    Token loc = cur;
+    Advance();
+    Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
+
+    std::vector<std::pair<TypeData, std::string>> addedTypes;
+
+    size_t count = 0;
+    while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+    {
+        Advance();
+        Check(TokenID::IDEN, "Expect type identifier");
+        TypeData newType(0, MAX_TYPE - count);
+        std::string name = cur.literal;
+
+        GetTypeNameMap()[name] = newType;
+        GetTypeStringMap()[newType.type] = name;
+
+        addedTypes.push_back({newType, name});
+        count++;
+        Advance();
+    }
+
+    Check(TokenID::CLOSE_TEMPLATE, "Expect '|>' after template declaration");
+    Advance();
+
+    std::shared_ptr<Stmt> function = Statement();
+
+    for (size_t i = 0; i < addedTypes.size(); i++)
+    {
+        GetTypeNameMap().erase(addedTypes[i].second);
+        GetTypeStringMap().erase(addedTypes[i].first.type);
+    }
+
+    FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
+    if (fd == nullptr)
+        ParseError(loc, "Can only have a templated function");
+    fd->templates = addedTypes;
+    return function;
 }
 
 // ----------------------STATEMENTS----------------------- //
@@ -767,9 +777,11 @@ std::shared_ptr<Expr> Parser::FuncCall()
     }
     else if (cur.type == TokenID::OPEN_TEMPLATE)
     {
-        Advance();
         while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+        {
+            Advance();
             templates.push_back(ParseType("Expect type in a template list"));
+        }
 
         Check(TokenID::CLOSE_TEMPLATE, "Missing '|>'");
         Advance();
