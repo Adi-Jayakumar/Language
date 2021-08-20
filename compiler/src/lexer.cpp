@@ -285,7 +285,8 @@ void Lexer::SkipWhiteSpace()
 {
     if (index == src.length() - 1)
     {
-        index++;
+        if (isspace(src[index]))
+            index++;
         return;
     }
 
