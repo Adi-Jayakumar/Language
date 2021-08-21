@@ -7,6 +7,7 @@
 #include "stmtnode.h"
 #include "symboltable.h"
 #include <cassert>
+#include <stack>
 
 bool IsTruthy(const TypeData &);
 
@@ -17,10 +18,17 @@ struct StaticAnalyser
     size_t index;
     std::vector<std::shared_ptr<Stmt>> prog;
 
+    TypeSubstitution *curTS;
+    std::stack<TypeSubstitution> typestack;
+
     void TypeError(Token loc, std::string err);
     bool MatchInitialiserToStruct(const std::vector<TypeData> &, const std::vector<TypeData> &);
 
-    StaticAnalyser() = default;
+    StaticAnalyser()
+    {
+        typestack.push(TypeSubstitution());
+        curTS = &typestack.top();
+    };
     void operator()(std::vector<std::shared_ptr<Stmt>> &_prog);
 
     void TypeCheck(std::shared_ptr<Stmt> &s);
