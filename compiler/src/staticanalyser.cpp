@@ -53,10 +53,7 @@ TypeData StaticAnalyser::TypeOfUnary(Unary *u)
     TypeInfo info = {VOID_TYPE, u->op.type, opType};
 
     if (CheckUnaryOperatorUse(info))
-    {
-        u->t = OperatorMap.at(info);
-        return u->t;
-    }
+        return OperatorMap.at(info);
     else
         TypeError(u->Loc(), "Cannot use operator: " + ToString(u->op.type) + " on operand of type: " + ToString(opType));
 
@@ -70,10 +67,7 @@ TypeData StaticAnalyser::TypeOfBinary(Binary *b)
     TypeInfo info = {lType, b->op.type, rType};
 
     if (CheckBinaryOperatorUse(info))
-    {
-        b->t = GetBinaryOperatorType(info);
-        return b->t;
-    }
+        return GetBinaryOperatorType(info);
     else
         TypeError(b->Loc(), "Cannot use operator: " + ToString(b->op.type) + " on operands of type: " + ToString(lType) + " and: " + ToString(rType));
     return VOID_TYPE;
@@ -81,32 +75,11 @@ TypeData StaticAnalyser::TypeOfBinary(Binary *b)
 
 TypeData StaticAnalyser::TypeOfAssign(Assign *a)
 {
-    VarReference *targetAsVr = dynamic_cast<VarReference *>(a->target.get());
     TypeData valType = a->val->Type(*this);
-
-    if (targetAsVr != nullptr)
-    {
-        VarID *vidTarg = Symbols.GetVar(targetAsVr->name);
-        if (vidTarg == nullptr)
-            TypeError(targetAsVr->Loc(), "Variable '" + targetAsVr->name + "' has not been defined");
-
-        TypeData varType = vidTarg->type;
-
-        if (!Symbols.CanAssign(varType, valType))
-            TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(varType));
-
-        targetAsVr->isArray = varType.isArray;
-        targetAsVr->t = varType;
-        a->val->t = varType;
-        a->t = varType;
-
-        return varType;
-    }
-
     TypeData targetType = a->target->Type(*this);
+
     if (!Symbols.CanAssign(targetType, valType))
         TypeError(a->Loc(), "Cannot assign " + ToString(valType) + " to variable of type " + ToString(targetType));
-    a->val->t = targetType;
     return targetType;
 }
 
@@ -116,7 +89,6 @@ TypeData StaticAnalyser::TypeOfVarReference(VarReference *vr)
     if (vid == nullptr)
         TypeError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
 
-    vr->t = vid->type;
     return vid->type;
 }
 
@@ -128,8 +100,6 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
         argtypes.push_back(e->Type(*this));
 
     FuncID *fid = Symbols.GetFunc(fc->name, fc->templates, argtypes);
-    std::cout << fid->name << " num_args " << fid->argtypes.size() << " parse_index = " << fid->parseIndex << std::endl;
-    assert(false);
     if (fid == nullptr)
     {
         std::string errStr = fc->name + "(";
@@ -143,7 +113,6 @@ TypeData StaticAnalyser::TypeOfFunctionCall(FunctionCall *fc)
         TypeError(fc->Loc(), "Function '" + errStr + "' has not been defined");
     }
 
-    fc->t = fid->ret;
     return fid->ret;
 }
 
@@ -159,16 +128,17 @@ TypeData StaticAnalyser::TypeOfArrayIndex(ArrayIndex *ai)
     if (idxT != INT_TYPE)
         TypeError(ai->Loc(), "Index into string/array must be of type int not " + ToString(idxT));
 
+    TypeData result = VOID_TYPE;
     if (nameT.isArray)
     {
-        ai->t = nameT;
-        ai->t.isArray--;
+        result = nameT;
+        result.isArray--;
     }
 
     if (nameT == STRING_TYPE)
-        ai->t = CHAR_TYPE;
+        result = CHAR_TYPE;
 
-    return ai->t;
+    return result;
 }
 
 TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
@@ -187,11 +157,10 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
         for (size_t i = 1; i < types.size(); i++)
         {
             if (!Symbols.CanAssign(first, types[i]))
-                TypeError(bi->init[i]->Loc(), "Types of expression in a braced initialiser must be assignable to each other");
+                TypeError(bi->init[i]->Loc(), "Types of expression in a braced array must be assignable to each other");
         }
-        bi->t = first;
-        bi->t.isArray++;
-        return bi->t;
+        first.isArray++;
+        return first;
     }
     if (bi->t.isArray)
     {
@@ -202,7 +171,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
             if (!Symbols.CanAssign(toCompare, types[i]))
                 TypeError(bi->init[i]->Loc(), "Type of expression in a braced initaliser must be assignable to the type specified at the beginning");
         }
-        return bi->t;
+        return toCompare;
     }
     else
     {
@@ -214,12 +183,7 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
             TypeError(bi->Loc(), "Expect valid struct name before a braced initialiser");
 
         if (MatchInitialiserToStruct(strct->memTypes, types))
-        {
-            for (size_t i = 0; i < bi->init.size(); i++)
-                bi->init[i]->t = strct->memTypes[i];
-
             return strct->type;
-        }
         else
             TypeError(bi->Loc(), "Types in braced initialiser do not match the types required by the type specified at its beginning " + ToString(bi->t));
     }
@@ -230,9 +194,8 @@ TypeData StaticAnalyser::TypeOfBracedInitialiser(BracedInitialiser *bi)
 TypeData StaticAnalyser::TypeOfDynamicAllocArray(DynamicAllocArray *da)
 {
     TypeData sizeType = da->size->Type(*this);
-    TypeData intType = INT_TYPE;
 
-    if (sizeType != intType)
+    if (sizeType != INT_TYPE)
         TypeError(da->Loc(), "Size of dynamically allocated array must have type int");
 
     return da->t;
@@ -252,7 +215,6 @@ TypeData StaticAnalyser::TypeOfFieldAccess(FieldAccess *fa)
         Symbols.AddVar(kv.second, kv.first);
 
     TypeData accesseeType = fa->accessee->Type(*this);
-    fa->t = accesseeType;
 
     Symbols.CleanUpCurDepth();
     Symbols.depth--;
@@ -271,9 +233,7 @@ TypeData StaticAnalyser::TypeOfTypeCast(TypeCast *c)
         TypeError(c->Loc(), "Invalid cast");
 
     c->isDownCast = isDownCast;
-
-    c->t = newT;
-    return c->t;
+    return newT;
 }
 
 //------------------STATEMENTS---------------------//
@@ -296,7 +256,7 @@ void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
             TypeError(dv->Loc(), "Cannot assign a value of type " + ToString(valType) + " to variable of type " + ToString(dv->t));
 
         if (dv->t.type < NUM_DEF_TYPES)
-            dv->value->t = dv->t;
+            dv->value = std::make_shared<TypeCast>(dv->t, dv->value, dv->value->Loc());
     }
     Symbols.AddVar(dv->t, dv->name);
 }
@@ -304,12 +264,11 @@ void StaticAnalyser::TypeOfDeclaredVar(DeclaredVar *dv)
 void StaticAnalyser::TypeOfBlock(Block *b)
 {
     Symbols.depth++;
-    size_t preBlockSize = Symbols.vars.size();
 
     for (auto &stmt : b->stmts)
         stmt->Type(*this);
 
-    Symbols.PopUntilSized(preBlockSize);
+    Symbols.CleanUpCurDepth();
     Symbols.depth--;
 }
 
@@ -351,8 +310,6 @@ void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
     if (fd->templates.size() > 0)
         return;
 
-    size_t preFuncSize = Symbols.vars.size();
-
     if (fd->argtypes.size() != fd->paramIdentifiers.size())
     {
         std::cerr << "SOMETHING FUNDAMENTAL WENT WRONG HERE" << std::endl;
@@ -368,7 +325,7 @@ void StaticAnalyser::TypeOfFuncDecl(FuncDecl *fd)
     for (auto &e : fd->preConds)
         e->Type(*this);
 
-    Symbols.PopUntilSized(preFuncSize);
+    Symbols.CleanUpCurDepth();
     Symbols.depth--;
     curFunc = nullptr;
 }

@@ -87,17 +87,11 @@ void ASTPrinter::PrintAssign(Assign *a)
 
 void ASTPrinter::PrintVarReference(VarReference *vr)
 {
-    if (printTypes)
-        out << vr->t << " ";
-
     out << vr->name;
 }
 
 void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
 {
-    if (printTypes)
-        out << fc->t << " ";
-
     out << fc->name;
 
     if (fc->templates.size() != 0)
@@ -120,9 +114,6 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
 
 void ASTPrinter::PrintArrayIndex(ArrayIndex *ai)
 {
-    if (printTypes)
-        out << ai->t << " (";
-
     ai->name->Print(*this);
     out << "[";
     ai->index->Print(*this);
@@ -153,9 +144,6 @@ void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da)
 
 void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 {
-    if (printTypes)
-        out << fa->t << " (";
-
     fa->accessor->Print(*this);
     out << ".";
     fa->accessee->Print(*this);
@@ -166,10 +154,7 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
-    if (printTypes)
-        out << gf->t << " Cast";
-    else
-        out << "Cast";
+    out << "Cast";
 
     gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
     out << "(" << gf->arg.get() << ")";

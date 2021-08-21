@@ -12,7 +12,6 @@ class ConstantPropagator;
 class Expr
 {
 public:
-    TypeData t = VOID_TYPE;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
@@ -31,6 +30,7 @@ public:
 class Literal : public Expr
 {
 public:
+    TypeData t;
     Token loc;
     Literal(Token);
     Literal(int i) { loc.literal = std::to_string(i); };
@@ -170,6 +170,7 @@ public:
 class BracedInitialiser : public Expr
 {
 public:
+    TypeData t;
     Token loc;
     size_t size;
     std::vector<std::shared_ptr<Expr>> init;
@@ -188,6 +189,7 @@ public:
 class DynamicAllocArray : public Expr
 {
 public:
+    TypeData t;
     Token loc;
     std::shared_ptr<Expr> size;
 

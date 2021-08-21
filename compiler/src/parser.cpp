@@ -831,7 +831,7 @@ std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
     }
 
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
-    std::shared_ptr<Expr> res = std::make_shared<BracedInitialiser>(init.size(), init, loc);
+    std::shared_ptr<BracedInitialiser> res = std::make_shared<BracedInitialiser>(init.size(), init, loc);
     res->t = type;
     return res;
 }
