@@ -20,7 +20,7 @@ public:
     // returns the type after typechecking is done
     virtual TypeData GetType() = 0;
     // compiles the node - implmented in Compiler.cpp
-    virtual void NodeCompile(Compiler &c) = 0;
+    virtual TypeData NodeCompile(Compiler &c) = 0;
     virtual std::shared_ptr<Expr> Evaluate() = 0;
     virtual std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) = 0;
     // virtual bool IsTruthy() = 0;
@@ -45,7 +45,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
@@ -64,7 +64,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
@@ -84,7 +84,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
@@ -104,7 +104,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
@@ -124,7 +124,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
@@ -144,7 +144,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
@@ -162,7 +162,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
@@ -181,7 +181,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
@@ -199,7 +199,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
@@ -217,7 +217,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
@@ -236,7 +236,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Type(StaticAnalyser &t) override;
     TypeData GetType() override;
-    void NodeCompile(Compiler &c) override;
+    TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
