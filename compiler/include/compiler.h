@@ -32,13 +32,16 @@ public:
     void SymbolError(Token loc, std::string err);
 
     Function *cur;
-    std::vector<std::vector<Op> *> routineStack;
+    std::vector<std::pair<std::vector<Op> *, size_t>> routineStack;
     Compiler();
 
     void AddCode(Op o);
     size_t CodeSize();
+    Op *PtrToLastAddedCode();
     void AddRoutine();
+    size_t GetCurRoutineIndex();
     void RemoveRoutine();
+    void AddFunction();
     // returns the relative location on the stack
     // of the specified variable
     size_t GetVariableStackLoc(std::string &name);

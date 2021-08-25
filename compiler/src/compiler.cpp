@@ -6,7 +6,7 @@ Compiler::Compiler()
     Functions[0].arity = 0;
     cur = &Functions[0];
 
-    routineStack.push_back(&cur->routines[0]);
+    routineStack.push_back({&cur->routines[0], 0});
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -29,23 +29,40 @@ void Compiler::SymbolError(Token loc, std::string err)
 
 void Compiler::AddCode(Op o)
 {
-    routineStack.back()->push_back(o);
+    routineStack.back().first->push_back(o);
 }
 
 size_t Compiler::CodeSize()
 {
-    return routineStack.back()->size();
+    return routineStack.back().first->size();
+}
+
+Op *Compiler::PtrToLastAddedCode()
+{
+    return &routineStack.back().first->back();
 }
 
 void Compiler::AddRoutine()
 {
     cur->routines.push_back(std::vector<Op>());
-    routineStack.push_back(&cur->routines.back());
+    routineStack.push_back({&cur->routines.back(), cur->routines.size() - 1});
+}
+
+size_t Compiler::GetCurRoutineIndex()
+{
+    return routineStack.back().second;
 }
 
 void Compiler::RemoveRoutine()
 {
     routineStack.pop_back();
+}
+
+void Compiler::AddFunction()
+{
+    Functions.push_back(Function());
+    cur = &Functions.back();
+    routineStack.push_back({&cur->routines.back(), cur->routines.size() - 1});
 }
 
 size_t Compiler::GetVariableStackLoc(std::string &name)
@@ -57,13 +74,13 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
 {
     mainIndex = MAX_OPRAND;
     size_t numFunctions = 0;
-    for (size_t i = 0; i < s.size(); i++)
+    for (parseIndex = 0; parseIndex < s.size(); parseIndex++)
     {
-        s[i]->NodeCompile(*this);
-        if (dynamic_cast<FuncDecl *>(s[i].get()) != nullptr)
+        s[parseIndex]->NodeCompile(*this);
+        if (dynamic_cast<FuncDecl *>(s[parseIndex].get()) != nullptr)
         {
             numFunctions++;
-            FuncDecl *asFD = static_cast<FuncDecl *>(s[i].get());
+            FuncDecl *asFD = static_cast<FuncDecl *>(s[parseIndex].get());
             if (asFD->argtypes.size() == 0 && asFD->name == "Main")
             {
                 if (mainIndex != MAX_OPRAND)
@@ -71,8 +88,10 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
                 mainIndex = numFunctions;
             }
         }
-        else if (dynamic_cast<DeclaredVar *>(s[i].get()) == nullptr && dynamic_cast<StructDecl *>(s[i].get()) == nullptr && dynamic_cast<ImportStmt *>(s[i].get()) == nullptr)
-            CompileError(s[i]->Loc(), "Only declarations allowed in global region");
+        else if (dynamic_cast<DeclaredVar *>(s[parseIndex].get()) == nullptr &&
+                 dynamic_cast<StructDecl *>(s[parseIndex].get()) == nullptr &&
+                 dynamic_cast<ImportStmt *>(s[parseIndex].get()) == nullptr)
+            CompileError(s[parseIndex]->Loc(), "Only declarations allowed in global region");
     }
 }
 
