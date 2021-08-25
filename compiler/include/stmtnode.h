@@ -2,9 +2,26 @@
 #include "exprnode.h"
 #include <vector>
 
+enum class StmtKind
+{
+    EXPR_STMT,
+    DECLARED_VAR,
+    BLOCK,
+    IF_STMT,
+    WHILE_STMT,
+    FUNC_DECL,
+    RETURN,
+    STRUCT_DECL,
+    IMPORT_STMT,
+    BREAK,
+    THROW,
+    TRY_CATCH
+};
+
 class Stmt
 {
 public:
+    StmtKind kind;
     Token loc;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
