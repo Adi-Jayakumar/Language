@@ -57,9 +57,11 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             VerificationError("Inappropriate pre condition type");
     }
 
-    for (size_t i = 0; i < f.code.size(); i++)
+    size_t rp = 0;
+
+    for (size_t i = 0; i < f.routines[0].size(); i++)
     {
-        Op o = f.code[i];
+        Op o = f.routines[rp][i];
 
         switch (o.code)
         {
@@ -108,7 +110,7 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
         }
         case Opcode::JUMP_IF_FALSE:
         {
-            Op jumped = f.code[i + o.op];
+            Op jumped = f.routines[rp][i + o.op];
             Opcode jumpedCode = jumped.code;
 
             if (jumpedCode == Opcode::SET_IP)
