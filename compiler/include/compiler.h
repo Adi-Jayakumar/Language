@@ -44,6 +44,7 @@ public:
     // sets the oprand at the specified location
     // with the specified value
     void ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand);
+    void ModifyOpcodeAt(std::pair<size_t, size_t> loc, Opcode Opcode);
 
     void AddRoutine();
     size_t GetCurRoutineIndex();

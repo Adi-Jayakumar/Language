@@ -404,6 +404,9 @@ TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler 
 
     TypeData biType = bi->t;
 
+    c.AddCode({Opcode::ARR_ALLOC, static_cast<oprand_t>(bi->size)});
+    std::pair<size_t, size_t> allocTypeLoc = c.LastAddedCodeLoc();
+
     std::vector<TypeData> args;
     for (auto &e : bi->init)
         args.push_back(e->NodeCompile(c));
@@ -419,7 +422,7 @@ TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler 
                 c.TypeError(bi->init[i]->Loc(), "Cannot object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
         }
 
-        c.AddCode({Opcode::ARR_ALLOC, static_cast<oprand_t>(bi->size)});
+        c.AddCode({Opcode::ARR_D, static_cast<oprand_t>(bi->size)});
         return biType;
     }
     else
@@ -430,11 +433,13 @@ TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler 
         if (sid->memTypes.size() != args.size())
             c.TypeError(bi->Loc(), "Number of arguments in braced initialiser is not equal to the number of arguments in struct declaration");
 
+        c.ModifyOpcodeAt(allocTypeLoc, Opcode::STRUCT_ALLOC);
         for (size_t i = 0; i < bi->size; i++)
         {
             if (!c.Symbols.CanAssign(sid->memTypes[i], args[i]))
                 c.TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->memTypes[i]));
         }
+        c.AddCode({Opcode::STRUCT_D, static_cast<oprand_t>(bi->size)});
         return sid->type;
     }
 }

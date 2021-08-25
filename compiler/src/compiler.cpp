@@ -47,6 +47,11 @@ void Compiler::ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand)
     cur->routines[loc.first][loc.second].op = oprand;
 }
 
+void Compiler::ModifyOpcodeAt(std::pair<size_t, size_t> loc, Opcode opcode)
+{
+    cur->routines[loc.first][loc.second].code = opcode;
+}
+
 void Compiler::AddRoutine()
 {
     cur->routines.push_back(std::vector<Op>());
