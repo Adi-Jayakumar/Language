@@ -39,12 +39,12 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
 }
 
-constexpr bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
+bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
 {
     return OperatorMap.find(TypeInfo(left, op, right)) != OperatorMap.end();
 }
 
-constexpr TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
+TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
 {
     return OperatorMap.at(TypeInfo(left, op, right));
 }

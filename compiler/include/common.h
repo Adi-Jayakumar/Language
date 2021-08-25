@@ -130,5 +130,5 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
     };
 
-constexpr bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right);
-constexpr TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);
+bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right);
+TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);
