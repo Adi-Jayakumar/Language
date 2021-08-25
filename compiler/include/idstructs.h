@@ -1,5 +1,4 @@
 #pragma once
-#include "exprnode.h"
 #include <string>
 #include <vector>
 
@@ -85,11 +84,23 @@ struct FuncIDHasher
 
 struct StructID
 {
+    std::string name;
     TypeData type;
     TypeData parent;
     std::vector<std::string> memberNames;
     std::vector<TypeData> memTypes;
-    std::vector<std::shared_ptr<Expr>> init;
-    bool isNull;
     std::unordered_map<std::string, TypeData> nameTypes;
+
+    StructID(std::string _name,
+             TypeData _type,
+             TypeData _parent,
+             std::vector<std::string> _memberNames,
+             std::vector<TypeData> _memTypes,
+             std::unordered_map<std::string, TypeData> _nameTypes)
+        : name(_name),
+          type(_type),
+          parent(_parent),
+          memberNames(_memberNames),
+          memTypes(_memTypes),
+          nameTypes(_nameTypes){};
 };
