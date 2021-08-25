@@ -570,7 +570,6 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
     std::pair<size_t, size_t> thenReturn = c.LastAddedCodeLoc();
-    c.RemoveRoutine();
 
     if (i->elseBranch == nullptr)
     {

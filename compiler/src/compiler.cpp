@@ -6,7 +6,7 @@ Compiler::Compiler()
     Functions[0].arity = 0;
     cur = &Functions[0];
 
-    routineStack.push_back({&cur->routines[0], 0});
+    curRoutine = {&cur->routines[0], 0};
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -29,17 +29,17 @@ void Compiler::SymbolError(Token loc, std::string err)
 
 void Compiler::AddCode(Op o)
 {
-    routineStack.back().first->push_back(o);
+    curRoutine.first->push_back(o);
 }
 
 size_t Compiler::CodeSize()
 {
-    return routineStack.back().first->size();
+    return curRoutine.first->size();
 }
 
 std::pair<size_t, size_t> Compiler::LastAddedCodeLoc()
 {
-    return {GetCurRoutineIndex(), routineStack.back().first->size() - 1};
+    return {GetCurRoutineIndex(), curRoutine.first->size() - 1};
 }
 
 void Compiler::ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand)
@@ -55,24 +55,19 @@ void Compiler::ModifyOpcodeAt(std::pair<size_t, size_t> loc, Opcode opcode)
 void Compiler::AddRoutine()
 {
     cur->routines.push_back(std::vector<Op>());
-    routineStack.push_back({&cur->routines.back(), cur->routines.size() - 1});
+    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetCurRoutineIndex()
 {
-    return routineStack.back().second;
-}
-
-void Compiler::RemoveRoutine()
-{
-    routineStack.pop_back();
+    return curRoutine.second;
 }
 
 void Compiler::AddFunction()
 {
     Functions.push_back(Function());
     cur = &Functions.back();
-    routineStack.push_back({&cur->routines.back(), cur->routines.size() - 1});
+    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetVariableStackLoc(std::string &name)
