@@ -30,10 +30,12 @@ enum class Opcode : op_t
     STRING_INDEX,
     STRING_SET,
 
-    // conditonals
+    // control flow
     JUMP_IF_FALSE,
     JUMP,
     SET_IP,
+    GOTO_LABEL,
+    GOTO_LABEL_IF_FALSE,
 
     // functions
     CALL_F,
@@ -221,6 +223,14 @@ inline std::string ToString(Opcode o)
     case Opcode::SET_IP:
     {
         return "SET_IP";
+    }
+    case Opcode::GOTO_LABEL:
+    {
+        return "GOTO_LABEL";
+    }
+    case Opcode::GOTO_LABEL_IF_FALSE:
+    {
+        return "GOTO_LABEL_IF_FALSE";
     }
     case Opcode::CALL_F:
     {
