@@ -42,7 +42,7 @@ struct Function
     {
         for (size_t i = 0; i < routines.size(); i++)
         {
-            std::cout << "Routine " << i << std::endl;
+            std::cout << "L" << i << ":" << std::endl;
             for (const auto &o : routines[i])
             {
                 std::cout << ToString(o.code);
