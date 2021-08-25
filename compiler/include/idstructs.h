@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "typedata.h"
+#include "common.h"
 
 struct VarID
 {
