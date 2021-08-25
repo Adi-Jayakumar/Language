@@ -37,10 +37,18 @@ public:
 
     void AddCode(Op o);
     size_t CodeSize();
-    Op *PtrToLastAddedCode();
+    // returns the index of the routine and the
+    // index within the current routine of the
+    // last code added
+    std::pair<size_t, size_t> LastAddedCode();
+    // sets the oprand at the specified location
+    // with the specified value
+    void ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand);
+
     void AddRoutine();
     size_t GetCurRoutineIndex();
     void RemoveRoutine();
+
     void AddFunction();
     // returns the relative location on the stack
     // of the specified variable

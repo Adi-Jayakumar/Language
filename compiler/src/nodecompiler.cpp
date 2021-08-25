@@ -337,9 +337,9 @@ TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     case FunctionType::USER_DEFINED:
     {
         size_t funcNum = c.Symbols.GetUDFuncNum(fid);
-        if (funcNum > MAX_OPRAND)
+        if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many functions, maximum number is " + std::to_string(MAX_OPRAND));
-        c.AddCode({Opcode::CALL_F, static_cast<oprand_t>(funcNum)});
+        c.AddCode({Opcode::CALL_F, static_cast<oprand_t>(funcNum + 1)});
         break;
     }
     case FunctionType::USER_DEFINED_TEMPLATE:
@@ -349,17 +349,24 @@ TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     case FunctionType::LIBRARY:
     {
         size_t funcNum = c.Symbols.GetCLibFuncNum(fid);
-        if (funcNum > MAX_OPRAND)
+        if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
-        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum)});
+        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
         break;
     }
     case FunctionType::NATIVE:
     {
         size_t funcNum = c.Symbols.GetNativeFuncNum(fid);
-        if (funcNum > MAX_OPRAND)
+        if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
-        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum)});
+        if (fc->name != "Print")
+            c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
+        else
+        {
+            if (fc->args.size() > MAX_OPRAND)
+                c.CompileError(fc->Loc(), "Maximum number of arguments to Print is " + std::to_string(MAX_OPRAND));
+            c.AddCode({Opcode::PRINT, static_cast<oprand_t>(fc->args.size())});
+        }
         break;
     }
     }
@@ -542,10 +549,10 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         c.TypeError(i->cond->Loc(), "Condition of if statement must be convertible to bool");
 
     c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
-    Op *notTrue = c.PtrToLastAddedCode();
+    std::pair<size_t, size_t> notTrue = c.LastAddedCode();
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
-    Op *isTrue = c.PtrToLastAddedCode();
+    std::pair<size_t, size_t> isTrue = c.LastAddedCode();
 
     c.AddRoutine();
     i->thenBranch->NodeCompile(c);
@@ -553,10 +560,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 
     if (thenRoutine > MAX_OPRAND)
         c.CompileError(i->thenBranch->Loc(), "Too many routines");
-    isTrue->op = static_cast<oprand_t>(thenRoutine);
+    // isTrue->op = static_cast<oprand_t>(thenRoutine);
+    c.ModifyOprandAt(isTrue, static_cast<oprand_t>(thenRoutine));
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
-    Op *thenReturn = c.PtrToLastAddedCode();
+    std::pair<size_t, size_t> thenReturn = c.LastAddedCode();
     c.RemoveRoutine();
 
     if (i->elseBranch == nullptr)
@@ -565,8 +573,10 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         size_t newIndex = c.GetCurRoutineIndex();
         if (newIndex > MAX_OPRAND)
             c.CompileError(i->thenBranch->Loc(), "Too many routines");
-        thenReturn->op = static_cast<oprand_t>(newIndex);
-        notTrue->op = static_cast<oprand_t>(newIndex);
+        // thenReturn->op = static_cast<oprand_t>(newIndex);
+        // notTrue->op = static_cast<oprand_t>(newIndex);
+        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newIndex));
+        c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newIndex));
     }
 }
 

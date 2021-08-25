@@ -37,9 +37,14 @@ size_t Compiler::CodeSize()
     return routineStack.back().first->size();
 }
 
-Op *Compiler::PtrToLastAddedCode()
+std::pair<size_t, size_t> Compiler::LastAddedCode()
 {
-    return &routineStack.back().first->back();
+    return {GetCurRoutineIndex(), routineStack.back().first->size() - 1};
+}
+
+void Compiler::ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand)
+{
+    cur->routines[loc.first][loc.second].op = oprand;
 }
 
 void Compiler::AddRoutine()
