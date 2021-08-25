@@ -9,9 +9,25 @@ class Compiler;
 class StaticAnalyser;
 class ConstantPropagator;
 
+enum class ExprKind
+{
+    LITERAL,
+    UNARY,
+    BINARY,
+    VAR_REFERENCE,
+    ASSIGN,
+    FUNCTION_CALL,
+    ARRAY_INDEX,
+    BRACED_INITIALISER,
+    DYNAMIC_ALLOC_ARRAY,
+    FIELD_ACCESS,
+    TYPE_CAST
+};
+
 class Expr
 {
 public:
+    ExprKind kind;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
