@@ -9,8 +9,6 @@ public:
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
-    // returns the type of the node - implemented in typechecker.cpp
-    virtual void Type(StaticAnalyser &t) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
     virtual void Evaluate() = 0;
@@ -25,7 +23,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -41,7 +38,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -56,7 +52,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -72,7 +67,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -89,7 +83,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -117,7 +110,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -134,7 +126,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -150,7 +141,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -170,7 +160,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -182,7 +171,6 @@ public:
     Break(Token);
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -196,7 +184,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
@@ -212,7 +199,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    void Type(StaticAnalyser &t) override;
     void NodeCompile(Compiler &c) override;
     void Evaluate() override;
     void Propagate(ConstantPropagator &cp) override;
