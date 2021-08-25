@@ -19,7 +19,7 @@ struct SymbolTable
 
     SymbolTable();
 
-    bool CanAssign(const TypeData &, const TypeData &);
+    bool CanAssign(const TypeData &target, const TypeData &given);
 
     void AddVar(TypeData, std::string);
     void AddFunc(FuncID);
@@ -28,7 +28,14 @@ struct SymbolTable
 
     bool IsVarInScope(std::string &name);
     VarID *GetVar(std::string &name);
+    // returns SIZE_MAX if variable is not found
+    size_t GetVariableStackLoc(std::string &name);
+
     FuncID *GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
+    size_t GetUDFuncNum(FuncID *fid);
+    size_t GetCLibFuncNum(FuncID *fid);
+    size_t GetNativeFuncNum(FuncID *fid);
+
     StructID *GetStruct(const TypeData &type);
 
     bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,

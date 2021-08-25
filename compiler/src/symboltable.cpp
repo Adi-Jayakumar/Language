@@ -75,6 +75,25 @@ VarID *SymbolTable::GetVar(std::string &name)
     return &vars[varIndex];
 }
 
+size_t SymbolTable::GetVariableStackLoc(std::string &name)
+{
+    size_t varIndex = SIZE_MAX;
+
+    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    {
+        if (vars[i].name == name)
+        {
+            varIndex = i;
+            break;
+        }
+    }
+
+    if (varIndex == SIZE_MAX)
+        return SIZE_MAX;
+
+    return varIndex;
+}
+
 size_t SymbolTable::GetVarStackLoc(std::string &name)
 {
     size_t varIndex = SIZE_MAX;
@@ -126,6 +145,36 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates
 
     f = FindNativeFunctions(args, name);
     return f;
+}
+
+size_t SymbolTable::GetUDFuncNum(FuncID *fid)
+{
+    for (size_t i = 0; i < funcs.size(); i++)
+    {
+        if (fid == &funcs[i])
+            return i;
+    }
+    return SIZE_MAX;
+}
+
+size_t SymbolTable::GetCLibFuncNum(FuncID *fid)
+{
+    for (size_t i = 0; i < clibFunctions.size(); i++)
+    {
+        if (fid == &clibFunctions[i])
+            return i;
+    }
+    return SIZE_MAX;
+}
+
+size_t SymbolTable::GetNativeFuncNum(FuncID *fid)
+{
+    for (size_t i = 0; i < nativeFunctions.size(); i++)
+    {
+        if (fid == &nativeFunctions[i])
+            return i;
+    }
+    return SIZE_MAX;
 }
 
 bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
