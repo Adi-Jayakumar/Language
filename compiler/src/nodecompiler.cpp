@@ -108,9 +108,14 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
         return Opcode::NONE;
 }
 
+bool IsTruthy(const TypeData &td)
+{
+    return td == INT_TYPE || td == BOOL_TYPE;
+}
+
 TypeData NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
-    TypeData type = l->GetType();
+    TypeData type = l->t;
     std::string literal = l->Loc().literal;
     Function *cur = c.cur;
 
@@ -154,6 +159,8 @@ TypeData NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 
         c.AddCode({Opcode::LOAD_CHAR, static_cast<oprand_t>(cur->chars.size() - 1)});
     }
+    else
+        c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
     return l->t;
 }
 
@@ -166,7 +173,7 @@ TypeData NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 
     TypeData result = OperatorResult(VOID_TYPE, u->op.type, right);
     c.AddCode({TokenToOpcode(VOID_TYPE, u->op.type, right, true), 1});
-    return right;
+    return result;
 }
 
 TypeData NodeCompiler::CompileBinary(Binary *b, Compiler &c)
@@ -427,11 +434,14 @@ TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler 
 
 TypeData NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 {
+    if (!da->t.isArray)
+        c.TypeError(da->Loc(), "Must have array type");
     TypeData size = da->size->NodeCompile(c);
     if (size != INT_TYPE)
         c.TypeError(da->Loc(), "Size of dynamically allocated array must have type int not " + ToString(size));
 
     c.AddCode({Opcode::ARR_ALLOC, 0});
+    return da->t;
 }
 
 TypeData NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
@@ -460,7 +470,7 @@ TypeData NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     if (index == SIZE_MAX)
         c.SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vAccessee->name);
 
-    c.AddCode({Opcode::STRUCT_MEMBER, index});
+    c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(index)});
 
     return sid->nameTypes[vAccessee->name];
 }
@@ -477,6 +487,7 @@ TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
         c.TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
 
     c.AddCode({Opcode::CAST, tc->type.type});
+    return tc->type;
 }
 
 //------------------STATEMENTS---------------------//
@@ -526,6 +537,37 @@ void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 
 void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 {
+    TypeData cond = i->cond->NodeCompile(c);
+    if (!IsTruthy(cond))
+        c.TypeError(i->cond->Loc(), "Condition of if statement must be convertible to bool");
+
+    c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
+    Op *notTrue = c.PtrToLastAddedCode();
+
+    c.AddCode({Opcode::GOTO_LABEL, 0});
+    Op *isTrue = c.PtrToLastAddedCode();
+
+    c.AddRoutine();
+    i->thenBranch->NodeCompile(c);
+    size_t thenRoutine = c.GetCurRoutineIndex();
+
+    if (thenRoutine > MAX_OPRAND)
+        c.CompileError(i->thenBranch->Loc(), "Too many routines");
+    isTrue->op = static_cast<oprand_t>(thenRoutine);
+
+    c.AddCode({Opcode::GOTO_LABEL, 0});
+    Op *thenReturn = c.PtrToLastAddedCode();
+    c.RemoveRoutine();
+
+    if (i->elseBranch == nullptr)
+    {
+        c.AddRoutine();
+        size_t newIndex = c.GetCurRoutineIndex();
+        if (newIndex > MAX_OPRAND)
+            c.CompileError(i->thenBranch->Loc(), "Too many routines");
+        thenReturn->op = static_cast<oprand_t>(newIndex);
+        notTrue->op = static_cast<oprand_t>(newIndex);
+    }
 }
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
@@ -535,8 +577,7 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
     // TODO - Check function is not already defined
-    c.Functions.push_back(Function());
-    c.cur = &c.Functions.back();
+    c.AddFunction();
 
     c.cur->arity = fd->argtypes.size();
 
@@ -694,57 +735,57 @@ void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
 
 TypeData Literal::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileLiteral(this, c);
+    return NodeCompiler::CompileLiteral(this, c);
 }
 
 TypeData Unary::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileUnary(this, c);
+    return NodeCompiler::CompileUnary(this, c);
 }
 
 TypeData Binary::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileBinary(this, c);
+    return NodeCompiler::CompileBinary(this, c);
 }
 
 TypeData Assign::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileAssign(this, c);
+    return NodeCompiler::CompileAssign(this, c);
 }
 
 TypeData VarReference::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileVarReference(this, c);
+    return NodeCompiler::CompileVarReference(this, c);
 }
 
 TypeData FunctionCall::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileFunctionCall(this, c);
+    return NodeCompiler::CompileFunctionCall(this, c);
 }
 
 TypeData ArrayIndex::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileArrayIndex(this, c);
+    return NodeCompiler::CompileArrayIndex(this, c);
 }
 
 TypeData BracedInitialiser::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileBracedInitialiser(this, c);
+    return NodeCompiler::CompileBracedInitialiser(this, c);
 }
 
 TypeData DynamicAllocArray::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileDynamicAllocArray(this, c);
+    return NodeCompiler::CompileDynamicAllocArray(this, c);
 }
 
 TypeData FieldAccess::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileFieldAccess(this, c);
+    return NodeCompiler::CompileFieldAccess(this, c);
 }
 
 TypeData TypeCast::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompileTypeCast(this, c);
+    return NodeCompiler::CompileTypeCast(this, c);
 }
 
 //------------------STATEMENTS---------------------//
