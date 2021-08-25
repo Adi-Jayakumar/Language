@@ -570,13 +570,11 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     if (i->elseBranch == nullptr)
     {
         c.AddRoutine();
-        size_t newIndex = c.GetCurRoutineIndex();
-        if (newIndex > MAX_OPRAND)
+        size_t newRoutine = c.GetCurRoutineIndex();
+        if (newRoutine > MAX_OPRAND)
             c.CompileError(i->thenBranch->Loc(), "Too many routines");
-        // thenReturn->op = static_cast<oprand_t>(newIndex);
-        // notTrue->op = static_cast<oprand_t>(newIndex);
-        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newIndex));
-        c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newIndex));
+        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newRoutine));
+        c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newRoutine));
     }
     else
     {
@@ -592,16 +590,42 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         std::pair<size_t, size_t> elseReturn = c.LastAddedCodeLoc();
 
         c.AddRoutine();
-        size_t newIndex = c.GetCurRoutineIndex();
-        if (newIndex > MAX_OPRAND)
+        size_t newRoutine = c.GetCurRoutineIndex();
+        if (newRoutine > MAX_OPRAND)
             c.CompileError(i->elseBranch->Loc(), "Too many routines");
-        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newIndex));
-        c.ModifyOprandAt(elseReturn, static_cast<oprand_t>(newIndex));
+        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newRoutine));
+        c.ModifyOprandAt(elseReturn, static_cast<oprand_t>(newRoutine));
     }
 }
 
 void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 {
+    c.AddCode({Opcode::GOTO_LABEL, 0});
+    std::pair<size_t, size_t> enter = c.LastAddedCodeLoc();
+
+    c.AddRoutine();
+    size_t loopRoutine = c.GetCurRoutineIndex();
+    if (loopRoutine > MAX_OPRAND)
+        c.CompileError(ws->Loc(), "Too many routines");
+
+    c.ModifyOprandAt(enter, static_cast<oprand_t>(loopRoutine));
+
+    TypeData cond = ws->cond->NodeCompile(c);
+    if (!IsTruthy(cond))
+        c.TypeError(ws->cond->Loc(), "Condition of a loop must be convertible to bool");
+
+    c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
+    std::pair<size_t, size_t> notTrue = c.LastAddedCodeLoc();
+
+    ws->body->NodeCompile(c);
+    c.AddCode({Opcode::GOTO_LABEL, static_cast<oprand_t>(loopRoutine)});
+
+    c.AddRoutine();
+    size_t newRoutine = c.GetCurRoutineIndex();
+    if (newRoutine > MAX_OPRAND)
+        c.CompileError(ws->Loc(), "Too many routines");
+
+    c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newRoutine));
 }
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
