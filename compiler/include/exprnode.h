@@ -19,9 +19,6 @@ public:
     virtual TypeData GetType() { return VOID_TYPE; };
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
-    virtual std::shared_ptr<Expr> Evaluate() = 0;
-    virtual std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) = 0;
-    // virtual bool IsTruthy() = 0;
     // virtual ~Expr() = 0;
 };
 
@@ -43,8 +40,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -60,8 +55,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -78,8 +71,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -96,8 +87,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -114,8 +103,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
     // bool IsTruthy() override;
 };
 
@@ -132,8 +119,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class ArrayIndex : public Expr
@@ -148,8 +133,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class BracedInitialiser : public Expr
@@ -166,8 +149,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class DynamicAllocArray : public Expr
@@ -183,8 +164,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class FieldAccess : public Expr
@@ -199,8 +178,6 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };
 
 class TypeCast : public Expr
@@ -216,6 +193,4 @@ public:
     Token Loc() override;
     void Print(ASTPrinter &p) override;
     TypeData NodeCompile(Compiler &c) override;
-    std::shared_ptr<Expr> Evaluate() override;
-    std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
 };

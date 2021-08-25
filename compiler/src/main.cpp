@@ -1,11 +1,8 @@
 #include "ASTPrinter.h"
 #include "argparser.h"
 #include "compiler.h"
-#include "constantpropagator.h"
-#include "constevaluator.h"
 #include "parser.h"
 #include "serialise.h"
-#include "staticanalyser.h"
 #include "verifier.h"
 
 void DumpTokens(std::string fPath)
@@ -62,49 +59,14 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    StaticAnalyser s;
-    s(parsed);
+    Compiler c;
+    c.Compile(parsed);
 
-    if (arg.IsSwitchOn("-t"))
+    if (arg.IsSwitchOn("-c"))
     {
-        std::cout << "\n\nANALYSED" << std::endl;
-        ASTPrinter ast(true);
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
+        std::cout << "\n\nCOMPILED" << std::endl;
+        c.Disassemble();
     }
-
-    if (arg.IsSwitchOn("-O"))
-    {
-        ConstantPropagator cp;
-        int counter = 0;
-        do
-        {
-            counter++;
-            if (counter >= 10)
-                break;
-
-            cp.didTreeChange = false;
-
-            for (auto &stmt : parsed)
-                stmt->Evaluate();
-
-            for (auto &stmt : parsed)
-                stmt->Propagate(cp);
-
-            std::cout << "didTreeChange = " << cp.didTreeChange << std::endl;
-        } while (cp.didTreeChange);
-        std::cout << "count = " << counter << std::endl;
-    }
-
-    // Compiler c;
-    // c.Compile(parsed);
-
-    // if (arg.IsSwitchOn("-c"))
-    // {
-    //     std::cout << "\n\nCOMPILED" << std::endl;
-    //     c.Disassemble();
-    // }
 
     // Verifier v;
     // v.SetFunction(c.Functions[1]);
