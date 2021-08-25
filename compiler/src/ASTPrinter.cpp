@@ -23,10 +23,6 @@ void ASTPrinter::PrintLiteral(Literal *l)
 
 void ASTPrinter::PrintUnary(Unary *u)
 {
-
-    if (printTypes)
-        out << u->GetType();
-
     if (u->op.type == TokenID::MINUS)
         out << " -";
     else if (u->op.type == TokenID::BANG)
@@ -40,9 +36,6 @@ void ASTPrinter::PrintUnary(Unary *u)
 
 void ASTPrinter::PrintBinary(Binary *b)
 {
-    if (printTypes)
-        out << b->GetType();
-
     out << " (";
     b->left->Print(*this);
 
