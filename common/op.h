@@ -31,8 +31,6 @@ enum class Opcode : op_t
     STRING_SET,
 
     // control flow
-    JUMP_IF_FALSE,
-    JUMP,
     SET_IP,
     GOTO_LABEL,
     GOTO_LABEL_IF_FALSE,
@@ -211,14 +209,6 @@ inline std::string ToString(Opcode o)
     case Opcode::STRING_SET:
     {
         return "STRING_SET";
-    }
-    case Opcode::JUMP_IF_FALSE:
-    {
-        return "JUMP_IF_FALSE";
-    }
-    case Opcode::JUMP:
-    {
-        return "JUMP";
     }
     case Opcode::SET_IP:
     {
