@@ -144,7 +144,7 @@ class StructDecl : public Stmt
 {
 public:
     std::string name;
-    TypeData parent;
+    TypeData parent = VOID_TYPE;
     std::vector<std::shared_ptr<Stmt>> decls;
     StructDecl(std::string &, TypeData &parent, std::vector<std::shared_ptr<Stmt>> &, Token);
 
