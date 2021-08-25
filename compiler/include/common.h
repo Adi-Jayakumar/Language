@@ -63,10 +63,6 @@ struct TypeInfoHasher
     }
 };
 
-bool CheckBinaryOperatorUse(const TypeInfo &);
-TypeData GetBinaryOperatorType(const TypeInfo &);
-bool CheckUnaryOperatorUse(const TypeInfo &);
-
 static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
     OperatorMap{
         // binary plus
@@ -133,3 +129,6 @@ static const std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
         // string concatenation
         {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
     };
+
+constexpr bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right);
+constexpr TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);

@@ -39,31 +39,12 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
 }
 
-bool CheckBinaryOperatorUse(const TypeInfo &ti)
+constexpr bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
 {
-    if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
-    {
-        if (ti.left == NULL_TYPE)
-            return true;
-        else if (ti.right == NULL_TYPE)
-            return true;
-    }
-    return OperatorMap.find(ti) != OperatorMap.end();
+    return OperatorMap.find(TypeInfo(left, op, right)) != OperatorMap.end();
 }
 
-TypeData GetBinaryOperatorType(const TypeInfo &ti)
+constexpr TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
 {
-    if (ti.t == TokenID::EQ_EQ || ti.t == TokenID::BANG_EQ)
-    {
-        if (ti.left == NULL_TYPE)
-            return BOOL_TYPE;
-        else if (ti.right == NULL_TYPE)
-            return BOOL_TYPE;
-    }
-    return OperatorMap.at(ti);
-}
-
-bool CheckUnaryOperatorUse(const TypeInfo &ti)
-{
-    return OperatorMap.find(ti) != OperatorMap.end();
+    return OperatorMap.at(TypeInfo(left, op, right));
 }
