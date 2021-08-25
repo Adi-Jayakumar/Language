@@ -14,21 +14,34 @@ class Compiler
 {
 public:
     oprand_t mainIndex;
+    oprand_t parseIndex;
     std::vector<Function> Functions;
     std::unordered_map<TypeID, std::unordered_set<TypeID>> StructTree;
 
-    SymbolTable Symbols;
     std::vector<LibraryFunctionDef> libfuncs;
 
     std::stack<std::vector<size_t>> breakIndices;
     std::vector<ThrowInfo> throwStack;
 
+    SymbolTable Symbols;
+
     bool hadError = false;
 
     void CompileError(Token loc, std::string err);
+    void TypeError(Token loc, std::string err);
+    void SymbolError(Token loc, std::string err);
 
     Function *cur;
+    std::vector<std::vector<Op> *> routineStack;
     Compiler();
+
+    void AddCode(Op o);
+    size_t CodeSize();
+    void AddRoutine();
+    void RemoveRoutine();
+    // returns the relative location on the stack
+    // of the specified variable
+    size_t GetVariableStackLoc(std::string &name);
 
     // sets the index of the 'void Main()' function
     void Compile(std::vector<std::shared_ptr<Stmt>> &s);
