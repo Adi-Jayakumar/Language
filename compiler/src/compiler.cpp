@@ -37,7 +37,7 @@ size_t Compiler::CodeSize()
     return routineStack.back().first->size();
 }
 
-std::pair<size_t, size_t> Compiler::LastAddedCode()
+std::pair<size_t, size_t> Compiler::LastAddedCodeLoc()
 {
     return {GetCurRoutineIndex(), routineStack.back().first->size() - 1};
 }

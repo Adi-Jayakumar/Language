@@ -40,7 +40,7 @@ public:
     // returns the index of the routine and the
     // index within the current routine of the
     // last code added
-    std::pair<size_t, size_t> LastAddedCode();
+    std::pair<size_t, size_t> LastAddedCodeLoc();
     // sets the oprand at the specified location
     // with the specified value
     void ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand);

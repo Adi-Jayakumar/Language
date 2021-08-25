@@ -549,10 +549,10 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         c.TypeError(i->cond->Loc(), "Condition of if statement must be convertible to bool");
 
     c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
-    std::pair<size_t, size_t> notTrue = c.LastAddedCode();
+    std::pair<size_t, size_t> notTrue = c.LastAddedCodeLoc();
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
-    std::pair<size_t, size_t> isTrue = c.LastAddedCode();
+    std::pair<size_t, size_t> isTrue = c.LastAddedCodeLoc();
 
     c.AddRoutine();
     i->thenBranch->NodeCompile(c);
@@ -564,7 +564,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     c.ModifyOprandAt(isTrue, static_cast<oprand_t>(thenRoutine));
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
-    std::pair<size_t, size_t> thenReturn = c.LastAddedCode();
+    std::pair<size_t, size_t> thenReturn = c.LastAddedCodeLoc();
     c.RemoveRoutine();
 
     if (i->elseBranch == nullptr)
@@ -577,6 +577,26 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         // notTrue->op = static_cast<oprand_t>(newIndex);
         c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newIndex));
         c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newIndex));
+    }
+    else
+    {
+        c.AddRoutine();
+        i->elseBranch->NodeCompile(c);
+
+        size_t elseIndex = c.GetCurRoutineIndex();
+        if (elseIndex > MAX_OPRAND)
+            c.CompileError(i->elseBranch->Loc(), "Too many routines");
+        c.ModifyOprandAt(notTrue, static_cast<oprand_t>(elseIndex));
+
+        c.AddCode({Opcode::GOTO_LABEL, 0});
+        std::pair<size_t, size_t> elseReturn = c.LastAddedCodeLoc();
+
+        c.AddRoutine();
+        size_t newIndex = c.GetCurRoutineIndex();
+        if (newIndex > MAX_OPRAND)
+            c.CompileError(i->elseBranch->Loc(), "Too many routines");
+        c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newIndex));
+        c.ModifyOprandAt(elseReturn, static_cast<oprand_t>(newIndex));
     }
 }
 
