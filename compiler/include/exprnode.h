@@ -15,10 +15,8 @@ public:
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
-    // returns the type of the node - implemented in typechecker.cpp
-    virtual TypeData Type(StaticAnalyser &t) = 0;
     // returns the type after typechecking is done
-    virtual TypeData GetType() = 0;
+    virtual TypeData GetType() { return VOID_TYPE; };
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
     virtual std::shared_ptr<Expr> Evaluate() = 0;
@@ -43,8 +41,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
+    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -62,8 +59,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -82,8 +77,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -102,8 +95,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -122,8 +113,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -142,8 +131,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -160,8 +147,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -179,8 +164,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
+    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -197,8 +181,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
+    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -215,8 +198,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;
@@ -234,8 +215,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData Type(StaticAnalyser &t) override;
-    TypeData GetType() override;
     TypeData NodeCompile(Compiler &c) override;
     std::shared_ptr<Expr> Evaluate() override;
     std::shared_ptr<Expr> Propagate(ConstantPropagator &cp) override;

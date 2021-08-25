@@ -28,11 +28,6 @@ Token Unary::Loc()
     return op;
 }
 
-TypeData Unary::GetType()
-{
-    return t;
-}
-
 Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _right)
 {
     left = _left;
@@ -43,11 +38,6 @@ Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _ri
 Token Binary::Loc()
 {
     return op;
-}
-
-TypeData Binary::GetType()
-{
-    return t;
 }
 
 Assign::Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc)
@@ -62,11 +52,6 @@ Token Assign::Loc()
     return loc;
 }
 
-TypeData Assign::GetType()
-{
-    return t;
-}
-
 VarReference::VarReference(Token _loc)
 {
     loc = _loc;
@@ -75,11 +60,6 @@ VarReference::VarReference(Token _loc)
 Token VarReference::Loc()
 {
     return loc;
-}
-
-TypeData VarReference::GetType()
-{
-    return t;
 }
 
 FunctionCall::FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
@@ -95,11 +75,6 @@ Token FunctionCall::Loc()
     return loc;
 }
 
-TypeData FunctionCall::GetType()
-{
-    return t;
-}
-
 ArrayIndex::ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc)
 {
     name = _name;
@@ -110,11 +85,6 @@ ArrayIndex::ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index
 Token ArrayIndex::Loc()
 {
     return loc;
-}
-
-TypeData ArrayIndex::GetType()
-{
-    return t;
 }
 
 BracedInitialiser::BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
@@ -163,11 +133,6 @@ Token FieldAccess::Loc()
     return loc;
 }
 
-TypeData FieldAccess::GetType()
-{
-    return t;
-}
-
 TypeCast::TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc)
 {
     type = _type;
@@ -178,9 +143,4 @@ TypeCast::TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc)
 Token TypeCast::Loc()
 {
     return loc;
-}
-
-TypeData TypeCast::GetType()
-{
-    return t;
 }
