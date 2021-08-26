@@ -290,19 +290,6 @@ void ASTPrinter::PrintReturn(Return *r)
     out << ";";
 
     NewLine();
-
-    if (r->postConds.size() != 0)
-    {
-        out << "(|";
-        for (auto exp : r->postConds)
-        {
-            exp->Print(*this);
-            out << ";";
-        }
-        out << "|)";
-        NewLine();
-    }
-
     return;
 }
 

@@ -92,14 +92,6 @@ Return::Return(std::shared_ptr<Expr> _retVal, Token _loc)
     loc = _loc;
 }
 
-Return::Return(std::shared_ptr<Expr> _retVal, std::vector<std::shared_ptr<Expr>> &_postConds, Token _loc)
-{
-    kind = StmtKind::RETURN;
-    retVal = _retVal;
-    postConds = _postConds;
-    loc = _loc;
-}
-
 Token Return::Loc()
 {
     return loc;

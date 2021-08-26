@@ -122,10 +122,8 @@ class Return : public Stmt
 {
 public:
     std::shared_ptr<Expr> retVal;
-    std::vector<std::shared_ptr<Expr>> postConds;
 
     Return(std::shared_ptr<Expr>, Token);
-    Return(std::shared_ptr<Expr>, std::vector<std::shared_ptr<Expr>> &, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
