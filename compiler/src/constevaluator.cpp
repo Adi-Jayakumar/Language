@@ -108,8 +108,10 @@ SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
     {
         SP<TypeCast> tc = std::dynamic_pointer_cast<TypeCast>(expr);
         tc->arg = SimplifyExpression(tc->arg);
+        return tc;
     }
     }
+    return nullptr;
 }
 
 void ConstantEvaluator::SimplifyStatement(SP<Stmt> &stmt)
@@ -148,6 +150,7 @@ void ConstantEvaluator::SimplifyStatement(SP<Stmt> &stmt)
         SP<WhileStmt> ws = std::dynamic_pointer_cast<WhileStmt>(stmt);
         ws->cond = SimplifyExpression(ws->cond);
         SimplifyStatement(ws->body);
+        break;
     }
     case StmtKind::FUNC_DECL:
     {
@@ -166,6 +169,10 @@ void ConstantEvaluator::SimplifyStatement(SP<Stmt> &stmt)
     {
         break;
     }
+    case StmtKind::IMPORT_STMT:
+    {
+        break;
+    }
     case StmtKind::BREAK:
     {
         break;
@@ -174,12 +181,14 @@ void ConstantEvaluator::SimplifyStatement(SP<Stmt> &stmt)
     {
         SP<Throw> t = std::dynamic_pointer_cast<Throw>(stmt);
         t->exp = SimplifyExpression(t->exp);
+        break;
     }
     case StmtKind::TRY_CATCH:
     {
         SP<TryCatch> tc = std::dynamic_pointer_cast<TryCatch>(stmt);
         SimplifyStatement(tc->tryClause);
         SimplifyStatement(tc->catchClause);
+        break;
     }
     }
 }
