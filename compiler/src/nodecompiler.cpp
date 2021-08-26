@@ -634,7 +634,6 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
-    // TODO - Check function is not already defined
     c.AddFunction();
 
     c.cur->arity = fd->params.size();
@@ -646,6 +645,40 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     std::vector<TypeData> templates;
     for (auto &t : fd->templates)
         templates.push_back(t.first);
+
+    FuncID *isThere = c.Symbols.GetFunc(fd->name, templates, argtypes);
+    if (isThere != nullptr)
+    {
+        std::ostringstream out;
+
+        if (fd->templates.size() > 0)
+        {
+            out << "template<|";
+            for (size_t i = 0; i < fd->templates.size(); i++)
+            {
+                out << fd->templates[i].second;
+                if (i != fd->templates.size() - 1)
+                    out << ", ";
+            }
+            out << "|>";
+        }
+
+        out << fd->ret << " ";
+        out << fd->name;
+
+        out << "(";
+        if (fd->params.size() > 0)
+        {
+            for (size_t i = 0; i < fd->params.size(); i++)
+            {
+                out << fd->params[i].first << " " << fd->params[i].second;
+                if (i != fd->params.size() - 1)
+                    out << ", ";
+            }
+        }
+        out << ")";
+        c.SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
+    }
 
     c.Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parseIndex));
 
