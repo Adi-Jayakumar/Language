@@ -5,6 +5,12 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
+void StaticAnalyser::Analyse(std::vector<std::shared_ptr<Stmt>> &program)
+{
+    for (const auto &stmt : program)
+        stmt->Analyse(*this);
+}
+
 void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
 {
     Error e = Error("[STATIC ANALYSIS ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
@@ -144,7 +150,7 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
 {
     if (bi->size > MAX_OPRAND)
         StaticAnalysisError(bi->Loc(), "Braced initialisers can only have " + std::to_string(MAX_OPRAND) + " elements");
-        
+
     TypeData biType = bi->t;
 
     std::vector<TypeData> args;

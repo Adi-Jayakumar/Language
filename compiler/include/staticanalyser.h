@@ -6,9 +6,13 @@ class StaticAnalyser
     SymbolTable Symbols;
 
 public:
+    StaticAnalyser() = default;
+
     void StaticAnalysisError(Token loc, std::string err);
     void TypeError(Token loc, std::string err);
     void SymbolError(Token loc, std::string err);
+
+    void Analyse(std::vector<std::shared_ptr<Stmt>> &program);
 
     // expression analysis
     TypeData AnalyseLiteral(Literal *l);
