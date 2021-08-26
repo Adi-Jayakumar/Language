@@ -221,9 +221,6 @@ std::shared_ptr<Stmt> Parser::Statement()
 
         return std::make_shared<TryCatch>(tryClause, catchClause, catchVar, loc);
     }
-    else if (cur.type == TokenID::TEMPLATE)
-    {
-    }
     return Declaration();
 }
 
@@ -338,7 +335,17 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     depth--;
     Advance();
-    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, pre, beg);
+
+    std::shared_ptr<Expr> post = nullptr;
+    if (cur.type == TokenID::OPEN_VER)
+    {
+        Advance();
+        post = Expression();
+        Check(TokenID::CLOSE_VER, "Expect '|)' after post condition");
+        Advance();
+    }
+
+    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, pre, post, beg);
     return func;
 }
 

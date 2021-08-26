@@ -225,7 +225,6 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
-
     if (fd->templates.size() != 0)
     {
         out << "template<|";
@@ -267,14 +266,26 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     out << "{";
     NewLine();
 
-    for (size_t i = 0; i < fd->body.size() - 1; i++)
-        fd->body[i]->Print(*this);
+    if (fd->body.size() > 0)
+    {
+        for (size_t i = 0; i < fd->body.size() - 1; i++)
+            fd->body[i]->Print(*this);
 
-    fd->body[fd->body.size() - 1]->Print(*this);
+        fd->body[fd->body.size() - 1]->Print(*this);
+    }
 
     depth--;
     NewLine();
     out << "}";
+    NewLine();
+
+    if (fd->postCond != nullptr)
+    {
+        out << "(|";
+        fd->postCond->Print(*this);
+        out << "|)";
+    }
+
     NewLine();
     NewLine();
 
