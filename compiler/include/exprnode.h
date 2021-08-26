@@ -6,6 +6,7 @@
 
 class ASTPrinter;
 class Compiler;
+class StaticAnalyser;
 
 enum class ExprKind
 {
@@ -29,6 +30,8 @@ public:
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
+    // ensures that the node is a valid node or throws error
+    virtual TypeData Analyse(StaticAnalyser &sa);
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
     // virtual ~Expr() = 0;
@@ -57,6 +60,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -72,6 +76,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -88,6 +93,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -104,6 +110,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -120,6 +127,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -136,6 +144,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -150,6 +159,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -165,6 +175,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -179,6 +190,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -193,6 +205,7 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -208,5 +221,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
 };
