@@ -173,9 +173,7 @@ std::shared_ptr<Stmt> Parser::Statement()
 
         // advancing over the semicolon
         Advance();
-
-        std::vector<std::shared_ptr<Expr>> post = ParseVerCondition();
-        return std::make_shared<Return>(retVal, post, cur);
+        return std::make_shared<Return>(retVal, cur);
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
         return ParseImportStmt();
