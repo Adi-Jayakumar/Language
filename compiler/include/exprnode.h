@@ -29,8 +29,6 @@ public:
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
-    // returns the type after typechecking is done
-    virtual TypeData GetType() { return VOID_TYPE; };
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
     // virtual ~Expr() = 0;
@@ -59,7 +57,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
     // bool IsTruthy() override;
 };
@@ -168,7 +165,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
 };
 
@@ -183,7 +179,6 @@ public:
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
-    TypeData GetType();
     TypeData NodeCompile(Compiler &c) override;
 };
 

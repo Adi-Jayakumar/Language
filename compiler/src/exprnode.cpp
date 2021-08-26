@@ -13,11 +13,6 @@ Token Literal::Loc()
     return loc;
 }
 
-TypeData Literal::GetType()
-{
-    return t;
-}
-
 Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
 {
     kind = ExprKind::UNARY;
@@ -107,11 +102,6 @@ Token BracedInitialiser::Loc()
     return loc;
 }
 
-TypeData BracedInitialiser::GetType()
-{
-    return t;
-}
-
 DynamicAllocArray::DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc)
 {
     kind = ExprKind::DYNAMIC_ALLOC_ARRAY;
@@ -123,11 +113,6 @@ DynamicAllocArray::DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, T
 Token DynamicAllocArray::Loc()
 {
     return loc;
-}
-
-TypeData DynamicAllocArray::GetType()
-{
-    return t;
 }
 
 FieldAccess::FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc)

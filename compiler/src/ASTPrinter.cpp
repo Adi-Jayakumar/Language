@@ -11,7 +11,7 @@ ASTPrinter &operator<<(ASTPrinter &ast, std::string str)
 void ASTPrinter::PrintLiteral(Literal *l)
 {
     if (printTypes)
-        out << l->GetType();
+        out << l->t;
 
     if (l->t.type == 4)
         out << " \"" << l->loc.literal << "\"";
