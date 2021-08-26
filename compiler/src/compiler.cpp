@@ -86,7 +86,7 @@ void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
         {
             numFunctions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[parseIndex].get());
-            if (asFD->argtypes.size() == 0 && asFD->name == "Main")
+            if (asFD->params.size() == 0 && asFD->name == "Main")
             {
                 if (mainIndex != MAX_OPRAND)
                     CompileError(asFD->Loc(), "Main function already defined");

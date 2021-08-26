@@ -637,20 +637,24 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     // TODO - Check function is not already defined
     c.AddFunction();
 
-    c.cur->arity = fd->argtypes.size();
+    c.cur->arity = fd->params.size();
+
+    std::vector<TypeData> argtypes;
+    for (auto &arg : fd->params)
+        argtypes.push_back(arg.first);
 
     std::vector<TypeData> templates;
     for (auto &t : fd->templates)
         templates.push_back(t.first);
 
-    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, fd->argtypes, FunctionType::USER_DEFINED, c.parseIndex));
+    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parseIndex));
 
     if (fd->templates.size() > 0)
         return;
 
     c.Symbols.depth++;
-    for (size_t i = 0; i < fd->argtypes.size(); i++)
-        c.Symbols.AddVar(fd->argtypes[i], fd->paramIdentifiers[i]);
+    for (auto &arg : fd->params)
+        c.Symbols.AddVar(arg.first, arg.second);
 
     for (auto &stmt : fd->body)
         stmt->NodeCompile(c);

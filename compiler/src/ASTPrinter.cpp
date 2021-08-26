@@ -240,10 +240,10 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 
     out << fd->ret << " " << fd->name << "(";
 
-    for (size_t i = 0; i < fd->argtypes.size(); i++)
+    for (size_t i = 0; i < fd->params.size(); i++)
     {
-        out << fd->argtypes[i] << " " << fd->paramIdentifiers[i];
-        if (i != fd->argtypes.size() - 1)
+        out << fd->params[i].first << " " << fd->params[i].second;
+        if (i != fd->params.size() - 1)
             out << ", ";
     }
 

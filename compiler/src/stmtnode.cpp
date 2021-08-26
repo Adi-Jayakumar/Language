@@ -65,14 +65,18 @@ Token WhileStmt::Loc()
     return loc;
 }
 
-FuncDecl::FuncDecl(TypeData _ret, std::string &_name, std::vector<TypeData> &_argtypes, std::vector<std::string> &_pIdens, std::vector<std::shared_ptr<Stmt>> &_body, std::vector<std::shared_ptr<Expr>> &_preConds, Token _loc)
+FuncDecl::FuncDecl(TypeData _ret,
+                   std::string &_name,
+                   std::vector<std::pair<TypeData, std::string>> &_params,
+                   std::vector<std::shared_ptr<Stmt>> &_body,
+                   std::vector<std::shared_ptr<Expr>> &_preConds,
+                   Token _loc)
 {
     kind = StmtKind::FUNC_DECL;
     ret = _ret;
     name = _name;
 
-    argtypes = _argtypes;
-    paramIdentifiers = _pIdens;
+    params = _params;
 
     body = _body;
 

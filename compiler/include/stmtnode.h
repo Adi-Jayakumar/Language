@@ -98,18 +98,15 @@ class FuncDecl : public Stmt
 public:
     TypeData ret;
     std::string name;
-    // TODO - Convert to vector of pairs
-    std::vector<TypeData> argtypes;
-    std::vector<std::string> paramIdentifiers;
+    std::vector<std::pair<TypeData, std::string>> params;
 
     std::vector<std::shared_ptr<Stmt>> body;
     std::vector<std::shared_ptr<Expr>> preConds;
 
     std::vector<std::pair<TypeData, std::string>> templates;
 
-    FuncDecl(TypeData, std::string &,
-             std::vector<TypeData> &,
-             std::vector<std::string> &,
+    FuncDecl(TypeData ret, std::string &name,
+             std::vector<std::pair<TypeData, std::string>> &_params,
              std::vector<std::shared_ptr<Stmt>> &,
              std::vector<std::shared_ptr<Expr>> &, Token);
 

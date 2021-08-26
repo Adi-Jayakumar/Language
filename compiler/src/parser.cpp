@@ -286,17 +286,16 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Check(TokenID::OPEN_PAR, "Expect argument list after function declaration");
     Advance();
 
-    std::vector<TypeData> argtypes;
-    std::vector<std::string> paramIdentifiers;
+    std::vector<std::pair<TypeData, std::string>> params;
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
         try
         {
-            argtypes.push_back(ParseType("Function arguments need types"));
-
+            TypeData argtype = ParseType("Function arguments need types");
             Check(TokenID::IDEN, "Function arguments need names");
-            paramIdentifiers.push_back(cur.literal);
+            std::string param = cur.literal;
+            params.push_back({argtype, param});
 
             Advance();
             if (cur.type == TokenID::COMMA)
@@ -339,7 +338,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     depth--;
     Advance();
-    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, argtypes, paramIdentifiers, body, pre, beg);
+    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, pre, beg);
     return func;
 }
 
