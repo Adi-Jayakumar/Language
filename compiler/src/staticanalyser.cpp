@@ -142,6 +142,9 @@ TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
 
 TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
 {
+    if (bi->size > MAX_OPRAND)
+        StaticAnalysisError(bi->Loc(), "Braced initialisers can only have " + std::to_string(MAX_OPRAND) + " elements");
+        
     TypeData biType = bi->t;
 
     std::vector<TypeData> args;
