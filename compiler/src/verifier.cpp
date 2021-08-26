@@ -108,34 +108,6 @@ void Verifier::GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre)
             stack.push_back(stack[o.op]);
             break;
         }
-        case Opcode::JUMP_IF_FALSE:
-        {
-            Op jumped = f.routines[rp][i + o.op];
-            Opcode jumpedCode = jumped.code;
-
-            if (jumpedCode == Opcode::SET_IP)
-                VerificationError("There is a while loop in this function for which the strongest post condition cannot be calculated");
-
-            std::shared_ptr<Expr> condition = stack.back();
-            stack.pop_back();
-
-            // there is an else branch
-            bool isThereElse = jumpedCode == Opcode::JUMP;
-            conditions.push_back(condition);
-            size_t ifEnd = i + o.op;
-
-            if (isThereElse)
-            {
-                size_t elseEnd = ifEnd + jumped.op;
-                conditionPop.push_back(ConditionStackOp(ConditionOperation::POP, elseEnd));
-                conditionPop.push_back(ConditionStackOp(ConditionOperation::NEGATE_TOP, ifEnd));
-            }
-            break;
-        }
-        case Opcode::JUMP:
-        {
-            break;
-        }
         case Opcode::SET_IP:
         {
             // do checks
