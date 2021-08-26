@@ -5,7 +5,6 @@
 #include <cassert>
 
 Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary);
-bool IsTruthy(const TypeData &td);
 
 namespace NodeCompiler
 {

@@ -108,7 +108,7 @@ Opcode TokenToOpcode(TypeData l, TokenID t, TypeData r, bool isUnary)
         return Opcode::NONE;
 }
 
-bool IsTruthy(const TypeData &td)
+inline bool IsTruthy(const TypeData &td)
 {
     return td == INT_TYPE || td == BOOL_TYPE;
 }
