@@ -105,10 +105,15 @@ public:
 
     std::vector<std::pair<TypeData, std::string>> templates;
 
-    FuncDecl(TypeData ret, std::string &name,
+    std::shared_ptr<Expr> postCond;
+
+    FuncDecl(TypeData _ret,
+             std::string &_name,
              std::vector<std::pair<TypeData, std::string>> &_params,
-             std::vector<std::shared_ptr<Stmt>> &,
-             std::vector<std::shared_ptr<Expr>> &, Token);
+             std::vector<std::shared_ptr<Stmt>> &_body,
+             std::vector<std::shared_ptr<Expr>> &_preConds,
+             std::shared_ptr<Expr> &_postCond,
+             Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

@@ -70,6 +70,7 @@ FuncDecl::FuncDecl(TypeData _ret,
                    std::vector<std::pair<TypeData, std::string>> &_params,
                    std::vector<std::shared_ptr<Stmt>> &_body,
                    std::vector<std::shared_ptr<Expr>> &_preConds,
+                   std::shared_ptr<Expr> &_postCond,
                    Token _loc)
 {
     kind = StmtKind::FUNC_DECL;
@@ -81,6 +82,7 @@ FuncDecl::FuncDecl(TypeData _ret,
     body = _body;
 
     preConds = _preConds;
+    postCond = _postCond;
     loc = _loc;
 }
 
