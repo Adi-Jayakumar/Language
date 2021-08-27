@@ -80,6 +80,8 @@ enum class TokenID : uint8_t
     CLOSE_TEMPLATE, // |>
     // result of calling a function used in the verifier's post conditions
     RESULT,
+    // 'Sequence' keyword, used in verification conditions
+    SEQUENCE,
 
     OPEN_BRACE,
     CLOSE_BRACE,

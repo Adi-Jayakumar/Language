@@ -197,6 +197,10 @@ std::string ToString(const TokenID &t)
     {
         return "RESULT";
     }
+    case TokenID::SEQUENCE:
+    {
+        return "SEQUENCE";
+    }
     case TokenID::OPEN_BRACE:
     {
         return "OPEN_BRACE";

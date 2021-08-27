@@ -409,6 +409,10 @@ bool Lexer::CheckKeyword(Token &tok)
         return MatchKeyWord("tring", TokenID::TYPENAME, tok) ||
                MatchKeyWord("truct", TokenID::STRUCT, tok);
     }
+    case 'S':
+    {
+        return MatchKeyWord("equence", TokenID::SEQUENCE, tok);
+    }
     case 't':
     {
         return MatchKeyWord("emplate", TokenID::TEMPLATE, tok) ||
