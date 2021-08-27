@@ -554,8 +554,6 @@ std::vector<std::string> Parser::CommaSeparatedStrings()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
-    if (cur.type == TokenID::SEQUENCE)
-        return ParseSequenceNode();
     return Or();
 }
 
@@ -565,6 +563,7 @@ std::shared_ptr<Expr> Parser::ParseSequenceNode()
     Check(TokenID::SEQUENCE, "Expect 'Sequence' at the beginning of a sequence declaration");
     Advance();
     Check(TokenID::OPEN_PAR, "Expect '(' after Sequence declaration");
+    Advance();
 
     std::shared_ptr<Expr> start = Expression();
     Check(TokenID::COMMA, "Expect ',' after start of sequence");
@@ -579,7 +578,7 @@ std::shared_ptr<Expr> Parser::ParseSequenceNode()
     Advance();
 
     Check(TokenID::IDEN, "Expect index variable");
-    std::shared_ptr<Expr> var = std::make_shared<VarReference>(cur);
+    std::shared_ptr<VarReference> var = std::make_shared<VarReference>(cur);
     Advance();
     Check(TokenID::COMMA, "Expect ',' after sequence index variable");
     Advance();
@@ -774,6 +773,8 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     std::shared_ptr<Expr> res = nullptr;
     if (cur.type == TokenID::NULL_T || IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
+    else if (cur.type == TokenID::SEQUENCE && next.type == TokenID::OPEN_PAR)
+        res = ParseSequenceNode();
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_TEMPLATE)

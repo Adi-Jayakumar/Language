@@ -35,7 +35,7 @@ public:
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
     // ensures that the node is a valid node or throws error
-    virtual TypeData Analyse(StaticAnalyser &sa);
+    virtual TypeData Analyse(StaticAnalyser &sa) = 0;
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
     // virtual ~Expr() = 0;
@@ -249,13 +249,13 @@ public:
              std::shared_ptr<VarReference> &_var,
              std::shared_ptr<Expr> &_term,
              TokenID _op,
-             Token &_loc) : start(_start),
+             Token &_loc) : loc(_loc),
+                            start(_start),
                             step(_step),
                             end(_end),
                             var(_var),
                             term(_term),
-                            op(_op),
-                            loc(_loc)
+                            op(_op)
     {
         kind = ExprKind::SEQUENCE;
     };

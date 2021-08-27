@@ -534,6 +534,11 @@ TypeData TypeCast::Analyse(StaticAnalyser &sa)
     return sa.AnalyseTypeCast(this);
 }
 
+TypeData Sequence::Analyse(StaticAnalyser &sa)
+{
+    return sa.AnalyseSequence(this);
+}
+
 //------------------STATEMENTS---------------------//
 
 void ExprStmt::Analyse(StaticAnalyser &sa)
