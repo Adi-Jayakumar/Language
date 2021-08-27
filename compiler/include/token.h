@@ -112,3 +112,19 @@ std::string ToString(const TokenID &token);
 
 std::ostream &operator<<(std::ostream &out, const TokenID &t);
 std::ostream &operator<<(std::ostream &out, const Token &t);
+
+inline bool CheckBinaryOperator(const TokenID &tok)
+{
+    return tok == TokenID::PLUS ||
+           tok == TokenID::MINUS ||
+           tok == TokenID::STAR ||
+           tok == TokenID::SLASH ||
+           tok == TokenID::GT ||
+           tok == TokenID::LT ||
+           tok == TokenID::GEQ ||
+           tok == TokenID::LEQ ||
+           tok == TokenID::EQ_EQ ||
+           tok == TokenID::BANG_EQ ||
+           tok == TokenID::AND_AND ||
+           tok == TokenID::OR_OR;
+}

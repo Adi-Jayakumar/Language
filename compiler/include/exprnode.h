@@ -20,7 +20,8 @@ enum class ExprKind
     BRACED_INITIALISER,
     DYNAMIC_ALLOC_ARRAY,
     FIELD_ACCESS,
-    TYPE_CAST
+    TYPE_CAST,
+    SEQUENCE
 };
 
 // TODO - Change explicit constructors to initalisers
@@ -254,7 +255,10 @@ public:
                             var(_var),
                             term(_term),
                             op(_op),
-                            loc(_loc){};
+                            loc(_loc)
+    {
+        kind = ExprKind::SEQUENCE;
+    };
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

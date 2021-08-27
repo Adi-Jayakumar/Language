@@ -554,7 +554,45 @@ std::vector<std::string> Parser::CommaSeparatedStrings()
 
 std::shared_ptr<Expr> Parser::Expression()
 {
+    if (cur.type == TokenID::SEQUENCE)
+        return ParseSequenceNode();
     return Or();
+}
+
+std::shared_ptr<Expr> Parser::ParseSequenceNode()
+{
+    Token loc = cur;
+    Check(TokenID::SEQUENCE, "Expect 'Sequence' at the beginning of a sequence declaration");
+    Advance();
+    Check(TokenID::OPEN_PAR, "Expect '(' after Sequence declaration");
+
+    std::shared_ptr<Expr> start = Expression();
+    Check(TokenID::COMMA, "Expect ',' after start of sequence");
+    Advance();
+
+    std::shared_ptr<Expr> step = Expression();
+    Check(TokenID::COMMA, "Expect ',' after sequence step");
+    Advance();
+
+    std::shared_ptr<Expr> end = Expression();
+    Check(TokenID::COMMA, "Expect ',' after sequence end");
+    Advance();
+
+    Check(TokenID::IDEN, "Expect index variable");
+    std::shared_ptr<Expr> var = std::make_shared<VarReference>(cur);
+    Advance();
+    Check(TokenID::COMMA, "Expect ',' after sequence index variable");
+    Advance();
+
+    std::shared_ptr<Expr> term = Expression();
+    Check(TokenID::COMMA, "Expect ',' after sequence general term");
+    Advance();
+
+    CheckBinaryOperator(cur.type);
+    TokenID op = cur.type;
+    Advance();
+    Check(TokenID::CLOSE_PAR, "Expect ')' at end of sequence declaration");
+    return std::make_shared<Sequence>(start, step, end, var, term, op, loc);
 }
 
 std::shared_ptr<Expr> Parser::Or()

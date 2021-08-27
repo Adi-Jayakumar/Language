@@ -58,6 +58,8 @@ struct Parser
     std::vector<std::string> CommaSeparatedStrings();
     // parses any expression
     std::shared_ptr<Expr> Expression();
+    // parses a sequence node
+    std::shared_ptr<Expr> ParseSequenceNode();
     // parses an or expression
     std::shared_ptr<Expr> Or();
     // parses an and expression
