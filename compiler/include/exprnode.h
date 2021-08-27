@@ -23,6 +23,9 @@ enum class ExprKind
     TYPE_CAST
 };
 
+// TODO - Change explicit constructors to initalisers
+// and change to pass by reference instead of value
+
 class Expr
 {
 public:
@@ -218,6 +221,40 @@ public:
     bool isDownCast = false;
 
     TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc);
+
+    Token Loc() override;
+    void Print(ASTPrinter &p) override;
+    TypeData Analyse(StaticAnalyser &sa) override;
+    TypeData NodeCompile(Compiler &c) override;
+};
+
+// Sequence of integers, essentially a
+// generalisation of summation/product
+// notation
+class Sequence : public Expr
+{
+public:
+    Token loc;
+    std::shared_ptr<Expr> start;
+    std::shared_ptr<Expr> step;
+    std::shared_ptr<Expr> end;
+    std::shared_ptr<VarReference> var;
+    std::shared_ptr<Expr> term;
+    TokenID op;
+
+    Sequence(std::shared_ptr<Expr> &_start,
+             std::shared_ptr<Expr> &_step,
+             std::shared_ptr<Expr> &_end,
+             std::shared_ptr<VarReference> &_var,
+             std::shared_ptr<Expr> &_term,
+             TokenID _op,
+             Token &_loc) : start(_start),
+                            step(_step),
+                            end(_end),
+                            var(_var),
+                            term(_term),
+                            op(_op),
+                            loc(_loc){};
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
