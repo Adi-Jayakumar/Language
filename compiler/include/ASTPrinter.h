@@ -45,6 +45,7 @@ public:
     void PrintDynamicAllocArray(DynamicAllocArray *da);
     void PrintFieldAccess(FieldAccess *fa);
     void PrintTypeCast(TypeCast *gf);
+    void PrintSequence(Sequence *s);
 
     // statment printing
     void PrintExprStmt(ExprStmt *es);

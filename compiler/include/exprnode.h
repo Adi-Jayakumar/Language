@@ -260,7 +260,10 @@ public:
         kind = ExprKind::SEQUENCE;
     };
 
-    Token Loc() override;
+    Token Loc() override
+    {
+        return loc;
+    };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
