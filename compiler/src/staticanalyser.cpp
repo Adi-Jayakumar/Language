@@ -242,6 +242,36 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     return tc->type;
 }
 
+TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
+{
+    TypeData start = s->start->Analyse(*this);
+    if (start != INT_TYPE)
+        TypeError(s->start->Loc(), "Start of sequence must be of type int");
+
+    TypeData step = s->step->Analyse(*this);
+    if (step != INT_TYPE)
+        TypeError(s->start->Loc(), "Step of sequence must be of type int");
+
+    TypeData end = s->end->Analyse(*this);
+    if (end != INT_TYPE)
+        TypeError(s->start->Loc(), "End of sequence must be of type int");
+
+    VarID *vid = Symbols.GetVar(s->var->name);
+    if (vid != nullptr)
+        StaticAnalysisError(s->var->Loc(), "Indexing variable is already defined");
+
+    TypeData term = s->term->Analyse(*this);
+    if (term != INT_TYPE)
+        TypeError(s->term->Loc(), "Term of Sequence must of of type int");
+
+    if (!CheckOperatorUse(INT_TYPE, s->op, INT_TYPE))
+        StaticAnalysisError(s->term->Loc(), "The operator of a sequence must be able to take 2 integers as arguments");
+
+    if (OperatorResult(INT_TYPE, s->op, INT_TYPE) != INT_TYPE)
+        StaticAnalysisError(s->term->Loc(), "The result of using the operator on 2 integers must be an integer");
+    return INT_TYPE;
+}
+
 //------------------STATEMENTS---------------------//
 
 void StaticAnalyser::AnalyseExprStmt(ExprStmt *es)

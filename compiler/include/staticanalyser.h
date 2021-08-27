@@ -26,6 +26,7 @@ public:
     TypeData AnalyseDynamicAllocArray(DynamicAllocArray *da);
     TypeData AnalyseFieldAccess(FieldAccess *fa);
     TypeData AnalyseTypeCast(TypeCast *tc);
+    TypeData AnalyseSequence(Sequence *s);
 
     // statement analysis
     void AnalyseExprStmt(ExprStmt *es);
