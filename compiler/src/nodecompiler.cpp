@@ -502,6 +502,11 @@ TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
     return tc->type;
 }
 
+TypeData NodeCompiler::CompileSequence(Sequence *, Compiler &)
+{
+    return VOID_TYPE;
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -881,6 +886,11 @@ TypeData FieldAccess::NodeCompile(Compiler &c)
 TypeData TypeCast::NodeCompile(Compiler &c)
 {
     return NodeCompiler::CompileTypeCast(this, c);
+}
+
+TypeData Sequence::NodeCompile(Compiler &c)
+{
+    return NodeCompiler::CompileSequence(this, c);
 }
 
 //------------------STATEMENTS---------------------//

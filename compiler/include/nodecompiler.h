@@ -20,6 +20,7 @@ namespace NodeCompiler
     TypeData CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c);
     TypeData CompileFieldAccess(FieldAccess *fa, Compiler &c);
     TypeData CompileTypeCast(TypeCast *tc, Compiler &c);
+    TypeData CompileSequence(Sequence *s, Compiler &c);
 
     // statement compiling
     void CompileExprStmt(ExprStmt *es, Compiler &c);
