@@ -6,26 +6,22 @@ class PostCondition
 {
     SymbolTable Symbols;
     std::vector<std::vector<SP<Expr>>> post;
+    std::vector<SP<Expr>> conditions;
 
 public:
-    PostCondition() = default;
+    PostCondition()
+    {
+        post.push_back(std::vector<SP<Expr>>());
+    };
 
     void PostConditionError(Token loc, std::string err);
     void Analyse(std::vector<SP<Stmt>> &program);
 
-    // expression analysis
-    void GenerateFromLiteral(Literal *l);
-    void GenerateFromUnary(Unary *u);
-    void GenerateFromBinary(Binary *b);
-    void GenerateFromAssign(Assign *a);
-    void GenerateFromVarReference(VarReference *vr);
-    void GenerateFromFunctionCall(FunctionCall *fc);
-    void GenerateFromArrayIndex(ArrayIndex *ai);
-    void GenerateFromBracedInitialiser(BracedInitialiser *ia);
-    void GenerateFromDynamicAllocArray(DynamicAllocArray *da);
-    void GenerateFromFieldAccess(FieldAccess *fa);
-    void GenerateFromTypeCast(TypeCast *tc);
-    void GenerateFromSequence(Sequence *s);
+    void AddReturnValue(SP<Expr> &ret);
+    void AddCondition(const SP<Expr> &c);
+    void RemoveLastCondition();
+
+    void PostConditionError(Token loc, std::string err);
 
     // statement analysis
     void GenerateFromExprStmt(ExprStmt *es);
