@@ -803,7 +803,7 @@ void NodeCompiler::CompileThrow(Throw *t, Compiler &c)
     c.AddCode({Opcode::THROW, 0});
 }
 
-void NodeCompiler::CompilerTryCatch(TryCatch *tc, Compiler &c)
+void NodeCompiler::CompileTryCatch(TryCatch *tc, Compiler &c)
 {
     ThrowInfo ti;
     ti.func = c.cur - &c.Functions[0];
@@ -952,5 +952,5 @@ void Throw::NodeCompile(Compiler &c)
 
 void TryCatch::NodeCompile(Compiler &c)
 {
-    NodeCompiler::CompilerTryCatch(this, c);
+    NodeCompiler::CompileTryCatch(this, c);
 }
