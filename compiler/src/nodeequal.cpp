@@ -131,8 +131,6 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
     case StmtKind::BLOCK:
     {
         GET_NODE_KIND(Block);
-        if (l->depth != r->depth)
-            return false;
 
         for (size_t i = 0; i < l->stmts.size(); i++)
         {
