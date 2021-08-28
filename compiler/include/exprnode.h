@@ -42,7 +42,6 @@ public:
     virtual TypeData Analyse(StaticAnalyser &sa) = 0;
     // compiles the node - implmented in Compiler.cpp
     virtual TypeData NodeCompile(Compiler &c) = 0;
-    virtual void GeneratePost(PostCondition &pc) = 0;
     // virtual ~Expr() = 0;
 };
 
@@ -71,7 +70,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
     // bool IsTruthy() override;
 };
 
@@ -88,7 +86,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
     // bool IsTruthy() override;
 };
 
@@ -106,7 +103,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
     // bool IsTruthy() override;
 };
 
@@ -124,7 +120,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
     // bool IsTruthy() override;
 };
 
@@ -142,7 +137,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
     // bool IsTruthy() override;
 };
 
@@ -160,7 +154,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 class ArrayIndex : public Expr
@@ -176,7 +169,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 class BracedInitialiser : public Expr
@@ -193,7 +185,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 class DynamicAllocArray : public Expr
@@ -209,7 +200,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 class FieldAccess : public Expr
@@ -225,7 +215,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 class TypeCast : public Expr
@@ -242,7 +231,6 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
 
 // Sequence of integers, essentially a
@@ -283,5 +271,4 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    void GeneratePost(PostCondition &pc) override;
 };
