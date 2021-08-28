@@ -1,9 +1,51 @@
 #include "constevaluator.h"
 
-inline bool IS_LITERAL(SP<Expr> &expr)
-{
-    return dynamic_cast<Literal *>(expr.get()) != nullptr;
-}
+#define IS(x)                     \
+    x(LITERAL, Expr);             \
+    x(UNARY, Expr);               \
+    x(BINARY, Expr);              \
+    x(VAR_REFERENCE, Expr);       \
+    x(ASSIGN, Expr);              \
+    x(FUNCTION_CALL, Expr);       \
+    x(ARRAY_INDEX, Expr);         \
+    x(BRACED_INITIALISER, Expr);  \
+    x(DYNAMIC_ALLOC_ARRAY, Expr); \
+    x(FIELD_ACCESS, Expr);        \
+    x(TYPE_CAST, Expr);           \
+    x(SEQUENCE, Expr);            \
+    x(EXPR_STMT, Stmt);           \
+    x(DECLARED_VAR, Stmt);        \
+    x(BLOCK, Stmt);               \
+    x(IF_STMT, Stmt);             \
+    x(WHILE_STMT, Stmt);          \
+    x(FUNC_DECL, Stmt);           \
+    x(RETURN, Stmt);              \
+    x(STRUCT_DECL, Stmt);         \
+    x(IMPORT_STMT, Stmt);         \
+    x(BREAK, Stmt);               \
+    x(THROW, Stmt);               \
+    x(TRY_CATCH, Stmt);
+
+#define x(nodekind, node)                           \
+    inline bool IS_##nodekind(const SP<node> &expr) \
+    {                                               \
+        return expr->kind == node##Kind::nodekind;  \
+    }
+
+IS(x);
+#undef x
+#undef Kind
+
+// TODO define these:
+
+// Checks if these 2 nodes are exactly equal
+extern bool
+Equal(const SP<Expr> &left, const SP<Expr> &right);
+extern bool Equal(const SP<Stmt> &left, const SP<Stmt> &right);
+
+// Substitutes all occurances of node in tree with val
+extern void SubstituteNode(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &val);
+extern void SubstituteNode(SP<Stmt> &tree, SP<Stmt> &node, SP<Stmt> &val);
 
 SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
 {
@@ -35,7 +77,11 @@ SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
         b->right = SimplifyExpression(b->right);
 
         if (!IS_LITERAL(b->left) || !IS_LITERAL(b->right))
+        {
+            if (IS_SEQUENCE(b->left) || IS_SEQUENCE(b->right))
+                return BINARY_SEQUENCE(b, IS_SEQUENCE(b->left));
             return expr;
+        }
 
         if (b->op.type == TokenID::PLUS)
             return BINARY_PLUS(b);
@@ -109,6 +155,15 @@ SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
         SP<TypeCast> tc = std::dynamic_pointer_cast<TypeCast>(expr);
         tc->arg = SimplifyExpression(tc->arg);
         return tc;
+    }
+    case ExprKind::SEQUENCE:
+    {
+        SP<Sequence> s = std::dynamic_pointer_cast<Sequence>(expr);
+        s->start = SimplifyExpression(s->start);
+        s->step = SimplifyExpression(s->step);
+        s->end = SimplifyExpression(s->end);
+        s->term = SimplifyExpression(s->term);
+        return s;
     }
     }
     return nullptr;
@@ -222,6 +277,7 @@ inline char STRING_TO_CHAR(const std::string &s)
 #define NOTHING
 GETTER(x)
 #undef x
+#undef NOTHING
 
 SP<Expr> ConstantEvaluator::UNARY_MINUS(SP<Unary> &u)
 {
@@ -242,6 +298,24 @@ SP<Expr> ConstantEvaluator::UNARY_BANG(SP<Unary> &u)
         return u;
 
     return std::make_shared<Literal>(right->Loc(), !GET_BOOL(right));
+}
+
+SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
+{
+    SP<Sequence> seq;
+    SP<Expr> val;
+    if (leftSeq)
+    {
+        seq = std::dynamic_pointer_cast<Sequence>(b->left);
+        val = b->right;
+    }
+    else
+    {
+        seq = std::dynamic_pointer_cast<Sequence>(b->right);
+        val = b->left;
+    }
+
+    return nullptr;
 }
 
 SP<Expr> ConstantEvaluator::BINARY_PLUS(SP<Binary> &b)

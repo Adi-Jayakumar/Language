@@ -12,6 +12,7 @@ namespace ConstantEvaluator
     SP<Expr> UNARY_MINUS(SP<Unary> &u);
     SP<Expr> UNARY_BANG(SP<Unary> &u);
 
+    SP<Expr> BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq);
     SP<Expr> BINARY_PLUS(SP<Binary> &b);
     SP<Expr> BINARY_MINUS(SP<Binary> &b);
     SP<Expr> BINARY_STAR(SP<Binary> &b);

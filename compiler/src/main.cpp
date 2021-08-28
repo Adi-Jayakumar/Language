@@ -3,6 +3,7 @@
 #include "compiler.h"
 #include "parser.h"
 #include "serialise.h"
+#include "staticanalyser.h"
 #include "verifier.h"
 
 void DumpTokens(std::string fPath)
@@ -58,6 +59,10 @@ int main(int argc, char **argv)
             stmt->Print(ast);
         ast.Flush();
     }
+
+    StaticAnalyser sa;
+    sa.Analyse(parsed);
+    
 
     Compiler c;
     c.Compile(parsed);
