@@ -39,7 +39,7 @@ An implementation of a C-style statically typed language that compiles down to a
 
 # Known bugs TODO
  - [x] Overloading of functions where the overloaded types are assignable to each other
-    - MWE:
+    - MBE:
         ```C
         function void Foo(int i){...}
         function void Foo(double d){...}
@@ -49,6 +49,17 @@ An implementation of a C-style statically typed language that compiles down to a
                    // first and ints can be assigned to doubles 
         ```
  - [x] Put parsed library functions into different container than normal functions
+ - [ ] Implicit type conversions for elements of braced initialisers are not implemented
+    - MBE:
+        ```C
+        Array<int> arr = {3.141, 1.618, 1.414};
+        // compiled as:
+        // LOAD_DOUBLE 0 (value 3.141) should be --> LOAD_INT 0 (value 3)
+        // LOAD_DOUBLE 1 (value 1.618) should be --> LOAD_INT 1 (value 1)
+        // LOAD_DOUBLE 2 (value 1.414) should be --> LOAD_INT 2 (value 1)
+        // etc.
+        ```
+
 
 # Example Programs
 
