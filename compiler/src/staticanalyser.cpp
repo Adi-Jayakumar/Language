@@ -5,7 +5,7 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
-void StaticAnalyser::Analyse(std::vector<std::shared_ptr<Stmt>> &program)
+void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &program)
 {
     for (const auto &stmt : program)
         stmt->Analyse(*this);
@@ -406,7 +406,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
     TypeData parent = sd->parent;
     std::vector<std::string> memberNames;
     std::vector<TypeData> memTypes;
-    std::vector<std::shared_ptr<Expr>> init;
+    std::vector<SP<Expr>> init;
     std::unordered_map<std::string, TypeData> nameTypes;
 
     if (parent != VOID_TYPE)

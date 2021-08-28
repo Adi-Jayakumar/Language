@@ -4,6 +4,9 @@
 #include <cstring>
 #include <memory>
 
+template <class T>
+using SP = std::shared_ptr<T>;
+
 class ASTPrinter;
 class Compiler;
 class StaticAnalyser;
@@ -73,9 +76,9 @@ class Unary : public Expr
 {
 public:
     Token op;
-    std::shared_ptr<Expr> right;
+    SP<Expr> right;
 
-    Unary(Token, std::shared_ptr<Expr>);
+    Unary(Token, SP<Expr>);
     // ~Unary() override = default;
 
     Token Loc() override;
@@ -88,11 +91,11 @@ public:
 class Binary : public Expr
 {
 public:
-    std::shared_ptr<Expr> left;
+    SP<Expr> left;
     Token op;
-    std::shared_ptr<Expr> right;
+    SP<Expr> right;
 
-    Binary(std::shared_ptr<Expr>, Token, std::shared_ptr<Expr>);
+    Binary(SP<Expr>, Token, SP<Expr>);
     // ~Binary() override = default;
 
     Token Loc() override;
@@ -123,10 +126,10 @@ class Assign : public Expr
 {
 public:
     Token loc;
-    std::shared_ptr<Expr> target;
-    std::shared_ptr<Expr> val;
+    SP<Expr> target;
+    SP<Expr> val;
 
-    Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc);
+    Assign(SP<Expr> _target, SP<Expr> _val, Token _loc);
     // ~Assign() override = default;
 
     Token Loc() override;
@@ -142,9 +145,9 @@ public:
     Token loc;
     std::string name;
     std::vector<TypeData> templates;
-    std::vector<std::shared_ptr<Expr>> args;
+    std::vector<SP<Expr>> args;
 
-    FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<std::shared_ptr<Expr>> _args, Token _loc);
+    FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<SP<Expr>> _args, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -156,10 +159,10 @@ class ArrayIndex : public Expr
 {
 public:
     Token loc;
-    std::shared_ptr<Expr> name;
-    std::shared_ptr<Expr> index;
+    SP<Expr> name;
+    SP<Expr> index;
 
-    ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc);
+    ArrayIndex(SP<Expr> _name, SP<Expr> _index, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -173,9 +176,9 @@ public:
     TypeData t;
     Token loc;
     size_t size;
-    std::vector<std::shared_ptr<Expr>> init;
+    std::vector<SP<Expr>> init;
 
-    BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc);
+    BracedInitialiser(size_t _size, std::vector<SP<Expr>> _init, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -188,9 +191,9 @@ class DynamicAllocArray : public Expr
 public:
     TypeData t;
     Token loc;
-    std::shared_ptr<Expr> size;
+    SP<Expr> size;
 
-    DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc);
+    DynamicAllocArray(TypeData _t, SP<Expr> _size, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -202,10 +205,10 @@ class FieldAccess : public Expr
 {
 public:
     Token loc;
-    std::shared_ptr<Expr> accessor;
-    std::shared_ptr<Expr> accessee;
+    SP<Expr> accessor;
+    SP<Expr> accessee;
 
-    FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc);
+    FieldAccess(SP<Expr> _accessor, SP<Expr> _accessee, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -218,10 +221,10 @@ class TypeCast : public Expr
 public:
     Token loc;
     TypeData type;
-    std::shared_ptr<Expr> arg;
+    SP<Expr> arg;
     bool isDownCast = false;
 
-    TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc);
+    TypeCast(TypeData _type, SP<Expr> _arg, Token _loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -236,18 +239,18 @@ class Sequence : public Expr
 {
 public:
     Token loc;
-    std::shared_ptr<Expr> start;
-    std::shared_ptr<Expr> step;
-    std::shared_ptr<Expr> end;
-    std::shared_ptr<VarReference> var;
-    std::shared_ptr<Expr> term;
+    SP<Expr> start;
+    SP<Expr> step;
+    SP<Expr> end;
+    SP<VarReference> var;
+    SP<Expr> term;
     TokenID op;
 
-    Sequence(std::shared_ptr<Expr> &_start,
-             std::shared_ptr<Expr> &_step,
-             std::shared_ptr<Expr> &_end,
-             std::shared_ptr<VarReference> &_var,
-             std::shared_ptr<Expr> &_term,
+    Sequence(SP<Expr> &_start,
+             SP<Expr> &_step,
+             SP<Expr> &_end,
+             SP<VarReference> &_var,
+             SP<Expr> &_term,
              TokenID _op,
              Token &_loc) : loc(_loc),
                             start(_start),

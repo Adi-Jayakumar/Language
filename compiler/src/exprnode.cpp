@@ -13,7 +13,7 @@ Token Literal::Loc()
     return loc;
 }
 
-Unary::Unary(Token _op, std::shared_ptr<Expr> _right)
+Unary::Unary(Token _op, SP<Expr> _right)
 {
     kind = ExprKind::UNARY;
     op = _op;
@@ -25,7 +25,7 @@ Token Unary::Loc()
     return op;
 }
 
-Binary::Binary(std::shared_ptr<Expr> _left, Token _op, std::shared_ptr<Expr> _right)
+Binary::Binary(SP<Expr> _left, Token _op, SP<Expr> _right)
 {
     kind = ExprKind::BINARY;
     left = _left;
@@ -38,7 +38,7 @@ Token Binary::Loc()
     return op;
 }
 
-Assign::Assign(std::shared_ptr<Expr> _target, std::shared_ptr<Expr> _val, Token _loc)
+Assign::Assign(SP<Expr> _target, SP<Expr> _val, Token _loc)
 {
     kind = ExprKind::ASSIGN;
     target = _target;
@@ -62,7 +62,7 @@ Token VarReference::Loc()
     return loc;
 }
 
-FunctionCall::FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<std::shared_ptr<Expr>> _args, Token _loc)
+FunctionCall::FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<SP<Expr>> _args, Token _loc)
 {
     kind = ExprKind::FUNCTION_CALL;
     name = _name;
@@ -76,7 +76,7 @@ Token FunctionCall::Loc()
     return loc;
 }
 
-ArrayIndex::ArrayIndex(std::shared_ptr<Expr> _name, std::shared_ptr<Expr> _index, Token _loc)
+ArrayIndex::ArrayIndex(SP<Expr> _name, SP<Expr> _index, Token _loc)
 {
     kind = ExprKind::ARRAY_INDEX;
     name = _name;
@@ -89,7 +89,7 @@ Token ArrayIndex::Loc()
     return loc;
 }
 
-BracedInitialiser::BracedInitialiser(size_t _size, std::vector<std::shared_ptr<Expr>> _init, Token _loc)
+BracedInitialiser::BracedInitialiser(size_t _size, std::vector<SP<Expr>> _init, Token _loc)
 {
     kind = ExprKind::BRACED_INITIALISER;
     size = _size;
@@ -102,7 +102,7 @@ Token BracedInitialiser::Loc()
     return loc;
 }
 
-DynamicAllocArray::DynamicAllocArray(TypeData _t, std::shared_ptr<Expr> _size, Token _loc)
+DynamicAllocArray::DynamicAllocArray(TypeData _t, SP<Expr> _size, Token _loc)
 {
     kind = ExprKind::DYNAMIC_ALLOC_ARRAY;
     t = _t;
@@ -115,7 +115,7 @@ Token DynamicAllocArray::Loc()
     return loc;
 }
 
-FieldAccess::FieldAccess(std::shared_ptr<Expr> _accessor, std::shared_ptr<Expr> _accessee, Token _loc)
+FieldAccess::FieldAccess(SP<Expr> _accessor, SP<Expr> _accessee, Token _loc)
 {
     kind = ExprKind::FIELD_ACCESS;
     accessor = _accessor;
@@ -128,7 +128,7 @@ Token FieldAccess::Loc()
     return loc;
 }
 
-TypeCast::TypeCast(TypeData _type, std::shared_ptr<Expr> _arg, Token _loc)
+TypeCast::TypeCast(TypeData _type, SP<Expr> _arg, Token _loc)
 {
     kind = ExprKind::TYPE_CAST;
     type = _type;

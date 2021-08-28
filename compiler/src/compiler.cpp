@@ -75,7 +75,7 @@ size_t Compiler::GetVariableStackLoc(std::string &name)
     return Symbols.GetVariableStackLoc(name);
 }
 
-void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
+void Compiler::Compile(std::vector<SP<Stmt>> &s)
 {
     mainIndex = MAX_OPRAND;
     size_t numFunctions = 0;

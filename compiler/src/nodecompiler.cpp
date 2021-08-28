@@ -726,7 +726,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
     TypeData parent = sd->parent;
     std::vector<std::string> memberNames;
     std::vector<TypeData> memTypes;
-    std::vector<std::shared_ptr<Expr>> init;
+    std::vector<SP<Expr>> init;
     std::unordered_map<std::string, TypeData> nameTypes;
 
     if (parent != VOID_TYPE)

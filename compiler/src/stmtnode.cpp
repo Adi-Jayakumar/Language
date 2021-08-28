@@ -1,6 +1,6 @@
 #include "stmtnode.h"
 
-ExprStmt::ExprStmt(std::shared_ptr<Expr> _exp, Token _loc)
+ExprStmt::ExprStmt(SP<Expr> _exp, Token _loc)
 {
     kind = StmtKind::EXPR_STMT;
     exp = std::move(_exp);
@@ -12,7 +12,7 @@ Token ExprStmt::Loc()
     return loc;
 }
 
-DeclaredVar::DeclaredVar(TypeData _t, std::string _name, std::shared_ptr<Expr> _value, Token _loc)
+DeclaredVar::DeclaredVar(TypeData _t, std::string _name, SP<Expr> _value, Token _loc)
 {
     kind = StmtKind::DECLARED_VAR;
     t = _t;
@@ -38,7 +38,7 @@ Token Block::Loc()
     return loc;
 }
 
-IfStmt::IfStmt(std::shared_ptr<Expr> _cond, std::shared_ptr<Stmt> _thenBranch, std::shared_ptr<Stmt> _elseBranch, Token _loc)
+IfStmt::IfStmt(SP<Expr> _cond, SP<Stmt> _thenBranch, SP<Stmt> _elseBranch, Token _loc)
 {
     kind = StmtKind::IF_STMT;
     cond = _cond;
@@ -52,7 +52,7 @@ Token IfStmt::Loc()
     return loc;
 }
 
-WhileStmt::WhileStmt(std::shared_ptr<Expr> _cond, std::shared_ptr<Stmt> _body, Token _loc)
+WhileStmt::WhileStmt(SP<Expr> _cond, SP<Stmt> _body, Token _loc)
 {
     kind = StmtKind::WHILE_STMT;
     cond = _cond;
@@ -68,9 +68,9 @@ Token WhileStmt::Loc()
 FuncDecl::FuncDecl(TypeData _ret,
                    std::string &_name,
                    std::vector<std::pair<TypeData, std::string>> &_params,
-                   std::vector<std::shared_ptr<Stmt>> &_body,
-                   std::vector<std::shared_ptr<Expr>> &_preConds,
-                   std::shared_ptr<Expr> &_postCond,
+                   std::vector<SP<Stmt>> &_body,
+                   std::vector<SP<Expr>> &_preConds,
+                   SP<Expr> &_postCond,
                    Token _loc)
 {
     kind = StmtKind::FUNC_DECL;
@@ -91,7 +91,7 @@ Token FuncDecl::Loc()
     return loc;
 }
 
-Return::Return(std::shared_ptr<Expr> _retVal, Token _loc)
+Return::Return(SP<Expr> _retVal, Token _loc)
 {
     kind = StmtKind::RETURN;
     retVal = _retVal;
@@ -103,7 +103,7 @@ Token Return::Loc()
     return loc;
 }
 
-StructDecl::StructDecl(std::string &_name, TypeData &_parent, std::vector<std::shared_ptr<Stmt>> &_decls, Token _loc)
+StructDecl::StructDecl(std::string &_name, TypeData &_parent, std::vector<SP<Stmt>> &_decls, Token _loc)
 {
     kind = StmtKind::STRUCT_DECL;
     name = _name;
@@ -140,7 +140,7 @@ Token Break::Loc()
     return loc;
 }
 
-Throw::Throw(std::shared_ptr<Expr> &_exp, Token &_loc)
+Throw::Throw(SP<Expr> &_exp, Token &_loc)
 {
     kind = StmtKind::THROW;
     exp = _exp;
@@ -152,7 +152,7 @@ Token Throw::Loc()
     return loc;
 }
 
-TryCatch::TryCatch(std::shared_ptr<Stmt> &_tryClause, std::shared_ptr<Stmt> &_catchClause, std::pair<TypeData, std::string> &_catchVar, Token &_loc)
+TryCatch::TryCatch(SP<Stmt> &_tryClause, SP<Stmt> &_catchClause, std::pair<TypeData, std::string> &_catchVar, Token &_loc)
 {
     kind = StmtKind::TRY_CATCH;
     tryClause = _tryClause;

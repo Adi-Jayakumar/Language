@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     std::string ifPath = arg.GetArgVal("-f");
 
     Parser p(ifPath);
-    std::vector<std::shared_ptr<Stmt>> parsed = p.Parse();
+    std::vector<SP<Stmt>> parsed = p.Parse();
 
     if (arg.IsSwitchOn("-l"))
     {

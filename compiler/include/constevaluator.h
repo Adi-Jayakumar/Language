@@ -1,8 +1,5 @@
 #include "stmtnode.h"
 
-template <class T>
-using SP = std::shared_ptr<T>;
-
 namespace ConstantEvaluator
 {
     SP<Expr> SimplifyExpression(SP<Expr> &expr);

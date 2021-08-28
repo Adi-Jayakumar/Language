@@ -12,7 +12,7 @@ public:
     void TypeError(Token loc, std::string err);
     void SymbolError(Token loc, std::string err);
 
-    void Analyse(std::vector<std::shared_ptr<Stmt>> &program);
+    void Analyse(std::vector<SP<Stmt>> &program);
 
     // expression analysis
     TypeData AnalyseLiteral(Literal *l);

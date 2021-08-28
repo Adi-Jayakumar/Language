@@ -34,8 +34,8 @@ public:
 class ExprStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> exp;
-    ExprStmt(std::shared_ptr<Expr>, Token);
+    SP<Expr> exp;
+    ExprStmt(SP<Expr>, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -48,8 +48,8 @@ class DeclaredVar : public Stmt
 public:
     TypeData t;
     std::string name;
-    std::shared_ptr<Expr> value;
-    DeclaredVar(TypeData, std::string, std::shared_ptr<Expr>, Token);
+    SP<Expr> value;
+    DeclaredVar(TypeData, std::string, SP<Expr>, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -61,7 +61,7 @@ class Block : public Stmt
 {
 public:
     uint8_t depth;
-    std::vector<std::shared_ptr<Stmt>> stmts;
+    std::vector<SP<Stmt>> stmts;
     Block(uint8_t, Token);
 
     Token Loc() override;
@@ -73,10 +73,10 @@ public:
 class IfStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> cond;
-    std::shared_ptr<Stmt> thenBranch;
-    std::shared_ptr<Stmt> elseBranch;
-    IfStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, std::shared_ptr<Stmt>, Token);
+    SP<Expr> cond;
+    SP<Stmt> thenBranch;
+    SP<Stmt> elseBranch;
+    IfStmt(SP<Expr>, SP<Stmt>, SP<Stmt>, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -87,11 +87,11 @@ public:
 class WhileStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> cond;
-    std::shared_ptr<Stmt> body;
+    SP<Expr> cond;
+    SP<Stmt> body;
     Token loc;
 
-    WhileStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, Token);
+    WhileStmt(SP<Expr>, SP<Stmt>, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -106,19 +106,19 @@ public:
     std::string name;
     std::vector<std::pair<TypeData, std::string>> params;
 
-    std::vector<std::shared_ptr<Stmt>> body;
-    std::vector<std::shared_ptr<Expr>> preConds;
+    std::vector<SP<Stmt>> body;
+    std::vector<SP<Expr>> preConds;
 
     std::vector<std::pair<TypeData, std::string>> templates;
 
-    std::shared_ptr<Expr> postCond;
+    SP<Expr> postCond;
 
     FuncDecl(TypeData _ret,
              std::string &_name,
              std::vector<std::pair<TypeData, std::string>> &_params,
-             std::vector<std::shared_ptr<Stmt>> &_body,
-             std::vector<std::shared_ptr<Expr>> &_preConds,
-             std::shared_ptr<Expr> &_postCond,
+             std::vector<SP<Stmt>> &_body,
+             std::vector<SP<Expr>> &_preConds,
+             SP<Expr> &_postCond,
              Token _loc);
 
     Token Loc() override;
@@ -130,9 +130,9 @@ public:
 class Return : public Stmt
 {
 public:
-    std::shared_ptr<Expr> retVal;
+    SP<Expr> retVal;
 
-    Return(std::shared_ptr<Expr>, Token);
+    Return(SP<Expr>, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -145,8 +145,8 @@ class StructDecl : public Stmt
 public:
     std::string name;
     TypeData parent = VOID_TYPE;
-    std::vector<std::shared_ptr<Stmt>> decls;
-    StructDecl(std::string &, TypeData &parent, std::vector<std::shared_ptr<Stmt>> &, Token);
+    std::vector<SP<Stmt>> decls;
+    StructDecl(std::string &, TypeData &parent, std::vector<SP<Stmt>> &, Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -185,8 +185,8 @@ public:
 class Throw : public Stmt
 {
 public:
-    std::shared_ptr<Expr> exp;
-    Throw(std::shared_ptr<Expr> &, Token &);
+    SP<Expr> exp;
+    Throw(SP<Expr> &, Token &);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;
@@ -197,10 +197,10 @@ public:
 class TryCatch : public Stmt
 {
 public:
-    std::shared_ptr<Stmt> tryClause, catchClause;
+    SP<Stmt> tryClause, catchClause;
     std::pair<TypeData, std::string> catchVar;
 
-    TryCatch(std::shared_ptr<Stmt> &, std::shared_ptr<Stmt> &, std::pair<TypeData, std::string> &, Token &);
+    TryCatch(SP<Stmt> &, SP<Stmt> &, std::pair<TypeData, std::string> &, Token &);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

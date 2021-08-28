@@ -55,7 +55,7 @@ public:
     size_t GetVariableStackLoc(std::string &name);
 
     // sets the index of the 'void Main()' function
-    void Compile(std::vector<std::shared_ptr<Stmt>> &s);
+    void Compile(std::vector<SP<Stmt>> &s);
     void Disassemble();
 
     void ClearCurrentDepthWithPOPInst();
