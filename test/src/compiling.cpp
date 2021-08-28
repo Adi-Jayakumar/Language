@@ -10,15 +10,14 @@ inline bool FileExists(std::string file)
 void CompileFile(std::string file, std::string out)
 {
     Parser p("scripts/" + file + ".txt");
-    std::vector<std::shared_ptr<Stmt>> program = p.Parse();
+    std::vector<SP<Stmt>> program = p.Parse();
     StaticAnalyser s;
 
-    for (auto &stmt : program)
-        stmt->Type(s);
+    s.Analyse(program);
 
     Compiler c;
     c.Compile(program);
-    
+
     if (!FileExists(out))
         Compiler::SerialiseProgram(c, out);
 }
