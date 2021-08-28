@@ -15,13 +15,11 @@ public:
     };
 
     void PostConditionError(Token loc, std::string err);
-    void Analyse(std::vector<SP<Stmt>> &program);
+    std::vector<std::vector<SP<Expr>>> Generate(SP<Stmt> &function);
 
-    void AddReturnValue(SP<Expr> &ret);
+    void AddReturnValue(const SP<Expr> &ret);
     void AddCondition(const SP<Expr> &c);
     void RemoveLastCondition();
-
-    void PostConditionError(Token loc, std::string err);
 
     // statement analysis
     void GenerateFromExprStmt(ExprStmt *es);

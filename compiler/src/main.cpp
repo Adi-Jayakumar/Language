@@ -3,9 +3,9 @@
 #include "compiler.h"
 #include "nodesubstitution.h"
 #include "parser.h"
+#include "postcondition.h"
 #include "serialise.h"
 #include "staticanalyser.h"
-#include "verifier.h"
 
 void DumpTokens(std::string fPath)
 {
@@ -18,6 +18,34 @@ void DumpTokens(std::string fPath)
         p.Advance();
     }
     std::cout << p.cur << std::endl;
+}
+
+void PrintPost(std::vector<std::vector<SP<Expr>>> &post)
+{
+    ASTPrinter ast(false);
+    ast << "[";
+    for (size_t i = 0; i < post.size(); i++)
+    {
+        std::vector<std::shared_ptr<Expr>> conj = post[i];
+
+        // langle 〈
+        ast << "\u3008";
+        for (size_t j = 0; j < conj.size(); j++)
+        {
+            conj[j]->Print(ast);
+
+            if (j != conj.size() - 1)
+                ast << " && ";
+        }
+        ast << "\u3009";
+        // rangle 〉
+
+        if (i != post.size() - 1)
+            ast << " || ";
+    }
+    ast << "]"
+        << "\n";
+    ast.Flush();
 }
 
 #ifdef COMPILE_FOR_TEST
@@ -60,6 +88,10 @@ int main(int argc, char **argv)
             stmt->Print(ast);
         ast.Flush();
     }
+
+    PostCondition pc;
+    std::vector<std::vector<SP<Expr>>> post = pc.Generate(parsed[0]);
+    PrintPost(post);
 
     // StaticAnalyser sa;
     // sa.Analyse(parsed);

@@ -1,4 +1,4 @@
-#include "verifier.h"
+#include "postcondition.h"
 
 inline SP<Expr> NEGATE(const SP<Expr> &cond)
 {
@@ -6,7 +6,16 @@ inline SP<Expr> NEGATE(const SP<Expr> &cond)
     return std::make_shared<Unary>(loc, cond);
 }
 
-void PostCondition::AddReturnValue(SP<Expr> &ret)
+inline SP<Expr> MAKE_RETURN(const SP<Expr> &val)
+{
+    Token resLoc = Token(TokenID::IDEN, "result", val->Loc().line);
+    SP<Expr> result = std::make_shared<VarReference>(resLoc);
+
+    Token eqeqLoc = Token(TokenID::EQ_EQ, "==", val->Loc().line);
+    return std::make_shared<Binary>(result, eqeqLoc, val);
+}
+
+void PostCondition::AddReturnValue(const SP<Expr> &ret)
 {
     for (auto &c : conditions)
         post.back().push_back(c);
@@ -29,6 +38,12 @@ void PostCondition::PostConditionError(Token loc, std::string err)
 {
     Error e = Error("[POST CONDITION ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
     throw e;
+}
+
+std::vector<std::vector<SP<Expr>>> PostCondition::Generate(SP<Stmt> &function)
+{
+    function->GeneratePost(*this);
+    return post;
 }
 
 //------------------STATEMENTS---------------------//
@@ -80,7 +95,7 @@ void PostCondition::GenerateFromReturn(Return *r)
     if (r->retVal == nullptr)
         PostConditionError(r->Loc(), "Cannot generate post condition for a void-return");
 
-    AddReturnValue(r->retVal);
+    AddReturnValue(MAKE_RETURN(r->retVal));
 }
 
 void PostCondition::GenerateFromStructDecl(StructDecl *)
