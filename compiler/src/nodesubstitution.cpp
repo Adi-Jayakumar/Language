@@ -107,6 +107,16 @@ void NodeSubstitution::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &val)
     case StmtKind::DECLARED_VAR:
     {
         SP<DeclaredVar> dv = std::dynamic_pointer_cast<DeclaredVar>(tree);
+
+        if (node->kind == ExprKind::VAR_REFERENCE &&
+            val->kind == ExprKind::VAR_REFERENCE)
+        {
+            SP<VarReference> vNode = std::dynamic_pointer_cast<VarReference>(node);
+            SP<VarReference> vVal = std::dynamic_pointer_cast<VarReference>(val);
+            if (dv->name == vNode->name)
+                dv->name = vVal->name;
+        }
+
         dv->value = Substitute(dv->value, node, val);
         break;
     }
@@ -142,7 +152,7 @@ void NodeSubstitution::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &val)
     case StmtKind::RETURN:
     {
         SP<Return> r = std::dynamic_pointer_cast<Return>(tree);
-        r->retVal = (r->retVal, node, val);
+        r->retVal = Substitute(r->retVal, node, val);
         break;
     }
     case StmtKind::STRUCT_DECL:

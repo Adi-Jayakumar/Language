@@ -1,6 +1,7 @@
 #include "ASTPrinter.h"
 #include "argparser.h"
 #include "compiler.h"
+#include "nodesubstitution.h"
 #include "parser.h"
 #include "serialise.h"
 #include "staticanalyser.h"
@@ -60,18 +61,34 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    StaticAnalyser sa;
-    sa.Analyse(parsed);
-    
+    std::shared_ptr<Expr> x = std::make_shared<VarReference>(Token(TokenID::IDEN, "x", 0));
+    // std::shared_ptr<Expr> y = std::make_shared<VarReference>(Token(TokenID::IDEN, "y", 0));
+    std::shared_ptr<Expr> res = std::make_shared<Literal>(1000);
 
-    Compiler c;
-    c.Compile(parsed);
+    for (auto &stmt : parsed)
+        NodeSubstitution::Substitute(stmt, x, res);
 
-    if (arg.IsSwitchOn("-c"))
+    if (arg.IsSwitchOn("-p"))
     {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
+        std::cout << "PARSED" << std::endl;
+        ASTPrinter ast(false);
+
+        for (auto &stmt : parsed)
+            stmt->Print(ast);
+        ast.Flush();
     }
+
+    // StaticAnalyser sa;
+    // sa.Analyse(parsed);
+
+    // Compiler c;
+    // c.Compile(parsed);
+
+    // if (arg.IsSwitchOn("-c"))
+    // {
+    //     std::cout << "\n\nCOMPILED" << std::endl;
+    //     c.Disassemble();
+    // }
 
     // Verifier v;
     // v.SetFunction(c.Functions[1]);
