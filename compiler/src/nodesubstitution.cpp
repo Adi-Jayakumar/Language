@@ -91,6 +91,78 @@ SP<Expr> NodeSubstitution::Substitute(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &
     return tree;
 }
 
-SP<Stmt> NodeSubstitution::Substitute(SP<Stmt> &tree, SP<Stmt> &node, SP<Stmt> &val)
+void NodeSubstitution::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &val)
 {
+    if (tree == nullptr)
+        return;
+
+    switch (tree->kind)
+    {
+    case StmtKind::EXPR_STMT:
+    {
+        SP<ExprStmt> es = std::dynamic_pointer_cast<ExprStmt>(tree);
+        es->exp = Substitute(es->exp, node, val);
+        break;
+    }
+    case StmtKind::DECLARED_VAR:
+    {
+        SP<DeclaredVar> dv = std::dynamic_pointer_cast<DeclaredVar>(tree);
+        dv->value = Substitute(dv->value, node, val);
+        break;
+    }
+    case StmtKind::BLOCK:
+    {
+        SP<Block> b = std::dynamic_pointer_cast<Block>(tree);
+        for (auto &stmt : b->stmts)
+            Substitute(stmt, node, val);
+        break;
+    }
+    case StmtKind::IF_STMT:
+    {
+        SP<IfStmt> i = std::dynamic_pointer_cast<IfStmt>(tree);
+        i->cond = Substitute(i->cond, node, val);
+        Substitute(i->thenBranch, node, val);
+        Substitute(i->elseBranch, node, val);
+        break;
+    }
+    case StmtKind::WHILE_STMT:
+    {
+        SP<WhileStmt> w = std::dynamic_pointer_cast<WhileStmt>(tree);
+        w->cond = Substitute(w->cond, node, val);
+        Substitute(w->body, node, val);
+        break;
+    }
+    case StmtKind::FUNC_DECL:
+    {
+        SP<FuncDecl> fd = std::dynamic_pointer_cast<FuncDecl>(tree);
+        for (auto &stmt : fd->body)
+            Substitute(stmt, node, val);
+        break;
+    }
+    case StmtKind::RETURN:
+    {
+        SP<Return> r = std::dynamic_pointer_cast<Return>(tree);
+        r->retVal = (r->retVal, node, val);
+        break;
+    }
+    case StmtKind::STRUCT_DECL:
+    case StmtKind::IMPORT_STMT:
+    case StmtKind::BREAK:
+    {
+        break;
+    }
+    case StmtKind::THROW:
+    {
+        SP<Throw> t = std::dynamic_pointer_cast<Throw>(tree);
+        t->exp = Substitute(t->exp, node, val);
+        break;
+    }
+    case StmtKind::TRY_CATCH:
+    {
+        SP<TryCatch> tc = std::dynamic_pointer_cast<TryCatch>(tree);
+        Substitute(tc->tryClause, node, val);
+        Substitute(tc->catchClause, node, val);
+        break;
+    }
+    }
 }
