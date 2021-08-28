@@ -36,17 +36,6 @@ IS(x);
 #undef x
 #undef Kind
 
-// TODO define these:
-
-// Checks if these 2 nodes are exactly equal
-extern bool
-Equal(const SP<Expr> &left, const SP<Expr> &right);
-extern bool Equal(const SP<Stmt> &left, const SP<Stmt> &right);
-
-// Substitutes all occurances of node in tree with val
-extern void SubstituteNode(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &val);
-extern void SubstituteNode(SP<Stmt> &tree, SP<Stmt> &node, SP<Stmt> &val);
-
 SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
 {
     switch (expr->kind)
