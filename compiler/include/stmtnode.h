@@ -29,6 +29,7 @@ public:
     virtual void Analyse(StaticAnalyser &sa) = 0;
     // compiles the node - implemented in Compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
+    virtual void GeneratePost(PostCondition &v) = 0;
 };
 
 class ExprStmt : public Stmt
@@ -41,6 +42,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class DeclaredVar : public Stmt
@@ -55,6 +57,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class Block : public Stmt
@@ -68,6 +71,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class IfStmt : public Stmt
@@ -82,6 +86,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class WhileStmt : public Stmt
@@ -97,6 +102,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class FuncDecl : public Stmt
@@ -125,6 +131,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class Return : public Stmt
@@ -138,6 +145,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class StructDecl : public Stmt
@@ -152,6 +160,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 /*
@@ -170,6 +179,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class Break : public Stmt
@@ -180,6 +190,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class Throw : public Stmt
@@ -192,6 +203,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
 
 class TryCatch : public Stmt
@@ -206,4 +218,5 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostCondition &pc) override;
 };
