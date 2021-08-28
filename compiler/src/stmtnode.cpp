@@ -26,10 +26,9 @@ Token DeclaredVar::Loc()
     return loc;
 }
 
-Block::Block(uint8_t _depth, Token _loc)
+Block::Block(Token _loc)
 {
     kind = StmtKind::BLOCK;
-    depth = _depth;
     loc = _loc;
 }
 
