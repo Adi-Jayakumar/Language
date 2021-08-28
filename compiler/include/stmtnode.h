@@ -63,9 +63,8 @@ public:
 class Block : public Stmt
 {
 public:
-    uint8_t depth;
     std::vector<SP<Stmt>> stmts;
-    Block(uint8_t, Token);
+    Block(Token);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

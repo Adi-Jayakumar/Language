@@ -446,7 +446,7 @@ SP<Block> Parser::ParseBlock()
 {
     Advance();
     depth++;
-    SP<Block> result = std::make_shared<Block>(depth, cur);
+    SP<Block> result = std::make_shared<Block>(cur);
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
         try
