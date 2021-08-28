@@ -61,23 +61,6 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    std::shared_ptr<Expr> x = std::make_shared<VarReference>(Token(TokenID::IDEN, "x", 0));
-    // std::shared_ptr<Expr> y = std::make_shared<VarReference>(Token(TokenID::IDEN, "y", 0));
-    std::shared_ptr<Expr> res = std::make_shared<Literal>(1000);
-
-    for (auto &stmt : parsed)
-        NodeSubstitution::Substitute(stmt, x, res);
-
-    if (arg.IsSwitchOn("-p"))
-    {
-        std::cout << "PARSED" << std::endl;
-        ASTPrinter ast(false);
-
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
-
     // StaticAnalyser sa;
     // sa.Analyse(parsed);
 
