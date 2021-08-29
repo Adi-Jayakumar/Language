@@ -28,9 +28,8 @@ bool NodeEqual::Equal(const SP<Expr> &left, const SP<Expr> &right)
     case ExprKind::BINARY:
     {
         GET_NODE_KIND(Binary);
-
         return l->op.type == r->op.type &&
-               Equal(l->left, r->right) &&
+               Equal(l->left, r->left) &&
                Equal(l->right, r->right);
     }
     case ExprKind::VAR_REFERENCE:
