@@ -376,11 +376,12 @@ std::string TrimFrontBack(std::string &str)
     if (errorMsg != NULL)                   \
     {                                       \
         std::cerr << errorMsg << std::endl; \
+        exit(3);                            \
     }
 
 std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string &modulename)
 {
-    std::string libpath = "./lib/lib" + modulename + ".so";
+    std::string libpath = "../runtime/lib/lib" + modulename + ".so";
     char *errorMsg;
 
     void *handle = dlopen(libpath.c_str(), RTLD_LAZY);
