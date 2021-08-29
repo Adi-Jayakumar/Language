@@ -23,6 +23,7 @@ public:
 
     void Clear()
     {
+        out.str("");
         out.clear();
     }
 
@@ -31,6 +32,12 @@ public:
         out << '\n';
         for (size_t i = 0; i < depth; i++)
             out << tab;
+    }
+
+    void Log(const std::string &text)
+    {
+        out << text;
+        NewLine();
     }
 
     // expression printing
