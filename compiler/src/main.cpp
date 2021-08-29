@@ -89,9 +89,30 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    PostCondition pc;
-    std::vector<std::vector<SP<Expr>>> post = pc.Generate(parsed[0]);
-    PrintPost(post);
+    // PostCondition pc;
+    // std::vector<std::vector<SP<Expr>>> post = pc.Generate(parsed[0]);
+    // PrintPost(post);
+
+    SP<Expr> ten = std::make_shared<Literal>(10);
+    SP<Expr> hund = std::make_shared<Literal>(100);
+    Token loc = ten->Loc();
+    loc.type = TokenID::STAR;
+    SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
+
+    for (auto &stmt : parsed)
+    {
+        NodeSubstitution::Substitute(stmt, mult, hund);
+    }
+
+    if (arg.IsSwitchOn("-p"))
+    {
+        std::cout << "PARSED" << std::endl;
+        ASTPrinter ast(false);
+
+        for (auto &stmt : parsed)
+            stmt->Print(ast);
+        ast.Flush();
+    }
 
     // StaticAnalyser sa;
     // sa.Analyse(parsed);

@@ -1,4 +1,5 @@
 #include "nodeequal.h"
+#include "nodesubstitution.h"
 #include "stmtnode.h"
 
 namespace ConstantEvaluator

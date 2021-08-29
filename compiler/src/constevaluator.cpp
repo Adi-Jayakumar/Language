@@ -36,6 +36,13 @@ IS(x);
 #undef x
 #undef Kind
 
+inline SP<Expr> OPERATE(const SP<Expr> &left, const TokenID op, const SP<Expr> &right)
+{
+    Token loc = left->Loc();
+    loc.type = op;
+    return std::make_shared<Binary>(left, loc, right);
+}
+
 SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
 {
     switch (expr->kind)
@@ -67,8 +74,12 @@ SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
 
         if (!IS_LITERAL(b->left) || !IS_LITERAL(b->right))
         {
-            if (IS_SEQUENCE(b->left) || IS_SEQUENCE(b->right))
-                return BINARY_SEQUENCE(b, IS_SEQUENCE(b->left));
+            if (IS_SEQUENCE(b->left) &&
+                std::dynamic_pointer_cast<Sequence>(b->left)->op == b->op.type)
+                return BINARY_SEQUENCE(b, true);
+            else if (IS_SEQUENCE(b->right) &&
+                     std::dynamic_pointer_cast<Sequence>(b->right)->op == b->op.type)
+                return BINARY_SEQUENCE(b, false);
             return expr;
         }
 
@@ -303,6 +314,19 @@ SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
         seq = std::dynamic_pointer_cast<Sequence>(b->right);
         val = b->left;
     }
+
+    SP<Expr> low = OPERATE(seq->start, TokenID::MINUS, seq->step);
+    SP<Expr> high = OPERATE(seq->end, TokenID::PLUS, seq->step);
+
+    SP<Expr> index = seq->var;
+    SP<Expr> lowTerm = NodeSubstitution::Substitute(seq->term, index, low);
+    SP<Expr> highTerm = NodeSubstitution::Substitute(seq->term, index, high);
+
+    if (NodeEqual::Equal(lowTerm, val))
+        seq->start = low;
+
+    if (NodeEqual::Equal(highTerm, val))
+        seq->end = high;
 
     return nullptr;
 }
