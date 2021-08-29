@@ -52,17 +52,17 @@ public:
     Token loc;
     Literal(Token);
 
-    Literal(int i) { loc.literal = std::to_string(i); };
-    Literal(double d) { loc.literal = std::to_string(d); };
-    Literal(bool b) { loc.literal = b ? "true" : "false"; };
-    Literal(std::string s) { loc.literal = s; };
-    Literal(char c) { loc.literal = std::string(&c, 1); };
+    Literal(int i) { kind = ExprKind::LITERAL, loc.literal = std::to_string(i); };
+    Literal(double d) { kind = ExprKind::LITERAL, loc.literal = std::to_string(d); };
+    Literal(bool b) { kind = ExprKind::LITERAL, loc.literal = b ? "true" : "false"; };
+    Literal(std::string s) { kind = ExprKind::LITERAL, loc.literal = s; };
+    Literal(char c) { kind = ExprKind::LITERAL, loc.literal = std::string(&c, 1); };
 
-    Literal(Token _loc, int i) : loc(_loc) { loc.literal = std::to_string(i); };
-    Literal(Token _loc, double d) : loc(_loc) { loc.literal = std::to_string(d); };
-    Literal(Token _loc, bool b) : loc(_loc) { loc.literal = b ? "true" : "false"; };
-    Literal(Token _loc, std::string s) : loc(_loc) { loc.literal = s; };
-    Literal(Token _loc, char c) : loc(_loc) { loc.literal = std::string(&c, 1); };
+    Literal(Token _loc, int i) : loc(_loc) { kind = ExprKind::LITERAL, loc.literal = std::to_string(i); };
+    Literal(Token _loc, double d) : loc(_loc) { kind = ExprKind::LITERAL, loc.literal = std::to_string(d); };
+    Literal(Token _loc, bool b) : loc(_loc) { kind = ExprKind::LITERAL, loc.literal = b ? "true" : "false"; };
+    Literal(Token _loc, std::string s) : loc(_loc) { kind = ExprKind::LITERAL, loc.literal = s; };
+    Literal(Token _loc, char c) : loc(_loc) { kind = ExprKind::LITERAL, loc.literal = std::string(&c, 1); };
 
     // ~Literal() override = default;
 
