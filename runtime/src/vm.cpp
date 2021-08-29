@@ -117,7 +117,6 @@ void VM::ExecuteProgram()
         return;
     while (true)
     {
-
         while (ip < functions[curFunc].routines[curRoutine].size())
         {
             ExecuteInstruction();
@@ -136,6 +135,8 @@ void VM::ExecuteProgram()
                 ip++;
 
             curFunc = returnCF.retFunction;
+            curRoutine = 0;
+            ip = 0;
             size_t stackDiff = stack.count - returnCF.valStackMin;
 
             // cleaning up the function's constants
@@ -1063,11 +1064,13 @@ VM VM::DeserialiseProgram(std::string fPath)
             for (size_t i = 0; i < numLibFuncs; i++)
             {
                 size_t nameLen = ReadSizeT(file);
+                ReadSizeT(file);
                 char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
                 std::string name(cName, nameLen);
                 delete[] cName;
 
                 size_t libLen = ReadSizeT(file);
+                ReadSizeT(file);
                 char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
                 std::string libName(cLibName, libLen);
                 delete[] cLibName;
