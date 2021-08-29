@@ -22,6 +22,7 @@ public:
     virtual bool IsTruthy() { return false; }
 
     // GC STUFF
+    virtual size_t NumBytesOwned() = 0;
     virtual void MarkChildren(){};
     virtual void DestroyOwnedMemory(){};
 };
@@ -33,6 +34,7 @@ public:
     Int(int _i) : i(_i){};
     virtual std::string ToString() override;
     virtual bool IsTruthy() { return i != 0; };
+    virtual size_t NumBytesOwned() { return sizeof(int); };
 };
 
 class Double : public Object
@@ -42,6 +44,7 @@ public:
     Double(double _d) : d(_d){};
     virtual std::string ToString() override;
     virtual bool IsTruthy() { return d != 0; };
+    virtual size_t NumBytesOwned() { return sizeof(double); };
 };
 
 class Bool : public Object
@@ -51,6 +54,7 @@ public:
     Bool(bool _b) : b(_b){};
     virtual std::string ToString() override;
     virtual bool IsTruthy() { return b; };
+    virtual size_t NumBytesOwned() { return sizeof(bool); };
 };
 
 class Array : public Object
@@ -66,6 +70,8 @@ public:
         for (size_t i = 0; i < size; i++)
             arr[i]->MarkChildren();
     };
+
+    virtual size_t NumBytesOwned() { return size * sizeof(Object *); };
 };
 
 class Struct : public Object
@@ -82,6 +88,8 @@ public:
         for (size_t i = 0; i < size; i++)
             arr[i]->MarkChildren();
     };
+
+    virtual size_t NumBytesOwned() { return size * sizeof(Object *); };
 };
 
 class Char : public Object
@@ -90,6 +98,7 @@ public:
     char c;
     Char(char _c) : c(_c){};
     virtual std::string ToString() override;
+    virtual size_t NumBytesOwned() { return sizeof(char); };
 };
 
 class String : public Object
@@ -101,6 +110,7 @@ public:
     virtual std::string ToString() override;
 
     virtual void DestroyOwnedMemory() override { delete[] str; };
+    virtual size_t NumBytesOwned() { return len * sizeof(char); };
 };
 
 class Null_T : public Object
@@ -109,6 +119,7 @@ public:
     char isNull;
     Null_T() = default;
     virtual std::string ToString() override;
+    virtual size_t NumBytesOwned() { return sizeof(Null_T); };
 };
 
 Object *CreateInt(int);

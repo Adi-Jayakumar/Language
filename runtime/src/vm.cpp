@@ -151,57 +151,67 @@ void VM::ExecuteProgram()
 Object *VM::NewInt(int i)
 {
     Object *obj = CreateInt(i);
-    heap.AddObject(obj, sizeof(int));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewDouble(double d)
 {
     Object *obj = CreateDouble(d);
-    heap.AddObject(obj, sizeof(double));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewBool(bool b)
 {
     Object *obj = CreateBool(b);
-    heap.AddObject(obj, sizeof(bool));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewArray(Object **arr, size_t n)
 {
     Object *obj = CreateArray(arr, n);
-    heap.AddObject(obj, n * sizeof(Object *));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewStruct(Object **data, size_t n, TypeID t)
 {
     Object *obj = CreateStruct(data, n, t);
-    heap.AddObject(obj, n * sizeof(Object *) + sizeof(TypeID));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewChar(char c)
 {
     Object *obj = CreateChar(c);
-    heap.AddObject(obj, sizeof(char));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewString(char *str, size_t n)
 {
     Object *obj = CreateString(str, n);
-    heap.AddObject(obj, n * sizeof(char));
+    AddObject(obj);
     return obj;
 }
 
 Object *VM::NewNull_T()
 {
     Object *obj = CreateNull_T();
-    heap.AddObject(obj, sizeof(Null_T));
+    AddObject(obj);
     return obj;
+}
+
+void VM::AddObject(Object *obj)
+{
+    managed += obj->NumBytesOwned();
+    if (managed > threshold)
+    {
+        GarbageCollect();
+        threshold *= GC_GROW_FAC;
+    }
 }
 
 #define BINARY_I_OP(l, op, r) \

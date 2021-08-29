@@ -22,8 +22,6 @@ class Heap
     std::vector<Object *> values;
     // #byets managed before a GC round is done
     size_t threshold;
-    // #bytes managed
-    size_t managed;
 
 public:
     Heap() = default;
@@ -32,10 +30,9 @@ public:
 
     Object *operator[](size_t index) { return values[index]; };
 
-    void AddObject(Object *obj, size_t numBytes)
+    void AddObject(Object *obj)
     {
         values.push_back(obj);
-        managed += numBytes;
     };
 
     void CleanUp(); // does nothing if the number of unmarked objects is not sufficiently large
@@ -68,6 +65,9 @@ public:
     size_t curRoutine;
     Stack stack;
     Heap heap;
+    size_t managed;
+    size_t threshold;
+    void AddObject(Object *obj);
 
     void Jump(size_t jump);
     void ExecuteInstruction();
@@ -77,6 +77,7 @@ public:
 #define GC_DEBUG_OUTPUT // prints information about which objects are being marked/freed
     // #define GC_STRESS            // does a round of GC whenever new memory is requested
     // deletes any memory owned by the object
+#define GC_GROW_FAC 2UL
     void FreeObject(Object *obj);
     void MarkRoots();
     void FreeUnmarked();

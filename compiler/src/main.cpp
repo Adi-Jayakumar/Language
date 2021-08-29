@@ -1,6 +1,7 @@
 #include "ASTPrinter.h"
 #include "argparser.h"
 #include "compiler.h"
+#include "constevaluator.h"
 #include "nodesubstitution.h"
 #include "parser.h"
 #include "postcondition.h"
@@ -93,48 +94,48 @@ int main(int argc, char **argv)
     // std::vector<std::vector<SP<Expr>>> post = pc.Generate(parsed[0]);
     // PrintPost(post);
 
-    SP<Expr> ten = std::make_shared<Literal>(10);
-    SP<Expr> hund = std::make_shared<Literal>(100);
-    Token loc = ten->Loc();
-    loc.type = TokenID::STAR;
-    SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
+    // SP<Expr> ten = std::make_shared<Literal>(10);
+    // SP<Expr> hund = std::make_shared<Literal>(100);
+    // Token loc = ten->Loc();
+    // loc.type = TokenID::STAR;
+    // SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
 
-    for (auto &stmt : parsed)
-    {
-        NodeSubstitution::Substitute(stmt, mult, hund);
-    }
-
-    if (arg.IsSwitchOn("-p"))
-    {
-        std::cout << "PARSED" << std::endl;
-        ASTPrinter ast(false);
-
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
-
-    // StaticAnalyser sa;
-    // sa.Analyse(parsed);
-
-    // Compiler c;
-    // c.Compile(parsed);
-
-    // if (arg.IsSwitchOn("-c"))
+    // for (auto &stmt : parsed)
     // {
-    //     std::cout << "\n\nCOMPILED" << std::endl;
-    //     c.Disassemble();
+    //     ConstantEvaluator::SimplifyStatement(stmt);
     // }
 
-    // std::string ofPath = arg.GetArgVal("-o");
-
-    // if (arg.IsSwitchOn("--rm-bin"))
+    // if (arg.IsSwitchOn("-p"))
     // {
-    //     std::string rm = "rm -f " + ofPath;
-    //     int sysCode = system(rm.c_str());
-    //     if (sysCode == -1)
-    //         std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    //     std::cout << "PARSED" << std::endl;
+    //     ASTPrinter ast(false);
+
+    //     for (auto &stmt : parsed)
+    //         stmt->Print(ast);
+    //     ast.Flush();
     // }
-    // Compiler::SerialiseProgram(c, ofPath);
+
+    StaticAnalyser sa;
+    sa.Analyse(parsed);
+
+    Compiler c;
+    c.Compile(parsed);
+
+    if (arg.IsSwitchOn("-c"))
+    {
+        std::cout << "\n\nCOMPILED" << std::endl;
+        c.Disassemble();
+    }
+
+    std::string ofPath = arg.GetArgVal("-o");
+
+    if (arg.IsSwitchOn("--rm-bin"))
+    {
+        std::string rm = "rm -f " + ofPath;
+        int sysCode = system(rm.c_str());
+        if (sysCode == -1)
+            std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    }
+    Compiler::SerialiseProgram(c, ofPath);
     return 0;
 }
