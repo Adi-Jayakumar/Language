@@ -318,17 +318,30 @@ SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
     SP<Expr> low = OPERATE(seq->start, TokenID::MINUS, seq->step);
     SP<Expr> high = OPERATE(seq->end, TokenID::PLUS, seq->step);
 
+    low = SimplifyExpression(low);
+    high = SimplifyExpression(high);
+
     SP<Expr> index = seq->var;
     SP<Expr> lowTerm = NodeSubstitution::Substitute(seq->term, index, low);
     SP<Expr> highTerm = NodeSubstitution::Substitute(seq->term, index, high);
 
-    if (NodeEqual::Equal(lowTerm, val))
-        seq->start = low;
+    bool didSimpSeq = false;
 
     if (NodeEqual::Equal(highTerm, val))
+    {
         seq->end = high;
+        didSimpSeq = true;
+    }
+    else if (NodeEqual::Equal(lowTerm, val))
+    {
+        seq->start = low;
+        didSimpSeq = true;
+    }
 
-    return nullptr;
+    if (didSimpSeq)
+        return seq;
+    else
+        return b;
 }
 
 SP<Expr> ConstantEvaluator::BINARY_PLUS(SP<Binary> &b)
