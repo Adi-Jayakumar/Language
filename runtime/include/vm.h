@@ -65,6 +65,7 @@ public:
 
     // current function index
     size_t curFunc;
+    size_t curRoutine;
     Stack stack;
     Heap heap;
 
@@ -134,6 +135,6 @@ private:
     static std::vector<bool> DeserialiseBools(std::ifstream &file);
     static std::vector<char> DeserialiseChars(std::ifstream &file);
     static std::vector<std::string> DeserialiseStrings(std::ifstream &file);
-    static std::vector<Op> DeserialiseOps(std::ifstream &file);
+    static std::vector<std::vector<Op>> DeserialiseOps(std::ifstream &file);
     static std::vector<ThrowInfo> DeserialiseThrowInfos(std::ifstream &file);
 };

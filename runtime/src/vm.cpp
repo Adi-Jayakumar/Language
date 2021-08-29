@@ -26,6 +26,7 @@ VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
     curCF = &cs.back();
 
     ip = 0;
+    curRoutine = 0;
 }
 
 VM::~VM()
@@ -117,7 +118,7 @@ void VM::ExecuteProgram()
     while (true)
     {
 
-        while (ip < functions[curFunc].code.size())
+        while (ip < functions[curFunc].routines[curRoutine].size())
         {
             ExecuteInstruction();
             Jump(1);
@@ -231,7 +232,7 @@ Object *VM::NewNull_T()
 
 void VM::ExecuteInstruction()
 {
-    Op o = functions[curFunc].code[ip];
+    Op o = functions[curFunc].routines[curRoutine][ip];
     switch (o.code)
     {
     case Opcode::POP:
@@ -408,21 +409,26 @@ void VM::ExecuteInstruction()
         str[i] = GetChar(stack.back);
         break;
     }
-    case Opcode::JUMP_IF_FALSE:
-    {
-        if (!stack.back->IsTruthy())
-            ip += o.op;
-        stack.pop_back();
-        break;
-    }
-    case Opcode::JUMP:
-    {
-        ip += o.op;
-        break;
-    }
     case Opcode::SET_IP:
     {
         ip = o.op;
+        break;
+    }
+    case Opcode::GOTO_LABEL:
+    {
+        curRoutine = o.op;
+        ip = -1;
+        break;
+    }
+    case Opcode::GOTO_LABEL_IF_FALSE:
+    {
+        Object *condition = stack.back;
+        stack.pop_back();
+        if (!condition->IsTruthy())
+        {
+            curRoutine = o.op;
+            ip = -1;
+        }
         break;
     }
     case Opcode::CALL_F:
@@ -457,7 +463,7 @@ void VM::ExecuteInstruction()
             Object *retVal = stack.back;
             stack.pop_N(stack.count);
             stack.push_back(retVal);
-            ip = functions[curFunc].code.size();
+            ip = functions[curFunc].routines.size();
             break;
         }
 #endif
@@ -1108,7 +1114,7 @@ Function VM::DeserialiseFunction(std::ifstream &file)
     std::vector<bool> Bools;
     std::vector<char> Chars;
     std::vector<std::string> Strings;
-    std::vector<Op> Code;
+    std::vector<std::vector<Op>> Code;
 
     for (size_t i = 0; i < 6; i++)
     {
@@ -1225,19 +1231,28 @@ std::vector<std::string> VM::DeserialiseStrings(std::ifstream &file)
     return result;
 }
 
-std::vector<Op> VM::DeserialiseOps(std::ifstream &file)
+std::vector<std::vector<Op>> VM::DeserialiseOps(std::ifstream &file)
 {
-    size_t numOps = ReadSizeT(file);
-    std::vector<Op> result;
+    size_t numRoutines = ReadSizeT(file);
+    std::vector<std::vector<Op>> result;
 
-    for (size_t i = 0; i < numOps; i++)
+    for (size_t j = 0; j < numRoutines; j++)
     {
-        Opcode code;
-        file.read((char *)&code, sizeof(code));
 
-        oprand_t oprand;
-        file.read((char *)&oprand, sizeof(oprand));
-        result.push_back(Op(code, oprand));
+        size_t numOps = ReadSizeT(file);
+        std::vector<Op> routine;
+
+        for (size_t i = 0; i < numOps; i++)
+        {
+            Opcode code;
+            file.read((char *)&code, sizeof(code));
+
+            oprand_t oprand;
+            file.read((char *)&oprand, sizeof(oprand));
+            routine.push_back(Op(code, oprand));
+        }
+
+        result.push_back(routine);
     }
 
     return result;
