@@ -1,13 +1,19 @@
 #define TEST
+#include "argparser.h"
 #include "vm.h"
 
 #ifdef COMPILE_FOR_TEST
 #define main not_main
 #endif
 
-int main()
+int main(int argc, char **argv)
 {
-    VM vm = VM::DeserialiseProgram("../lbin/test.lo");
+    ArgParser arg;
+    arg.AddArg({"-f"});
+    arg.ParseArgs(argc - 1, argv + 1);
+
+    std::string binary = arg.GetArgVal("-f");
+    VM vm = VM::DeserialiseProgram(binary);
 
     vm.Disasemble();
     vm.ExecuteProgram();
