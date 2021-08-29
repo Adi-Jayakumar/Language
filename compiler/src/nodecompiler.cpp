@@ -351,7 +351,7 @@ TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         size_t funcNum = c.Symbols.GetCLibFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
-        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
+        c.AddCode({Opcode::CALL_LIBRARY_FUNC, static_cast<oprand_t>(funcNum)});
         break;
     }
     case FunctionType::NATIVE:
