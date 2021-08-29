@@ -43,6 +43,7 @@ void PostCondition::PostConditionError(Token loc, std::string err)
 std::vector<std::vector<SP<Expr>>> PostCondition::Generate(SP<Stmt> &function)
 {
     function->GeneratePost(*this);
+    post.pop_back();
     return post;
 }
 
