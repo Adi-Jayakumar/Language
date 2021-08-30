@@ -7,7 +7,7 @@ ASTPrinter debug(false, "\t");
 #define COPY(type, node) \
     std::make_shared<type>(*std::dynamic_pointer_cast<type>(node))
 
-SP<Expr> NodeSubstitution::Substitute(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &val)
+SP<Expr> NodeSubstituter::Substitute(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &val)
 {
     if (NodeEqual::Equal(node, val))
         return tree;
@@ -98,7 +98,7 @@ SP<Expr> NodeSubstitution::Substitute(SP<Expr> &tree, SP<Expr> &node, SP<Expr> &
     return tree;
 }
 
-SP<Stmt> NodeSubstitution::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &val)
+SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &val)
 {
     if (tree == nullptr)
         return tree;
