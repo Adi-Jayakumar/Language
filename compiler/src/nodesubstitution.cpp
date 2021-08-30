@@ -1,9 +1,5 @@
 #include "nodesubstitution.h"
 
-#include "ASTPrinter.h"
-
-ASTPrinter debug(false, "\t");
-
 #define COPY(type, node) \
     std::make_shared<type>(*std::dynamic_pointer_cast<type>(node))
 
