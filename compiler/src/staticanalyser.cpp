@@ -260,9 +260,15 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
     if (vid != nullptr)
         StaticAnalysisError(s->var->Loc(), "Indexing variable is already defined");
 
+    Symbols.depth++;
+    Symbols.AddVar(INT_TYPE, s->var->name);
+
     TypeData term = s->term->Analyse(*this);
     if (term != INT_TYPE)
         TypeError(s->term->Loc(), "Term of Sequence must of of type int");
+
+    Symbols.CleanUpCurDepth();
+    Symbols.depth--;
 
     if (!CheckOperatorUse(INT_TYPE, s->op, INT_TYPE))
         StaticAnalysisError(s->term->Loc(), "The operator of a sequence must be able to take 2 integers as arguments");
