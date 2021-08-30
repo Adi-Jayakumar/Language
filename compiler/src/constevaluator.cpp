@@ -325,6 +325,9 @@ SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
     SP<Expr> lowTerm = NodeSubstituter::Substitute(seq->term, index, low);
     SP<Expr> highTerm = NodeSubstituter::Substitute(seq->term, index, high);
 
+    lowTerm = SimplifyExpression(lowTerm);
+    highTerm = SimplifyExpression(highTerm);
+
     bool didSimpSeq = false;
 
     if (NodeEqual::Equal(highTerm, val))
