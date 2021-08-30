@@ -43,7 +43,7 @@ inline SP<Expr> OPERATE(const SP<Expr> &left, const TokenID op, const SP<Expr> &
     return std::make_shared<Binary>(left, loc, right);
 }
 
-SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
+SP<Expr> ConstantEvaluator::SimplifyExpression(const SP<Expr> &expr)
 {
     switch (expr->kind)
     {
@@ -169,7 +169,7 @@ SP<Expr> ConstantEvaluator::SimplifyExpression(SP<Expr> &expr)
     return nullptr;
 }
 
-void ConstantEvaluator::SimplifyStatement(SP<Stmt> &stmt)
+void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
 {
     switch (stmt->kind)
     {
@@ -279,7 +279,7 @@ GETTER(x)
 #undef x
 #undef NOTHING
 
-SP<Expr> ConstantEvaluator::UNARY_MINUS(SP<Unary> &u)
+SP<Expr> ConstantEvaluator::UNARY_MINUS(const SP<Unary> &u)
 {
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(u->right);
     if (right->t != INT_TYPE && right->t != DOUBLE_TYPE)
@@ -291,7 +291,7 @@ SP<Expr> ConstantEvaluator::UNARY_MINUS(SP<Unary> &u)
         return std::make_shared<Literal>(right->Loc(), -GET_DOUBLE(right));
 }
 
-SP<Expr> ConstantEvaluator::UNARY_BANG(SP<Unary> &u)
+SP<Expr> ConstantEvaluator::UNARY_BANG(const SP<Unary> &u)
 {
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(u->right);
     if (right->t != BOOL_TYPE)
@@ -300,7 +300,7 @@ SP<Expr> ConstantEvaluator::UNARY_BANG(SP<Unary> &u)
     return std::make_shared<Literal>(right->Loc(), !GET_BOOL(right));
 }
 
-SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
+SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(const SP<Binary> &b, bool leftSeq)
 {
     SP<Sequence> seq;
     SP<Expr> val;
@@ -347,7 +347,7 @@ SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(SP<Binary> &b, bool leftSeq)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_PLUS(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_PLUS(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -382,7 +382,7 @@ SP<Expr> ConstantEvaluator::BINARY_PLUS(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_MINUS(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_MINUS(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -412,7 +412,7 @@ SP<Expr> ConstantEvaluator::BINARY_MINUS(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_STAR(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_STAR(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -442,7 +442,7 @@ SP<Expr> ConstantEvaluator::BINARY_STAR(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_SLASH(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_SLASH(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -472,7 +472,7 @@ SP<Expr> ConstantEvaluator::BINARY_SLASH(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_GT(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_GT(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -491,7 +491,7 @@ SP<Expr> ConstantEvaluator::BINARY_GT(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_LT(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_LT(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -510,7 +510,7 @@ SP<Expr> ConstantEvaluator::BINARY_LT(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_GEQ(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_GEQ(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -529,7 +529,7 @@ SP<Expr> ConstantEvaluator::BINARY_GEQ(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_LEQ(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_LEQ(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -548,7 +548,7 @@ SP<Expr> ConstantEvaluator::BINARY_LEQ(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_EQ_EQ(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_EQ_EQ(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -569,7 +569,7 @@ SP<Expr> ConstantEvaluator::BINARY_EQ_EQ(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_BANG_EQ(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_BANG_EQ(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -590,7 +590,7 @@ SP<Expr> ConstantEvaluator::BINARY_BANG_EQ(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_AND_AND(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_AND_AND(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
@@ -603,7 +603,7 @@ SP<Expr> ConstantEvaluator::BINARY_AND_AND(SP<Binary> &b)
         return b;
 }
 
-SP<Expr> ConstantEvaluator::BINARY_OR_OR(SP<Binary> &b)
+SP<Expr> ConstantEvaluator::BINARY_OR_OR(const SP<Binary> &b)
 {
     SP<Literal> left = std::dynamic_pointer_cast<Literal>(b->left);
     SP<Literal> right = std::dynamic_pointer_cast<Literal>(b->right);
