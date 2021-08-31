@@ -15,7 +15,7 @@ inline SP<Expr> MAKE_RETURN(const SP<Expr> &val)
     return std::make_shared<Binary>(result, eqeqLoc, val);
 }
 
-void PostCondition::AddReturnValue(const SP<Expr> &ret)
+void PostConditionGenerator::AddReturnValue(const SP<Expr> &ret)
 {
     for (auto &c : conditions)
         post.back().push_back(c);
@@ -24,23 +24,23 @@ void PostCondition::AddReturnValue(const SP<Expr> &ret)
     post.push_back(std::vector<SP<Expr>>());
 }
 
-void PostCondition::AddCondition(const SP<Expr> &c)
+void PostConditionGenerator::AddCondition(const SP<Expr> &c)
 {
     conditions.push_back(c);
 }
 
-void PostCondition::RemoveLastCondition()
+void PostConditionGenerator::RemoveLastCondition()
 {
     conditions.pop_back();
 }
 
-void PostCondition::PostConditionError(Token loc, std::string err)
+void PostConditionGenerator::PostConditionError(Token loc, std::string err)
 {
     Error e = Error("[POST CONDITION ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
     throw e;
 }
 
-std::vector<std::vector<SP<Expr>>> PostCondition::Generate(SP<Stmt> &function)
+std::vector<std::vector<SP<Expr>>> PostConditionGenerator::Generate(SP<Stmt> &function)
 {
     function->GeneratePost(*this);
     post.pop_back();
@@ -49,21 +49,21 @@ std::vector<std::vector<SP<Expr>>> PostCondition::Generate(SP<Stmt> &function)
 
 //------------------STATEMENTS---------------------//
 
-void PostCondition::GenerateFromExprStmt(ExprStmt *)
+void PostConditionGenerator::GenerateFromExprStmt(ExprStmt *)
 {
 }
 
-void PostCondition::GenerateFromDeclaredVar(DeclaredVar *)
+void PostConditionGenerator::GenerateFromDeclaredVar(DeclaredVar *)
 {
 }
 
-void PostCondition::GenerateFromBlock(Block *b)
+void PostConditionGenerator::GenerateFromBlock(Block *b)
 {
     for (auto &stmt : b->stmts)
         stmt->GeneratePost(*this);
 }
 
-void PostCondition::GenerateFromIfStmt(IfStmt *i)
+void PostConditionGenerator::GenerateFromIfStmt(IfStmt *i)
 {
     AddCondition(i->cond);
     i->thenBranch->GeneratePost(*this);
@@ -77,12 +77,12 @@ void PostCondition::GenerateFromIfStmt(IfStmt *i)
     }
 }
 
-void PostCondition::GenerateFromWhileStmt(WhileStmt *ws)
+void PostConditionGenerator::GenerateFromWhileStmt(WhileStmt *ws)
 {
     PostConditionError(ws->Loc(), "Cannot generate a post condition from a while loop");
 }
 
-void PostCondition::GenerateFromFuncDecl(FuncDecl *fd)
+void PostConditionGenerator::GenerateFromFuncDecl(FuncDecl *fd)
 {
     if (fd->ret == VOID_TYPE)
         PostConditionError(fd->Loc(), "Cannot generate post condition errror for a void function");
@@ -91,7 +91,7 @@ void PostCondition::GenerateFromFuncDecl(FuncDecl *fd)
         stmt->GeneratePost(*this);
 }
 
-void PostCondition::GenerateFromReturn(Return *r)
+void PostConditionGenerator::GenerateFromReturn(Return *r)
 {
     if (r->retVal == nullptr)
         PostConditionError(r->Loc(), "Cannot generate post condition for a void-return");
@@ -99,86 +99,86 @@ void PostCondition::GenerateFromReturn(Return *r)
     AddReturnValue(MAKE_RETURN(r->retVal));
 }
 
-void PostCondition::GenerateFromStructDecl(StructDecl *)
+void PostConditionGenerator::GenerateFromStructDecl(StructDecl *)
 {
 }
 
-void PostCondition::GenerateFromImportStmt(ImportStmt *)
+void PostConditionGenerator::GenerateFromImportStmt(ImportStmt *)
 {
 }
 
-void PostCondition::GenerateFromBreak(Break *)
+void PostConditionGenerator::GenerateFromBreak(Break *)
 {
 }
 
-void PostCondition::GenerateFromThrow(Throw *t)
+void PostConditionGenerator::GenerateFromThrow(Throw *t)
 {
     PostConditionError(t->Loc(), "Cannot generate post condition for a function which throws an object");
 }
 
-void PostCondition::GenerateFromTryCatch(TryCatch *tc)
+void PostConditionGenerator::GenerateFromTryCatch(TryCatch *tc)
 {
     PostConditionError(tc->Loc(), "Cannot generate post condition for a function which uses try-catch");
 }
 
 //------------------STATEMENTS---------------------//
 
-void ExprStmt::GeneratePost(PostCondition &pc)
+void ExprStmt::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromExprStmt(this);
 }
 
-void DeclaredVar::GeneratePost(PostCondition &pc)
+void DeclaredVar::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromDeclaredVar(this);
 }
 
-void Block::GeneratePost(PostCondition &pc)
+void Block::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromBlock(this);
 }
 
-void IfStmt::GeneratePost(PostCondition &pc)
+void IfStmt::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromIfStmt(this);
 }
 
-void WhileStmt::GeneratePost(PostCondition &pc)
+void WhileStmt::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromWhileStmt(this);
 }
 
-void FuncDecl::GeneratePost(PostCondition &pc)
+void FuncDecl::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromFuncDecl(this);
 }
 
-void Return::GeneratePost(PostCondition &pc)
+void Return::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromReturn(this);
 }
 
-void StructDecl::GeneratePost(PostCondition &pc)
+void StructDecl::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromStructDecl(this);
 }
 
-void ImportStmt::GeneratePost(PostCondition &pc)
+void ImportStmt::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromImportStmt(this);
 }
 
-void Break::GeneratePost(PostCondition &pc)
+void Break::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromBreak(this);
 }
 
-void Throw::GeneratePost(PostCondition &pc)
+void Throw::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromThrow(this);
 }
 
-void TryCatch::GeneratePost(PostCondition &pc)
+void TryCatch::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromTryCatch(this);
 }

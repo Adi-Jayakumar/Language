@@ -10,7 +10,6 @@ using SP = std::shared_ptr<T>;
 class ASTPrinter;
 class Compiler;
 class StaticAnalyser;
-class PostCondition;
 
 enum class ExprKind
 {

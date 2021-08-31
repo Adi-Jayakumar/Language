@@ -2,14 +2,14 @@
 #include "stmtnode.h"
 #include "symboltable.h"
 
-class PostCondition
+class PostConditionGenerator
 {
     SymbolTable Symbols;
     std::vector<std::vector<SP<Expr>>> post;
     std::vector<SP<Expr>> conditions;
 
 public:
-    PostCondition()
+    PostConditionGenerator()
     {
         post.push_back(std::vector<SP<Expr>>());
     };
