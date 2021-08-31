@@ -121,8 +121,9 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
 
         if (dv->value != nullptr)
         {
-            PropagateExpression(dv->value);
-            Constants.AddVar(dv->t, dv->name, dv->value);
+            dv->value = PropagateExpression(dv->value);
+            if (dynamic_cast<Literal *>(dv->value.get()) != nullptr)
+                Constants.AddVar(dv->t, dv->name, dv->value);
         }
         break;
     }
