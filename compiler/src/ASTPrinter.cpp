@@ -14,9 +14,9 @@ void ASTPrinter::PrintLiteral(Literal *l)
         out << l->t;
 
     if (l->t.type == 4)
-        out << " \"" << l->loc.literal << "\"";
+        out << "\"" << l->loc.literal << "\"";
     else if (l->t.type == 5)
-        out << " \'" << l->loc.literal << "\'";
+        out << "\'" << l->loc.literal << "\'";
     else
         out << l->loc.literal;
 }
@@ -24,9 +24,9 @@ void ASTPrinter::PrintLiteral(Literal *l)
 void ASTPrinter::PrintUnary(Unary *u)
 {
     if (u->op.type == TokenID::MINUS)
-        out << " -";
+        out << "-";
     else if (u->op.type == TokenID::BANG)
-        out << " !";
+        out << "!";
     else
         out << u->op;
     out << "(";
@@ -36,7 +36,7 @@ void ASTPrinter::PrintUnary(Unary *u)
 
 void ASTPrinter::PrintBinary(Binary *b)
 {
-    out << " (";
+    out << "(";
     b->left->Print(*this);
 
     if (b->op.type == TokenID::PLUS)
@@ -68,7 +68,7 @@ void ASTPrinter::PrintBinary(Binary *b)
 
     b->right->Print(*this);
 
-    out << ") ";
+    out << ")";
 }
 
 void ASTPrinter::PrintAssign(Assign *a)
@@ -111,14 +111,11 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai)
     out << "[";
     ai->index->Print(*this);
     out << "]";
-
-    if (printTypes)
-        out << ")";
 }
 
 void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 {
-    out << ia->t << " {";
+    out << ia->t << "{";
     for (size_t i = 0; i < ia->init.size(); i++)
     {
         ia->init[i]->Print(*this);
@@ -140,15 +137,11 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
     fa->accessor->Print(*this);
     out << ".";
     fa->accessee->Print(*this);
-
-    if (printTypes)
-        out << ")";
 }
 
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
     out << "Cast";
-
     gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
     out << "(" << gf->arg.get() << ")";
 }
@@ -207,6 +200,7 @@ void ASTPrinter::PrintBlock(Block *b)
     depth--;
     NewLine();
     out << "}";
+    NewLine();
 }
 
 void ASTPrinter::PrintIfStmt(IfStmt *i)
@@ -318,7 +312,6 @@ void ASTPrinter::PrintReturn(Return *r)
     out << ";";
 
     NewLine();
-    return;
 }
 
 void ASTPrinter::PrintStructDecl(StructDecl *sd)
@@ -335,7 +328,6 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd)
     depth--;
     NewLine();
     out << "}";
-    NewLine();
     NewLine();
 }
 
