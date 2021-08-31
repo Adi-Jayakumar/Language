@@ -223,9 +223,6 @@ void ASTPrinter::PrintIfStmt(IfStmt *i)
 
 void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 {
-    if (ws->body == nullptr)
-        return;
-
     out << "while (";
     ws->cond->Print(*this);
     out << ")";
