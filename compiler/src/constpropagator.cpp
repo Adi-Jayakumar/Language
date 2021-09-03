@@ -5,6 +5,12 @@ bool operator==(const VarRef &lhs, const VarRef &rhs)
     return (lhs.type == rhs.type) && (lhs.name == rhs.name);
 }
 
+void ConstantPropagator::Propagate(std::vector<SP<Stmt>> &program)
+{
+    for (auto &stmt : program)
+        PropagateStatement(stmt);
+}
+
 SP<Expr> ConstantPropagator::PropagateExpression(SP<Expr> &expr)
 {
     switch (expr->kind)
