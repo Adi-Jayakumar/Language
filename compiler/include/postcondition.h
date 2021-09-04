@@ -1,5 +1,6 @@
 #pragma once
 #include "stmtnode.h"
+#include "perror.h"
 
 class PostConditionGenerator
 {
