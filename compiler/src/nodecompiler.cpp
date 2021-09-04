@@ -297,8 +297,13 @@ TypeData NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     std::vector<TypeData> args;
-    for (auto &e : fc->args)
-        args.push_back(e->NodeCompile(c));
+
+    ERROR_GUARD(
+        {
+            for (auto &e : fc->args)
+                args.push_back(e->NodeCompile(c));
+        },
+        c)
 
     FuncID *fid = c.Symbols.GetFunc(fc->name, fc->templates, args);
     if (fid == nullptr)
@@ -408,8 +413,13 @@ TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler 
     std::pair<size_t, size_t> allocTypeLoc = c.LastAddedCodeLoc();
 
     std::vector<TypeData> args;
-    for (auto &e : bi->init)
-        args.push_back(e->NodeCompile(c));
+
+    ERROR_GUARD(
+        {
+            for (auto &e : bi->init)
+                args.push_back(e->NodeCompile(c));
+        },
+        c)
 
     if (biType.isArray)
     {
@@ -545,8 +555,13 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
     c.Symbols.depth++;
-    for (auto &stmt : b->stmts)
-        stmt->NodeCompile(c);
+
+    ERROR_GUARD(
+        {
+            for (auto &stmt : b->stmts)
+                stmt->NodeCompile(c);
+        },
+        c)
 
     c.ClearCurrentDepthWithPOPInst();
     c.Symbols.depth--;
@@ -694,8 +709,12 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     for (auto &arg : fd->params)
         c.Symbols.AddVar(arg.first, arg.second);
 
-    for (auto &stmt : fd->body)
-        stmt->NodeCompile(c);
+    ERROR_GUARD(
+        {
+            for (auto &stmt : fd->body)
+                stmt->NodeCompile(c);
+        },
+        c)
 
     c.ClearCurrentDepthWithPOPInst();
     c.Symbols.depth--;
@@ -748,19 +767,23 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
             nameTypes[kv.first] = kv.second;
     }
 
-    for (auto &d : sd->decls)
-    {
-        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
-        if (asDV == nullptr)
-            c.TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
+    ERROR_GUARD(
+        {
+            for (auto &d : sd->decls)
+            {
+                DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
+                if (asDV == nullptr)
+                    c.TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
 
-        if (asDV->value != nullptr)
-            c.CompileError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
+                if (asDV->value != nullptr)
+                    c.CompileError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
 
-        memberNames.push_back(asDV->name);
-        memTypes.push_back(asDV->t);
-        nameTypes[asDV->name] = asDV->t;
-    }
+                memberNames.push_back(asDV->name);
+                memTypes.push_back(asDV->t);
+                nameTypes[asDV->name] = asDV->t;
+            }
+        },
+        c)
 
     c.Symbols.AddStruct(StructID(name, type, parent, memberNames, memTypes, nameTypes));
 }
@@ -769,20 +792,24 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 {
     std::vector<std::string> libraryFuncs;
     assert(is->libraries.size() > 0);
-    for (const auto library : is->libraries)
-    {
-        libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
-        for (auto &lf : libraryFuncs)
+    ERROR_GUARD(
         {
-            FuncID func = c.Symbols.ParseLibraryFunction(lf);
-            c.Symbols.AddCLibFunc(func);
+            for (const auto library : is->libraries)
+            {
+                libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
+                for (auto &lf : libraryFuncs)
+                {
+                    FuncID func = c.Symbols.ParseLibraryFunction(lf);
+                    c.Symbols.AddCLibFunc(func);
 
-            if (c.Symbols.clibFunctions.size() > MAX_OPRAND)
-                c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
+                    if (c.Symbols.clibFunctions.size() > MAX_OPRAND)
+                        c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
 
-            c.libfuncs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
-        }
-    }
+                    c.libfuncs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
+                }
+            }
+        },
+        c)
 }
 
 void NodeCompiler::CompileBreak(Break *b, Compiler &c)
