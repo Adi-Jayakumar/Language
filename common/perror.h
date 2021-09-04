@@ -26,3 +26,11 @@ struct Error : public std::exception
         msg += s;
     }
 };
+
+#define ERROR_GUARD(program, eh)            \
+    try                                     \
+        program catch (std::exception & e)  \
+    {                                       \
+        eh.hadError = true;                 \
+        std::cerr << e.what() << std::endl; \
+    }\
