@@ -33,4 +33,4 @@ struct Error : public std::exception
     {                                       \
         eh.hadError = true;                 \
         std::cerr << e.what() << std::endl; \
-    }\
+    }
