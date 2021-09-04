@@ -5,10 +5,32 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
-void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &program)
+void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
 {
-    for (const auto &stmt : program)
-        stmt->Analyse(*this);
+    program = _program;
+    for (parseIndex = 0; parseIndex < program.size(); parseIndex++)
+        program[parseIndex]->Analyse(*this);
+}
+
+void StaticAnalyser::AnalysePost(std::vector<std::vector<SP<Expr>>> &post, const TypeData &ret)
+{
+    SetVerify();
+    Symbols.AddVar(ret, "result");
+    for (auto &retCase : post)
+    {
+        for (auto &exp : retCase)
+        {
+            verExp = {nullptr, nullptr};
+            exp->Analyse(*this);
+            if (verExp.first != nullptr && verExp.second != nullptr)
+            {
+                std::cout << "REPLACING" << std::endl;
+                exp = NodeSubstituter::Substitute(exp, verExp.first, verExp.second);
+                verExp = {nullptr, nullptr};
+            }
+        }
+    }
+    SetNormal();
 }
 
 void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
@@ -121,6 +143,23 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         }
         out << ")";
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
+    }
+
+    if (verifying)
+    {
+        FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parseIndex].get());
+        verExp = {std::make_shared<FunctionCall>(*fc), fd->postCond};
+        if (fc->args.size() == fd->params.size())
+        {
+            std::cout << "RUNNING" << std::endl;
+            for (size_t i = 0; i < fc->args.size(); i++)
+            {
+                Token v = fc->Loc();
+                v.literal = fd->params[i].second;
+                SP<Expr> var = std::make_shared<VarReference>(v);
+                verExp.second = NodeSubstituter::Substitute(verExp.second, var, fc->args[i]);
+            }
+        }
     }
 
     return fid->ret;
@@ -380,7 +419,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
         SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
     }
 
-    Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, 0));
+    Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parseIndex));
 
     if (fd->templates.size() > 0)
         return;

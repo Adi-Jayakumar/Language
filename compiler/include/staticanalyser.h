@@ -1,9 +1,14 @@
+#include "nodesubstitution.h"
 #include "stmtnode.h"
 #include "symboltable.h"
 
 class StaticAnalyser
 {
     SymbolTable Symbols;
+    std::vector<SP<Stmt>> program;
+    size_t parseIndex;
+    bool verifying = false;
+    std::pair<SP<Expr>, SP<Expr>> verExp;
 
 public:
     StaticAnalyser() = default;
@@ -13,6 +18,10 @@ public:
     void SymbolError(Token loc, std::string err);
 
     void Analyse(std::vector<SP<Stmt>> &program);
+    void AnalysePost(std::vector<std::vector<SP<Expr>>> &post, const TypeData &ret);
+
+    void SetVerify() { verifying = true; };
+    void SetNormal() { verifying = false; };
 
     // expression analysis
     TypeData AnalyseLiteral(Literal *l);
