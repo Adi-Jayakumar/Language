@@ -1,10 +1,8 @@
 #pragma once
 #include "stmtnode.h"
-#include "symboltable.h"
 
 class PostConditionGenerator
 {
-    SymbolTable Symbols;
     std::vector<std::vector<SP<Expr>>> post;
     std::vector<SP<Expr>> conditions;
 
