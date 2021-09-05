@@ -315,14 +315,13 @@ class TypeCast : public Expr
 {
 public:
     Token loc;
-    TypeData type;
     SP<Expr> arg;
     bool isDownCast = false;
 
     TypeCast(const TypeData &_type, const SP<Expr> &_arg, const Token &_loc)
     {
         kind = ExprKind::TYPE_CAST;
-        type = _type;
+        t = _type;
         arg = _arg;
         loc = _loc;
     };
