@@ -18,7 +18,7 @@ public:
     void SymbolError(Token loc, std::string err);
 
     void Analyse(std::vector<SP<Stmt>> &program);
-    void AnalysePost(std::vector<std::vector<SP<Expr>>> &post, const TypeData &ret);
+    void AnalysePost(FuncDecl *fd, std::vector<std::vector<SP<Expr>>> &post);
 
     void SetVerify() { verifying = true; };
     void SetNormal() { verifying = false; };

@@ -12,10 +12,13 @@ void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
         program[parseIndex]->Analyse(*this);
 }
 
-void StaticAnalyser::AnalysePost(std::vector<std::vector<SP<Expr>>> &post, const TypeData &ret)
+void StaticAnalyser::AnalysePost(FuncDecl *fd, std::vector<std::vector<SP<Expr>>> &post)
 {
     SetVerify();
-    Symbols.AddVar(ret, "result");
+    Symbols.AddVar(fd->ret, "result");
+    for (auto &param : fd->params)
+        Symbols.AddVar(param.first, param.second);
+
     for (auto &retCase : post)
     {
         for (auto &exp : retCase)
@@ -24,7 +27,6 @@ void StaticAnalyser::AnalysePost(std::vector<std::vector<SP<Expr>>> &post, const
             exp->Analyse(*this);
             if (verExp.first != nullptr && verExp.second != nullptr)
             {
-                std::cout << "REPLACING" << std::endl;
                 exp = NodeSubstituter::Substitute(exp, verExp.first, verExp.second);
                 verExp = {nullptr, nullptr};
             }
@@ -151,7 +153,6 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         verExp = {std::make_shared<FunctionCall>(*fc), fd->postCond};
         if (fc->args.size() == fd->params.size())
         {
-            std::cout << "RUNNING" << std::endl;
             for (size_t i = 0; i < fc->args.size(); i++)
             {
                 Token v = fc->Loc();
@@ -431,6 +432,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &stmt : fd->body)
         stmt->Analyse(*this);
 
+    Symbols.CleanUpCurDepth();
     Symbols.depth--;
 }
 
