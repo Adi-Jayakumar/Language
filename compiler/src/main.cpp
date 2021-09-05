@@ -125,17 +125,17 @@ int main(int argc, char **argv)
     //     ast.Flush();
     // }
 
-    // Compiler c;
-    // c.Compile(parsed);
+    Compiler c;
+    c.Compile(parsed);
 
-    // if (c.hadError)
-    //     exit(3);
+    if (c.hadError)
+        exit(3);
 
-    // if (arg.IsSwitchOn("-c"))
-    // {
-    //     std::cout << "\n\nCOMPILED" << std::endl;
-    //     c.Disassemble();
-    // }
+    if (arg.IsSwitchOn("-c"))
+    {
+        std::cout << "\n\nCOMPILED" << std::endl;
+        c.Disassemble();
+    }
 
     // std::string ofPath = arg.GetArgVal("-o");
 

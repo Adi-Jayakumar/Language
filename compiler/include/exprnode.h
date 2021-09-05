@@ -36,12 +36,13 @@ public:
     ExprKind kind;
     TypeData t;
     virtual Token Loc() = 0;
+    TypeData GetType() { return t; }
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
     // ensures that the node is a valid node or throws error
     virtual TypeData Analyse(StaticAnalyser &sa) = 0;
     // compiles the node - implmented in Compiler.cpp
-    virtual TypeData NodeCompile(Compiler &c) = 0;
+    virtual void NodeCompile(Compiler &c) = 0;
     // virtual ~Expr() = 0;
 };
 
@@ -124,7 +125,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class Unary : public Expr
@@ -143,7 +144,7 @@ public:
     Token Loc() override { return op; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class Binary : public Expr
@@ -164,7 +165,7 @@ public:
     Token Loc() override { return op; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class VarReference : public Expr
@@ -182,7 +183,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class Assign : public Expr
@@ -203,7 +204,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class FunctionCall : public Expr
@@ -226,7 +227,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class ArrayIndex : public Expr
@@ -247,7 +248,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class BracedInitialiser : public Expr
@@ -268,7 +269,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class DynamicAllocArray : public Expr
@@ -287,7 +288,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class FieldAccess : public Expr
@@ -308,7 +309,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 class TypeCast : public Expr
@@ -329,7 +330,7 @@ public:
     Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };
 
 // Sequence of integers, essentially a
@@ -369,5 +370,5 @@ public:
     };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
-    TypeData NodeCompile(Compiler &c) override;
+    void NodeCompile(Compiler &c) override;
 };

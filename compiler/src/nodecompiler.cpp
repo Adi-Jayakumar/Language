@@ -113,7 +113,7 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
-TypeData NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
+void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     TypeData type = l->t;
     std::string literal = l->Loc().literal;
@@ -161,35 +161,22 @@ TypeData NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
     }
     else
         c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
-    return l->t;
 }
 
-TypeData NodeCompiler::CompileUnary(Unary *u, Compiler &c)
+void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
 {
-    TypeData right = u->right->NodeCompile(c);
-
-    if (!CheckOperatorUse(VOID_TYPE, u->op.type, right))
-        c.TypeError(u->op, "Cannot use oprand of type " + ToString(right) + " with operator " + u->op.literal);
-
-    TypeData result = OperatorResult(VOID_TYPE, u->op.type, right);
-    c.AddCode({TokenToOpcode(VOID_TYPE, u->op.type, right, true), 1});
-    return result;
+    u->right->NodeCompile(c);
+    c.AddCode({TokenToOpcode(VOID_TYPE, u->op.type, u->right->GetType(), true), 1});
 }
 
-TypeData NodeCompiler::CompileBinary(Binary *b, Compiler &c)
+void NodeCompiler::CompileBinary(Binary *b, Compiler &c)
 {
-    TypeData left = b->left->NodeCompile(c);
-    TypeData right = b->right->NodeCompile(c);
-
-    if (!CheckOperatorUse(left, b->op.type, right))
-        c.TypeError(b->op, "Cannot use operands of type " + ToString(left) + " and " + ToString(right) + "with operator " + b->op.literal);
-
-    TypeData result = OperatorResult(left, b->op.type, right);
-    c.AddCode({TokenToOpcode(left, b->op.type, right, false), 0});
-    return result;
+    b->left->NodeCompile(c);
+    b->right->NodeCompile(c);
+    c.AddCode({TokenToOpcode(b->left->GetType(), b->op.type, b->right->GetType(), false), 0});
 }
 
-TypeData NodeCompiler::CompileAssign(Assign *a, Compiler &c)
+void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 {
     /*
     Valid assignment targets
@@ -198,17 +185,12 @@ TypeData NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     3) FieldAccess
     */
 
-    TypeData value = a->val->NodeCompile(c);
+    a->val->NodeCompile(c);
 
     VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
     if (targetAsVR != nullptr)
     {
         VarID *vid = c.Symbols.GetVar(targetAsVR->name);
-        if (vid == nullptr)
-            c.SymbolError(targetAsVR->Loc(), "Reference to variable '" + targetAsVR->name + "' is not defined");
-
-        if (!c.Symbols.CanAssign(vid->type, value))
-            c.TypeError(a->Loc(), "Cannot assign object of type " + ToString(value) + " to variable of type " + ToString(vid->type));
 
         size_t varStackLoc = c.Symbols.GetVarStackLoc(targetAsVR->name);
         if (varStackLoc > MAX_OPRAND)
@@ -218,45 +200,29 @@ TypeData NodeCompiler::CompileAssign(Assign *a, Compiler &c)
             c.AddCode({Opcode::VAR_A_GLOBAL, static_cast<oprand_t>(varStackLoc)});
         else
             c.AddCode({Opcode::VAR_A, static_cast<oprand_t>(varStackLoc)});
-
-        return vid->type;
     }
 
     ArrayIndex *targetAsAI = dynamic_cast<ArrayIndex *>(a->target.get());
     if (targetAsAI != nullptr)
     {
-        TypeData name = targetAsAI->name->NodeCompile(c);
-        if (!name.isArray && name != STRING_TYPE)
-            c.TypeError(targetAsAI->Loc(), "Cannot index type " + ToString(name));
+        targetAsAI->name->NodeCompile(c);
+        TypeData name = targetAsAI->name->GetType();
 
-        TypeData index = targetAsAI->index->NodeCompile(c);
-        if (index != INT_TYPE)
-            c.TypeError(targetAsAI->Loc(), "Index into array/string must be of type int not " + ToString(index));
+        targetAsAI->index->NodeCompile(c);
 
         if (name.isArray)
-        {
             c.AddCode({Opcode::ARR_SET, 0});
-            TypeData result = name;
-            result.isArray--;
-            return result;
-        }
         else
-        {
             c.AddCode({Opcode::STRING_SET, 0});
-            return CHAR_TYPE;
-        }
     }
 
     FieldAccess *targetAsFA = dynamic_cast<FieldAccess *>(a->target.get());
     if (targetAsFA != nullptr)
     {
-        TypeData accessee = targetAsFA->accessor->NodeCompile(c);
-        StructID *sid = c.Symbols.GetStruct(accessee);
+        targetAsFA->accessor->NodeCompile(c);
+        StructID *sid = c.Symbols.GetStruct(targetAsFA->accessee->GetType());
 
         VarReference *vrAccessee = dynamic_cast<VarReference *>(targetAsFA->accessee.get());
-        if (vrAccessee == nullptr)
-            c.CompileError(targetAsFA->accessee->Loc(), "Invalid struct accessee");
-
         size_t strctMem = SIZE_MAX;
         for (size_t i = 0; i < sid->memberNames.size(); i++)
         {
@@ -267,22 +233,13 @@ TypeData NodeCompiler::CompileAssign(Assign *a, Compiler &c)
             }
         }
 
-        if (strctMem == SIZE_MAX)
-            c.CompileError(targetAsFA->accessee->Loc(), "Struct " + sid->name + " has no member " + vrAccessee->name);
-
         c.AddCode({Opcode::STRUCT_MEMBER_SET, static_cast<oprand_t>(strctMem)});
     }
-
-    c.CompileError(a->target->Loc(), "Invalid assignment target");
-    return VOID_TYPE;
 }
 
-TypeData NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
+void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     VarID *vid = c.Symbols.GetVar(vr->name);
-    if (vid == nullptr)
-        c.SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
-
     size_t stackLoc = c.Symbols.GetVarStackLoc(vr->name);
     if (stackLoc > MAX_OPRAND)
         c.CompileError(vr->Loc(), "Too many variables, maximum number is " + std::to_string(MAX_OPRAND));
@@ -291,19 +248,13 @@ TypeData NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
         c.AddCode({Opcode::GET_V, static_cast<oprand_t>(stackLoc)});
     else
         c.AddCode({Opcode::GET_V_GLOBAL, static_cast<oprand_t>(stackLoc)});
-    return vid->type;
 }
 
-TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
+void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
 {
     std::vector<TypeData> args;
-
-    ERROR_GUARD(
-        {
-            for (auto &e : fc->args)
-                args.push_back(e->NodeCompile(c));
-        },
-        c)
+    for (auto &e : fc->args)
+        args.push_back(e->GetType());
 
     FuncID *fid = c.Symbols.GetFunc(fc->name, fc->templates, args);
     if (fid == nullptr)
@@ -336,6 +287,13 @@ TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         out << ")";
         c.SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
+
+    ERROR_GUARD(
+        {
+            for (auto &e : fc->args)
+                e->NodeCompile(c);
+        },
+        c)
 
     switch (fid->kind)
     {
@@ -375,108 +333,54 @@ TypeData NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         break;
     }
     }
-    return fid->ret;
 }
 
-TypeData NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
+void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 {
-    TypeData name = ai->name->NodeCompile(c);
-
-    if (!name.isArray && name != STRING_TYPE)
-        c.TypeError(ai->Loc(), "Cannot index into object of type " + ToString(name));
-
-    TypeData index = ai->index->NodeCompile(c);
-    if (index != INT_TYPE)
-        c.TypeError(ai->index->Loc(), "Indices can only be of type int not " + ToString(index));
+    ai->name->NodeCompile(c);
+    TypeData name = ai->name->GetType();
+    ai->index->NodeCompile(c);
 
     if (name.isArray)
-    {
         c.AddCode({Opcode::ARR_INDEX, 0});
-        name.isArray--;
-        return name;
-    }
     else
-    {
         c.AddCode({Opcode::STRING_INDEX, 0});
-        return CHAR_TYPE;
-    }
 }
 
-TypeData NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
+void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
-    if (bi->size > MAX_OPRAND)
-        c.CompileError(bi->Loc(), "Braced initialisers can only have " + std::to_string(MAX_OPRAND) + " elements");
-
     TypeData biType = bi->t;
 
     c.AddCode({Opcode::ARR_ALLOC, static_cast<oprand_t>(bi->size)});
     std::pair<size_t, size_t> allocTypeLoc = c.LastAddedCodeLoc();
 
-    std::vector<TypeData> args;
-
     ERROR_GUARD(
         {
             for (auto &e : bi->init)
-                args.push_back(e->NodeCompile(c));
+                e->NodeCompile(c);
         },
         c)
 
-    if (biType.isArray)
-    {
-        TypeData target = biType;
-        target.isArray--;
-
-        for (size_t i = 0; i < bi->init.size(); i++)
-        {
-            if (!c.Symbols.CanAssign(target, args[i]))
-                c.TypeError(bi->init[i]->Loc(), "Cannot object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
-        }
-
-        c.AddCode({Opcode::ARR_D, static_cast<oprand_t>(bi->size)});
-        return biType;
-    }
-    else
-    {
-        StructID *sid = c.Symbols.GetStruct(biType);
-        if (sid == nullptr)
-            c.TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
-        if (sid->memTypes.size() != args.size())
-            c.TypeError(bi->Loc(), "Number of arguments in braced initialiser is not equal to the number of arguments in struct declaration");
-
+    if (!biType.isArray)
         c.ModifyOpcodeAt(allocTypeLoc, Opcode::STRUCT_ALLOC);
-        for (size_t i = 0; i < bi->size; i++)
-        {
-            if (!c.Symbols.CanAssign(sid->memTypes[i], args[i]))
-                c.TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->memTypes[i]));
-        }
-        c.AddCode({Opcode::STRUCT_D, static_cast<oprand_t>(bi->size)});
-        return sid->type;
-    }
 }
 
-TypeData NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
+void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 {
-    if (!da->t.isArray)
-        c.TypeError(da->Loc(), "Must have array type");
-    TypeData size = da->size->NodeCompile(c);
-    if (size != INT_TYPE)
-        c.TypeError(da->Loc(), "Size of dynamically allocated array must have type int not " + ToString(size));
-
+    da->size->NodeCompile(c);
     c.AddCode({Opcode::ARR_ALLOC, 0});
-    return da->t;
 }
 
-TypeData NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
+void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 {
-    TypeData accessor = fa->accessor->NodeCompile(c);
+    fa->accessor->NodeCompile(c);
+    TypeData accessor = fa->accessor->GetType();
 
     StructID *sid = c.Symbols.GetStruct(accessor);
     if (sid == nullptr)
         c.TypeError(fa->Loc(), "Type " + ToString(accessor) + " cannot be accessed into");
 
     VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
-    if (vAccessee == nullptr)
-        c.TypeError(fa->accessee->Loc(), "Only an identifier can be used as a field accessee");
 
     // index of accessee in the underlying array
     size_t index = SIZE_MAX;
@@ -489,17 +393,13 @@ TypeData NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
         }
     }
 
-    if (index == SIZE_MAX)
-        c.SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vAccessee->name);
-
     c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(index)});
-
-    return sid->nameTypes[vAccessee->name];
 }
 
-TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
+void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
-    TypeData old = tc->arg->NodeCompile(c);
+    tc->arg->NodeCompile(c);
+    TypeData old = tc->arg->GetType();
     TypeData nw = tc->t;
 
     bool isDownCast = c.Symbols.CanAssign(nw, old);
@@ -509,38 +409,28 @@ TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
         c.TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
 
     c.AddCode({Opcode::CAST, tc->t.type});
-    return tc->t;
 }
 
-TypeData NodeCompiler::CompileSequence(Sequence *, Compiler &)
+void NodeCompiler::CompileSequence(Sequence *, Compiler &)
 {
-    return VOID_TYPE;
+    return;
 }
 
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 {
-    TypeData exp = es->exp->NodeCompile(c);
+    es->exp->NodeCompile(c);
+    TypeData exp = es->exp->GetType();
     if (exp != VOID_TYPE)
         c.AddCode({Opcode::POP, 0});
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
-    if (c.Symbols.vars.size() > MAX_OPRAND)
-        c.CompileError(dv->Loc(), "Maximum number of variables is " + std::to_string(MAX_OPRAND));
-
-    VarID *vid = c.Symbols.GetVar(dv->name);
-    if (vid != nullptr && vid->depth == c.Symbols.depth)
-        c.SymbolError(dv->Loc(), "Variable '" + ToString(dv->t) + " " + dv->name + "' has already been defined in this scope");
-
     if (dv->value != nullptr)
     {
-        TypeData val = dv->value->NodeCompile(c);
-        if (!c.Symbols.CanAssign(dv->t, val))
-            c.TypeError(dv->Loc(), "Cannot initialise variable '" + dv->name + "' of type " + ToString(dv->t) + " with expression of type " + ToString(val));
-
+        dv->value->NodeCompile(c);
         if (c.Symbols.depth == 0)
             c.AddCode({Opcode::VAR_D_GLOBAL, 0});
     }
@@ -569,9 +459,7 @@ void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 
 void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
 {
-    TypeData cond = i->cond->NodeCompile(c);
-    if (!IsTruthy(cond))
-        c.TypeError(i->cond->Loc(), "Condition of if statement must be convertible to bool");
+    i->cond->NodeCompile(c);
 
     c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
     std::pair<size_t, size_t> notTrue = c.LastAddedCodeLoc();
@@ -634,9 +522,7 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
     c.ModifyOprandAt(enter, static_cast<oprand_t>(loopRoutine));
 
-    TypeData cond = ws->cond->NodeCompile(c);
-    if (!IsTruthy(cond))
-        c.TypeError(ws->cond->Loc(), "Condition of a loop must be convertible to bool");
+    ws->cond->NodeCompile(c);
 
     c.AddCode({Opcode::GOTO_LABEL_IF_FALSE, 0});
     std::pair<size_t, size_t> notTrue = c.LastAddedCodeLoc();
@@ -860,64 +746,64 @@ void NodeCompiler::CompileTryCatch(TryCatch *tc, Compiler &c)
 
 //-----------------EXPRESSIONS---------------------//
 
-TypeData Literal::NodeCompile(Compiler &c)
+void Literal::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileLiteral(this, c);
+    NodeCompiler::CompileLiteral(this, c);
 }
 
-TypeData Unary::NodeCompile(Compiler &c)
+void Unary::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileUnary(this, c);
+    NodeCompiler::CompileUnary(this, c);
 }
 
-TypeData Binary::NodeCompile(Compiler &c)
+void Binary::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileBinary(this, c);
+    NodeCompiler::CompileBinary(this, c);
 }
 
-TypeData Assign::NodeCompile(Compiler &c)
+void Assign::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileAssign(this, c);
+    NodeCompiler::CompileAssign(this, c);
 }
 
-TypeData VarReference::NodeCompile(Compiler &c)
+void VarReference::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileVarReference(this, c);
+    NodeCompiler::CompileVarReference(this, c);
 }
 
-TypeData FunctionCall::NodeCompile(Compiler &c)
+void FunctionCall::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileFunctionCall(this, c);
+    NodeCompiler::CompileFunctionCall(this, c);
 }
 
-TypeData ArrayIndex::NodeCompile(Compiler &c)
+void ArrayIndex::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileArrayIndex(this, c);
+    NodeCompiler::CompileArrayIndex(this, c);
 }
 
-TypeData BracedInitialiser::NodeCompile(Compiler &c)
+void BracedInitialiser::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileBracedInitialiser(this, c);
+    NodeCompiler::CompileBracedInitialiser(this, c);
 }
 
-TypeData DynamicAllocArray::NodeCompile(Compiler &c)
+void DynamicAllocArray::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileDynamicAllocArray(this, c);
+    NodeCompiler::CompileDynamicAllocArray(this, c);
 }
 
-TypeData FieldAccess::NodeCompile(Compiler &c)
+void FieldAccess::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileFieldAccess(this, c);
+    NodeCompiler::CompileFieldAccess(this, c);
 }
 
-TypeData TypeCast::NodeCompile(Compiler &c)
+void TypeCast::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileTypeCast(this, c);
+    NodeCompiler::CompileTypeCast(this, c);
 }
 
-TypeData Sequence::NodeCompile(Compiler &c)
+void Sequence::NodeCompile(Compiler &c)
 {
-    return NodeCompiler::CompileSequence(this, c);
+    NodeCompiler::CompileSequence(this, c);
 }
 
 //------------------STATEMENTS---------------------//
