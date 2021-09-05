@@ -142,7 +142,7 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
     out << "Cast";
-    gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
+    gf->t.isArray ? out << "<" << gf->t << ">" : out << gf->t;
     out << "(" << gf->arg.get() << ")";
 }
 

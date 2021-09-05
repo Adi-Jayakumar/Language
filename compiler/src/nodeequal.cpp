@@ -92,7 +92,7 @@ bool NodeEqual::Equal(const SP<Expr> &left, const SP<Expr> &right)
     case ExprKind::TYPE_CAST:
     {
         GET_NODE_KIND(TypeCast);
-        return l->type == r->type && Equal(l->arg, r->arg);
+        return l->t == r->t && Equal(l->arg, r->arg);
     }
     case ExprKind::SEQUENCE:
     {

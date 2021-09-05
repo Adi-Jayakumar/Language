@@ -500,7 +500,7 @@ TypeData NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
     TypeData old = tc->arg->NodeCompile(c);
-    TypeData nw = tc->type;
+    TypeData nw = tc->t;
 
     bool isDownCast = c.Symbols.CanAssign(nw, old);
     bool isUpCast = c.Symbols.CanAssign(old, nw);
@@ -508,8 +508,8 @@ TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
     if (!isDownCast && !isUpCast)
         c.TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
 
-    c.AddCode({Opcode::CAST, tc->type.type});
-    return tc->type;
+    c.AddCode({Opcode::CAST, tc->t.type});
+    return tc->t;
 }
 
 TypeData NodeCompiler::CompileSequence(Sequence *, Compiler &)

@@ -42,7 +42,8 @@ TypeData StaticAnalyser::AnalyseUnary(Unary *u)
     if (!CheckOperatorUse(VOID_TYPE, u->op.type, right))
         TypeError(u->op, "Cannot use oprand of type " + ToString(right) + " with operator " + u->op.literal);
 
-    return OperatorResult(VOID_TYPE, u->op.type, right);
+    u->t = OperatorResult(VOID_TYPE, u->op.type, right);
+    return u->t;
 }
 
 TypeData StaticAnalyser::AnalyseBinary(Binary *b)
@@ -53,7 +54,8 @@ TypeData StaticAnalyser::AnalyseBinary(Binary *b)
     if (!CheckOperatorUse(left, b->op.type, right))
         TypeError(b->op, "Cannot use operands of type " + ToString(left) + " and " + ToString(right) + "with operator " + b->op.literal);
 
-    return OperatorResult(left, b->op.type, right);
+    b->t = OperatorResult(left, b->op.type, right);
+    return b->t;
 }
 
 TypeData StaticAnalyser::AnalyseAssign(Assign *a)
@@ -75,7 +77,8 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
         dynamic_cast<FieldAccess *>(a->target.get()) == nullptr)
         StaticAnalysisError(a->target->Loc(), "Invalid assignment target");
 
-    return target;
+    a->t = target;
+    return a->t;
 }
 
 TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
@@ -83,7 +86,8 @@ TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
     VarID *vid = Symbols.GetVar(vr->name);
     if (vid == nullptr)
         SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
-    return vid->type;
+    vr->t = vid->type;
+    return vr->t;
 }
 
 TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
@@ -124,7 +128,8 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
 
-    return fid->ret;
+    fc->t = fid->ret;
+    return fc->t;
 }
 
 TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
@@ -141,10 +146,11 @@ TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
     if (name.isArray)
     {
         name.isArray--;
-        return name;
+        ai->t = name;
     }
     else
-        return CHAR_TYPE;
+        ai->t = CHAR_TYPE;
+    return ai->t;
 }
 
 TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
@@ -169,7 +175,7 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
                 TypeError(bi->init[i]->Loc(), "Cannot object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
         }
 
-        return biType;
+        bi->t = biType;
     }
     else
     {
@@ -185,8 +191,9 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
                 TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->memTypes[i]));
         }
 
-        return sid->type;
+        bi->t = sid->type;
     }
+    return bi->t;
 }
 
 TypeData StaticAnalyser::AnalyseDynamicAllocArray(DynamicAllocArray *da)
@@ -226,13 +233,14 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     if (index == SIZE_MAX)
         SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vAccessee->name);
 
-    return sid->nameTypes[vAccessee->name];
+    fa->t = sid->nameTypes[vAccessee->name];
+    return fa->t;
 }
 
 TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
 {
     TypeData old = tc->arg->Analyse(*this);
-    TypeData nw = tc->type;
+    TypeData nw = tc->t;
 
     bool isDownCast = Symbols.CanAssign(nw, old);
     bool isUpCast = Symbols.CanAssign(old, nw);
@@ -240,7 +248,7 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     if (!isDownCast && !isUpCast)
         TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
 
-    return tc->type;
+    return tc->t;
 }
 
 TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
@@ -276,7 +284,9 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
 
     if (OperatorResult(INT_TYPE, s->op, INT_TYPE) != INT_TYPE)
         StaticAnalysisError(s->term->Loc(), "The result of using the operator on 2 integers must be an integer");
-    return INT_TYPE;
+
+    s->t = INT_TYPE;
+    return s->t;
 }
 
 //------------------STATEMENTS---------------------//
