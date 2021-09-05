@@ -2,11 +2,12 @@
 #include "argparser.h"
 #include "compiler.h"
 #include "constevaluator.h"
+#include "nodeoptimiser.h"
 #include "nodesubstitution.h"
 #include "parser.h"
 #include "postcondition.h"
 #include "serialise.h"
-#include "staticanalyser.h"
+#include "verifier.h"
 
 void DumpTokens(std::string fPath)
 {
@@ -74,6 +75,9 @@ int main(int argc, char **argv)
     Parser p(ifPath);
     std::vector<SP<Stmt>> parsed = p.Parse();
 
+    if (p.hadError)
+        exit(2);
+
     if (arg.IsSwitchOn("-l"))
     {
         std::cout << "Dumping tokens" << std::endl;
@@ -90,9 +94,15 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    // PostCondition pc;
-    // std::vector<std::vector<SP<Expr>>> post = pc.Generate(parsed[0]);
-    // PrintPost(post);
+    StaticAnalyser sa;
+    sa.Analyse(parsed);
+
+    Verifier v;
+    std::vector<std::vector<SP<Expr>>> post = v.GeneratePost(std::dynamic_pointer_cast<FuncDecl>(parsed[0]), sa);
+    PrintPost(post);
+    NodeOptimiser nop;
+    nop.OptimisePost(post);
+    PrintPost(post);
 
     // SP<Expr> ten = std::make_shared<Literal>(10);
     // SP<Expr> hund = std::make_shared<Literal>(100);
@@ -100,9 +110,13 @@ int main(int argc, char **argv)
     // loc.type = TokenID::STAR;
     // SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
 
+    // ConstantPropagator cp;
+
     // for (auto &stmt : parsed)
     // {
-    //     ConstantEvaluator::SimplifyStatement(stmt);
+    //     cp.PropagateStatement(stmt);
+    //     // ConstantEvaluator::SimplifyStatement(stmt);
+    //     // replaced.push_back(NodeSubstituter::Substitute(stmt, mult, hund));
     // }
 
     // if (arg.IsSwitchOn("-p"))
@@ -115,27 +129,27 @@ int main(int argc, char **argv)
     //     ast.Flush();
     // }
 
-    StaticAnalyser sa;
-    sa.Analyse(parsed);
+    // Compiler c;
+    // c.Compile(parsed);
 
-    Compiler c;
-    c.Compile(parsed);
+    // if (c.hadError)
+    //     exit(3);
 
-    if (arg.IsSwitchOn("-c"))
-    {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
-    }
+    // if (arg.IsSwitchOn("-c"))
+    // {
+    //     std::cout << "\n\nCOMPILED" << std::endl;
+    //     c.Disassemble();
+    // }
 
-    std::string ofPath = arg.GetArgVal("-o");
+    // std::string ofPath = arg.GetArgVal("-o");
 
-    if (arg.IsSwitchOn("--rm-bin"))
-    {
-        std::string rm = "rm -f " + ofPath;
-        int sysCode = system(rm.c_str());
-        if (sysCode == -1)
-            std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    }
-    Compiler::SerialiseProgram(c, ofPath);
+    // if (arg.IsSwitchOn("--rm-bin"))
+    // {
+    //     std::string rm = "rm -f " + ofPath;
+    //     int sysCode = system(rm.c_str());
+    //     if (sysCode == -1)
+    //         std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    // }
+    // Compiler::SerialiseProgram(c, ofPath);
     return 0;
 }

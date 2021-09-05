@@ -88,11 +88,11 @@ public:
 // validated by the StaticAnalyser
 class ConstantPropagator
 {
-    bool didPropagate;
     SymbolTable Symbols;
     ConstantMap Constants;
 
 public:
+    bool didPropagate;
     ConstantPropagator() = default;
 
     void Propagate(std::vector<SP<Stmt>> &program);

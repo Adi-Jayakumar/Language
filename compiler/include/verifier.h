@@ -1,11 +1,13 @@
 #pragma once
 #include "postcondition.h"
-#include "stmtnode.h"
+#include "staticanalyser.h"
 
 class Verifier
 {
-    //...
+
 public:
     Verifier() = default;
-    void Verify(std::vector<SP<Stmt>> &_program);
+
+    std::vector<std::vector<SP<Expr>>> GeneratePost(SP<FuncDecl> fd, StaticAnalyser &sa);
+    
 };
