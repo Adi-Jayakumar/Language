@@ -34,6 +34,7 @@ class Expr
 {
 public:
     ExprKind kind;
+    TypeData t;
     virtual Token Loc() = 0;
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
@@ -47,9 +48,14 @@ public:
 class Literal : public Expr
 {
 public:
-    TypeData t;
     Token loc;
-    Literal(Token);
+    Literal(const Token &_loc)
+    {
+        kind = ExprKind::LITERAL;
+        loc = _loc;
+        TypeID type = DefaultTypeMap.at(loc.type);
+        t = TypeData(0, type);
+    };
 
     Literal(int i)
     {
@@ -60,15 +66,15 @@ public:
 
     Literal(double d)
     {
-        kind = ExprKind::LITERAL;
         t = DOUBLE_TYPE;
+        kind = ExprKind::LITERAL;
         loc.literal = std::to_string(d);
     };
 
     Literal(bool b)
     {
-        kind = ExprKind::LITERAL;
         t = BOOL_TYPE;
+        kind = ExprKind::LITERAL;
         loc.literal = b ? "true" : "false";
     };
 
@@ -115,13 +121,10 @@ public:
         loc.literal = std::string(&c, 1);
     };
 
-    // ~Literal() override = default;
-
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    // bool IsTruthy() override;
 };
 
 class Unary : public Expr
@@ -130,14 +133,17 @@ public:
     Token op;
     SP<Expr> right;
 
-    Unary(Token, SP<Expr>);
-    // ~Unary() override = default;
+    Unary(const Token &_op, const SP<Expr> &_right)
+    {
+        kind = ExprKind::UNARY;
+        op = _op;
+        right = _right;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return op; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    // bool IsTruthy() override;
 };
 
 class Binary : public Expr
@@ -147,14 +153,18 @@ public:
     Token op;
     SP<Expr> right;
 
-    Binary(SP<Expr>, Token, SP<Expr>);
-    // ~Binary() override = default;
+    Binary(const SP<Expr> &_left, const Token &_op, const SP<Expr> &_right)
+    {
+        kind = ExprKind::BINARY;
+        left = _left;
+        op = _op;
+        right = _right;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return op; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    // bool IsTruthy() override;
 };
 
 class VarReference : public Expr
@@ -162,16 +172,17 @@ class VarReference : public Expr
 public:
     Token loc;
     std::string name;
-    VarReference(Token);
-    bool isArray = false;
+    VarReference(const Token &_loc)
+    {
+        kind = ExprKind::VAR_REFERENCE;
+        loc = _loc;
+        name = loc.literal;
+    };
 
-    // ~VarReference() override = default;
-
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    // bool IsTruthy() override;
 };
 
 class Assign : public Expr
@@ -181,14 +192,18 @@ public:
     SP<Expr> target;
     SP<Expr> val;
 
-    Assign(SP<Expr> _target, SP<Expr> _val, Token _loc);
-    // ~Assign() override = default;
+    Assign(const SP<Expr> &_target, const SP<Expr> &_val, const Token &_loc)
+    {
+        kind = ExprKind::ASSIGN;
+        target = _target;
+        val = _val;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
-    // bool IsTruthy() override;
 };
 
 class FunctionCall : public Expr
@@ -199,9 +214,16 @@ public:
     std::vector<TypeData> templates;
     std::vector<SP<Expr>> args;
 
-    FunctionCall(std::string _name, std::vector<TypeData> _templates, std::vector<SP<Expr>> _args, Token _loc);
+    FunctionCall(const std::string &_name, const std::vector<TypeData> &_templates, const std::vector<SP<Expr>> &_args, const Token &_loc)
+    {
+        kind = ExprKind::FUNCTION_CALL;
+        name = _name;
+        templates = _templates;
+        args = _args;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
@@ -214,9 +236,15 @@ public:
     SP<Expr> name;
     SP<Expr> index;
 
-    ArrayIndex(SP<Expr> _name, SP<Expr> _index, Token _loc);
+    ArrayIndex(const SP<Expr> &_name, const SP<Expr> &_index, const Token &_loc)
+    {
+        kind = ExprKind::ARRAY_INDEX;
+        name = _name;
+        index = _index;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
@@ -225,14 +253,19 @@ public:
 class BracedInitialiser : public Expr
 {
 public:
-    TypeData t;
     Token loc;
     size_t size;
     std::vector<SP<Expr>> init;
 
-    BracedInitialiser(size_t _size, std::vector<SP<Expr>> _init, Token _loc);
+    BracedInitialiser(const size_t &_size, const std::vector<SP<Expr>> &_init, const Token &_loc)
+    {
+        kind = ExprKind::BRACED_INITIALISER;
+        size = _size;
+        init = _init;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
@@ -241,13 +274,17 @@ public:
 class DynamicAllocArray : public Expr
 {
 public:
-    TypeData t;
     Token loc;
     SP<Expr> size;
 
-    DynamicAllocArray(TypeData _t, SP<Expr> _size, Token _loc);
+    DynamicAllocArray(const TypeData &_t, const SP<Expr> &_size, const Token &_loc)
+    {
+        t = _t;
+        size = _size;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
@@ -260,9 +297,15 @@ public:
     SP<Expr> accessor;
     SP<Expr> accessee;
 
-    FieldAccess(SP<Expr> _accessor, SP<Expr> _accessee, Token _loc);
+    FieldAccess(const SP<Expr> &_accessor, const SP<Expr> &_accessee, const Token &_loc)
+    {
+        kind = ExprKind::FIELD_ACCESS;
+        accessor = _accessor;
+        accessee = _accessee;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;
@@ -276,9 +319,15 @@ public:
     SP<Expr> arg;
     bool isDownCast = false;
 
-    TypeCast(TypeData _type, SP<Expr> _arg, Token _loc);
+    TypeCast(const TypeData &_type, const SP<Expr> &_arg, const Token &_loc)
+    {
+        kind = ExprKind::TYPE_CAST;
+        type = _type;
+        arg = _arg;
+        loc = _loc;
+    };
 
-    Token Loc() override;
+    Token Loc() override { return loc; };
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     TypeData NodeCompile(Compiler &c) override;

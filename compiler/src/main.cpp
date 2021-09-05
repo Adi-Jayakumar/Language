@@ -2,7 +2,6 @@
 #include "argparser.h"
 #include "compiler.h"
 #include "constevaluator.h"
-#include "nodeoptimiser.h"
 #include "nodesubstitution.h"
 #include "parser.h"
 #include "postcondition.h"
@@ -99,9 +98,6 @@ int main(int argc, char **argv)
 
     Verifier v;
     std::vector<std::vector<SP<Expr>>> post = v.GeneratePost(std::dynamic_pointer_cast<FuncDecl>(parsed[0]), sa);
-    PrintPost(post);
-    NodeOptimiser nop;
-    nop.OptimisePost(post);
     PrintPost(post);
 
     // SP<Expr> ten = std::make_shared<Literal>(10);
