@@ -172,7 +172,8 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
         for (size_t i = 0; i < bi->init.size(); i++)
         {
             if (!Symbols.CanAssign(target, args[i]))
-                TypeError(bi->init[i]->Loc(), "Cannot object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
+                TypeError(bi->init[i]->Loc(), "Cannot assign object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
+            bi->init[i]->t = target;
         }
 
         bi->t = biType;
@@ -189,6 +190,7 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
         {
             if (!Symbols.CanAssign(sid->memTypes[i], args[i]))
                 TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->memTypes[i]));
+            bi->init[i]->t = sid->memTypes[i];
         }
 
         bi->t = sid->type;
