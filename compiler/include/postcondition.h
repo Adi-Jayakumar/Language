@@ -1,6 +1,6 @@
 #pragma once
-#include "stmtnode.h"
 #include "perror.h"
+#include "stmtnode.h"
 
 class PostConditionGenerator
 {
@@ -14,7 +14,7 @@ public:
     };
 
     void PostConditionError(Token loc, std::string err);
-    std::vector<std::vector<SP<Expr>>> Generate(SP<Stmt> &function);
+    std::vector<std::vector<SP<Expr>>> Generate(SP<FuncDecl> &function);
 
     void AddReturnValue(const SP<Expr> &ret);
     void AddCondition(const SP<Expr> &c);

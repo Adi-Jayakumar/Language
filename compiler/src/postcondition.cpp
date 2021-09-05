@@ -40,7 +40,7 @@ void PostConditionGenerator::PostConditionError(Token loc, std::string err)
     throw e;
 }
 
-std::vector<std::vector<SP<Expr>>> PostConditionGenerator::Generate(SP<Stmt> &function)
+std::vector<std::vector<SP<Expr>>> PostConditionGenerator::Generate(SP<FuncDecl> &function)
 {
     function->GeneratePost(*this);
     post.pop_back();
@@ -96,7 +96,7 @@ void PostConditionGenerator::GenerateFromReturn(Return *r)
     if (r->retVal == nullptr)
         PostConditionError(r->Loc(), "Cannot generate post condition for a void-return");
 
-    AddReturnValue(MAKE_RETURN(r->retVal));
+    AddReturnValue(r->retVal);
 }
 
 void PostConditionGenerator::GenerateFromStructDecl(StructDecl *)
