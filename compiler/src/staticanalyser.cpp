@@ -255,6 +255,7 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
 
 TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
 {
+    // TODO - Make general term only depend on function arguments
     TypeData start = s->start->Analyse(*this);
     if (start != INT_TYPE)
         TypeError(s->start->Loc(), "Start of sequence must be of type int");
