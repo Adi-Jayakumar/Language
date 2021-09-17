@@ -17,8 +17,17 @@ enum class Opcode : op_t
 
     VAR_D_GLOBAL,
 
-    GET_V,
-    GET_V_GLOBAL,
+    GET_INT,
+    GET_DOUBLE,
+    GET_BOOL,
+    GET_STRING,
+    GET_CHAR,
+
+    GET_INT_GLOBAL,
+    GET_DOUBLE_GLOBAL,
+    GET_BOOL_GLOBAL,
+    GET_STRING_GLOBAL,
+    GET_CHAR_GLOBAL,
 
     // arrays
     ARR_D,
@@ -174,13 +183,45 @@ inline std::string ToString(Opcode o)
     {
         return "VAR_D_GLOBAL";
     }
-    case Opcode::GET_V:
+    case Opcode::GET_INT:
     {
-        return "GET_V";
+        return "GET_INT";
     }
-    case Opcode::GET_V_GLOBAL:
+    case Opcode::GET_DOUBLE:
     {
-        return "GET_V_GLOBAL";
+        return "GET_DOUBLE";
+    }
+    case Opcode::GET_BOOL:
+    {
+        return "GET_BOOL";
+    }
+    case Opcode::GET_STRING:
+    {
+        return "GET_STRING";
+    }
+    case Opcode::GET_CHAR:
+    {
+        return "GET_CHAR";
+    }
+    case Opcode::GET_INT_GLOBAL:
+    {
+        return "GET_INT_GLOBAL";
+    }
+    case Opcode::GET_DOUBLE_GLOBAL:
+    {
+        return "GET_DOUBLE_GLOBAL";
+    }
+    case Opcode::GET_BOOL_GLOBAL:
+    {
+        return "GET_BOOL_GLOBAL";
+    }
+    case Opcode::GET_STRING_GLOBAL:
+    {
+        return "GET_STRING_GLOBAL";
+    }
+    case Opcode::GET_CHAR_GLOBAL:
+    {
+        return "GET_CHAR_GLOBAL";
     }
     case Opcode::ARR_D:
     {
