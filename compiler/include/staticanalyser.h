@@ -10,6 +10,8 @@ class StaticAnalyser
 public:
     StaticAnalyser() = default;
 
+    SymbolTable GetSymbolTable() { return Symbols; };
+
     void StaticAnalysisError(Token loc, std::string err);
     void TypeError(Token loc, std::string err);
     void SymbolError(Token loc, std::string err);
