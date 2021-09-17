@@ -21,12 +21,16 @@ struct SymbolTable
 
     bool CanAssign(const TypeData &target, const TypeData &given);
 
+    // accepts any type apart from VOID_TYPE
+    size_t SizeOf(const TypeData &type);
+
     void AddVar(TypeData, std::string);
     void AddFunc(FuncID);
     void AddCLibFunc(FuncID);
     void AddStruct(StructID);
 
     bool IsVarInScope(std::string &name);
+    // getters of identifiers
     VarID *GetVar(std::string &name);
     // returns SIZE_MAX if variable is not found
     size_t GetVariableStackLoc(std::string &name);

@@ -1,18 +1,18 @@
 #pragma once
+#include "common.h"
+#include "typedata.h"
 #include <string>
 #include <vector>
-#include "typedata.h"
-#include "common.h"
 
 struct VarID
 {
     TypeData type;
     std::string name;
     size_t depth;
-    size_t index;
+    size_t relOffset;
     bool isStructMember = false;
     VarID() = default;
-    VarID(TypeData _type, std::string _name, size_t _depth, size_t _index) : type(_type), name(_name), depth(_depth), index(_index){};
+    VarID(TypeData _type, std::string _name, size_t _depth, size_t _relOffset) : type(_type), name(_name), depth(_depth), relOffset(_relOffset){};
 };
 
 enum class FunctionType

@@ -35,9 +35,35 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
     return varType == valType;
 }
 
+size_t SymbolTable::SizeOf(const TypeData &type)
+{
+    if (type == INT_TYPE)
+        return INT_SIZE;
+    else if (type == DOUBLE_TYPE)
+        return DOUBLE_SIZE;
+    else if (type == BOOL_TYPE)
+        return BOOL_SIZE;
+    else if (type == STRING_TYPE)
+        return BOOL_SIZE;
+    else if (type == CHAR_TYPE)
+        return CHAR_SIZE;
+    else if (type == NULL_TYPE)
+        return NULL_SIZE;
+
+    StructID *sid = GetStruct(type);
+    size_t res = 0;
+
+    for (const auto &member : sid->memTypes)
+        res += SizeOf(member);
+
+    return res;
+}
+
 void SymbolTable::AddVar(TypeData type, std::string name)
 {
-    vars.push_back(VarID(type, name, depth, vars.size()));
+    size_t varSize = SizeOf(type);
+    size_t prevOffset = vars.size() ? vars[vars.size() - 1].relOffset : 0;
+    vars.push_back(VarID(type, name, depth, prevOffset + varSize));
 }
 
 bool SymbolTable::IsVarInScope(std::string &name)
@@ -77,21 +103,13 @@ VarID *SymbolTable::GetVar(std::string &name)
 
 size_t SymbolTable::GetVariableStackLoc(std::string &name)
 {
-    size_t varIndex = SIZE_MAX;
-
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
+    for (const auto &var : vars)
     {
-        if (vars[i].name == name)
-        {
-            varIndex = i;
-            break;
-        }
+        if (name == var.name)
+            return var.relOffset;
     }
 
-    if (varIndex == SIZE_MAX)
-        return SIZE_MAX;
-
-    return varIndex;
+    return SIZE_MAX;
 }
 
 size_t SymbolTable::GetVarStackLoc(std::string &name)
