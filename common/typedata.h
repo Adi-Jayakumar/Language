@@ -21,6 +21,13 @@ public:
 #define CHAR_TYPE TypeData(0, 5)
 #define NULL_TYPE TypeData(0, 6)
 
+constexpr size_t INT_SIZE = sizeof(int);
+constexpr size_t DOUBLE_SIZE = sizeof(double);
+constexpr size_t BOOL_SIZE = sizeof(bool);
+constexpr size_t STRING_SIZE = INT_SIZE + sizeof(char *);
+constexpr size_t CHAR_SIZE = sizeof(char);
+constexpr size_t NULL_SIZE = 1UL;
+
 const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE, STRING_TYPE, CHAR_TYPE, NULL_TYPE};
 
 #define VOID_ARRAY TypeData(1, 0)
