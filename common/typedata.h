@@ -4,8 +4,6 @@
 #include <cstdint>
 #include <vector>
 
-#define NUM_DEF_TYPES 7U
-
 class TypeData
 {
 public:
