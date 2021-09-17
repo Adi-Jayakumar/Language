@@ -1,20 +1,31 @@
 #pragma once
+#include "nodesubstitution.h"
 #include "perror.h"
 #include "stmtnode.h"
+#include "symboltable.h"
+#include <cassert>
 
 class PostConditionGenerator
 {
     std::vector<std::vector<SP<Expr>>> post;
     std::vector<SP<Expr>> conditions;
+    std::vector<SP<Stmt>> program;
+    SymbolTable Symbols; // for function calls
 
 public:
-    PostConditionGenerator()
+    // Should pass in the SymbolTable used to StaticAnalyse the code
+    PostConditionGenerator(const SymbolTable &_Symbols) : Symbols(_Symbols)
     {
         post.push_back(std::vector<SP<Expr>>());
     };
 
     void PostConditionError(Token loc, std::string err);
-    std::vector<std::vector<SP<Expr>>> Generate(SP<FuncDecl> &function);
+    std::vector<std::vector<SP<Expr>>> Generate(SP<FuncDecl> &function, std::vector<SP<Stmt>> &_program);
+
+    void ReplaceFunctionCallInPost(std::vector<std::vector<SP<Expr>>> &post);
+    // Replaces a function call with its postcondition but function arguments
+    // substituted for the function all's arguments
+    void ReplaceFunctionCall(SP<Expr> &post);
 
     void AddReturnValue(const SP<Expr> &ret);
     void AddCondition(const SP<Expr> &c);
