@@ -50,8 +50,7 @@ void Parser::Advance()
 
     if (prev.type == TokenID::STRUCT && cur.type == TokenID::TYPENAME_KW)
     {
-        TypeData newType(0, numTypes);
-        numTypes++;
+        TypeData newType(0, numTypes++);
         GetTypeNameMap()[next.literal] = newType;
         GetTypeStringMap()[newType.type] = next.literal;
     }
@@ -365,7 +364,7 @@ SP<Stmt> Parser::ParseStructDecl()
     std::string name = cur.literal;
     Advance();
 
-    TypeData parent = {0, 0};
+    TypeData parent = VOID_TYPE;
 
     if (cur.type == TokenID::COLON)
     {

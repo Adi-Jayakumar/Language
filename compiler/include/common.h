@@ -14,7 +14,7 @@ static const std::unordered_map<TokenID, TypeID> DefaultTypeMap{
     {TokenID::CHAR_L, 5},
     {TokenID::NULL_T, 6}};
 
-const size_t NUM_DEF_TYPES = DefaultTypeMap.size();
+const size_t NUM_DEF_TYPES = DefaultTypeMap.size() + 1;
 
 bool operator==(const TypeData &left, const TypeData &right);
 bool operator!=(const TypeData &left, const TypeData &right);
