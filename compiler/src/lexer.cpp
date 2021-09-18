@@ -48,7 +48,7 @@ Token Lexer::NextToken()
     if (isdigit(src[index]))
         return LexNumber();
 
-    if (isalpha(src[index]))
+    if (isalpha(src[index]) || src[index] == '_')
     {
         Token t;
         if (CheckKeyword(t))
