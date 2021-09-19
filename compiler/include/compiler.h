@@ -33,6 +33,7 @@ public:
 
     Function *cur;
     std::pair<std::vector<Op> *, size_t> curRoutine;
+    bool updateBP = true;
     Compiler();
 
     void AddCode(Op o);
