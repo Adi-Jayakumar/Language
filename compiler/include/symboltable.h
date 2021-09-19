@@ -6,17 +6,22 @@
 #include <dlfcn.h>
 #include <sstream>
 
-struct SymbolTable
+class SymbolTable
 {
+public:
     std::vector<VarID> vars;
+
+private:
     std::vector<FuncID> funcs;
     std::vector<FuncID> nativeFunctions;
     std::vector<FuncID> clibFunctions;
     std::vector<StructID> strcts;
 
-    size_t depth = 0;
     size_t funcVarBegin = 0;
+    size_t bpOffset;
 
+public:
+    size_t depth = 0;
     SymbolTable();
 
     bool CanAssign(const TypeData &target, const TypeData &given);
@@ -24,10 +29,14 @@ struct SymbolTable
     // accepts any type apart from VOID_TYPE
     size_t SizeOf(const TypeData &type);
 
-    void AddVar(TypeData, std::string);
-    void AddFunc(FuncID);
-    void AddCLibFunc(FuncID);
-    void AddStruct(StructID);
+    // returns the offset from the base pointer of the last variable added to the stack
+    size_t GetCurOffset();
+    void UpdateBP(const size_t &offset) { bpOffset += offset; };
+
+    void AddVar(const TypeData &type, const std::string &name, const bool &updateBP = false);
+    void AddFunc(const FuncID &fid);
+    void AddCLibFunc(const FuncID &fid);
+    void AddStruct(const StructID &sid);
 
     bool IsVarInScope(std::string &name);
     // getters of identifiers
@@ -38,6 +47,7 @@ struct SymbolTable
     FuncID *GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
     size_t GetUDFuncNum(FuncID *fid);
     size_t GetCLibFuncNum(FuncID *fid);
+    size_t NumCFuncs() { return clibFunctions.size(); };
     size_t GetNativeFuncNum(FuncID *fid);
 
     StructID *GetStruct(const TypeData &type);
@@ -49,8 +59,6 @@ struct SymbolTable
 
     bool IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
     bool CanAssignAll(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
-
-    size_t GetVarStackLoc(std::string &name);
 
     void PopUntilSized(size_t size);
     void CleanUpCurDepth();

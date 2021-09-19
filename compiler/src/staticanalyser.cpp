@@ -477,7 +477,7 @@ void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
             FuncID func = Symbols.ParseLibraryFunction(lf);
             Symbols.AddCLibFunc(func);
 
-            if (Symbols.clibFunctions.size() > MAX_OPRAND)
+            if (Symbols.NumCFuncs() > MAX_OPRAND)
                 StaticAnalysisError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
         }
     }

@@ -2,6 +2,7 @@
 
 SymbolTable::SymbolTable()
 {
+    bpOffset = 0;
     nativeFunctions = NativeFunctions;
 }
 
@@ -37,7 +38,9 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
 
 size_t SymbolTable::SizeOf(const TypeData &type)
 {
-    if (type == INT_TYPE)
+    if (type.isArray)
+        return ARRAY_SIZE;
+    else if (type == INT_TYPE)
         return INT_SIZE;
     else if (type == DOUBLE_TYPE)
         return DOUBLE_SIZE;
@@ -59,11 +62,20 @@ size_t SymbolTable::SizeOf(const TypeData &type)
     return res;
 }
 
-void SymbolTable::AddVar(TypeData type, std::string name)
+size_t SymbolTable::GetCurOffset()
 {
-    size_t varSize = SizeOf(type);
-    size_t prevOffset = vars.size() ? vars[vars.size() - 1].relOffset : 0;
-    vars.push_back(VarID(type, name, depth, prevOffset + varSize));
+    return bpOffset;
+}
+
+void SymbolTable::AddVar(const TypeData &type, const std::string &name, const bool &updateBP)
+{
+    if (updateBP)
+    {
+        size_t newOffset = vars.size() ? SizeOf(vars.back().type) : 0;
+        UpdateBP(newOffset);
+    }
+
+    vars.push_back(VarID(type, name, depth, bpOffset));
 }
 
 bool SymbolTable::IsVarInScope(std::string &name)
@@ -112,31 +124,12 @@ size_t SymbolTable::GetVariableStackLoc(std::string &name)
     return SIZE_MAX;
 }
 
-size_t SymbolTable::GetVarStackLoc(std::string &name)
-{
-    size_t varIndex = SIZE_MAX;
-
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].name == name)
-        {
-            varIndex = i;
-            break;
-        }
-    }
-
-    if (funcVarBegin == 0)
-        return varIndex;
-    else
-        return varIndex - funcVarBegin;
-}
-
-void SymbolTable::AddFunc(FuncID func)
+void SymbolTable::AddFunc(const FuncID &func)
 {
     funcs.emplace_back(func);
 }
 
-void SymbolTable::AddCLibFunc(FuncID func)
+void SymbolTable::AddCLibFunc(const FuncID &func)
 {
     clibFunctions.push_back(func);
 }
@@ -328,7 +321,7 @@ void SymbolTable::CleanUpCurDepth()
         vars.clear();
 }
 
-void SymbolTable::AddStruct(StructID s)
+void SymbolTable::AddStruct(const StructID &s)
 {
     strcts.push_back(s);
 }
