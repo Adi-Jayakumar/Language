@@ -113,6 +113,39 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
+#define GET(x)                                                                  \
+    inline Opcode GetGETInstruction(const TypeData &type, const bool &isGlobal) \
+    {                                                                           \
+                                                                                \
+        if (type.isArray && isGlobal)                                           \
+            return Opcode::GET_ARRAY_GLOBAL;                                    \
+        if (type.isArray && !isGlobal)                                          \
+            return Opcode::GET_ARRAY;                                           \
+        if (type.type > (NUM_DEF_TYPES - 1) && isGlobal)                        \
+            return Opcode::GET_STRUCT_GLOBAL;                                   \
+        if (type.type > (NUM_DEF_TYPES - 1) && !isGlobal)                       \
+            return Opcode::GET_STRUCT;                                          \
+        x(INT);                                                                 \
+        x(DOUBLE);                                                              \
+        x(BOOL);                                                                \
+        x(STRING);                                                              \
+        x(CHAR);                                                                \
+        return Opcode::NONE;                                                    \
+    }
+
+#define x(type_)              \
+    if (type == type_##_TYPE) \
+        return isGlobal ? Opcode::GET_##type_##_GLOBAL : Opcode::GET_##type_;
+
+GET(x)
+#undef x
+
+#define DO_IF_UPDATE_BP(x) \
+    if (c.updateBP)        \
+    {                      \
+        x                  \
+    }
+
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     TypeData type = l->t;
@@ -126,6 +159,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_INT, static_cast<oprand_t>(cur->ints.size() - 1)});
+        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(INT_SIZE);)
     }
     else if (type == DOUBLE_TYPE)
     {
@@ -134,6 +168,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_DOUBLE, static_cast<oprand_t>(cur->doubles.size() - 1)});
+        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(DOUBLE_SIZE);)
     }
     else if (type == BOOL_TYPE)
     {
@@ -142,6 +177,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_BOOL, static_cast<oprand_t>(cur->bools.size() - 1)});
+        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(BOOL_SIZE);)
     }
     else if (type == STRING_TYPE)
     {
@@ -150,6 +186,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_STRING, static_cast<oprand_t>(cur->strings.size() - 1)});
+        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(STRING_SIZE);)
     }
     else if (type == CHAR_TYPE)
     {
@@ -158,6 +195,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_CHAR, static_cast<oprand_t>(cur->chars.size() - 1)});
+        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(CHAR_SIZE);)
     }
     else
         c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
@@ -192,7 +230,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     {
         VarID *vid = c.Symbols.GetVar(targetAsVR->name);
 
-        size_t varStackLoc = c.Symbols.GetVarStackLoc(targetAsVR->name);
+        size_t varStackLoc = c.Symbols.GetVariableStackLoc(targetAsVR->name);
         if (varStackLoc > MAX_OPRAND)
             c.CompileError(targetAsVR->Loc(), "Too many variables");
 
@@ -240,14 +278,14 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
     VarID *vid = c.Symbols.GetVar(vr->name);
-    size_t stackLoc = c.Symbols.GetVarStackLoc(vr->name);
+    size_t stackLoc = c.Symbols.GetVariableStackLoc(vr->name);
     if (stackLoc > MAX_OPRAND)
         c.CompileError(vr->Loc(), "Too many variables, maximum number is " + std::to_string(MAX_OPRAND));
 
     if (vid->depth > 0)
-        c.AddCode({Opcode::GET_V, static_cast<oprand_t>(stackLoc)});
+        c.AddCode({GetGETInstruction(vid->type, false), static_cast<oprand_t>(stackLoc)});
     else
-        c.AddCode({Opcode::GET_V_GLOBAL, static_cast<oprand_t>(stackLoc)});
+        c.AddCode({GetGETInstruction(vid->type, true), static_cast<oprand_t>(stackLoc)});
 }
 
 void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
@@ -342,32 +380,38 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     ai->index->NodeCompile(c);
 
     if (name.isArray)
+    {
+        --name.isArray;
+        size_t elementSize = c.Symbols.SizeOf(name);
+        c.AddCode({Opcode::PUSH, elementSize});
         c.AddCode({Opcode::ARR_INDEX, 0});
+    }
     else
         c.AddCode({Opcode::STRING_INDEX, 0});
 }
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
-    TypeData biType = bi->t;
-
-    c.AddCode({Opcode::ARR_ALLOC, static_cast<oprand_t>(bi->size)});
-    std::pair<size_t, size_t> allocTypeLoc = c.LastAddedCodeLoc();
-
+    size_t beginning = c.Symbols.GetCurOffset();
     ERROR_GUARD(
         {
             for (auto &e : bi->init)
                 e->NodeCompile(c);
         },
         c)
-
-    if (!biType.isArray)
-        c.ModifyOpcodeAt(allocTypeLoc, Opcode::STRUCT_ALLOC);
+    if (bi->GetType().isArray)
+        c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(beginning)});
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 {
+    c.updateBP = false;
     da->size->NodeCompile(c);
+    TypeData elementType = da->GetType();
+    elementType.isArray--;
+    size_t elementSize = c.Symbols.SizeOf(elementType);
+    c.updateBP = true;
+    c.AddCode({Opcode::PUSH, static_cast<oprand_t>(elementSize)});
     c.AddCode({Opcode::ARR_ALLOC, 0});
 }
 
@@ -439,7 +483,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         if (c.Symbols.depth == 0)
             c.SymbolError(dv->Loc(), "Global variable must be initialised");
     }
-    c.Symbols.AddVar(dv->t, dv->name);
+    c.Symbols.AddVar(dv->t, dv->name, true);
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -688,7 +732,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                     FuncID func = c.Symbols.ParseLibraryFunction(lf);
                     c.Symbols.AddCLibFunc(func);
 
-                    if (c.Symbols.clibFunctions.size() > MAX_OPRAND)
+                    if (c.Symbols.NumCFuncs() > MAX_OPRAND)
                         c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
 
                     c.libfuncs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
