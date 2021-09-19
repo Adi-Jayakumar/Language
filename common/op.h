@@ -17,20 +17,28 @@ enum class Opcode : op_t
 
     VAR_D_GLOBAL,
 
+    // pushes the oprand onto the stack
+    // by value
+    PUSH,
+
     GET_INT,
     GET_DOUBLE,
     GET_BOOL,
     GET_STRING,
     GET_CHAR,
+    GET_ARRAY,
+    GET_STRUCT,
 
     GET_INT_GLOBAL,
     GET_DOUBLE_GLOBAL,
     GET_BOOL_GLOBAL,
     GET_STRING_GLOBAL,
     GET_CHAR_GLOBAL,
+    GET_ARRAY_GLOBAL,
+    GET_STRUCT_GLOBAL,
 
     // arrays
-    ARR_D,
+    DECL_STACK_ARRAY,
     ARR_INDEX,
     ARR_SET,
     ARR_ALLOC,
@@ -183,6 +191,10 @@ inline std::string ToString(Opcode o)
     {
         return "VAR_D_GLOBAL";
     }
+    case Opcode::PUSH:
+    {
+        return "PUSH";
+    }
     case Opcode::GET_INT:
     {
         return "GET_INT";
@@ -202,6 +214,14 @@ inline std::string ToString(Opcode o)
     case Opcode::GET_CHAR:
     {
         return "GET_CHAR";
+    }
+    case Opcode::GET_ARRAY:
+    {
+        return "GET_ARRAY";
+    }
+    case Opcode::GET_STRUCT:
+    {
+        return "GET_STUCT";
     }
     case Opcode::GET_INT_GLOBAL:
     {
@@ -223,9 +243,17 @@ inline std::string ToString(Opcode o)
     {
         return "GET_CHAR_GLOBAL";
     }
-    case Opcode::ARR_D:
+    case Opcode::GET_ARRAY_GLOBAL:
     {
-        return "ARR_D";
+        return "GET_ARRAY_GLOBAL";
+    }
+    case Opcode::GET_STRUCT_GLOBAL:
+    {
+        return "GET_STRUCT_GLOBAL";
+    }
+    case Opcode::DECL_STACK_ARRAY:
+    {
+        return "DECL_STACK_ARRAY";
     }
     case Opcode::ARR_INDEX:
     {
