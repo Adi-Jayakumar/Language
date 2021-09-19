@@ -27,6 +27,7 @@ constexpr size_t BOOL_SIZE = sizeof(bool);
 constexpr size_t STRING_SIZE = INT_SIZE + sizeof(char *);
 constexpr size_t CHAR_SIZE = sizeof(char);
 constexpr size_t NULL_SIZE = 1UL;
+constexpr size_t ARRAY_SIZE = sizeof(char *);
 
 const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE, STRING_TYPE, CHAR_TYPE, NULL_TYPE};
 
