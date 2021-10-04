@@ -37,12 +37,12 @@ enum class Opcode : op_t
     GET_ARRAY_GLOBAL,
     GET_STRUCT_GLOBAL,
 
-    // arrays
+    // arrays and arrays
     DECL_STACK_ARRAY,
     ARR_INDEX,
     ARR_SET,
     ARR_ALLOC,
-    STRUCT_ALLOC,
+    DECL_STACK_STRUCT,
 
     STRING_INDEX,
     STRING_SET,
@@ -263,13 +263,9 @@ inline std::string ToString(Opcode o)
     {
         return "ARR_SET";
     }
-    case Opcode::ARR_ALLOC:
+    case Opcode::DECL_STACK_STRUCT:
     {
-        return "ARR_ALLOC";
-    }
-    case Opcode::STRUCT_ALLOC:
-    {
-        return "STRUCT_ALLOC";
+        return "DECL_STACK_STRUCT";
     }
     case Opcode::STRING_INDEX:
     {
