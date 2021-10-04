@@ -52,14 +52,8 @@ size_t SymbolTable::SizeOf(const TypeData &type)
         return CHAR_SIZE;
     else if (type == NULL_TYPE)
         return NULL_SIZE;
-
-    StructID *sid = GetStruct(type);
-    size_t res = 0;
-
-    for (const auto &member : sid->memTypes)
-        res += SizeOf(member);
-
-    return res;
+    else
+        return STRUCT_SIZE;
 }
 
 size_t SymbolTable::GetCurOffset()
@@ -118,7 +112,11 @@ size_t SymbolTable::GetVariableStackLoc(std::string &name)
     for (const auto &var : vars)
     {
         if (name == var.name)
+        {
+            if (var.type.isArray || var.type.type >= NUM_DEF_TYPES)
+                loc += var.size;
             return loc;
+        }
         loc += var.size;
     }
 

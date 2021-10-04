@@ -401,6 +401,8 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         c)
     if (bi->GetType().isArray)
         c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(beginning)});
+    else
+        c.AddCode({Opcode::DECL_STACK_STRUCT, static_cast<oprand_t>(beginning)});
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
