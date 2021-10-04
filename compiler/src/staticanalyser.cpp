@@ -273,7 +273,7 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
         StaticAnalysisError(s->var->Loc(), "Indexing variable is already defined");
 
     Symbols.depth++;
-    Symbols.AddVar(INT_TYPE, s->var->name);
+    Symbols.AddVar(INT_TYPE, s->var->name, 0);
 
     TypeData term = s->term->Analyse(*this);
     if (term != INT_TYPE)
@@ -319,7 +319,7 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
         if (Symbols.depth == 0)
             SymbolError(dv->Loc(), "Global variable must be initialised");
     }
-    Symbols.AddVar(dv->t, dv->name);
+    Symbols.AddVar(dv->t, dv->name, 0);
 }
 
 void StaticAnalyser::AnalyseBlock(Block *b)
@@ -401,7 +401,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
     Symbols.depth++;
     for (auto &arg : fd->params)
-        Symbols.AddVar(arg.first, arg.second);
+        Symbols.AddVar(arg.first, arg.second, 0);
 
     for (auto &stmt : fd->body)
         stmt->Analyse(*this);

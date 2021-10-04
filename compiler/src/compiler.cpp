@@ -118,10 +118,18 @@ void Compiler::Disassemble()
 
 void Compiler::ClearCurrentDepthWithPOPInst()
 {
+    if (Symbols.vars.size() == 0)
+        return;
+
+    size_t count = 0;
+
     while (Symbols.vars.size() > 0 && Symbols.vars.back().depth == Symbols.depth)
     {
+        size_t varSize = Symbols.vars.back().size;
+        Symbols.ReduceBP(varSize);
+        AddCode({Opcode::POP, varSize});
         Symbols.vars.pop_back();
-        AddCode({Opcode::POP, 0});
+        count++;
     }
 }
 

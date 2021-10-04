@@ -47,7 +47,7 @@ size_t SymbolTable::SizeOf(const TypeData &type)
     else if (type == BOOL_TYPE)
         return BOOL_SIZE;
     else if (type == STRING_TYPE)
-        return BOOL_SIZE;
+        return STRING_SIZE;
     else if (type == CHAR_TYPE)
         return CHAR_SIZE;
     else if (type == NULL_TYPE)
@@ -67,15 +67,14 @@ size_t SymbolTable::GetCurOffset()
     return bpOffset;
 }
 
-void SymbolTable::AddVar(const TypeData &type, const std::string &name, const bool &updateBP)
+size_t SymbolTable::GetNewVarOffset(const TypeData &type)
 {
-    if (updateBP)
-    {
-        size_t newOffset = vars.size() ? SizeOf(vars.back().type) : 0;
-        UpdateBP(newOffset);
-    }
+    return bpOffset + (vars.size() ? SizeOf(vars.back().type) : 0);
+}
 
-    vars.push_back(VarID(type, name, depth, bpOffset));
+void SymbolTable::AddVar(const TypeData &type, const std::string &name, const size_t size)
+{
+    vars.push_back(VarID(type, name, depth, size));
 }
 
 bool SymbolTable::IsVarInScope(std::string &name)
@@ -115,10 +114,12 @@ VarID *SymbolTable::GetVar(std::string &name)
 
 size_t SymbolTable::GetVariableStackLoc(std::string &name)
 {
+    size_t loc = 0;
     for (const auto &var : vars)
     {
         if (name == var.name)
-            return var.relOffset;
+            return loc;
+        loc += var.size;
     }
 
     return SIZE_MAX;

@@ -62,11 +62,11 @@ int main(int argc, char **argv)
     arg.AddSwitch("-p");
     arg.AddSwitch("-t");
     arg.AddSwitch("-O");
+    arg.AddSwitch("-exp");
     arg.AddSwitch("-c");
     arg.AddSwitch("--rm-bin");
 
     arg.AddArg({"-f", "-o"});
-
     arg.ParseArgs(argc - 1, argv + 1);
 
     std::string ifPath = arg.GetArgVal("-f");
@@ -96,34 +96,37 @@ int main(int argc, char **argv)
     StaticAnalyser sa;
     sa.Analyse(parsed);
 
-    Verifier v;
-    std::vector<std::vector<SP<Expr>>> post = v.GeneratePost(std::dynamic_pointer_cast<FuncDecl>(parsed[0]), sa);
-    PrintPost(post);
+    if (arg.IsSwitchOn("-exp"))
+    {
+        // Verifier v(parsed);
+        // std::vector<std::vector<SP<Expr>>> post = v.GeneratePost(std::dynamic_pointer_cast<FuncDecl>(parsed[0]), sa);
+        // PrintPost(post);
 
-    // SP<Expr> ten = std::make_shared<Literal>(10);
-    // SP<Expr> hund = std::make_shared<Literal>(100);
-    // Token loc = ten->Loc();
-    // loc.type = TokenID::STAR;
-    // SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
+        // SP<Expr> ten = std::make_shared<Literal>(10);
+        // SP<Expr> hund = std::make_shared<Literal>(100);
+        // Token loc = ten->Loc();
+        // loc.type = TokenID::STAR;
+        // SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
 
-    // ConstantPropagator cp;
+        // ConstantPropagator cp;
 
-    // for (auto &stmt : parsed)
-    // {
-    //     cp.PropagateStatement(stmt);
-    //     // ConstantEvaluator::SimplifyStatement(stmt);
-    //     // replaced.push_back(NodeSubstituter::Substitute(stmt, mult, hund));
-    // }
+        // for (auto &stmt : parsed)
+        // {
+        //     cp.PropagateStatement(stmt);
+        //     // ConstantEvaluator::SimplifyStatement(stmt);
+        //     // replaced.push_back(NodeSubstituter::Substitute(stmt, mult, hund));
+        // }
 
-    // if (arg.IsSwitchOn("-p"))
-    // {
-    //     std::cout << "PARSED" << std::endl;
-    //     ASTPrinter ast(false);
+        // if (arg.IsSwitchOn("-p"))
+        // {
+        //     std::cout << "PARSED" << std::endl;
+        //     ASTPrinter ast(false);
 
-    //     for (auto &stmt : parsed)
-    //         stmt->Print(ast);
-    //     ast.Flush();
-    // }
+        //     for (auto &stmt : parsed)
+        //         stmt->Print(ast);
+        //     ast.Flush();
+        // }
+    }
 
     Compiler c;
     c.Compile(parsed);

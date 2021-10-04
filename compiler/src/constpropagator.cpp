@@ -123,7 +123,7 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
     case StmtKind::DECLARED_VAR:
     {
         DeclaredVar *dv = dynamic_cast<DeclaredVar *>(stmt.get());
-        Symbols.AddVar(dv->t, dv->name);
+        Symbols.AddVar(dv->t, dv->name, 0);
 
         if (dv->value != nullptr)
         {

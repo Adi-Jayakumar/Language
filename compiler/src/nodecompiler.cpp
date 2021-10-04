@@ -467,23 +467,30 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     es->exp->NodeCompile(c);
     TypeData exp = es->exp->GetType();
     if (exp != VOID_TYPE)
-        c.AddCode({Opcode::POP, 0});
+    {
+        c.AddCode({Opcode::POP, c.Symbols.SizeOf(exp)});
+    }
 }
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     if (dv->value != nullptr)
     {
+        size_t before = c.Symbols.GetCurOffset();
         dv->value->NodeCompile(c);
+        size_t after = c.Symbols.GetCurOffset();
+
         if (c.Symbols.depth == 0)
             c.AddCode({Opcode::VAR_D_GLOBAL, 0});
+
+        c.Symbols.AddVar(dv->t, dv->name, after - before);
     }
     else
     {
         if (c.Symbols.depth == 0)
             c.SymbolError(dv->Loc(), "Global variable must be initialised");
+        c.Symbols.AddVar(dv->t, dv->name, c.Symbols.SizeOf(dv->t));
     }
-    c.Symbols.AddVar(dv->t, dv->name, true);
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -637,7 +644,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.Symbols.depth++;
     for (auto &arg : fd->params)
-        c.Symbols.AddVar(arg.first, arg.second);
+        c.Symbols.AddVar(arg.first, arg.second, c.Symbols.SizeOf(arg.first));
 
     ERROR_GUARD(
         {
@@ -784,7 +791,7 @@ void NodeCompiler::CompileTryCatch(TryCatch *tc, Compiler &c)
 
     ti.index = static_cast<oprand_t>(sIndex);
     c.throwStack.push_back(ti);
-    c.Symbols.AddVar(catchType, catchVarName);
+    c.Symbols.AddVar(catchType, catchVarName, c.Symbols.SizeOf(catchType));
     tc->catchClause->NodeCompile(c);
 }
 

@@ -9,10 +9,10 @@ struct VarID
     TypeData type;
     std::string name;
     size_t depth;
-    size_t relOffset;
+    size_t size;
     bool isStructMember = false;
     VarID() = default;
-    VarID(TypeData _type, std::string _name, size_t _depth, size_t _relOffset) : type(_type), name(_name), depth(_depth), relOffset(_relOffset){};
+    VarID(TypeData _type, std::string _name, size_t _depth, size_t _size) : type(_type), name(_name), depth(_depth), size(_size){};
 };
 
 enum class FunctionType
