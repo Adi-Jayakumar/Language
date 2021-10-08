@@ -112,11 +112,7 @@ size_t SymbolTable::GetVariableStackLoc(std::string &name)
     for (const auto &var : vars)
     {
         if (name == var.name)
-        {
-            if (var.type.isArray || var.type.type >= NUM_DEF_TYPES)
-                loc += var.size;
             return loc;
-        }
         loc += var.size;
     }
 

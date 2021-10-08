@@ -36,12 +36,12 @@ struct FuncID
     size_t parseIndex;
     FuncID() = default;
 
-    FuncID(TypeData _ret,
-           std::string _name,
-           std::vector<TypeData> _templates,
-           std::vector<TypeData> _argtypes,
-           FunctionType _kind,
-           size_t _parseIndex)
+    FuncID(const TypeData &_ret,
+           const std::string &_name,
+           const std::vector<TypeData> &_templates,
+           const std::vector<TypeData> &_argtypes,
+           const FunctionType &_kind,
+           const size_t &_parseIndex)
         : ret(_ret),
           name(_name),
           templates(_templates),
@@ -89,20 +89,14 @@ struct StructID
     std::string name;
     TypeData type;
     TypeData parent;
-    std::vector<std::string> memberNames;
-    std::vector<TypeData> memTypes;
-    std::unordered_map<std::string, TypeData> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> nameTypes;
 
-    StructID(std::string _name,
-             TypeData _type,
-             TypeData _parent,
-             std::vector<std::string> _memberNames,
-             std::vector<TypeData> _memTypes,
-             std::unordered_map<std::string, TypeData> _nameTypes)
+    StructID(const std::string &_name,
+             const TypeData &_type,
+             const TypeData &_parent,
+             const std::vector<std::pair<std::string, TypeData>> &_nameTypes)
         : name(_name),
           type(_type),
           parent(_parent),
-          memberNames(_memberNames),
-          memTypes(_memTypes),
           nameTypes(_nameTypes){};
 };

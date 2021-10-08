@@ -183,14 +183,14 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
         StructID *sid = Symbols.GetStruct(biType);
         if (sid == nullptr)
             TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
-        if (sid->memTypes.size() != args.size())
+        if (sid->nameTypes.size() != args.size())
             TypeError(bi->Loc(), "Number of arguments in braced initialiser is not equal to the number of arguments in struct declaration");
 
         for (size_t i = 0; i < bi->size; i++)
         {
-            if (!Symbols.CanAssign(sid->memTypes[i], args[i]))
-                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->memTypes[i]));
-            bi->init[i]->t = sid->memTypes[i];
+            if (!Symbols.CanAssign(sid->nameTypes[i].second, args[i]))
+                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->nameTypes[i].second));
+            bi->init[i]->t = sid->nameTypes[i].second;
         }
 
         bi->t = sid->type;
@@ -223,9 +223,9 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
 
     // index of accessee in the underlying array
     size_t index = SIZE_MAX;
-    for (size_t i = 0; i < sid->memberNames.size(); i++)
+    for (size_t i = 0; i < sid->nameTypes.size(); i++)
     {
-        if (sid->memberNames[i] == vAccessee->name)
+        if (sid->nameTypes[i].first == vAccessee->name)
         {
             index = i;
             break;
@@ -235,7 +235,7 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     if (index == SIZE_MAX)
         SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vAccessee->name);
 
-    fa->t = sid->nameTypes[vAccessee->name];
+    fa->t = sid->nameTypes[index].second;
     return fa->t;
 }
 
@@ -425,10 +425,8 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         SymbolError(sd->Loc(), "Invalid struct name");
 
     TypeData parent = sd->parent;
-    std::vector<std::string> memberNames;
-    std::vector<TypeData> memTypes;
     std::vector<SP<Expr>> init;
-    std::unordered_map<std::string, TypeData> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> nameTypes;
 
     if (parent != VOID_TYPE)
     {
@@ -439,16 +437,12 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (sidParent == nullptr)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
-        for (const std::string &name : sidParent->memberNames)
-            memberNames.push_back(name);
+        for (const auto &member : sidParent->nameTypes)
+            nameTypes.push_back(member);
 
-        for (const TypeData &type : sidParent->memTypes)
-            memTypes.push_back(type);
-
-        for (const auto kv : sidParent->nameTypes)
-            nameTypes[kv.first] = kv.second;
     }
 
+    size_t i = 0;
     for (auto &d : sd->decls)
     {
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
@@ -458,12 +452,10 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (asDV->value != nullptr)
             StaticAnalysisError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
 
-        memberNames.push_back(asDV->name);
-        memTypes.push_back(asDV->t);
-        nameTypes[asDV->name] = asDV->t;
+        nameTypes[i] = {asDV->name, asDV->t};
     }
 
-    Symbols.AddStruct(StructID(name, type, parent, memberNames, memTypes, nameTypes));
+    Symbols.AddStruct(StructID(name, type, parent, nameTypes));
 }
 
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)

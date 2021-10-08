@@ -140,12 +140,6 @@ inline bool IsTruthy(const TypeData &td)
 GET(x)
 #undef x
 
-#define DO_IF_UPDATE_BP(x) \
-    if (c.updateBP)        \
-    {                      \
-        x                  \
-    }
-
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
 {
     TypeData type = l->t;
@@ -159,7 +153,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_INT, static_cast<oprand_t>(cur->ints.size() - 1)});
-        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(INT_SIZE);)
+        c.Symbols.UpdateBP(INT_SIZE);
     }
     else if (type == DOUBLE_TYPE)
     {
@@ -168,7 +162,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_DOUBLE, static_cast<oprand_t>(cur->doubles.size() - 1)});
-        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(DOUBLE_SIZE);)
+        c.Symbols.UpdateBP(DOUBLE_SIZE);
     }
     else if (type == BOOL_TYPE)
     {
@@ -177,7 +171,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_BOOL, static_cast<oprand_t>(cur->bools.size() - 1)});
-        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(BOOL_SIZE);)
+        c.Symbols.UpdateBP(BOOL_SIZE);
     }
     else if (type == STRING_TYPE)
     {
@@ -186,7 +180,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_STRING, static_cast<oprand_t>(cur->strings.size() - 1)});
-        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(STRING_SIZE);)
+        c.Symbols.UpdateBP(STRING_SIZE);
     }
     else if (type == CHAR_TYPE)
     {
@@ -195,7 +189,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_CHAR, static_cast<oprand_t>(cur->chars.size() - 1)});
-        DO_IF_UPDATE_BP(c.Symbols.UpdateBP(CHAR_SIZE);)
+        c.Symbols.UpdateBP(CHAR_SIZE);
     }
     else
         c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
@@ -261,17 +255,15 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         StructID *sid = c.Symbols.GetStruct(targetAsFA->accessee->GetType());
 
         VarReference *vrAccessee = dynamic_cast<VarReference *>(targetAsFA->accessee.get());
-        size_t strctMem = SIZE_MAX;
-        for (size_t i = 0; i < sid->memberNames.size(); i++)
+        size_t offset = SIZE_MAX;
+        for (const auto &member : sid->nameTypes)
         {
-            if (sid->memberNames[i] == vrAccessee->name)
-            {
-                strctMem = i;
+            offset += c.Symbols.SizeOf(member.second);
+            if (member.first == vrAccessee->name)
                 break;
-            }
         }
 
-        c.AddCode({Opcode::STRUCT_MEMBER_SET, static_cast<oprand_t>(strctMem)});
+        c.AddCode({Opcode::STRUCT_MEMBER_SET, static_cast<oprand_t>(offset)});
     }
 }
 
@@ -400,19 +392,23 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         },
         c)
     if (bi->GetType().isArray)
+    {
         c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(beginning)});
+        c.Symbols.UpdateBP(ARRAY_SIZE);
+    }
     else
+    {
         c.AddCode({Opcode::DECL_STACK_STRUCT, static_cast<oprand_t>(beginning)});
+        c.Symbols.UpdateBP(STRUCT_SIZE);
+    }
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
 {
-    c.updateBP = false;
     da->size->NodeCompile(c);
     TypeData elementType = da->GetType();
     elementType.isArray--;
     size_t elementSize = c.Symbols.SizeOf(elementType);
-    c.updateBP = true;
     c.AddCode({Opcode::PUSH, static_cast<oprand_t>(elementSize)});
     c.AddCode({Opcode::ARR_ALLOC, 0});
 }
@@ -429,17 +425,15 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
 
     // index of accessee in the underlying array
-    size_t index = SIZE_MAX;
-    for (size_t i = 0; i < sid->memberNames.size(); i++)
+    size_t offset = SIZE_MAX;
+    for (const auto &member : sid->nameTypes)
     {
-        if (sid->memberNames[i] == vAccessee->name)
-        {
-            index = i;
+        offset += c.Symbols.SizeOf(member.second);
+        if (member.first == vAccessee->name)
             break;
-        }
     }
 
-    c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(index)});
+    c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(offset)});
 }
 
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
@@ -478,21 +472,17 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
     if (dv->value != nullptr)
     {
-        size_t before = c.Symbols.GetCurOffset();
         dv->value->NodeCompile(c);
-        size_t after = c.Symbols.GetCurOffset();
 
         if (c.Symbols.depth == 0)
             c.AddCode({Opcode::VAR_D_GLOBAL, 0});
-
-        c.Symbols.AddVar(dv->t, dv->name, after - before);
     }
     else
     {
         if (c.Symbols.depth == 0)
             c.SymbolError(dv->Loc(), "Global variable must be initialised");
-        c.Symbols.AddVar(dv->t, dv->name, c.Symbols.SizeOf(dv->t));
     }
+    c.Symbols.AddVar(dv->t, dv->name, c.Symbols.SizeOf(dv->t));
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
@@ -685,7 +675,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
     std::vector<std::string> memberNames;
     std::vector<TypeData> memTypes;
     std::vector<SP<Expr>> init;
-    std::unordered_map<std::string, TypeData> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> nameTypes;
 
     if (parent != VOID_TYPE)
     {
@@ -696,14 +686,8 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         if (sidParent == nullptr)
             c.TypeError(sd->Loc(), "Invalid parent struct name");
 
-        for (const std::string &name : sidParent->memberNames)
-            memberNames.push_back(name);
-
-        for (const TypeData &type : sidParent->memTypes)
-            memTypes.push_back(type);
-
         for (const auto kv : sidParent->nameTypes)
-            nameTypes[kv.first] = kv.second;
+            nameTypes.push_back({kv.first, kv.second});
     }
 
     ERROR_GUARD(
@@ -719,12 +703,12 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 
                 memberNames.push_back(asDV->name);
                 memTypes.push_back(asDV->t);
-                nameTypes[asDV->name] = asDV->t;
+                nameTypes.push_back({asDV->name, asDV->t});
             }
         },
         c)
 
-    c.Symbols.AddStruct(StructID(name, type, parent, memberNames, memTypes, nameTypes));
+    c.Symbols.AddStruct(StructID(name, type, parent, nameTypes));
 }
 
 void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
