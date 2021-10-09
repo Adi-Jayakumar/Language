@@ -2,7 +2,7 @@
 
 Stack::Stack()
 {
-    data = new Object *[DEF_SIZE * sizeof(Object *)];
+    data = new int *[DEF_SIZE * sizeof(int *)];
     count = 0;
     capacity = DEF_SIZE;
     back = *data;
@@ -13,7 +13,7 @@ Stack::~Stack()
     delete[] data;
 }
 
-void Stack::push_back(Object *cc)
+void Stack::push_back(int *cc)
 {
     if (count < capacity)
     {
@@ -23,8 +23,8 @@ void Stack::push_back(Object *cc)
     else
     {
         capacity *= GROW_FAC;
-        Object **more = new Object *[capacity * sizeof(Object *)];
-        memcpy(more, data, count * sizeof(Object *));
+        int **more = new int *[capacity * sizeof(int *)];
+        memcpy(more, data, count * sizeof(int *));
         delete[] data;
         data = more;
         data[count] = cc;
@@ -45,7 +45,7 @@ void Stack::pop_N(size_t n)
     back = count > 0 ? data[count - 1] : data[0];
 }
 
-Object *Stack::operator[](const size_t index)
+int *Stack::operator[](const size_t index)
 {
     return data[index];
 }

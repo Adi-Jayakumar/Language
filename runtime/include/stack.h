@@ -1,5 +1,4 @@
 #pragma once
-#include "runtimeobject.h"
 #include <cstring>
 
 #define DEF_SIZE 512U
@@ -9,13 +8,13 @@
 struct Stack
 {
     size_t count;
-    Object **data;
-    Object *back;
+    int **data;
+    int *back;
 
     Stack();
     ~Stack();
-    Object *operator[](const size_t index);
-    void push_back(Object *cc);
+    int *operator[](const size_t index);
+    void push_back(int *cc);
     // returns a pointer to the copy so that the VM
     // can add the pointer to the copy to the Stack of
     // runtime allocated objects
