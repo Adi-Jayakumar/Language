@@ -153,7 +153,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_INT, static_cast<oprand_t>(cur->ints.size() - 1)});
-        c.Symbols.UpdateBP(INT_SIZE);
+        c.Symbols.UpdateSP(INT_SIZE);
     }
     else if (type == DOUBLE_TYPE)
     {
@@ -162,7 +162,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_DOUBLE, static_cast<oprand_t>(cur->doubles.size() - 1)});
-        c.Symbols.UpdateBP(DOUBLE_SIZE);
+        c.Symbols.UpdateSP(DOUBLE_SIZE);
     }
     else if (type == BOOL_TYPE)
     {
@@ -171,7 +171,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_BOOL, static_cast<oprand_t>(cur->bools.size() - 1)});
-        c.Symbols.UpdateBP(BOOL_SIZE);
+        c.Symbols.UpdateSP(BOOL_SIZE);
     }
     else if (type == STRING_TYPE)
     {
@@ -180,7 +180,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_STRING, static_cast<oprand_t>(cur->strings.size() - 1)});
-        c.Symbols.UpdateBP(STRING_SIZE);
+        c.Symbols.UpdateSP(STRING_SIZE);
     }
     else if (type == CHAR_TYPE)
     {
@@ -189,7 +189,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_CHAR, static_cast<oprand_t>(cur->chars.size() - 1)});
-        c.Symbols.UpdateBP(CHAR_SIZE);
+        c.Symbols.UpdateSP(CHAR_SIZE);
     }
     else
         c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
@@ -384,6 +384,7 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
+    c.AddCode({Opcode::PUSH_SP_OFFSET, 8});
     size_t beginning = c.Symbols.GetCurOffset();
     ERROR_GUARD(
         {
@@ -391,15 +392,16 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
                 e->NodeCompile(c);
         },
         c)
+    size_t diff = c.Symbols.GetCurOffset() - beginning;
     if (bi->GetType().isArray)
     {
-        c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(beginning)});
-        c.Symbols.UpdateBP(ARRAY_SIZE);
+        c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(diff)});
+        c.Symbols.UpdateSP(ARRAY_SIZE);
     }
     else
     {
-        c.AddCode({Opcode::DECL_STACK_STRUCT, static_cast<oprand_t>(beginning)});
-        c.Symbols.UpdateBP(STRUCT_SIZE);
+        c.AddCode({Opcode::DECL_STACK_STRUCT, static_cast<oprand_t>(diff)});
+        c.Symbols.UpdateSP(STRUCT_SIZE);
     }
 }
 
@@ -425,12 +427,12 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
 
     // index of accessee in the underlying array
-    size_t offset = SIZE_MAX;
+    size_t offset = 0;
     for (const auto &member : sid->nameTypes)
     {
-        offset += c.Symbols.SizeOf(member.second);
         if (member.first == vAccessee->name)
             break;
+        offset += c.Symbols.SizeOf(member.second);
     }
 
     c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(offset)});
@@ -470,9 +472,12 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
 
 void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
 {
+    size_t size = 0;
     if (dv->value != nullptr)
     {
+        size_t beginning = c.Symbols.GetCurOffset();
         dv->value->NodeCompile(c);
+        size = c.Symbols.GetCurOffset() - beginning;
 
         if (c.Symbols.depth == 0)
             c.AddCode({Opcode::VAR_D_GLOBAL, 0});
@@ -481,8 +486,9 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     {
         if (c.Symbols.depth == 0)
             c.SymbolError(dv->Loc(), "Global variable must be initialised");
+        size = c.Symbols.SizeOf(dv->t);
     }
-    c.Symbols.AddVar(dv->t, dv->name, c.Symbols.SizeOf(dv->t));
+    c.Symbols.AddVar(dv->t, dv->name, size);
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)

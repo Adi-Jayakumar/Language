@@ -18,7 +18,7 @@ private:
     std::vector<StructID> strcts;
 
     size_t funcVarBegin = 0;
-    size_t bpOffset;
+    size_t spOffset;
 
 public:
     size_t depth = 0;
@@ -32,9 +32,9 @@ public:
     //-------------------BASE POINTER OFFSET METHODS-------------------//
     // returns the offset from the base pointer of the last variable added to the stack
     size_t GetCurOffset();
-    void UpdateBP(const size_t &offset) { bpOffset += offset; };
-    void ReduceBP(const size_t &offset) { bpOffset -= offset; };
-    void SetBP(const size_t &newLoc) { bpOffset = newLoc; };
+    void UpdateSP(const size_t &offset) { spOffset += offset; };
+    void ReduceSP(const size_t &offset) { spOffset -= offset; };
+    void SetSP(const size_t &newLoc) { spOffset = newLoc; };
     size_t GetNewVarOffset(const TypeData &type);
 
     //-------------------ADD SYMBOLS-------------------//

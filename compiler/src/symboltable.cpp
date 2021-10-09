@@ -2,7 +2,7 @@
 
 SymbolTable::SymbolTable()
 {
-    bpOffset = 0;
+    spOffset = 0;
     nativeFunctions = NativeFunctions;
 }
 
@@ -58,12 +58,12 @@ size_t SymbolTable::SizeOf(const TypeData &type)
 
 size_t SymbolTable::GetCurOffset()
 {
-    return bpOffset;
+    return spOffset;
 }
 
 size_t SymbolTable::GetNewVarOffset(const TypeData &type)
 {
-    return bpOffset + (vars.size() ? SizeOf(vars.back().type) : 0);
+    return spOffset + (vars.size() ? SizeOf(vars.back().type) : 0);
 }
 
 void SymbolTable::AddVar(const TypeData &type, const std::string &name, const size_t size)

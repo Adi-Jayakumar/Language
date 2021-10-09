@@ -126,7 +126,7 @@ void Compiler::ClearCurrentDepthWithPOPInst()
     while (Symbols.vars.size() > 0 && Symbols.vars.back().depth == Symbols.depth)
     {
         size_t varSize = Symbols.vars.back().size;
-        Symbols.ReduceBP(varSize);
+        Symbols.ReduceSP(varSize);
         AddCode({Opcode::POP, varSize});
         Symbols.vars.pop_back();
         count++;
