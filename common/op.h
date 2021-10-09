@@ -20,6 +20,7 @@ enum class Opcode : op_t
     // pushes the oprand onto the stack
     // by value
     PUSH,
+    PUSH_SP_OFFSET,
 
     GET_INT,
     GET_DOUBLE,
@@ -194,6 +195,10 @@ inline std::string ToString(Opcode o)
     case Opcode::PUSH:
     {
         return "PUSH";
+    }
+    case Opcode::PUSH_SP_OFFSET:
+    {
+        return "PUSH_SP_OFFSET";
     }
     case Opcode::GET_INT:
     {
