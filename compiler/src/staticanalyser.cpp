@@ -437,12 +437,9 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (sidParent == nullptr)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
-        for (const auto &member : sidParent->nameTypes)
-            nameTypes.push_back(member);
-
+        nameTypes.insert(nameTypes.end(), sidParent->nameTypes.begin(), sidParent->nameTypes.end());
     }
 
-    size_t i = 0;
     for (auto &d : sd->decls)
     {
         DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
@@ -452,7 +449,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (asDV->value != nullptr)
             StaticAnalysisError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
 
-        nameTypes[i] = {asDV->name, asDV->t};
+        nameTypes.push_back({asDV->name, asDV->t});
     }
 
     Symbols.AddStruct(StructID(name, type, parent, nameTypes));
