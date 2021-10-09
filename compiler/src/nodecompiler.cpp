@@ -113,24 +113,24 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
-#define GET(x)                                                                  \
-    inline Opcode GetGETInstruction(const TypeData &type, const bool &isGlobal) \
-    {                                                                           \
-                                                                                \
-        if (type.isArray && isGlobal)                                           \
-            return Opcode::GET_ARRAY_GLOBAL;                                    \
-        if (type.isArray && !isGlobal)                                          \
-            return Opcode::GET_ARRAY;                                           \
-        if (type.type > (NUM_DEF_TYPES - 1) && isGlobal)                        \
-            return Opcode::GET_STRUCT_GLOBAL;                                   \
-        if (type.type > (NUM_DEF_TYPES - 1) && !isGlobal)                       \
-            return Opcode::GET_STRUCT;                                          \
-        x(INT);                                                                 \
-        x(DOUBLE);                                                              \
-        x(BOOL);                                                                \
-        x(STRING);                                                              \
-        x(CHAR);                                                                \
-        return Opcode::NONE;                                                    \
+#define GET(x)                                                                 \
+    inline Opcode GetGETInstruction(const TypeData &type, const bool isGlobal) \
+    {                                                                          \
+                                                                               \
+        if (type.isArray && isGlobal)                                          \
+            return Opcode::GET_ARRAY_GLOBAL;                                   \
+        else if (type.isArray && !isGlobal)                                    \
+            return Opcode::GET_ARRAY;                                          \
+        else if (type.type > (NUM_DEF_TYPES - 1) && isGlobal)                  \
+            return Opcode::GET_STRUCT_GLOBAL;                                  \
+        else if (type.type > (NUM_DEF_TYPES - 1) && !isGlobal)                 \
+            return Opcode::GET_STRUCT;                                         \
+        x(INT);                                                                \
+        x(DOUBLE);                                                             \
+        x(BOOL);                                                               \
+        x(STRING);                                                             \
+        x(CHAR);                                                               \
+        return Opcode::NONE;                                                   \
     }
 
 #define x(type_)              \
@@ -138,6 +138,33 @@ inline bool IsTruthy(const TypeData &td)
         return isGlobal ? Opcode::GET_##type_##_GLOBAL : Opcode::GET_##type_;
 
 GET(x)
+#undef x
+
+#define ASSIGN(x)                                                                 \
+    inline Opcode GetAssignInstruction(const TypeData &type, const bool isGlobal) \
+    {                                                                             \
+        x(INT);                                                                   \
+        x(DOUBLE);                                                                \
+        x(BOOL);                                                                  \
+        x(STRING);                                                                \
+        x(CHAR);                                                                  \
+        if (type.isArray && isGlobal)                                             \
+            return Opcode::ARRAY_ASSIGN_GLOBAL;                                   \
+        if (type.isArray && !isGlobal)                                            \
+            return Opcode::ARRAY_ASSIGN;                                          \
+        if (type.type > NUM_DEF_TYPES - 1 && isGlobal)                            \
+            return Opcode::STRUCT_ASSIGN_GLOBAL;                                  \
+        if (type.type > NUM_DEF_TYPES - 1 && !isGlobal)                           \
+            return Opcode::STRUCT_ASSIGN;                                         \
+        else                                                                      \
+            return Opcode::NONE;                                                  \
+    }
+
+#define x(type_)              \
+    if (type == type_##_TYPE) \
+        return isGlobal ? Opcode::type_##_##ASSIGN_GLOBAL : Opcode::type_##_##ASSIGN;
+
+ASSIGN(x)
 #undef x
 
 void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
@@ -229,9 +256,9 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
             c.CompileError(targetAsVR->Loc(), "Too many variables");
 
         if (vid->depth == 0)
-            c.AddCode({Opcode::VAR_A_GLOBAL, static_cast<oprand_t>(varStackLoc)});
+            c.AddCode({GetAssignInstruction(vid->type, true), static_cast<oprand_t>(varStackLoc)});
         else
-            c.AddCode({Opcode::VAR_A, static_cast<oprand_t>(varStackLoc)});
+            c.AddCode({GetAssignInstruction(vid->type, false), static_cast<oprand_t>(varStackLoc)});
     }
 
     ArrayIndex *targetAsAI = dynamic_cast<ArrayIndex *>(a->target.get());
@@ -243,7 +270,11 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         targetAsAI->index->NodeCompile(c);
 
         if (name.isArray)
+        {
             c.AddCode({Opcode::ARR_SET, 0});
+            --name.type;
+            c.AddCode({Opcode::PUSH, c.Symbols.SizeOf(name)});
+        }
         else
             c.AddCode({Opcode::STRING_SET, 0});
     }
@@ -394,15 +425,9 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         c)
     size_t diff = c.Symbols.GetCurOffset() - beginning;
     if (bi->GetType().isArray)
-    {
-        c.AddCode({Opcode::DECL_STACK_ARRAY, static_cast<oprand_t>(diff)});
         c.Symbols.UpdateSP(ARRAY_SIZE);
-    }
     else
-    {
-        c.AddCode({Opcode::DECL_STACK_STRUCT, static_cast<oprand_t>(diff)});
         c.Symbols.UpdateSP(STRUCT_SIZE);
-    }
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
@@ -413,6 +438,7 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
     size_t elementSize = c.Symbols.SizeOf(elementType);
     c.AddCode({Opcode::PUSH, static_cast<oprand_t>(elementSize)});
     c.AddCode({Opcode::ARR_ALLOC, 0});
+    c.Symbols.UpdateSP(ARRAY_SIZE);
 }
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
