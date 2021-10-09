@@ -12,7 +12,22 @@ enum class Opcode : op_t
     LOAD_CHAR,
 
     // variables
-    VAR_A,
+    INT_ASSIGN,
+    DOUBLE_ASSIGN,
+    BOOL_ASSIGN,
+    STRING_ASSIGN,
+    CHAR_ASSIGN,
+    ARRAY_ASSIGN,
+    STRUCT_ASSIGN,
+
+    INT_ASSIGN_GLOBAL,
+    DOUBLE_ASSIGN_GLOBAL,
+    BOOL_ASSIGN_GLOBAL,
+    STRING_ASSIGN_GLOBAL,
+    CHAR_ASSIGN_GLOBAL,
+    ARRAY_ASSIGN_GLOBAL,
+    STRUCT_ASSIGN_GLOBAL,
+
     VAR_A_GLOBAL,
 
     VAR_D_GLOBAL,
@@ -39,11 +54,9 @@ enum class Opcode : op_t
     GET_STRUCT_GLOBAL,
 
     // arrays and arrays
-    DECL_STACK_ARRAY,
     ARR_INDEX,
     ARR_SET,
     ARR_ALLOC,
-    DECL_STACK_STRUCT,
 
     STRING_INDEX,
     STRING_SET,
@@ -180,9 +193,33 @@ inline std::string ToString(Opcode o)
     {
         return "LOAD_CHAR";
     }
-    case Opcode::VAR_A:
+    case Opcode::INT_ASSIGN:
     {
-        return "VAR_A";
+        return "INT_ASSIGN";
+    }
+    case Opcode::DOUBLE_ASSIGN:
+    {
+        return "DOUBLE_ASSIGN";
+    }
+    case Opcode::BOOL_ASSIGN:
+    {
+        return "BOOL_ASSIGN";
+    }
+    case Opcode::STRING_ASSIGN:
+    {
+        return "STRING_ASSIGN";
+    }
+    case Opcode::CHAR_ASSIGN:
+    {
+        return "CHAR_ASSIGN";
+    }
+    case Opcode::ARRAY_ASSIGN:
+    {
+        return "ARRAY_ASSIGN";
+    }
+    case Opcode::STRUCT_ASSIGN:
+    {
+        return "STRUCT_ASSIGN";
     }
     case Opcode::VAR_A_GLOBAL:
     {
@@ -256,10 +293,6 @@ inline std::string ToString(Opcode o)
     {
         return "GET_STRUCT_GLOBAL";
     }
-    case Opcode::DECL_STACK_ARRAY:
-    {
-        return "DECL_STACK_ARRAY";
-    }
     case Opcode::ARR_INDEX:
     {
         return "ARR_INDEX";
@@ -268,9 +301,9 @@ inline std::string ToString(Opcode o)
     {
         return "ARR_SET";
     }
-    case Opcode::DECL_STACK_STRUCT:
+    case Opcode::ARR_ALLOC:
     {
-        return "DECL_STACK_STRUCT";
+        return "ARR_ALLOC";
     }
     case Opcode::STRING_INDEX:
     {

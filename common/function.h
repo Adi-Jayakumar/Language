@@ -56,8 +56,6 @@ struct Function
                     std::cout << " at index: " << +o.op << " value: " << strings[o.op];
                 else if (o.code == Opcode::LOAD_CHAR)
                     std::cout << " at index: " << +o.op << " value: " << chars[o.op];
-                else if (o.code == Opcode::VAR_A)
-                    std::cout << " at relative stack index: " << +o.op;
                 else
                     std::cout << " " << +o.op;
 
