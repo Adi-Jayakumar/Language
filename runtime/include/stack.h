@@ -19,32 +19,32 @@ public:
     Stack();
     ~Stack();
 
-    int GetInt(const size_t index)
+    int PopInt(const size_t index)
     {
         return *(int *)data[index];
     };
 
-    double GetDouble(const size_t index)
+    double PopDouble(const size_t index)
     {
         return *(double *)data[index];
     };
 
-    bool GetBool(const size_t index)
+    bool PopBool(const size_t index)
     {
         return *(bool *)data[index];
     }
 
-    char *GetString(const size_t index)
+    char *PopString(const size_t index)
     {
         return data + index;
     }
 
-    char GetChar(const size_t index)
+    char PopChar(const size_t index)
     {
         return *(char *)data[index];
     }
 
-    char *GetStruct(const size_t index)
+    char *PopStruct(const size_t index)
     {
         return data + index;
     }
