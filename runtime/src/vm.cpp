@@ -6,8 +6,8 @@ VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
        std::vector<ThrowInfo> &_throwInfos)
 {
     functions = _functions;
-    StructTree = _StructTree;
-    throwInfos = _throwInfos;
+    struct_tree = _StructTree;
+    throw_infos = _throwInfos;
 
     // for (auto &lf : _syms)
     // {
@@ -20,13 +20,13 @@ VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
     //     CLibs.push_back({func, lf.arity});
     // }
 
-    curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
+    cur_func = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
     cs.push_back({0, 0, 0});
     cs.push_back({0, mainIndex, 0});
-    curCF = &cs.back();
+    cur_cf = &cs.back();
 
     ip = 0;
-    curRoutine = 0;
+    cur_routine = 0;
 }
 
 void VM::Disasemble()
@@ -48,10 +48,10 @@ void VM::Disasemble()
 void VM::PrintCallStack()
 {
     for (auto &cf : cs)
-        std::cout << "(" << cf.retIndex << ", " << cf.retFunction << ", " << cf.valStackMin << ")" << std::endl;
+        std::cout << "(" << cf.ret_index << ", " << cf.ret_function << ", " << cf.val_stack_min << ")" << std::endl;
 }
 
-void VM::RuntimeError(std::string msg)
+void VM::RuntimeError(const std::string &msg)
 {
     std::cout << "[RUNTIME ERROR] " << msg << std::endl;
     exit(4);
@@ -64,11 +64,11 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteProgram()
 {
-    if (curFunc == UINT8_MAX)
+    if (cur_func == UINT8_MAX)
         return;
     while (true)
     {
-        while (ip < functions[curFunc].routines[curRoutine].size())
+        while (ip < functions[cur_func].routines[cur_routine].size())
         {
             ExecuteInstruction();
             Jump(1);
@@ -77,22 +77,21 @@ void VM::ExecuteProgram()
         if (!cs.empty())
         {
 
-            CallFrame returnCF = *curCF;
+            CallFrame return_cf = *cur_cf;
             cs.pop_back();
-            curCF = &cs.back();
-            ip = returnCF.retIndex;
+            cur_cf = &cs.back();
+            ip = return_cf.ret_index;
 
-            if (curFunc != 0)
+            if (cur_func != 0)
                 ip++;
 
-            curFunc = returnCF.retFunction;
-            curRoutine = 0;
+            cur_func = return_cf.ret_function;
+            cur_routine = 0;
             ip = 0;
-            size_t stackDiff = stack.count - returnCF.valStackMin;
+            size_t stack_diff = stack.size - return_cf.val_stack_min;
 
             // cleaning up the function's constants
-            stack.count -= stackDiff;
-            stack.back = stack[stack.count];
+            stack.size -= stack_diff;
         }
         else
             return;
@@ -128,12 +127,12 @@ void VM::ExecuteProgram()
 
 void VM::ExecuteInstruction()
 {
-    Op o = functions[curFunc].routines[curRoutine][ip];
+    Op o = functions[cur_func].routines[cur_routine][ip];
     switch (o.code)
     {
     case Opcode::POP:
     {
-        stack.pop_back();
+        stack.pop_bytes(o.op);
         break;
     }
     case Opcode::LOAD_INT:
@@ -193,7 +192,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::GOTO_LABEL:
     {
-        curRoutine = o.op;
+        cur_routine = o.op;
         ip = -1;
         break;
     }
@@ -203,13 +202,13 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CALL_F:
     {
-        cs.push_back({ip, curFunc, stack.count - functions[o.op].arity});
-        curCF = &cs.back();
+        cs.push_back({ip, cur_func, stack.size - functions[o.op].arity});
+        cur_cf = &cs.back();
 
         if (cs.size() > STACK_MAX)
-            RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frams");
+            RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frames");
 
-        curFunc = o.op;
+        cur_func = o.op;
         ip = -1;
         break;
     }
@@ -219,39 +218,39 @@ void VM::ExecuteInstruction()
     }
     case Opcode::RETURN:
     {
-        CallFrame returnCF = *curCF;
+        CallFrame return_cf = *cur_cf;
         cs.pop_back();
-        curCF = &cs.back();
+        cur_cf = &cs.back();
 
-        ip = returnCF.retIndex;
-        curFunc = returnCF.retFunction;
+        ip = return_cf.ret_index;
+        cur_func = return_cf.ret_function;
 
-        size_t stackDiff = stack.count - returnCF.valStackMin;
+        size_t stack_diff = stack.size - return_cf.val_stack_min;
         // Object *retVal = stack.back;
 
         // cleaning up the function's constants
-        stack.pop_N(stackDiff);
+        stack.pop_bytes(stack_diff);
         // stack.push_back(retVal);
         break;
     }
     case Opcode::RETURN_VOID:
     {
-        CallFrame returnCF = *curCF;
+        CallFrame return_cf = *cur_cf;
         cs.pop_back();
-        curCF = &cs.back();
+        cur_cf = &cs.back();
 
-        ip = returnCF.retIndex;
-        curFunc = returnCF.retFunction;
+        ip = return_cf.ret_index;
+        cur_func = return_cf.ret_function;
 
-        size_t stackDiff = stack.count - returnCF.valStackMin;
+        size_t stack_diff = stack.size - return_cf.val_stack_min;
 
         // cleaning up the function's constants
-        stack.pop_N(stackDiff);
+        stack.pop_bytes(stack_diff);
         break;
     }
     case Opcode::PUSH_THROW_INFO:
     {
-        ThrowStack.push(throwInfos[o.op]);
+        throw_stack.push(throw_infos[o.op]);
         break;
     }
     case Opcode::THROW:
@@ -491,27 +490,27 @@ void VM::ExecuteInstruction()
     }
 }
 
-VM VM::DeserialiseProgram(std::string fPath)
+VM VM::DeserialiseProgram(const std::string &f_path)
 {
     std::ifstream file;
-    if (!DoesFileExist(fPath))
-        DeserialisationError("File '" + fPath + "' does not exist");
+    if (!DoesFileExist(f_path))
+        DeserialisationError("File '" + f_path + "' does not exist");
 
-    file.open(fPath, std::ios::in | std::ios::binary);
+    file.open(f_path, std::ios::in | std::ios::binary);
 
-    oprand_t mainIndex;
-    file.read((char *)&mainIndex, sizeof(mainIndex));
+    oprand_t main_index;
+    file.read((char *)&main_index, sizeof(main_index));
 
-    oprand_t numFunctions;
-    file.read((char *)&numFunctions, sizeof(numFunctions));
+    oprand_t num_functions;
+    file.read((char *)&num_functions, sizeof(num_functions));
 
     std::vector<Function> program;
-    for (oprand_t i = 0; i < numFunctions; i++)
+    for (oprand_t i = 0; i < num_functions; i++)
         program.push_back(DeserialiseFunction(file));
 
-    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> StructTree;
-    std::vector<LibraryFunctionDef> libFuncs;
-    std::vector<ThrowInfo> throwInfos;
+    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> struct_tree;
+    std::vector<LibraryFunctionDef> lib_funcs;
+    std::vector<ThrowInfo> throw_infos;
 
     while (file.peek() != EOF)
     {
@@ -520,51 +519,51 @@ VM VM::DeserialiseProgram(std::string fPath)
         {
         case STRUCT_TREE_ID:
         {
-            TypeID numStructs;
-            file.read((char *)&numStructs, sizeof(numStructs));
+            TypeID num_structs;
+            file.read((char *)&num_structs, sizeof(num_structs));
 
-            for (size_t i = 0; i < numStructs; i++)
+            for (size_t i = 0; i < num_structs; i++)
             {
-                TypeID structId;
-                file.read((char *)&structId, sizeof(structId));
+                TypeID struct_id;
+                file.read((char *)&struct_id, sizeof(struct_id));
 
-                size_t numParents = ReadSizeT(file);
+                size_t num_parents = ReadSizeT(file);
 
-                for (size_t i = 0; i < numParents; i++)
+                for (size_t i = 0; i < num_parents; i++)
                 {
                     TypeID parent;
                     file.read((char *)&parent, sizeof(parent));
-                    StructTree[structId].insert(parent);
+                    struct_tree[struct_id].insert(parent);
                 }
             }
             break;
         }
         case LIB_FUNC_ID:
         {
-            size_t numLibFuncs = ReadSizeT(file);
+            size_t num_lib_funcs = ReadSizeT(file);
 
-            for (size_t i = 0; i < numLibFuncs; i++)
+            for (size_t i = 0; i < num_lib_funcs; i++)
             {
-                size_t nameLen = ReadSizeT(file);
+                size_t name_len = ReadSizeT(file);
                 ReadSizeT(file);
-                char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
-                std::string name(cName, nameLen);
-                delete[] cName;
+                char *c_name = (char *)DeserialiseData(name_len, sizeof(char), file);
+                std::string name(c_name, name_len);
+                delete[] c_name;
 
-                size_t libLen = ReadSizeT(file);
+                size_t lib_len = ReadSizeT(file);
                 ReadSizeT(file);
-                char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
-                std::string libName(cLibName, libLen);
-                delete[] cLibName;
+                char *c_lib_name = (char *)DeserialiseData(lib_len, sizeof(char), file);
+                std::string lib_name(c_lib_name, lib_len);
+                delete[] c_lib_name;
 
                 size_t arity = ReadSizeT(file);
-                libFuncs.push_back(LibraryFunctionDef(name, libName, arity));
+                lib_funcs.push_back(LibraryFunctionDef(name, lib_name, arity));
             }
             break;
         }
         case THROW_INFO_ID:
         {
-            throwInfos = DeserialiseThrowInfos(file);
+            throw_infos = DeserialiseThrowInfos(file);
             break;
         }
         default:
@@ -575,15 +574,15 @@ VM VM::DeserialiseProgram(std::string fPath)
         }
     }
     file.close();
-    return VM(program, mainIndex, StructTree, libFuncs, throwInfos);
+    return VM(program, main_index, struct_tree, lib_funcs, throw_infos);
 }
 
-bool VM::DoesFileExist(std::string &path)
+bool VM::DoesFileExist(const std::string &path)
 {
     return std::ifstream(path).good();
 }
 
-void VM::DeserialisationError(std::string err)
+void VM::DeserialisationError(const std::string &err)
 {
     Error e = Error("[DE-SERIALISATION ERROR]\n" + err + "\n");
     throw e;
@@ -594,122 +593,122 @@ Function VM::DeserialiseFunction(std::ifstream &file)
     oprand_t arity;
     file.read((char *)&arity, sizeof(arity));
 
-    std::vector<int> Ints;
-    std::vector<double> Doubles;
-    std::vector<bool> Bools;
-    std::vector<char> Chars;
-    std::vector<std::string> Strings;
-    std::vector<std::vector<Op>> Code;
+    std::vector<int> ints;
+    std::vector<double> doubles;
+    std::vector<bool> bools;
+    std::vector<char> chars;
+    std::vector<std::string> strings;
+    std::vector<std::vector<Op>> code;
 
     for (size_t i = 0; i < 6; i++)
     {
-        size_t typeCode = ReadSizeT(file);
-        switch (typeCode)
+        size_t type_code = ReadSizeT(file);
+        switch (type_code)
         {
         case INT_ID:
         {
-            Ints = DeserialiseInts(file);
+            ints = DeserialiseInts(file);
             break;
         }
         case DOUBLE_ID:
         {
-            Doubles = DeserialiseDoubles(file);
+            doubles = DeserialiseDoubles(file);
             break;
         }
         case BOOL_ID:
         {
-            Bools = DeserialiseBools(file);
+            bools = DeserialiseBools(file);
             break;
         }
         case CHAR_ID:
         {
-            Chars = DeserialiseChars(file);
+            chars = DeserialiseChars(file);
             break;
         }
         case STRING_ID:
         {
-            Strings = DeserialiseStrings(file);
+            strings = DeserialiseStrings(file);
             break;
         }
         case CODE_ID:
         {
-            Code = DeserialiseOps(file);
+            code = DeserialiseOps(file);
             break;
         }
         }
     }
 
-    return Function(arity, Code, Ints, Doubles, Bools, Chars, Strings);
+    return Function(arity, code, ints, doubles, bools, chars, strings);
 }
 
 //=================================DE-SERIALISATION=================================//
 
 size_t VM::ReadSizeT(std::ifstream &file)
 {
-    char cNumElements[sizeof(size_t)];
-    file.read(cNumElements, sizeof(size_t));
+    char c_num_elements[sizeof(size_t)];
+    file.read(c_num_elements, sizeof(size_t));
 
-    return *(size_t *)cNumElements;
+    return *(size_t *)c_num_elements;
 }
 
-void *VM::DeserialiseData(size_t numElements, size_t typeSize, std::ifstream &file)
+void *VM::DeserialiseData(size_t num_elements, size_t type_size, std::ifstream &file)
 {
-    char *cData = new char[typeSize * numElements];
+    char *c_data = new char[type_size * num_elements];
 
-    file.read(cData, typeSize * numElements);
-    return cData;
+    file.read(c_data, type_size * num_elements);
+    return c_data;
 }
 
 std::vector<int> VM::DeserialiseInts(std::ifstream &file)
 {
-    size_t numInts = ReadSizeT(file);
-    int *data = (int *)DeserialiseData(numInts, sizeof(int), file);
+    size_t num_ints = ReadSizeT(file);
+    int *data = (int *)DeserialiseData(num_ints, sizeof(int), file);
 
-    std::vector<int> result(data, data + numInts);
+    std::vector<int> result(data, data + num_ints);
     delete[] data;
     return result;
 }
 
 std::vector<double> VM::DeserialiseDoubles(std::ifstream &file)
 {
-    size_t numDoubles = ReadSizeT(file);
-    double *data = (double *)DeserialiseData(numDoubles, sizeof(double), file);
+    size_t num_doubles = ReadSizeT(file);
+    double *data = (double *)DeserialiseData(num_doubles, sizeof(double), file);
 
-    std::vector<double> result(data, data + numDoubles);
+    std::vector<double> result(data, data + num_doubles);
     delete[] data;
     return result;
 }
 
 std::vector<bool> VM::DeserialiseBools(std::ifstream &file)
 {
-    size_t numBools = ReadSizeT(file);
-    bool *data = (bool *)DeserialiseData(numBools, sizeof(bool), file);
+    size_t num_bools = ReadSizeT(file);
+    bool *data = (bool *)DeserialiseData(num_bools, sizeof(bool), file);
 
-    std::vector<bool> result(data, data + numBools);
+    std::vector<bool> result(data, data + num_bools);
     delete[] data;
     return result;
 }
 
 std::vector<char> VM::DeserialiseChars(std::ifstream &file)
 {
-    size_t numChars = ReadSizeT(file);
-    char *data = (char *)DeserialiseData(numChars, sizeof(char), file);
+    size_t num_chars = ReadSizeT(file);
+    char *data = (char *)DeserialiseData(num_chars, sizeof(char), file);
 
-    std::vector<char> result(data, data + numChars);
+    std::vector<char> result(data, data + num_chars);
     delete[] data;
     return result;
 }
 
 std::vector<std::string> VM::DeserialiseStrings(std::ifstream &file)
 {
-    size_t numStrings = ReadSizeT(file);
+    size_t num_strings = ReadSizeT(file);
     std::vector<std::string> result;
 
-    for (size_t i = 0; i < numStrings; i++)
+    for (size_t i = 0; i < num_strings; i++)
     {
-        size_t strLen = ReadSizeT(file);
-        char *data = (char *)DeserialiseData(strLen, sizeof(char), file);
-        result.push_back(std::string(data, strLen));
+        size_t str_len = ReadSizeT(file);
+        char *data = (char *)DeserialiseData(str_len, sizeof(char), file);
+        result.push_back(std::string(data, str_len));
         delete[] data;
     }
 
@@ -718,16 +717,16 @@ std::vector<std::string> VM::DeserialiseStrings(std::ifstream &file)
 
 std::vector<std::vector<Op>> VM::DeserialiseOps(std::ifstream &file)
 {
-    size_t numRoutines = ReadSizeT(file);
+    size_t num_routines = ReadSizeT(file);
     std::vector<std::vector<Op>> result;
 
-    for (size_t j = 0; j < numRoutines; j++)
+    for (size_t j = 0; j < num_routines; j++)
     {
 
-        size_t numOps = ReadSizeT(file);
+        size_t num_ops = ReadSizeT(file);
         std::vector<Op> routine;
 
-        for (size_t i = 0; i < numOps; i++)
+        for (size_t i = 0; i < num_ops; i++)
         {
             Opcode code;
             file.read((char *)&code, sizeof(code));
@@ -745,10 +744,10 @@ std::vector<std::vector<Op>> VM::DeserialiseOps(std::ifstream &file)
 
 std::vector<ThrowInfo> VM::DeserialiseThrowInfos(std::ifstream &file)
 {
-    size_t numThrows = ReadSizeT(file);
+    size_t num_throws = ReadSizeT(file);
     std::vector<ThrowInfo> result;
 
-    for (size_t i = 0; i < numThrows; i++)
+    for (size_t i = 0; i < num_throws; i++)
     {
         ThrowInfo ti = ThrowInfo();
         file.read((char *)&ti.isArray, sizeof(bool));

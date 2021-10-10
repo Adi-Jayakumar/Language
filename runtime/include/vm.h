@@ -18,26 +18,24 @@ class VM
     // private:
 public:
     std::vector<Function> functions;
-    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> StructTree;
+    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> struct_tree;
 
     // std::vector<std::pair<LibFunc, size_t>> CLibs;
-    std::vector<void *> libHandles;
+    std::vector<void *> lib_handles;
 
-    std::vector<ThrowInfo> throwInfos;
-    std::stack<ThrowInfo> ThrowStack;
+    std::vector<ThrowInfo> throw_infos;
+    std::stack<ThrowInfo> throw_stack;
 
     // instruction pointer
     size_t ip;
 
     // Call stack
     std::vector<CallFrame> cs;
-
-    // current CallFrame
-    CallFrame *curCF;
+    CallFrame *cur_cf;
 
     // current function index
-    size_t curFunc;
-    size_t curRoutine;
+    size_t cur_func;
+    size_t cur_routine;
     Stack stack;
 
     void Jump(size_t jump);
@@ -46,27 +44,21 @@ public:
 public:
     VM() = default;
     VM(std::vector<Function> &functions,
-       oprand_t mainIndex,
-       std::unordered_map<oprand_t, std::unordered_set<oprand_t>> &StructTree,
+       oprand_t main_index,
+       std::unordered_map<oprand_t, std::unordered_set<oprand_t>> &struct_tree,
        std::vector<LibraryFunctionDef> &,
        std::vector<ThrowInfo> &);
 
     void Disasemble();
-
-    size_t GetStackSize()
-    {
-        return stack.count;
-    };
     void PrintCallStack();
     void ExecuteProgram();
 
-    void RuntimeError(std::string msg);
-
-    static VM DeserialiseProgram(std::string fPath);
+    void RuntimeError(const std::string &msg);
+    static VM DeserialiseProgram(const std::string &fPath);
 
 private:
-    static bool DoesFileExist(std::string &path);
-    static void DeserialisationError(std::string err);
+    static bool DoesFileExist(const std::string &path);
+    static void DeserialisationError(const std::string &err);
     static Function DeserialiseFunction(std::ifstream &file);
     static size_t ReadSizeT(std::ifstream &file);
     static void *DeserialiseData(size_t numElements, size_t typeSize, std::ifstream &file);

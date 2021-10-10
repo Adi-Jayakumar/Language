@@ -1,26 +1,107 @@
 #pragma once
+#include "typedata.h"
 #include <cstring>
+#include <string>
 
 #define DEF_SIZE 512U
 #define GROW_FAC 2U
 #define STACK_MAX 64 * UINT8_MAX
 
-struct Stack
+class Stack
 {
-    size_t count;
-    int **data;
-    int *back;
+    char *data;
+    size_t capacity;
+
+public:
+    size_t size;
+    char *top;
 
     Stack();
     ~Stack();
-    int *operator[](const size_t index);
-    void push_back(int *cc);
-    // returns a pointer to the copy so that the VM
-    // can add the pointer to the copy to the Stack of
-    // runtime allocated objects
-    void pop_back();
-    void pop_N(size_t n);
 
-private:
-    size_t capacity;
+    int GetInt(const size_t index)
+    {
+        return *(int *)data[index];
+    };
+
+    double GetDouble(const size_t index)
+    {
+        return *(double *)data[index];
+    };
+
+    bool GetBool(const size_t index)
+    {
+        return *(bool *)data[index];
+    }
+
+    char *GetString(const size_t index)
+    {
+        return data + index;
+    }
+
+    char GetChar(const size_t index)
+    {
+        return *(char *)data[index];
+    }
+
+    char *GetStruct(const size_t index)
+    {
+        return data + index;
+    }
+
+    void GrowIfUnableToPush(const size_t bytes);
+
+    void PushInt(const int x)
+    {
+        GrowIfUnableToPush(INT_SIZE);
+        *(int *)top = x;
+    };
+
+    void PushDouble(const double x)
+    {
+        GrowIfUnableToPush(DOUBLE_SIZE);
+        *(double *)top = x;
+    };
+
+    void PushBool(const bool x)
+    {
+        GrowIfUnableToPush(BOOL_SIZE);
+        *(bool *)top = x;
+    };
+
+    void PushString(const std::string &x)
+    {
+        //TODO error check string size
+        GrowIfUnableToPush(STRING_SIZE);
+        int len = x.length();
+        PushInt(len);
+
+        char *str = new char[len];
+        std::memcpy(str, x.data(), len);
+        GrowIfUnableToPush(PTR_SIZE);
+        *(char **)top = str;
+    };
+
+    void PushChar(const char x)
+    {
+        GrowIfUnableToPush(CHAR_SIZE);
+        *(char *)top = x;
+    };
+
+    void PushArray(char *x)
+    {
+        GrowIfUnableToPush(ARRAY_SIZE);
+        *(char **)top = x;
+    };
+
+    void PushStruct(char *x)
+    {
+        GrowIfUnableToPush(STRUCT_SIZE);
+        *(char **)top = x;
+    };
+
+    void PopBytes(const size_t n)
+    {
+        top -= n;
+    };
 };
