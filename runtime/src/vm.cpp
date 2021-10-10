@@ -53,7 +53,7 @@ void VM::PrintCallStack()
 
 void VM::RuntimeError(const std::string &msg)
 {
-    std::cout << "[RUNTIME ERROR] " << msg << std::endl;
+    std::cerr << "[RUNTIME ERROR] " << msg << std::endl;
     exit(4);
 }
 
@@ -125,6 +125,10 @@ void VM::ExecuteProgram()
     left = stack.back;                      \
     stack.pop_back()
 
+#define ERROR_OUT()                             \
+    std::cerr << "Not implmented" << std::endl; \
+    exit(3)
+
 void VM::ExecuteInstruction()
 {
     Op o = functions[cur_func].routines[cur_routine][ip];
@@ -132,37 +136,44 @@ void VM::ExecuteInstruction()
     {
     case Opcode::POP:
     {
-        stack.pop_bytes(o.op);
+        stack.PopBytes(o.op);
         break;
     }
     case Opcode::LOAD_INT:
     {
+        stack.PushInt(functions[cur_func].ints[o.op]);
         break;
     }
     case Opcode::LOAD_DOUBLE:
     {
+        stack.PushDouble(functions[cur_func].doubles[o.op]);
         break;
     }
     case Opcode::LOAD_BOOL:
     {
+        stack.PushBool(functions[cur_func].bools[o.op]);
         break;
     }
     case Opcode::LOAD_STRING:
     {
+        stack.PushString(functions[cur_func].strings[o.op]);
         break;
     }
     case Opcode::LOAD_CHAR:
     {
+        stack.PushChar(functions[cur_func].chars[o.op]);
         break;
     }
     case Opcode::VAR_A_GLOBAL:
     {
         // globals[o.op] = stack.back;
+        ERROR_OUT();
         break;
     }
     case Opcode::VAR_D_GLOBAL:
     {
         // globals.push_back(stack.back);
+        ERROR_OUT();
         break;
     }
     case Opcode::ARR_INDEX:
@@ -229,7 +240,7 @@ void VM::ExecuteInstruction()
         // Object *retVal = stack.back;
 
         // cleaning up the function's constants
-        stack.pop_bytes(stack_diff);
+        stack.PopBytes(stack_diff);
         // stack.push_back(retVal);
         break;
     }
@@ -245,7 +256,7 @@ void VM::ExecuteInstruction()
         size_t stack_diff = stack.size - return_cf.val_stack_min;
 
         // cleaning up the function's constants
-        stack.pop_bytes(stack_diff);
+        stack.PopBytes(stack_diff);
         break;
     }
     case Opcode::PUSH_THROW_INFO:
@@ -259,6 +270,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::NATIVE_CALL:
     {
+        break;
     }
     case Opcode::STRUCT_MEMBER:
     {
@@ -279,22 +291,53 @@ void VM::ExecuteInstruction()
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushInt(l + r);
+        std::cout << l + r << std::endl;
         break;
     }
     case Opcode::DI_ADD:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::ID_ADD:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::D_ADD:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::S_ADD:
     {
+        char *l = stack.PopString();
+        char *r = stack.PopString();
+
+        int l_len = *(int *)l;
+        int r_len = *(int *)r;
+
+        char *l_ptr = l + INT_SIZE;
+        char *r_ptr = r + INT_SIZE;
+
+        int new_len = l_len + r_len;
+        char *new_ptr = new char[new_len];
+
+        std::memcpy(new_ptr, l_ptr, l_len);
+        char *next = new_ptr + l_len;
+        std::memcpy(next, r_ptr, r_len);
+
+        stack.PushInt(new_len);
+        stack.PushPtr(new_ptr);
         break;
     }
     // SUBTRACTIONS: subtracts the last 2 things on the stack
@@ -302,184 +345,316 @@ void VM::ExecuteInstruction()
     // for I_SUB and D_SUB obviously)
     case Opcode::I_SUB:
     {
+        int r = stack.PopInt();
+        if (o.op != 0)
+        {
+            int l = stack.PopInt();
+            stack.PushInt(l - r);
+        }
+        else
+            stack.PushInt(-r);
         break;
     }
     case Opcode::DI_SUB:
     {
-        // DI_SUB cannot be a unary operation
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l - r);
         break;
     }
     case Opcode::ID_SUB:
     {
-        // ID_SUB cannot be a unary operation
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l - r);
         break;
     }
     case Opcode::D_SUB:
     {
+        double r = stack.PopDouble();
+        if (o.op != 0)
+        {
+            double l = stack.PopDouble();
+            stack.PushDouble(l - r);
+        }
+        else
+            stack.PushDouble(-r);
         break;
     }
     // multiplies the last 2 things on the stack
     case Opcode::I_MUL:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::DI_MUL:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::ID_MUL:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::D_MUL:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l * r);
         break;
     }
     // divides the last 2 things on the stack
     case Opcode::I_DIV:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushInt(l / r);
         break;
     }
     case Opcode::DI_DIV:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l / r);
         break;
     }
     case Opcode::ID_DIV:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l / r);
         break;
     }
     case Opcode::D_DIV:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l / r);
         break;
     }
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::I_GT:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::DI_GT:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::ID_GT:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::D_GT:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l > r);
         break;
     }
     // does a less than comparison on the last 2 things on the stack
     case Opcode::I_LT:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::DI_LT:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::ID_LT:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::D_LT:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l < r);
         break;
     }
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::I_GEQ:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::DI_GEQ:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::ID_GEQ:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::D_GEQ:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l >= r);
         break;
     }
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::I_LEQ:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::DI_LEQ:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::ID_LEQ:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::D_LEQ:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::N_EQ_EQ:
     {
+        ERROR_OUT();
         break;
     }
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::DI_EQ_EQ:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::ID_EQ_EQ:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::D_EQ_EQ:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::B_EQ_EQ:
     {
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::N_BANG_EQ:
     {
+        ERROR_OUT();
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::I_BANG_EQ:
     {
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::DI_BANG_EQ:
     {
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::ID_BANG_EQ:
     {
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::D_BANG_EQ:
     {
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::B_BANG_EQ:
     {
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::B_AND_AND:
     {
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l && r);
         break;
     }
     case Opcode::B_OR_OR:
     {
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l || r);
         break;
     }
     case Opcode::BANG:
     {
+        bool r = stack.PopBool();
+        stack.PushBool(!r);
         break;
     }
     // Does nothing
