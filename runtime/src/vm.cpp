@@ -9,16 +9,16 @@ VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
     struct_tree = _StructTree;
     throw_infos = _throwInfos;
 
-    // for (auto &lf : _syms)
-    // {
-    //     std::string libpath = "./lib/lib" + lf.library + ".so";
-    //     void *handle = dlopen(libpath.c_str(), RTLD_NOW);
-    //     libHandles.push_back(handle);
+    for (auto &lf : _syms)
+    {
+        std::string libpath = "./lib/lib" + lf.library + ".so";
+        void *handle = dlopen(libpath.c_str(), RTLD_NOW);
+        lib_handles.push_back(handle);
 
-    //     LibFunc func;
-    //     *(void **)&func = dlsym(handle, lf.name.c_str());
-    //     CLibs.push_back({func, lf.arity});
-    // }
+        LibFunc func;
+        *(void **)&func = dlsym(handle, lf.name.c_str());
+        CLibs.push_back({func, lf.arity});
+    }
 
     cur_func = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
     cs.push_back({0, 0, 0});
@@ -88,42 +88,15 @@ void VM::ExecuteProgram()
             cur_func = return_cf.ret_function;
             cur_routine = 0;
             ip = 0;
-            size_t stack_diff = stack.size - return_cf.val_stack_min;
+            size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
 
             // cleaning up the function's constants
-            stack.size -= stack_diff;
+            stack.ReduceSize(stack_diff);
         }
         else
             return;
     }
 }
-
-#define BINARY_I_OP(l, op, r) \
-    NewInt(GetInt(l) op GetInt(r))
-
-#define BINARY_DI_OP(l, op, r) \
-    NewDouble(GetDouble(l) op GetInt(r))
-
-#define BINARY_ID_OP(l, op, r) \
-    NewDouble(GetInt(l) op GetDouble(r))
-
-#define BINARY_D_OP(l, op, r) \
-    NewDouble(GetDouble(l) op GetDouble(r))
-
-#define UNARY_I_OP(op, r) \
-    NewInt(op GetInt(r))
-
-#define UNARY_D_OP(op, r) \
-    NewDouble(op GetDouble(r))
-
-#define UNARY_B_OP(op, r) \
-    NewBool(op r->as.b)
-
-#define TAKE_LEFT_RIGHT(left, right, stack) \
-    right = stack.back;                     \
-    stack.pop_back();                       \
-    left = stack.back;                      \
-    stack.pop_back()
 
 #define ERROR_OUT()                             \
     std::cerr << "Not implmented" << std::endl; \
@@ -164,17 +137,88 @@ void VM::ExecuteInstruction()
         stack.PushChar(functions[cur_func].chars[o.op]);
         break;
     }
-    case Opcode::VAR_A_GLOBAL:
+    case Opcode::INT_ASSIGN:
     {
-        // globals[o.op] = stack.back;
+        stack.SetInt(o.op, stack.PeekInt());
+        break;
+    }
+    case Opcode::DOUBLE_ASSIGN:
+    {
+        stack.SetDouble(o.op, stack.PeekDouble());
+        break;
+    }
+    case Opcode::BOOL_ASSIGN:
+    {
+        stack.SetBool(o.op, stack.PeekBool());
+        break;
+    }
+    case Opcode::STRING_ASSIGN:
+    {
+        int len = stack.PeekInt();
+        char *str = stack.PeekPtr();
+        stack.SetString(o.op, str, len);
+        break;
+    }
+    case Opcode::CHAR_ASSIGN:
+    {
+        stack.SetChar(o.op, stack.PeekChar());
+        break;
+    }
+    case Opcode::ARRAY_ASSIGN:
+    {
         ERROR_OUT();
         break;
     }
-    case Opcode::VAR_D_GLOBAL:
+    case Opcode::STRUCT_ASSIGN:
     {
-        // globals.push_back(stack.back);
         ERROR_OUT();
         break;
+    }
+    case Opcode::PUSH:
+    {
+        stack.PushOprandT(o.op);
+        break;
+    }
+    case Opcode::PUSH_SP_OFFSET:
+    {
+        stack.PushPtr(stack.GetTop() + o.op);
+        break;
+    }
+    case Opcode::GET_INT:
+    {
+        stack.PushInt(stack.GetInt(o.op));
+        break;
+    }
+    case Opcode::GET_DOUBLE:
+    {
+        stack.PushDouble(stack.GetDouble(o.op));
+        break;
+    }
+    case Opcode::GET_BOOL:
+    {
+        stack.PushBool(stack.GetBool(o.op));
+        break;
+    }
+    case Opcode::GET_STRING:
+    {
+        char *str_len = stack.GetString(o.op);
+        int len = *(int *)(str_len + PTR_SIZE);
+        stack.PushString(str_len, len);
+        break;
+    }
+    case Opcode::GET_CHAR:
+    {
+        stack.PushChar(stack.GetChar(o.op));
+        break;
+    }
+    case Opcode::GET_ARRAY:
+    {
+        ERROR_OUT();
+        break;
+    }
+    case Opcode::GET_STRUCT:
+    {
+        ERROR_OUT();
     }
     case Opcode::ARR_INDEX:
     {
@@ -213,7 +257,7 @@ void VM::ExecuteInstruction()
     }
     case Opcode::CALL_F:
     {
-        cs.push_back({ip, cur_func, stack.size - functions[o.op].arity});
+        cs.push_back({ip, cur_func, stack.GetSize() - functions[o.op].arity});
         cur_cf = &cs.back();
 
         if (cs.size() > STACK_MAX)
@@ -236,7 +280,7 @@ void VM::ExecuteInstruction()
         ip = return_cf.ret_index;
         cur_func = return_cf.ret_function;
 
-        size_t stack_diff = stack.size - return_cf.val_stack_min;
+        size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
         // Object *retVal = stack.back;
 
         // cleaning up the function's constants
@@ -253,7 +297,7 @@ void VM::ExecuteInstruction()
         ip = return_cf.ret_index;
         cur_func = return_cf.ret_function;
 
-        size_t stack_diff = stack.size - return_cf.val_stack_min;
+        size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
 
         // cleaning up the function's constants
         stack.PopBytes(stack_diff);
