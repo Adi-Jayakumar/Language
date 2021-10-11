@@ -28,10 +28,6 @@ enum class Opcode : op_t
     ARRAY_ASSIGN_GLOBAL,
     STRUCT_ASSIGN_GLOBAL,
 
-    VAR_A_GLOBAL,
-
-    VAR_D_GLOBAL,
-
     // pushes the oprand onto the stack
     // by value
     PUSH,
@@ -220,14 +216,6 @@ inline std::string ToString(Opcode o)
     case Opcode::STRUCT_ASSIGN:
     {
         return "STRUCT_ASSIGN";
-    }
-    case Opcode::VAR_A_GLOBAL:
-    {
-        return "VAR_A_GLOBAL";
-    }
-    case Opcode::VAR_D_GLOBAL:
-    {
-        return "VAR_D_GLOBAL";
     }
     case Opcode::PUSH:
     {
