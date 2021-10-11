@@ -3,7 +3,9 @@
 SymbolTable::SymbolTable()
 {
     spOffset = 0;
-    nativeFunctions = NativeFunctions;
+
+    for (const auto &func : NativeFunctions)
+        nativeFunctions.push_back(ParseLibraryFunction(func, FunctionType::NATIVE));
 }
 
 bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
@@ -149,8 +151,13 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates
     if (f != nullptr)
         return f;
 
-    f = FindNativeFunctions(args, name);
-    return f;
+    for (auto &f : nativeFunctions)
+    {
+        if (f.name == name && IsEqual(f.argtypes, args))
+            return &f;
+    }
+
+    return nullptr;
 }
 
 size_t SymbolTable::GetUDFuncNum(FuncID *fid)
@@ -201,51 +208,6 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
     }
 
     return IsEqual(f_args, args) || CanAssignAll(f_args, args);
-}
-
-FuncID *SymbolTable::FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name)
-{
-    for (auto &nf : nativeFunctions)
-    {
-        if (nf.name == name && MatchToNativeFuncs(nf.argtypes, args))
-            return &nf;
-    }
-    return nullptr;
-}
-
-bool MatchToNativeFuncs(const std::vector<TypeData> &native, const std::vector<TypeData> &args)
-{
-    if (native.size() == 0 && args.size() != 0)
-        return false;
-
-    TypeData matchMoreThanOne = VOID_ARRAY;
-    if (native.size() == 1 && native[0] == matchMoreThanOne && args.size() > 0)
-    {
-        for (const auto &arg : args)
-        {
-            if (arg == VOID_TYPE)
-                SymbolError("Cannot pass object of type 'void' as a function argument");
-        }
-        return true;
-    }
-
-    if (args.size() == 1 && native.size() == 1 && native[0] == VOID_TYPE)
-        return true;
-
-    if (native.size() != args.size())
-        return false;
-
-    bool areSame = true;
-    for (size_t i = 0; i < native.size(); i++)
-    {
-        if (native[i] != args[i])
-        {
-            areSame = false;
-            break;
-        }
-    }
-
-    return areSame;
 }
 
 FuncID *SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
@@ -409,39 +371,77 @@ std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string 
     return libfuncs;
 }
 
-FuncID SymbolTable::ParseLibraryFunction(std::string &func)
+TypeData SymbolTable::ParseType(const std::string &type)
 {
-    std::vector<std::string> name_prototype = SplitStringByChar(func, ':');
+    if (GetTypeNameMap().find(type) != GetTypeNameMap().end())
+        return GetTypeNameMap()[type];
 
-    if (name_prototype.size() != 2)
-        LibraryError("Invalid function prototype definition for function '" + func + "'");
+    static const std::string array("Array");
 
-    std::string name = TrimFrontBack(name_prototype[0]);
-    std::vector<std::string> input_ret = SplitStringByChar(name_prototype[1], '-');
+    if (!std::equal(array.begin(), array.end(), type.begin()))
+        LibraryError("Invalid type '" + type + "'");
 
-    if (input_ret.size() > 2 || input_ret.size() == 1)
-        LibraryError("Invalid separation between argument and return types in function '" + func + "'");
+    if (type[5] != '<' || type[type.length() - 1] != '>')
+        LibraryError("Invalid type '" + type + "'");
 
-    std::vector<std::string> args = SplitStringByChar(input_ret[0], ',');
+    std::string num_type(type.begin() + 6, type.end() - 1);
+    std::cout << "numtype = " << num_type << std::endl;
+    std::stringstream ss(num_type);
 
-    for (size_t i = 0; i < args.size(); i++)
-        args[i] = TrimFrontBack(args[i]);
+    std::string sNum;
 
-    std::vector<TypeData> argtypes;
-    if (args.size() != 1 || args[0] != " ")
+    if (!std::getline(ss, sNum, ','))
     {
-        for (size_t i = 0; i < args.size(); i++)
-        {
-            if (GetTypeNameMap().find(args[i]) == GetTypeNameMap().end())
-                LibraryError("Invalid argumnent type '" + args[i] + "'");
-            argtypes.push_back(GetTypeNameMap()[args[i]]);
-        }
+        if (GetTypeNameMap().find(num_type) != GetTypeNameMap().end())
+            return GetTypeNameMap()[num_type];
+        else
+            LibraryError("Invalid type '" + type + "'");
     }
 
-    std::string ret = TrimFrontBack(input_ret[1]);
-    if (GetTypeNameMap().find(ret) == GetTypeNameMap().end())
-        LibraryError("Invalid return type '" + ret + "'");
-    TypeData retType = GetTypeNameMap()[ret];
+    size_t num = std::stol(sNum);
+    std::string sType;
 
-    return FuncID(retType, name, std::vector<TypeData>(), argtypes, FunctionType::LIBRARY, 0);
+    if (!std::getline(ss, sType, ','))
+        LibraryError("Invalid type '" + type + "'");
+
+    if (GetTypeNameMap().find(num_type) != GetTypeNameMap().end())
+    {
+        TypeData res = GetTypeNameMap()[num_type];
+        res.isArray = num;
+        return res;
+    }
+    else
+        LibraryError("Invalid type '" + type + "'");
+    return VOID_TYPE;
+}
+
+// void Add(int, int, Array<int>);
+
+FuncID SymbolTable::ParseLibraryFunction(const std::string &func, const FunctionType type)
+{
+    std::stringstream ss(func);
+    std::string ret;
+
+    if (!std::getline(ss, ret, ' '))
+        LibraryError("Invalid function name '" + func + "'");
+
+    TypeData retType = ParseType(ret);
+    std::string name;
+
+    if (!std::getline(ss, name, '('))
+        LibraryError("Invalid function name '" + func + "'");
+
+    std::string args;
+    std::vector<TypeData> argtypes;
+
+    if (!std::getline(ss, args, ')'))
+        LibraryError("Invalid function name '" + func + "'");
+
+    std::string arg;
+    std::stringstream argstream(args);
+
+    while (std::getline(argstream, arg, ' '))
+        argtypes.push_back(ParseType(arg));
+
+    return FuncID(retType, name, std::vector<TypeData>(), argtypes, type, 0);
 }

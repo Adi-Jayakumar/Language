@@ -57,7 +57,6 @@ public:
 
     bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
                                std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
-    FuncID *FindNativeFunctions(const std::vector<TypeData> &args, const std::string &name);
     FuncID *FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
 
     //-------------------STRUCT OPERATIONS-------------------//
@@ -72,8 +71,9 @@ public:
     void CleanUpCurDepth();
 
     //-------------------LIBRARY-------------------//
+    TypeData ParseType(const std::string &type);
     std::vector<std::string> GetLibraryFunctionNames(const std::string &libname);
-    FuncID ParseLibraryFunction(std::string &func);
+    FuncID ParseLibraryFunction(const std::string &func, const FunctionType type);
 };
 
 void SymbolError(const std::string &msg);
