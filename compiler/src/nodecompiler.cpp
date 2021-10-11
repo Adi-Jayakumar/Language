@@ -383,14 +383,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         size_t funcNum = c.Symbols.GetNativeFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
-        if (fc->name != "Print")
-            c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
-        else
-        {
-            if (fc->args.size() > MAX_OPRAND)
-                c.CompileError(fc->Loc(), "Maximum number of arguments to Print is " + std::to_string(MAX_OPRAND));
-            c.AddCode({Opcode::PRINT, static_cast<oprand_t>(fc->args.size())});
-        }
+        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
         break;
     }
     }
@@ -506,7 +499,7 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
         size = c.Symbols.GetCurOffset() - beginning;
 
         if (c.Symbols.depth == 0)
-            c.AddCode({Opcode::VAR_D_GLOBAL, 0});
+            c.AddCode({GetAssignInstruction(dv->t, true), 0});
     }
     else
     {
@@ -754,7 +747,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                 libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
                 for (auto &lf : libraryFuncs)
                 {
-                    FuncID func = c.Symbols.ParseLibraryFunction(lf);
+                    FuncID func = c.Symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
                     c.Symbols.AddCLibFunc(func);
 
                     if (c.Symbols.NumCFuncs() > MAX_OPRAND)
