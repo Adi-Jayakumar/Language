@@ -13,6 +13,8 @@
 #include <unordered_map>
 #include <unordered_set>
 
+typedef char*(*LibFunc)(char*);
+
 class VM
 {
     // private:
@@ -20,7 +22,7 @@ public:
     std::vector<Function> functions;
     std::unordered_map<oprand_t, std::unordered_set<oprand_t>> struct_tree;
 
-    // std::vector<std::pair<LibFunc, size_t>> CLibs;
+    std::vector<std::pair<LibFunc, size_t>> CLibs;
     std::vector<void *> lib_handles;
 
     std::vector<ThrowInfo> throw_infos;
