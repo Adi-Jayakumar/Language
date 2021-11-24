@@ -140,15 +140,15 @@ int main(int argc, char **argv)
         c.Disassemble();
     }
 
-    // std::string ofPath = arg.GetArgVal("-o");
+    std::string ofPath = arg.GetArgVal("-o");
 
-    // if (arg.IsSwitchOn("--rm-bin"))
-    // {
-    //     std::string rm = "rm -f " + ofPath;
-    //     int sysCode = system(rm.c_str());
-    //     if (sysCode == -1)
-    //         std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    // }
-    // Compiler::SerialiseProgram(c, ofPath);
+    if (arg.IsSwitchOn("--rm-bin"))
+    {
+        std::string rm = "rm -f " + ofPath;
+        int sysCode = system(rm.c_str());
+        if (sysCode == -1)
+            std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    }
+    Compiler::SerialiseProgram(c, ofPath);
     return 0;
 }

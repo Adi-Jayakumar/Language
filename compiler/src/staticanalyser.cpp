@@ -463,7 +463,7 @@ void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
         libraryFuncs = Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)
         {
-            FuncID func = Symbols.ParseLibraryFunction(lf);
+            FuncID func = Symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
             Symbols.AddCLibFunc(func);
 
             if (Symbols.NumCFuncs() > MAX_OPRAND)

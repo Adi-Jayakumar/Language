@@ -383,7 +383,13 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
         size_t funcNum = c.Symbols.GetNativeFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
-        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum + 1)});
+
+        size_t argSize = 0;
+        for (const auto &type : args)
+            argSize += c.Symbols.SizeOf(type);
+
+        c.AddCode({Opcode::PUSH, static_cast<oprand_t>(argSize)});
+        c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum)});
         break;
     }
     }

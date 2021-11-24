@@ -8,8 +8,9 @@
 // };
 
 const std::vector<std::string> NativeFunctions{
-    "void Print(int);",
-    "void Print(double);",
-    "void Print(bool);",
-    "void Print(string);",
-    "void Print(char);"};
+    "void Print(int)",
+    "void Print(double)",
+    "void Print(bool)",
+    "void Print(string)",
+    "void Print(char)",
+    "int Length(string)"};
