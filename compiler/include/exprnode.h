@@ -249,16 +249,7 @@ public:
              std::shared_ptr<VarReference> &_var,
              std::shared_ptr<Expr> &_term,
              TokenID _op,
-             Token &_loc) : start(_start),
-                            step(_step),
-                            end(_end),
-                            var(_var),
-                            term(_term),
-                            op(_op),
-                            loc(_loc)
-    {
-        kind = ExprKind::SEQUENCE;
-    };
+             Token &_loc);
 
     Token Loc() override;
     void Print(ASTPrinter &p) override;

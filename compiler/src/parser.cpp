@@ -579,7 +579,7 @@ std::shared_ptr<Expr> Parser::ParseSequenceNode()
     Advance();
 
     Check(TokenID::IDEN, "Expect index variable");
-    std::shared_ptr<Expr> var = std::make_shared<VarReference>(cur);
+    std::shared_ptr<VarReference> var = std::make_shared<VarReference>(cur);
     Advance();
     Check(TokenID::COMMA, "Expect ',' after sequence index variable");
     Advance();

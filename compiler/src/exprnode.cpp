@@ -140,3 +140,25 @@ Token TypeCast::Loc()
 {
     return loc;
 }
+
+Sequence::Sequence(std::shared_ptr<Expr> &_start,
+                   std::shared_ptr<Expr> &_step,
+                   std::shared_ptr<Expr> &_end,
+                   std::shared_ptr<VarReference> &_var,
+                   std::shared_ptr<Expr> &_term,
+                   TokenID _op,
+                   Token &_loc) : loc(_loc),
+                                  start(_start),
+                                  step(_step),
+                                  end(_end),
+                                  var(_var),
+                                  term(_term),
+                                  op(_op)
+{
+    kind = ExprKind::SEQUENCE;
+};
+
+Token Sequence::Loc()
+{
+    return loc;
+}

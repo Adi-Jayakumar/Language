@@ -242,11 +242,31 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     return tc->type;
 }
 
+TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
+{
+    TypeData start = s->start->Analyse(*this);
+    if (start != INT_TYPE)
+        StaticAnalysisError(s->start->Loc(), "Start of Sequence Node must have 'int' type");
+
+    TypeData step = s->step->Analyse(*this);
+    if (step != INT_TYPE)
+        StaticAnalysisError(s->step->Loc(), "Step of Sequence must have 'int' type");
+
+    TypeData end = s->end->Analyse(*this);
+    if (end != INT_TYPE)
+        StaticAnalysisError(s->end->Loc(), "End of Sequence must have 'int' type");
+
+    TypeData term = s->term->Analyse(*this);
+
+    if (!CheckOperatorUse(term, s->op, term))
+        StaticAnalysisError(s->term->Loc(), "Cannot use the operator on term types");
+}
+
 //------------------STATEMENTS---------------------//
 
 void StaticAnalyser::AnalyseExprStmt(ExprStmt *es)
 {
-    TypeData exp = es->exp->Analyse(*this);
+    es->exp->Analyse(*this);
 }
 
 void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
@@ -394,7 +414,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         for (const TypeData &type : sidParent->memTypes)
             memTypes.push_back(type);
 
-        for (const auto kv : sidParent->nameTypes)
+        for (const auto &kv : sidParent->nameTypes)
             nameTypes[kv.first] = kv.second;
     }
 
@@ -418,7 +438,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
 {
     std::vector<std::string> libraryFuncs;
-    for (const auto library : is->libraries)
+    for (const auto &library : is->libraries)
     {
         libraryFuncs = Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)

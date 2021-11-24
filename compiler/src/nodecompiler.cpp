@@ -502,6 +502,11 @@ TypeData NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
     return tc->type;
 }
 
+TypeData NodeCompiler::CompileSequence(Sequence *s, Compiler &c)
+{
+    return VOID_TYPE;
+}
+
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -739,7 +744,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         for (const TypeData &type : sidParent->memTypes)
             memTypes.push_back(type);
 
-        for (const auto kv : sidParent->nameTypes)
+        for (const auto &kv : sidParent->nameTypes)
             nameTypes[kv.first] = kv.second;
     }
 
@@ -764,7 +769,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 {
     std::vector<std::string> libraryFuncs;
     assert(is->libraries.size() > 0);
-    for (const auto library : is->libraries)
+    for (const auto &library : is->libraries)
     {
         libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)
@@ -881,6 +886,11 @@ TypeData FieldAccess::NodeCompile(Compiler &c)
 TypeData TypeCast::NodeCompile(Compiler &c)
 {
     return NodeCompiler::CompileTypeCast(this, c);
+}
+
+TypeData Sequence::NodeCompile(Compiler &c)
+{
+    return NodeCompiler::CompileSequence(this, c);
 }
 
 //------------------STATEMENTS---------------------//
