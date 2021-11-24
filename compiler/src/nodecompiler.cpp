@@ -415,14 +415,12 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
 void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
 {
     c.AddCode({Opcode::PUSH_SP_OFFSET, 8});
-    size_t beginning = c.Symbols.GetCurOffset();
     ERROR_GUARD(
         {
             for (auto &e : bi->init)
                 e->NodeCompile(c);
         },
         c)
-    size_t diff = c.Symbols.GetCurOffset() - beginning;
     if (bi->GetType().isArray)
         c.Symbols.UpdateSP(ARRAY_SIZE);
     else
@@ -717,7 +715,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         if (sidParent == nullptr)
             c.TypeError(sd->Loc(), "Invalid parent struct name");
 
-        for (const auto kv : sidParent->nameTypes)
+        for (const auto &kv : sidParent->nameTypes)
             nameTypes.push_back({kv.first, kv.second});
     }
 

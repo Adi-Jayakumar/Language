@@ -296,7 +296,7 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
 
 void StaticAnalyser::AnalyseExprStmt(ExprStmt *es)
 {
-    TypeData exp = es->exp->Analyse(*this);
+    es->exp->Analyse(*this);
 }
 
 void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
@@ -458,7 +458,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
 {
     std::vector<std::string> libraryFuncs;
-    for (const auto library : is->libraries)
+    for (const auto &library : is->libraries)
     {
         libraryFuncs = Symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)

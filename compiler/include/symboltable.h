@@ -35,7 +35,7 @@ public:
     void UpdateSP(const size_t &offset) { spOffset += offset; };
     void ReduceSP(const size_t &offset) { spOffset -= offset; };
     void SetSP(const size_t &newLoc) { spOffset = newLoc; };
-    size_t GetNewVarOffset(const TypeData &type);
+    size_t GetNewVarOffset();
 
     //-------------------ADD SYMBOLS-------------------//
     void AddVar(const TypeData &type, const std::string &name, const size_t size);

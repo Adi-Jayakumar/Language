@@ -63,7 +63,7 @@ size_t SymbolTable::GetCurOffset()
     return spOffset;
 }
 
-size_t SymbolTable::GetNewVarOffset(const TypeData &type)
+size_t SymbolTable::GetNewVarOffset()
 {
     return spOffset + (vars.size() ? SizeOf(vars.back().type) : 0);
 }
