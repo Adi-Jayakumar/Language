@@ -1,4 +1,5 @@
 #pragma once
+#include "nativefuncimpl.h"
 #include "typedata.h"
 #include <cstring>
 #include <string>
@@ -37,6 +38,12 @@ public:
         top -= INT_SIZE;
         return *(int *)top;
     };
+
+    oprand_t PopOprandT()
+    {
+        top -= sizeof(oprand_t);
+        return *(oprand_t *)top;
+    }
 
     int PeekInt()
     {
@@ -210,9 +217,9 @@ public:
         std::memcpy(str, x.data(), len);
         GrowIfUnableToPush(PTR_SIZE);
         *(char **)top = str;
+        top += PTR_SIZE;
 
         PushInt(len);
-        top += STRING_SIZE;
     };
 
     void PushString(char *str, int len)
@@ -248,6 +255,13 @@ public:
         GrowIfUnableToPush(ARRAY_SIZE);
         *(char **)top = x;
         top += ARRAY_SIZE;
+    };
+
+    void PushReturnValue(const ReturnValue &ret)
+    {
+        GrowIfUnableToPush(ret.size);
+        std::memcpy(top, ret.data, ret.size);
+        delete[] ret.data;
     }
 
     void PopBytes(const oprand_t n)

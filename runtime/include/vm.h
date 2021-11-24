@@ -2,6 +2,7 @@
 #include "callstack.h"
 #include "function.h"
 #include "libfuncdef.h"
+#include "nativefuncimpl.h"
 #include "perror.h"
 #include "serialise.h"
 #include "stack.h"
@@ -13,7 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-typedef char*(*LibFunc)(char*);
+typedef ReturnValue (*LibFunc)(char *);
 
 class VM
 {
@@ -22,7 +23,10 @@ public:
     std::vector<Function> functions;
     std::unordered_map<oprand_t, std::unordered_set<oprand_t>> struct_tree;
 
-    std::vector<std::pair<LibFunc, size_t>> CLibs;
+    const std::vector<LibFunc> natives{PrintInt, PrintDouble, PrintBool, PrintString, PrintChar};
+
+    std::vector<std::pair<LibFunc, size_t>>
+        CLibs;
     std::vector<void *> lib_handles;
 
     std::vector<ThrowInfo> throw_infos;

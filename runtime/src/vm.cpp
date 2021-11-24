@@ -314,6 +314,10 @@ void VM::ExecuteInstruction()
     }
     case Opcode::NATIVE_CALL:
     {
+        oprand_t num_bytes = stack.PopOprandT();
+        ReturnValue ret = natives[o.op](stack.GetTop() - num_bytes);
+        if (ret != NULL_RETURN)
+            stack.PushReturnValue(ret);
         break;
     }
     case Opcode::STRUCT_MEMBER:
