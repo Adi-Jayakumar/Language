@@ -29,6 +29,7 @@ constexpr size_t CHAR_SIZE = sizeof(char);
 constexpr size_t NULL_SIZE = 1UL;
 constexpr size_t ARRAY_SIZE = sizeof(char *);
 constexpr size_t STRUCT_SIZE = ARRAY_SIZE;
+constexpr size_t PTR_SIZE = STRUCT_SIZE;
 
 const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE, STRING_TYPE, CHAR_TYPE, NULL_TYPE};
 
