@@ -196,8 +196,8 @@ void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
     {
         SP<IfStmt> i = std::dynamic_pointer_cast<IfStmt>(stmt);
         i->cond = SimplifyExpression(i->cond);
-        SimplifyStatement(i->thenBranch);
-        SimplifyStatement(i->elseBranch);
+        SimplifyStatement(i->then_branch);
+        SimplifyStatement(i->else_branch);
         break;
     }
     case StmtKind::WHILE_STMT:
@@ -217,7 +217,7 @@ void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
     case StmtKind::RETURN:
     {
         SP<Return> r = std::dynamic_pointer_cast<Return>(stmt);
-        r->retVal = SimplifyExpression(r->retVal);
+        r->ret_val = SimplifyExpression(r->ret_val);
         break;
     }
     case StmtKind::STRUCT_DECL:
@@ -241,8 +241,8 @@ void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
     case StmtKind::TRY_CATCH:
     {
         SP<TryCatch> tc = std::dynamic_pointer_cast<TryCatch>(stmt);
-        SimplifyStatement(tc->tryClause);
-        SimplifyStatement(tc->catchClause);
+        SimplifyStatement(tc->try_clause);
+        SimplifyStatement(tc->catch_clause);
         break;
     }
     }

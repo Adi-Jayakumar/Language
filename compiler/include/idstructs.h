@@ -10,9 +10,9 @@ struct VarID
     std::string name;
     size_t depth;
     size_t size;
-    bool isStructMember = false;
+    bool is_struct_member;
     VarID() = default;
-    VarID(TypeData _type, std::string _name, size_t _depth, size_t _size) : type(_type), name(_name), depth(_depth), size(_size){};
+    VarID(TypeData _type, std::string _name, size_t _depth, size_t _size) : type(_type), name(_name), depth(_depth), size(_size), is_struct_member(false){};
 };
 
 enum class FunctionType
@@ -33,7 +33,7 @@ struct FuncID
     // necessary for trigerring analysis/compilation of
     // a template function upon encountering a template
     // function call
-    size_t parseIndex;
+    size_t parse_index;
     FuncID() = default;
 
     FuncID(const TypeData &_ret,
@@ -41,13 +41,13 @@ struct FuncID
            const std::vector<TypeData> &_templates,
            const std::vector<TypeData> &_argtypes,
            const FunctionType &_kind,
-           const size_t &_parseIndex)
+           const size_t &_parse_index)
         : ret(_ret),
           name(_name),
           templates(_templates),
           argtypes(_argtypes),
           kind(_kind),
-          parseIndex(_parseIndex){};
+          parse_index(_parse_index){};
 };
 
 struct FuncIDEq

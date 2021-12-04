@@ -8,8 +8,8 @@ inline bool IsTruthy(const TypeData &td)
 void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
 {
     program = _program;
-    for (parseIndex = 0; parseIndex < program.size(); parseIndex++)
-        program[parseIndex]->Analyse(*this);
+    for (parse_index = 0; parse_index < program.size(); parse_index++)
+        program[parse_index]->Analyse(*this);
 }
 
 void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
@@ -336,9 +336,9 @@ void StaticAnalyser::AnalyseIfStmt(IfStmt *i)
     if (!IsTruthy(cond))
         TypeError(i->cond->Loc(), "Condition of if statement must be convertible to bool");
 
-    i->thenBranch->Analyse(*this);
-    if (i->elseBranch != nullptr)
-        i->elseBranch->Analyse(*this);
+    i->then_branch->Analyse(*this);
+    if (i->else_branch != nullptr)
+        i->else_branch->Analyse(*this);
 }
 
 void StaticAnalyser::AnalyseWhileStmt(WhileStmt *ws)
@@ -394,7 +394,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
         SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
     }
 
-    symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parseIndex));
+    symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parse_index));
 
     if (fd->templates.size() > 0)
         return;
@@ -412,8 +412,8 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
 void StaticAnalyser::AnalyseReturn(Return *r)
 {
-    if (r->retVal != nullptr)
-        r->retVal->Analyse(*this);
+    if (r->ret_val != nullptr)
+        r->ret_val->Analyse(*this);
 }
 
 void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
@@ -482,8 +482,8 @@ void StaticAnalyser::AnalyseThrow(Throw *t)
 
 void StaticAnalyser::AnalyserTryCatch(TryCatch *tc)
 {
-    tc->tryClause->Analyse(*this);
-    tc->catchClause->Analyse(*this);
+    tc->try_clause->Analyse(*this);
+    tc->catch_clause->Analyse(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//

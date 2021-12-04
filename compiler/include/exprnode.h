@@ -54,8 +54,16 @@ public:
     {
         kind = ExprKind::LITERAL;
         loc = _loc;
-        TypeID type = DefaultTypeMap.at(loc.type);
-        t = TypeData(0, type);
+        if (loc.type == TokenID::INT_L)
+            t = INT_TYPE;
+        else if (loc.type == TokenID::DOUBLE_L)
+            t = DOUBLE_TYPE;
+        else if (loc.type == TokenID::BOOL_L)
+            t = BOOL_TYPE;
+        else if (loc.type == TokenID::STRING_L)
+            t = STRING_TYPE;
+        else
+            t = CHAR_TYPE;
     };
 
     Literal(int i)
@@ -317,8 +325,7 @@ class TypeCast : public Expr
 public:
     Token loc;
     SP<Expr> arg;
-    bool isDownCast = false;
-
+    
     TypeCast(const TypeData &_type, const SP<Expr> &_arg, const Token &_loc)
     {
         kind = ExprKind::TYPE_CAST;

@@ -101,13 +101,13 @@ void PostConditionGenerator::ReplaceFunctionCall(SP<Expr> &exp)
             argtypes.push_back(arg->GetType());
         }
 
-        FuncID *fid = Symbols.GetFunc(fc->name, fc->templates, argtypes);
-        FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parseIndex].get());
+        FuncID *fid = symbols.GetFunc(fc->name, fc->templates, argtypes);
+        FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
 
-        if (fd->postCond == nullptr)
+        if (fd->post_cond == nullptr)
             PostConditionError(fd->Loc(), "Cannot have call to function which does not have a post condition in the strongest postcondition");
 
-        exp = fd->postCond;
+        exp = fd->post_cond;
         assert(fd->params.size() == fc->args.size());
         for (size_t i = 0; i < fd->params.size(); i++)
         {
@@ -173,13 +173,13 @@ void PostConditionGenerator::GenerateFromBlock(Block *b)
 void PostConditionGenerator::GenerateFromIfStmt(IfStmt *i)
 {
     AddCondition(i->cond);
-    i->thenBranch->GeneratePost(*this);
+    i->then_branch->GeneratePost(*this);
     RemoveLastCondition();
 
-    if (i->elseBranch != nullptr)
+    if (i->else_branch != nullptr)
     {
         AddCondition(NEGATE(i->cond));
-        i->elseBranch->GeneratePost(*this);
+        i->else_branch->GeneratePost(*this);
         RemoveLastCondition();
     }
 }
@@ -200,10 +200,10 @@ void PostConditionGenerator::GenerateFromFuncDecl(FuncDecl *fd)
 
 void PostConditionGenerator::GenerateFromReturn(Return *r)
 {
-    if (r->retVal == nullptr)
+    if (r->ret_val == nullptr)
         PostConditionError(r->Loc(), "Cannot generate post condition for a void-return");
 
-    AddReturnValue(r->retVal);
+    AddReturnValue(r->ret_val);
 }
 
 void PostConditionGenerator::GenerateFromStructDecl(StructDecl *)

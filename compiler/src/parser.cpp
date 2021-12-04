@@ -2,7 +2,7 @@
 #include "ASTPrinter.h"
 
 Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
-    : symbols(_symbols), lex(fPath, &symbols), depth(0), hadError(false)
+    : symbols(_symbols), lex(fPath, &symbols), depth(0), had_error(false)
 {
     cur = lex.NextToken();
     next = lex.NextToken();
@@ -112,7 +112,7 @@ std::vector<SP<Stmt>> Parser::Parse()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -161,14 +161,14 @@ SP<Stmt> Parser::Statement()
         }
 
         // parsing the return value
-        SP<Expr> retVal = Expression();
+        SP<Expr> ret_val = Expression();
 
         // checking for the semicolon
         Check(TokenID::SEMI, "Require ';' at the end of a return statement");
 
         // advancing over the semicolon
         Advance();
-        return std::make_shared<Return>(retVal, cur);
+        return std::make_shared<Return>(ret_val, cur);
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
         return ParseImportStmt();
@@ -194,7 +194,7 @@ SP<Stmt> Parser::Statement()
         Token loc = cur;
         Advance();
 
-        SP<Stmt> tryClause = Statement();
+        SP<Stmt> try_clause = Statement();
 
         Check(TokenID::CATCH, "Expect 'catch' after 'try' block");
 
@@ -214,7 +214,7 @@ SP<Stmt> Parser::Statement()
         Advance();
         SP<Stmt> catchClause = Statement();
 
-        return std::make_shared<TryCatch>(tryClause, catchClause, catchVar, loc);
+        return std::make_shared<TryCatch>(try_clause, catchClause, catchVar, loc);
     }
     return Declaration();
 }
@@ -294,7 +294,7 @@ SP<Stmt> Parser::FuncDeclaration()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::COMMA, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -319,7 +319,7 @@ SP<Stmt> Parser::FuncDeclaration()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -380,7 +380,7 @@ SP<Stmt> Parser::ParseStructDecl()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -446,7 +446,7 @@ SP<Block> Parser::ParseBlock()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -471,14 +471,14 @@ SP<Stmt> Parser::IfStatement()
     SP<Expr> cond = Expression();
     Check(TokenID::CLOSE_PAR, "Missing a close parenthesis");
     Advance();
-    SP<Stmt> thenBranch = Statement();
-    SP<Stmt> elseBranch = nullptr;
+    SP<Stmt> then_branch = Statement();
+    SP<Stmt> else_branch = nullptr;
     if (cur.type == TokenID::ELSE)
     {
         Advance();
-        elseBranch = Statement();
+        else_branch = Statement();
     }
-    return std::make_shared<IfStmt>(cond, thenBranch, elseBranch, loc);
+    return std::make_shared<IfStmt>(cond, then_branch, else_branch, loc);
 }
 
 SP<Stmt> Parser::WhileStatement()

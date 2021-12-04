@@ -10,11 +10,11 @@ class PostConditionGenerator
     std::vector<std::vector<SP<Expr>>> post;
     std::vector<SP<Expr>> conditions;
     std::vector<SP<Stmt>> program;
-    SymbolTable Symbols; // for function calls
+    SymbolTable symbols; // for function calls
 
 public:
     // Should pass in the SymbolTable used to StaticAnalyse the code
-    PostConditionGenerator(const SymbolTable &_Symbols) : Symbols(_Symbols)
+    PostConditionGenerator(const SymbolTable &_symbols) : symbols(_symbols)
     {
         post.push_back(std::vector<SP<Expr>>());
     };

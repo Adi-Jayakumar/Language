@@ -134,8 +134,8 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
     {
         SP<IfStmt> i = COPY(IfStmt, tree);
         i->cond = Substitute(i->cond, node, val);
-        i->thenBranch = Substitute(i->thenBranch, node, val);
-        i->elseBranch = Substitute(i->elseBranch, node, val);
+        i->then_branch = Substitute(i->then_branch, node, val);
+        i->else_branch = Substitute(i->else_branch, node, val);
         return i;
     }
     case StmtKind::WHILE_STMT:
@@ -155,7 +155,7 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
     case StmtKind::RETURN:
     {
         SP<Return> r = COPY(Return, tree);
-        r->retVal = Substitute(r->retVal, node, val);
+        r->ret_val = Substitute(r->ret_val, node, val);
         return r;
     }
     case StmtKind::STRUCT_DECL:
@@ -173,8 +173,8 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
     case StmtKind::TRY_CATCH:
     {
         SP<TryCatch> tc = COPY(TryCatch, tree);
-        tc->tryClause = Substitute(tc->tryClause, node, val);
-        tc->catchClause = Substitute(tc->catchClause, node, val);
+        tc->try_clause = Substitute(tc->try_clause, node, val);
+        tc->catch_clause = Substitute(tc->catch_clause, node, val);
         return tc;
     }
     }

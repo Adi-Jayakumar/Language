@@ -492,34 +492,34 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
     std::pair<size_t, size_t> isTrue = c.LastAddedCodeLoc();
 
     c.AddRoutine();
-    i->thenBranch->NodeCompile(c);
+    i->then_branch->NodeCompile(c);
     size_t thenRoutine = c.GetCurRoutineIndex();
 
     if (thenRoutine > MAX_OPRAND)
-        c.CompileError(i->thenBranch->Loc(), "Too many routines");
+        c.CompileError(i->then_branch->Loc(), "Too many routines");
     // isTrue->op = static_cast<oprand_t>(thenRoutine);
     c.ModifyOprandAt(isTrue, static_cast<oprand_t>(thenRoutine));
 
     c.AddCode({Opcode::GOTO_LABEL, 0});
     std::pair<size_t, size_t> thenReturn = c.LastAddedCodeLoc();
 
-    if (i->elseBranch == nullptr)
+    if (i->else_branch == nullptr)
     {
         c.AddRoutine();
         size_t newRoutine = c.GetCurRoutineIndex();
         if (newRoutine > MAX_OPRAND)
-            c.CompileError(i->thenBranch->Loc(), "Too many routines");
+            c.CompileError(i->then_branch->Loc(), "Too many routines");
         c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newRoutine));
         c.ModifyOprandAt(notTrue, static_cast<oprand_t>(newRoutine));
     }
     else
     {
         c.AddRoutine();
-        i->elseBranch->NodeCompile(c);
+        i->else_branch->NodeCompile(c);
 
         size_t elseIndex = c.GetCurRoutineIndex();
         if (elseIndex > MAX_OPRAND)
-            c.CompileError(i->elseBranch->Loc(), "Too many routines");
+            c.CompileError(i->else_branch->Loc(), "Too many routines");
         c.ModifyOprandAt(notTrue, static_cast<oprand_t>(elseIndex));
 
         c.AddCode({Opcode::GOTO_LABEL, 0});
@@ -528,7 +528,7 @@ void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
         c.AddRoutine();
         size_t newRoutine = c.GetCurRoutineIndex();
         if (newRoutine > MAX_OPRAND)
-            c.CompileError(i->elseBranch->Loc(), "Too many routines");
+            c.CompileError(i->else_branch->Loc(), "Too many routines");
         c.ModifyOprandAt(thenReturn, static_cast<oprand_t>(newRoutine));
         c.ModifyOprandAt(elseReturn, static_cast<oprand_t>(newRoutine));
     }
@@ -576,7 +576,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     for (auto &t : fd->templates)
         templates.push_back(t.first);
 
-    c.symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parseIndex));
+    c.symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parse_index));
 
     if (fd->templates.size() > 0)
         return;
@@ -594,18 +594,18 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 
     c.ClearCurrentDepthWithPOPInst();
     c.symbols.depth--;
-    c.cur = &c.Functions[0];
+    c.cur = &c.functions[0];
 }
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
-    if (r->retVal == nullptr)
+    if (r->ret_val == nullptr)
         c.AddCode({Opcode::RETURN_VOID, 0});
     else
     {
         // TODO - check return type can be assigned to one
         // specified at function declaration
-        r->retVal->NodeCompile(c);
+        r->ret_val->NodeCompile(c);
         c.AddCode({Opcode::RETURN, 0});
     }
 }
@@ -662,7 +662,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
                     if (c.symbols.NumCFuncs() > MAX_OPRAND)
                         c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
 
-                    c.libfuncs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
+                    c.lib_funcs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
                 }
             }
         },
@@ -671,10 +671,10 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 
 void NodeCompiler::CompileBreak(Break *b, Compiler &c)
 {
-    if (c.breakIndices.size() == 0)
+    if (c.break_indices.size() == 0)
         c.CompileError(b->Loc(), "Break statement cannot occur outside of a loop");
 
-    std::vector<size_t> *curLoopBreaks = &c.breakIndices.top();
+    std::vector<size_t> *curLoopBreaks = &c.break_indices.top();
     size_t breakLoc = c.CodeSize();
 
     curLoopBreaks->push_back(breakLoc);
@@ -690,29 +690,29 @@ void NodeCompiler::CompileThrow(Throw *t, Compiler &c)
 void NodeCompiler::CompileTryCatch(TryCatch *tc, Compiler &c)
 {
     ThrowInfo ti;
-    ti.func = c.cur - &c.Functions[0];
+    ti.func = c.cur - &c.functions[0];
 
-    TypeData catchType = tc->catchVar.first;
-    std::string catchVarName = tc->catchVar.second;
+    TypeData catchType = tc->catch_var.first;
+    std::string catchVarName = tc->catch_var.second;
 
     ti.type = catchType.type;
     ti.isArray = catchType.isArray;
 
-    size_t throwInfoSize = c.throwStack.size();
+    size_t throwInfoSize = c.throw_stack.size();
     if (throwInfoSize > MAX_OPRAND)
         c.CompileError(tc->Loc(), "Too many try-catch blocks, maximum number is " + std::to_string(MAX_OPRAND));
 
     c.AddCode({Opcode::PUSH_THROW_INFO, static_cast<oprand_t>(throwInfoSize)});
-    tc->tryClause->NodeCompile(c);
+    tc->try_clause->NodeCompile(c);
 
     size_t sIndex = c.CodeSize();
     if (sIndex > MAX_OPRAND)
-        c.CompileError(tc->tryClause->Loc(), "Too much code generated from 'try' clause");
+        c.CompileError(tc->try_clause->Loc(), "Too much code generated from 'try' clause");
 
     ti.index = static_cast<oprand_t>(sIndex);
-    c.throwStack.push_back(ti);
+    c.throw_stack.push_back(ti);
     c.symbols.AddVar(catchType, catchVarName, c.symbols.SizeOf(catchType));
-    tc->catchClause->NodeCompile(c);
+    tc->catch_clause->NodeCompile(c);
 }
 
 //-----------------EXPRESSIONS---------------------//

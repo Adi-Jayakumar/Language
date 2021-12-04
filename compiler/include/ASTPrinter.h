@@ -8,14 +8,14 @@ class ASTPrinter
 {
 public:
     std::ostringstream out;
-    bool printTypes;
+    bool print_types;
     size_t depth;
     std::string tab;
     SymbolTable symbols;
 
-    ASTPrinter(bool _printTypes, std::string _tab, SymbolTable &_symbols) : printTypes(_printTypes), depth(0), tab(_tab), symbols(_symbols){};
-    ASTPrinter(bool _printTypes, SymbolTable &_symbols) : printTypes(_printTypes), depth(0), tab("\t"), symbols(_symbols){};
-    ASTPrinter(std::string _tab, SymbolTable &_symbols) : printTypes(false), depth(0), tab(_tab), symbols(_symbols){};
+    ASTPrinter(bool _print_types, std::string _tab, SymbolTable &_symbols) : print_types(_print_types), depth(0), tab(_tab), symbols(_symbols){};
+    ASTPrinter(bool _printTypes, SymbolTable &_symbols) : print_types(_printTypes), depth(0), tab("\t"), symbols(_symbols){};
+    ASTPrinter(std::string _tab, SymbolTable &_symbols) : print_types(false), depth(0), tab(_tab), symbols(_symbols){};
 
     void Flush()
     {

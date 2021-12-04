@@ -142,8 +142,8 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
     {
         GET_NODE_KIND(IfStmt);
         return Equal(l->cond, r->cond) &&
-               Equal(l->thenBranch, r->thenBranch) &&
-               Equal(l->elseBranch, r->elseBranch);
+               Equal(l->then_branch, r->then_branch) &&
+               Equal(l->else_branch, r->else_branch);
     }
     case StmtKind::WHILE_STMT:
     {
@@ -171,12 +171,12 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
                 return false;
         }
 
-        if (l->preConds.size() != r->preConds.size())
+        if (l->pre_conds.size() != r->pre_conds.size())
             return false;
 
-        for (size_t i = 0; i < l->preConds.size(); i++)
+        for (size_t i = 0; i < l->pre_conds.size(); i++)
         {
-            if (!Equal(l->preConds[i], r->preConds[i]))
+            if (!Equal(l->pre_conds[i], r->pre_conds[i]))
                 return false;
         }
 
@@ -194,7 +194,7 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
     case StmtKind::RETURN:
     {
         GET_NODE_KIND(Return);
-        return Equal(l->retVal, r->retVal);
+        return Equal(l->ret_val, r->ret_val);
     }
     case StmtKind::STRUCT_DECL:
     {
@@ -236,12 +236,12 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
     case StmtKind::TRY_CATCH:
     {
         GET_NODE_KIND(TryCatch);
-        if (l->catchVar.first != r->catchVar.first ||
-            l->catchVar.second != r->catchVar.second)
+        if (l->catch_var.first != r->catch_var.first ||
+            l->catch_var.second != r->catch_var.second)
             return false;
 
-        return Equal(l->tryClause, r->tryClause) &&
-               Equal(l->catchClause, r->catchClause);
+        return Equal(l->try_clause, r->try_clause) &&
+               Equal(l->catch_clause, r->catch_clause);
     }
     }
     return false;

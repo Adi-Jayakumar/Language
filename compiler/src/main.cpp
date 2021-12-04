@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     Parser p(ifPath, symbols);
     std::vector<SP<Stmt>> parsed = p.Parse();
 
-    if (p.hadError)
+    if (p.had_error)
         exit(2);
 
     if (arg.IsSwitchOn("-l"))
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     Compiler c;
     c.Compile(parsed);
 
-    if (c.hadError)
+    if (c.had_error)
         exit(3);
 
     if (arg.IsSwitchOn("-c"))

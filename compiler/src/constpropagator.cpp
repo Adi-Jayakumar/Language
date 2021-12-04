@@ -35,9 +35,9 @@ SP<Expr> ConstantPropagator::PropagateExpression(SP<Expr> &expr)
     case ExprKind::VAR_REFERENCE:
     {
         SP<VarReference> vr = std::dynamic_pointer_cast<VarReference>(expr);
-        VarID *vid = Symbols.GetVar(vr->name);
+        VarID *vid = symbols.GetVar(vr->name);
 
-        SP<Expr> val = Constants.GetVarVal(vid->type, vid->name);
+        SP<Expr> val = constants.GetVarVal(vid->type, vid->name);
 
         if (val != nullptr)
         {
@@ -55,8 +55,8 @@ SP<Expr> ConstantPropagator::PropagateExpression(SP<Expr> &expr)
         VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
         if (targetAsVR != nullptr)
         {
-            VarID *vid = Symbols.GetVar(targetAsVR->name);
-            Constants.RemoveVarVal(vid->type, vid->name);
+            VarID *vid = symbols.GetVar(targetAsVR->name);
+            constants.RemoveVarVal(vid->type, vid->name);
         }
         return a;
     }
@@ -123,13 +123,13 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
     case StmtKind::DECLARED_VAR:
     {
         DeclaredVar *dv = dynamic_cast<DeclaredVar *>(stmt.get());
-        Symbols.AddVar(dv->t, dv->name, 0);
+        symbols.AddVar(dv->t, dv->name, 0);
 
         if (dv->value != nullptr)
         {
             dv->value = PropagateExpression(dv->value);
             if (dynamic_cast<Literal *>(dv->value.get()) != nullptr)
-                Constants.AddVar(dv->t, dv->name, dv->value);
+                constants.AddVar(dv->t, dv->name, dv->value);
         }
         break;
     }
@@ -137,46 +137,46 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
     {
         Block *b = dynamic_cast<Block *>(stmt.get());
 
-        Symbols.depth++;
-        Constants.depth++;
+        symbols.depth++;
+        constants.depth++;
 
         for (auto &stmt : b->stmts)
             PropagateStatement(stmt);
 
-        Constants.ClearCurrentDepth();
-        Symbols.CleanUpCurDepth();
+        constants.ClearCurrentDepth();
+        symbols.CleanUpCurDepth();
 
-        Symbols.depth--;
-        Constants.depth--;
+        symbols.depth--;
+        constants.depth--;
         break;
     }
     case StmtKind::IF_STMT:
     {
         IfStmt *i = dynamic_cast<IfStmt *>(stmt.get());
 
-        Symbols.depth++;
-        Constants.depth++;
+        symbols.depth++;
+        constants.depth++;
         i->cond = PropagateExpression(i->cond);
 
-        Constants.ClearCurrentDepth();
-        Symbols.CleanUpCurDepth();
+        constants.ClearCurrentDepth();
+        symbols.CleanUpCurDepth();
 
-        Symbols.depth--;
-        Constants.depth--;
+        symbols.depth--;
+        constants.depth--;
 
-        PropagateStatement(i->thenBranch);
-        if (i->elseBranch != nullptr)
+        PropagateStatement(i->then_branch);
+        if (i->else_branch != nullptr)
         {
-            Symbols.depth++;
-            Constants.depth++;
+            symbols.depth++;
+            constants.depth++;
 
-            PropagateStatement(i->elseBranch);
+            PropagateStatement(i->else_branch);
 
-            Constants.ClearCurrentDepth();
-            Symbols.CleanUpCurDepth();
+            constants.ClearCurrentDepth();
+            symbols.CleanUpCurDepth();
 
-            Symbols.depth--;
-            Constants.depth--;
+            symbols.depth--;
+            constants.depth--;
         }
         break;
     }
@@ -184,39 +184,39 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
     {
         WhileStmt *ws = dynamic_cast<WhileStmt *>(stmt.get());
 
-        Symbols.depth++;
-        Constants.depth++;
+        symbols.depth++;
+        constants.depth++;
 
         PropagateStatement(ws->body);
 
-        Constants.ClearCurrentDepth();
-        Symbols.CleanUpCurDepth();
+        constants.ClearCurrentDepth();
+        symbols.CleanUpCurDepth();
 
-        Symbols.depth--;
-        Constants.depth--;
+        symbols.depth--;
+        constants.depth--;
 
         break;
     }
     case StmtKind::FUNC_DECL:
     {
         FuncDecl *fd = dynamic_cast<FuncDecl *>(stmt.get());
-        Symbols.depth++;
-        Constants.depth++;
+        symbols.depth++;
+        constants.depth++;
         for (auto &stmt : fd->body)
             PropagateStatement(stmt);
 
-        Constants.ClearCurrentDepth();
-        Symbols.CleanUpCurDepth();
+        constants.ClearCurrentDepth();
+        symbols.CleanUpCurDepth();
 
-        Symbols.depth--;
-        Constants.depth--;
+        symbols.depth--;
+        constants.depth--;
         break;
     }
     case StmtKind::RETURN:
     {
         Return *r = dynamic_cast<Return *>(stmt.get());
-        if (r->retVal != nullptr)
-            r->retVal = PropagateExpression(r->retVal);
+        if (r->ret_val != nullptr)
+            r->ret_val = PropagateExpression(r->ret_val);
         break;
     }
     case StmtKind::STRUCT_DECL:
@@ -235,16 +235,16 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
     {
         TryCatch *tc = dynamic_cast<TryCatch *>(stmt.get());
 
-        Symbols.depth++;
-        Constants.depth++;
-        PropagateStatement(tc->tryClause);
+        symbols.depth++;
+        constants.depth++;
+        PropagateStatement(tc->try_clause);
 
-        Constants.ClearCurrentDepth();
-        Symbols.CleanUpCurDepth();
+        constants.ClearCurrentDepth();
+        symbols.CleanUpCurDepth();
 
-        PropagateStatement(tc->catchClause);
-        Symbols.depth--;
-        Constants.depth--;
+        PropagateStatement(tc->catch_clause);
+        symbols.depth--;
+        constants.depth--;
         break;
     }
     }

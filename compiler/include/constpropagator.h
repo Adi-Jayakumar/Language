@@ -88,8 +88,8 @@ public:
 // validated by the StaticAnalyser
 class ConstantPropagator
 {
-    SymbolTable Symbols;
-    ConstantMap Constants;
+    SymbolTable symbols;
+    ConstantMap constants;
 
 public:
     bool didPropagate;

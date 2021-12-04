@@ -13,7 +13,7 @@ struct Parser
     Token next;
 
     size_t depth;
-    bool hadError;
+    bool had_error;
 
     Parser(const std::string &fPath, SymbolTable &_symbols);
 

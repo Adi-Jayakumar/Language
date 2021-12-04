@@ -10,7 +10,7 @@ ASTPrinter &operator<<(ASTPrinter &ast, std::string str)
 
 void ASTPrinter::PrintLiteral(Literal *l)
 {
-    if (printTypes)
+    if (print_types)
     {
         symbols.PrintType(out, l->t);
         out << " ";
@@ -222,13 +222,13 @@ void ASTPrinter::PrintIfStmt(IfStmt *i)
 
     NewLine();
 
-    i->thenBranch->Print(*this);
-    if (i->elseBranch != nullptr)
+    i->then_branch->Print(*this);
+    if (i->else_branch != nullptr)
     {
         NewLine();
         out << "else";
         NewLine();
-        i->elseBranch->Print(*this);
+        i->else_branch->Print(*this);
     }
 }
 
@@ -272,10 +272,10 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 
     NewLine();
 
-    if (fd->preConds.size() != 0)
+    if (fd->pre_conds.size() != 0)
     {
         out << "(|";
-        for (auto exp : fd->preConds)
+        for (auto exp : fd->pre_conds)
         {
             exp->Print(*this);
             out << ";";
@@ -301,10 +301,10 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     out << "}";
     NewLine();
 
-    if (fd->postCond != nullptr)
+    if (fd->post_cond != nullptr)
     {
         out << "(|";
-        fd->postCond->Print(*this);
+        fd->post_cond->Print(*this);
         out << "|)";
     }
 
@@ -318,8 +318,8 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 void ASTPrinter::PrintReturn(Return *r)
 {
     out << "return ";
-    if (r->retVal != nullptr)
-        r->retVal->Print(*this);
+    if (r->ret_val != nullptr)
+        r->ret_val->Print(*this);
     out << ";";
 
     NewLine();
@@ -369,15 +369,15 @@ void ASTPrinter::PrintTryCatch(TryCatch *tc)
     out << "try";
     NewLine();
 
-    tc->tryClause->Print(*this);
+    tc->try_clause->Print(*this);
     NewLine();
 
     out << "catch (";
-    symbols.PrintType(out, tc->catchVar.first);
-    out << " " << tc->catchVar.second << ")";
+    symbols.PrintType(out, tc->catch_var.first);
+    out << " " << tc->catch_var.second << ")";
     NewLine();
 
-    tc->catchClause->Print(*this);
+    tc->catch_clause->Print(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//

@@ -2,11 +2,11 @@
 
 Compiler::Compiler()
 {
-    Functions.push_back(Function());
-    Functions[0].arity = 0;
-    cur = &Functions[0];
+    functions.push_back(Function());
+    functions[0].arity = 0;
+    cur = &functions[0];
 
-    curRoutine = {&cur->routines[0], 0};
+    cur_routine = {&cur->routines[0], 0};
 }
 
 void Compiler::CompileError(Token loc, std::string err)
@@ -17,17 +17,17 @@ void Compiler::CompileError(Token loc, std::string err)
 
 void Compiler::AddCode(Op o)
 {
-    curRoutine.first->push_back(o);
+    cur_routine.first->push_back(o);
 }
 
 size_t Compiler::CodeSize()
 {
-    return curRoutine.first->size();
+    return cur_routine.first->size();
 }
 
 std::pair<size_t, size_t> Compiler::LastAddedCodeLoc()
 {
-    return {GetCurRoutineIndex(), curRoutine.first->size() - 1};
+    return {GetCurRoutineIndex(), cur_routine.first->size() - 1};
 }
 
 void Compiler::ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand)
@@ -43,19 +43,19 @@ void Compiler::ModifyOpcodeAt(std::pair<size_t, size_t> loc, Opcode opcode)
 void Compiler::AddRoutine()
 {
     cur->routines.push_back(std::vector<Op>());
-    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
+    cur_routine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetCurRoutineIndex()
 {
-    return curRoutine.second;
+    return cur_routine.second;
 }
 
 void Compiler::AddFunction()
 {
-    Functions.push_back(Function());
-    cur = &Functions.back();
-    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
+    functions.push_back(Function());
+    cur = &functions.back();
+    cur_routine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetVariableStackLoc(std::string &name)
@@ -65,39 +65,39 @@ size_t Compiler::GetVariableStackLoc(std::string &name)
 
 void Compiler::Compile(std::vector<SP<Stmt>> &s)
 {
-    mainIndex = MAX_OPRAND;
+    main_index = MAX_OPRAND;
     size_t numFunctions = 0;
-    for (parseIndex = 0; parseIndex < s.size(); parseIndex++)
+    for (parse_index = 0; parse_index < s.size(); parse_index++)
     {
-        s[parseIndex]->NodeCompile(*this);
-        if (dynamic_cast<FuncDecl *>(s[parseIndex].get()) != nullptr)
+        s[parse_index]->NodeCompile(*this);
+        if (dynamic_cast<FuncDecl *>(s[parse_index].get()) != nullptr)
         {
             numFunctions++;
-            FuncDecl *asFD = static_cast<FuncDecl *>(s[parseIndex].get());
+            FuncDecl *asFD = static_cast<FuncDecl *>(s[parse_index].get());
             if (asFD->params.size() == 0 && asFD->name == "Main")
             {
-                if (mainIndex != MAX_OPRAND)
+                if (main_index != MAX_OPRAND)
                     CompileError(asFD->Loc(), "Main function already defined");
-                mainIndex = numFunctions;
+                main_index = numFunctions;
             }
         }
-        else if (dynamic_cast<DeclaredVar *>(s[parseIndex].get()) == nullptr &&
-                 dynamic_cast<StructDecl *>(s[parseIndex].get()) == nullptr &&
-                 dynamic_cast<ImportStmt *>(s[parseIndex].get()) == nullptr)
-            CompileError(s[parseIndex]->Loc(), "Only declarations allowed in global region");
+        else if (dynamic_cast<DeclaredVar *>(s[parse_index].get()) == nullptr &&
+                 dynamic_cast<StructDecl *>(s[parse_index].get()) == nullptr &&
+                 dynamic_cast<ImportStmt *>(s[parse_index].get()) == nullptr)
+            CompileError(s[parse_index]->Loc(), "Only declarations allowed in global region");
     }
 }
 
 void Compiler::Disassemble()
 {
-    for (size_t i = 0; i < Functions.size(); i++)
+    for (size_t i = 0; i < functions.size(); i++)
     {
         std::cout << "Function index: " << i << std::endl
-                  << "Function arity: " << +Functions[i].arity
+                  << "Function arity: " << +functions[i].arity
                   << std::endl
                   << std::endl;
 
-        Functions[i].PrintCode();
+        functions[i].PrintCode();
 
         std::cout << std::endl
                   << std::endl;
@@ -131,24 +131,24 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     file.open(fPath, std::ios::out | std::ios::app | std::ios::binary);
 
     // serialising the index of the 'void Main()' function
-    file.write((char *)&prog.mainIndex, sizeof(prog.mainIndex));
+    file.write((char *)&prog.main_index, sizeof(prog.main_index));
 
     // serialising the number of functions
-    oprand_t numFunctions = static_cast<oprand_t>(prog.Functions.size());
+    oprand_t numFunctions = static_cast<oprand_t>(prog.functions.size());
     file.write((char *)&numFunctions, sizeof(numFunctions));
 
-    for (Function &func : prog.Functions)
+    for (Function &func : prog.functions)
         SerialiseFunction(func, file);
 
     // serialising the struct tree
     file.write((char *)&STRUCT_TREE_ID, sizeof(STRUCT_TREE_ID));
 
     // writing the number of structs
-    TypeID numStructs = static_cast<TypeID>(prog.StructTree.size());
+    TypeID numStructs = static_cast<TypeID>(prog.struct_tree.size());
     file.write((char *)&numStructs, sizeof(numStructs));
 
     // writing: struct id, number of parents, parent ids for each struct
-    for (auto &s : prog.StructTree)
+    for (auto &s : prog.struct_tree)
     {
         file.write((char *)&s.first, sizeof(s.first));
 
@@ -162,10 +162,10 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     size_t libFuncID = LIB_FUNC_ID;
     file.write((char *)&libFuncID, sizeof(LIB_FUNC_ID));
 
-    size_t numLibFuncs = prog.libfuncs.size();
+    size_t numLibFuncs = prog.lib_funcs.size();
     file.write((char *)&numLibFuncs, sizeof(numLibFuncs));
 
-    for (auto &libfunc : prog.libfuncs)
+    for (auto &libfunc : prog.lib_funcs)
     {
         // writing the name of the function
         size_t nameLen = libfunc.name.length();
@@ -181,7 +181,7 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
         file.write((char *)&libfunc.arity, sizeof(libfunc.arity));
     }
 
-    SerialiseThrowInfo(prog.throwStack, file);
+    SerialiseThrowInfo(prog.throw_stack, file);
     file.close();
 }
 

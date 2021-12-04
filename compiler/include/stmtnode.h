@@ -92,15 +92,15 @@ class IfStmt : public Stmt
 {
 public:
     SP<Expr> cond;
-    SP<Stmt> thenBranch;
-    SP<Stmt> elseBranch;
-    IfStmt(const SP<Expr> &_cond, const SP<Stmt> &_thenBranch, const SP<Stmt> &_elseBranch, const Token &_loc)
+    SP<Stmt> then_branch;
+    SP<Stmt> else_branch;
+    IfStmt(const SP<Expr> &_cond, const SP<Stmt> &_then_branch, const SP<Stmt> &_else_branch, const Token &_loc)
     {
         kind = StmtKind::IF_STMT;
         loc = _loc;
         cond = _cond;
-        thenBranch = _thenBranch;
-        elseBranch = _elseBranch;
+        then_branch = _then_branch;
+        else_branch = _else_branch;
     };
 
     void Print(ASTPrinter &p) override;
@@ -138,11 +138,11 @@ public:
     std::vector<std::pair<TypeData, std::string>> params;
 
     std::vector<SP<Stmt>> body;
-    std::vector<SP<Expr>> preConds;
+    std::vector<SP<Expr>> pre_conds;
 
     std::vector<std::pair<TypeData, std::string>> templates;
 
-    SP<Expr> postCond;
+    SP<Expr> post_cond;
 
     FuncDecl(TypeData _ret,
              std::string &_name,
@@ -158,8 +158,8 @@ public:
         name = _name;
         params = _params;
         body = _body;
-        preConds = _preConds;
-        postCond = _postCond;
+        pre_conds = _preConds;
+        post_cond = _postCond;
     };
 
     void Print(ASTPrinter &p) override;
@@ -171,13 +171,13 @@ public:
 class Return : public Stmt
 {
 public:
-    SP<Expr> retVal;
+    SP<Expr> ret_val;
 
-    Return(const SP<Expr> &_retVal, const Token &_loc)
+    Return(const SP<Expr> &_ret_val, const Token &_loc)
     {
         kind = StmtKind::RETURN;
         loc = _loc;
-        retVal = _retVal;
+        ret_val = _ret_val;
     };
 
     void Print(ASTPrinter &p) override;
@@ -207,12 +207,6 @@ public:
     void GeneratePost(PostConditionGenerator &pc) override;
 };
 
-/*
-import math, physics
-from latin import nominative, accusative
-i.e. import --> comma seperated list of libraries <---- imports everything
-i.e. from --> single module name import comma seperated list of symbols <---- only imports those symbols
-*/
 class ImportStmt : public Stmt
 {
 public:
@@ -264,19 +258,19 @@ public:
 class TryCatch : public Stmt
 {
 public:
-    SP<Stmt> tryClause, catchClause;
-    std::pair<TypeData, std::string> catchVar;
+    SP<Stmt> try_clause, catch_clause;
+    std::pair<TypeData, std::string> catch_var;
 
-    TryCatch(const SP<Stmt> &_tryClause,
-             const SP<Stmt> &_catchClause,
-             const std::pair<TypeData, std::string> &_catchVar,
+    TryCatch(const SP<Stmt> &_try_clause,
+             const SP<Stmt> &_catch_clause,
+             const std::pair<TypeData, std::string> &_catch_var,
              const Token &_loc)
     {
         kind = StmtKind::TRY_CATCH;
         loc = _loc;
-        tryClause = _tryClause;
-        catchClause = _catchClause;
-        catchVar = _catchVar;
+        try_clause = _try_clause;
+        catch_clause = _catch_clause;
+        catch_var = _catch_var;
     };
 
     void Print(ASTPrinter &p) override;

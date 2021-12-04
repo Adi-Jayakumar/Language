@@ -406,12 +406,12 @@ std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string 
     *(void **)&numfuncs = dlsym(handle, "NumLibFunctions");
     DL_ERROR(errorMsg)
 
-    std::vector<std::string> libfuncs;
+    std::vector<std::string> lib_funcs;
     for (size_t i = 0; i < *numfuncs; i++)
-        libfuncs.push_back(LibraryFunctions[i]);
+        lib_funcs.push_back(LibraryFunctions[i]);
 
     dlclose(handle);
-    return libfuncs;
+    return lib_funcs;
 }
 
 TypeData SymbolTable::ParseType(const std::string &type)
