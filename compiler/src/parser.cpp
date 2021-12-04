@@ -1,12 +1,11 @@
 #include "parser.h"
 #include "ASTPrinter.h"
 
-Parser::Parser(const std::string &fPath)
+Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
+    : symbols(_symbols), lex(fPath, &symbols), depth(0), hadError(false)
 {
-    lex = Lexer(fPath);
     cur = lex.NextToken();
     next = lex.NextToken();
-    depth = 0;
 }
 
 void Parser::ParseError(Token loc, std::string err)
@@ -45,15 +44,12 @@ void Parser::Advance()
 {
     prev = cur;
     cur = next;
+
     if (cur.type != TokenID::END)
         next = lex.NextToken();
 
     if (prev.type == TokenID::STRUCT && cur.type == TokenID::TYPENAME_KW)
-    {
-        TypeData newType(0, numTypes++);
-        GetTypeNameMap()[next.literal] = newType;
-        GetTypeStringMap()[newType.type] = next.literal;
-    }
+        symbols.AddType(next.literal);
 }
 
 TypeData Parser::ParseType(std::string err)
@@ -62,7 +58,7 @@ TypeData Parser::ParseType(std::string err)
     {
         std::string sType = cur.literal;
         Advance();
-        return GetTypeNameMap()[sType];
+        return symbols.ResolveType(sType).value();
     }
     else if (cur.type == TokenID::ARRAY)
     {
@@ -85,13 +81,13 @@ TypeData Parser::ParseType(std::string err)
             Advance();
 
             Check(TokenID::TYPENAME, "Expect type name in multi dimensional array type");
-            type = GetTypeNameMap()[cur.literal];
+            type = symbols.ResolveType(cur.literal).value();
             Advance();
         }
         else
         {
             Check(TokenID::TYPENAME, "1 dimensional array requires type name");
-            type = GetTypeNameMap()[cur.literal];
+            type = symbols.ResolveType(cur.literal).value();
             Advance();
         }
 
@@ -275,7 +271,6 @@ SP<Stmt> Parser::FuncDeclaration()
     TypeData ret = ParseType("Invalid return type");
 
     Check(TokenID::IDEN, "Expect name after function declaration");
-
     std::string name = cur.literal;
 
     Advance();
@@ -410,13 +405,10 @@ SP<Stmt> Parser::TemplateFunction()
     {
         Advance();
         Check(TokenID::IDEN, "Expect type identifier");
-        TypeData newType(0, MAX_TYPE - count);
-        std::string name = cur.literal;
 
-        GetTypeNameMap()[name] = newType;
-        GetTypeStringMap()[newType.type] = name;
+        TypeData new_type = symbols.AddType(cur.literal);
 
-        addedTypes.push_back({newType, name});
+        addedTypes.push_back({new_type, cur.literal});
         count++;
         Advance();
     }
@@ -426,11 +418,8 @@ SP<Stmt> Parser::TemplateFunction()
 
     SP<Stmt> function = Statement();
 
-    for (size_t i = 0; i < addedTypes.size(); i++)
-    {
-        GetTypeNameMap().erase(addedTypes[i].second);
-        GetTypeStringMap().erase(addedTypes[i].first.type);
-    }
+    for (const auto &type_name : addedTypes)
+        symbols.RemoveType(type_name.second);
 
     FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
     if (fd == nullptr)

@@ -1,21 +1,21 @@
 #pragma once
 #include "lexer.h"
 #include "stmtnode.h"
+#include "symboltable.h"
 #include <cassert>
 
 struct Parser
 {
+    SymbolTable symbols;
     Lexer lex;
     Token prev;
     Token cur;
     Token next;
 
-    size_t numTypes = NUM_DEF_TYPES;
+    size_t depth;
+    bool hadError;
 
-    uint8_t depth = 1;
-    bool hadError = false;
-
-    Parser(const std::string &fPath);
+    Parser(const std::string &fPath, SymbolTable &_symbols);
 
     void ParseError(Token loc, std::string err);
     void PanicMode(std::initializer_list<TokenID> recovery);

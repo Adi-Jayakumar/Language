@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "perror.h"
+#include "symboltable.h"
 #include "token.h"
 #include <fstream>
 #include <streambuf>
@@ -17,9 +18,9 @@ public:
     size_t index;
     size_t line;
     std::string src;
+    SymbolTable *symbols;
 
-    Lexer() = default;
-    Lexer(const std::string &fPath);
+    Lexer(const std::string &fPath, SymbolTable *_symbols);
 
     size_t LineSize();
 

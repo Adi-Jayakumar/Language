@@ -15,18 +15,6 @@ void Compiler::CompileError(Token loc, std::string err)
     throw e;
 }
 
-void Compiler::TypeError(Token loc, std::string err)
-{
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
-}
-
-void Compiler::SymbolError(Token loc, std::string err)
-{
-    Error e = Error("[SYMBOL ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
-}
-
 void Compiler::AddCode(Op o)
 {
     curRoutine.first->push_back(o);
@@ -72,7 +60,7 @@ void Compiler::AddFunction()
 
 size_t Compiler::GetVariableStackLoc(std::string &name)
 {
-    return Symbols.GetVariableStackLoc(name);
+    return symbols.GetVariableStackLoc(name);
 }
 
 void Compiler::Compile(std::vector<SP<Stmt>> &s)
@@ -118,17 +106,17 @@ void Compiler::Disassemble()
 
 void Compiler::ClearCurrentDepthWithPOPInst()
 {
-    if (Symbols.vars.size() == 0)
+    if (symbols.vars.size() == 0)
         return;
 
     size_t count = 0;
 
-    while (Symbols.vars.size() > 0 && Symbols.vars.back().depth == Symbols.depth)
+    while (symbols.vars.size() > 0 && symbols.vars.back().depth == symbols.depth)
     {
-        size_t varSize = Symbols.vars.back().size;
-        Symbols.ReduceSP(varSize);
+        size_t varSize = symbols.vars.back().size;
+        symbols.ReduceSP(varSize);
         AddCode({Opcode::POP, varSize});
-        Symbols.vars.pop_back();
+        symbols.vars.pop_back();
         count++;
     }
 }

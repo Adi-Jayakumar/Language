@@ -1,11 +1,54 @@
 #include "symboltable.h"
 
-SymbolTable::SymbolTable()
+bool operator==(const TypeInfo &l, const TypeInfo &r)
 {
-    spOffset = 0;
+    return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
+}
 
-    for (const auto &func : NativeFunctions)
-        nativeFunctions.push_back(ParseLibraryFunction(func, FunctionType::NATIVE));
+TypeData SymbolTable::AddType(const std::string &name)
+{
+    TypeData new_type(0, num_types++);
+    type_name_map[name] = new_type;
+    type_string_map[new_type.type] = name;
+    return new_type;
+}
+
+void SymbolTable::RemoveType(const std::string &type)
+{
+    TypeID type_id = type_name_map[type].type;
+    type_name_map.erase(type);
+    type_string_map.erase(type_id);
+}
+
+std::string SymbolTable::ToString(const TypeData &type)
+{
+    if (type.isArray == 0)
+        return type_string_map[type.type];
+    else
+    {
+        std::string res("Array<");
+        res += std::to_string(type.isArray);
+        res += ", " + type_string_map[type.type] + ">";
+        return res;
+    }
+}
+
+void SymbolTable::PrintType(std::ostream &out, const TypeData &type)
+{
+    if (type.isArray == 0)
+        out << type_string_map[type.type];
+    else
+        out << "Array<" << type.isArray << ", " << type_string_map[type.type] << ">";
+}
+
+bool SymbolTable::CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
+{
+    return operator_map.find(TypeInfo(left, op, right)) != operator_map.end();
+}
+
+TypeData SymbolTable::OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
+{
+    return operator_map.at(TypeInfo(left, op, right));
 }
 
 bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
@@ -60,12 +103,12 @@ size_t SymbolTable::SizeOf(const TypeData &type)
 
 size_t SymbolTable::GetCurOffset()
 {
-    return spOffset;
+    return sp_offset;
 }
 
 size_t SymbolTable::GetNewVarOffset()
 {
-    return spOffset + (vars.size() ? SizeOf(vars.back().type) : 0);
+    return sp_offset + (vars.size() ? SizeOf(vars.back().type) : 0);
 }
 
 void SymbolTable::AddVar(const TypeData &type, const std::string &name, const size_t size)
@@ -128,7 +171,7 @@ void SymbolTable::AddFunc(const FuncID &func)
 
 void SymbolTable::AddCLibFunc(const FuncID &func)
 {
-    clibFunctions.push_back(func);
+    c_lib_functions.push_back(func);
 }
 
 FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &args)
@@ -151,7 +194,7 @@ FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates
     if (f != nullptr)
         return f;
 
-    for (auto &f : nativeFunctions)
+    for (auto &f : native_funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
             return &f;
@@ -172,9 +215,9 @@ size_t SymbolTable::GetUDFuncNum(FuncID *fid)
 
 size_t SymbolTable::GetCLibFuncNum(FuncID *fid)
 {
-    for (size_t i = 0; i < clibFunctions.size(); i++)
+    for (size_t i = 0; i < c_lib_functions.size(); i++)
     {
-        if (fid == &clibFunctions[i])
+        if (fid == &c_lib_functions[i])
             return i;
     }
     return SIZE_MAX;
@@ -182,9 +225,9 @@ size_t SymbolTable::GetCLibFuncNum(FuncID *fid)
 
 size_t SymbolTable::GetNativeFuncNum(FuncID *fid)
 {
-    for (size_t i = 0; i < nativeFunctions.size(); i++)
+    for (size_t i = 0; i < native_funcs.size(); i++)
     {
-        if (fid == &nativeFunctions[i])
+        if (fid == &native_funcs[i])
             return i;
     }
     return SIZE_MAX;
@@ -212,13 +255,13 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
 
 FuncID *SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
-    for (auto &lf : clibFunctions)
+    for (auto &lf : c_lib_functions)
     {
         if (lf.name == name && IsEqual(lf.argtypes, args))
             return &lf;
     }
 
-    for (auto &lf : clibFunctions)
+    for (auto &lf : c_lib_functions)
     {
         if (lf.name == name && CanAssignAll(lf.argtypes, args))
             return &lf;
@@ -373,8 +416,8 @@ std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string 
 
 TypeData SymbolTable::ParseType(const std::string &type)
 {
-    if (GetTypeNameMap().find(type) != GetTypeNameMap().end())
-        return GetTypeNameMap()[type];
+    if (type_name_map.find(type) != type_name_map.end())
+        return type_name_map[type];
 
     static const std::string array("Array");
 
@@ -392,8 +435,8 @@ TypeData SymbolTable::ParseType(const std::string &type)
 
     if (!std::getline(ss, sNum, ','))
     {
-        if (GetTypeNameMap().find(num_type) != GetTypeNameMap().end())
-            return GetTypeNameMap()[num_type];
+        if (type_name_map.find(num_type) != type_name_map.end())
+            return type_name_map[num_type];
         else
             LibraryError("Invalid type '" + type + "'");
     }
@@ -404,9 +447,9 @@ TypeData SymbolTable::ParseType(const std::string &type)
     if (!std::getline(ss, sType, ','))
         LibraryError("Invalid type '" + type + "'");
 
-    if (GetTypeNameMap().find(num_type) != GetTypeNameMap().end())
+    if (type_name_map.find(num_type) != type_name_map.end())
     {
-        TypeData res = GetTypeNameMap()[num_type];
+        TypeData res = type_name_map[num_type];
         res.isArray = num;
         return res;
     }
@@ -414,8 +457,6 @@ TypeData SymbolTable::ParseType(const std::string &type)
         LibraryError("Invalid type '" + type + "'");
     return VOID_TYPE;
 }
-
-// void Add(int, int, Array<int>);
 
 FuncID SymbolTable::ParseLibraryFunction(const std::string &func, const FunctionType type)
 {

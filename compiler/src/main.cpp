@@ -8,10 +8,10 @@
 #include "serialise.h"
 #include "verifier.h"
 
-void DumpTokens(std::string fPath)
+void DumpTokens(std::string fPath, SymbolTable &symbols)
 {
     // Lexer l = Lexer(fPath);
-    Parser p(fPath);
+    Parser p(fPath, symbols);
 
     while (p.cur.type != TokenID::END)
     {
@@ -21,9 +21,9 @@ void DumpTokens(std::string fPath)
     std::cout << p.cur << std::endl;
 }
 
-void PrintPost(std::vector<std::vector<SP<Expr>>> &post)
+void PrintPost(std::vector<std::vector<SP<Expr>>> &post, SymbolTable &symbols)
 {
-    ASTPrinter ast(false);
+    ASTPrinter ast(false, symbols);
     ast << "[";
     for (size_t i = 0; i < post.size(); i++)
     {
@@ -71,7 +71,9 @@ int main(int argc, char **argv)
 
     std::string ifPath = arg.GetArgVal("-f");
 
-    Parser p(ifPath);
+    SymbolTable symbols;
+
+    Parser p(ifPath, symbols);
     std::vector<SP<Stmt>> parsed = p.Parse();
 
     if (p.hadError)
@@ -80,20 +82,20 @@ int main(int argc, char **argv)
     if (arg.IsSwitchOn("-l"))
     {
         std::cout << "Dumping tokens" << std::endl;
-        DumpTokens(ifPath);
+        DumpTokens(ifPath, symbols);
     }
 
     if (arg.IsSwitchOn("-p"))
     {
         std::cout << "PARSED" << std::endl;
-        ASTPrinter ast(false);
+        ASTPrinter ast(false, symbols);
 
         for (auto &stmt : parsed)
             stmt->Print(ast);
         ast.Flush();
     }
 
-    StaticAnalyser sa;
+    StaticAnalyser sa(symbols);
     sa.Analyse(parsed);
 
     if (arg.IsSwitchOn("-exp"))

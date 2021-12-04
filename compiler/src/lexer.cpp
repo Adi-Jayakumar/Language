@@ -12,11 +12,12 @@ std::string IO::GetSrcString(std::string fName)
     return src;
 }
 
-Lexer::Lexer(const std::string &fPath)
+Lexer::Lexer(const std::string &fPath, SymbolTable *_symbols)
 {
     index = 0;
     line = 1;
     src = IO::GetSrcString(fPath);
+    symbols = _symbols;
 }
 
 void Lexer::LexError(std::string msg)
@@ -65,7 +66,7 @@ Token Lexer::NextToken()
                 index++;
             }
             // used for when custom types are added in the form of classes
-            if (GetTypeNameMap().find(name) != GetTypeNameMap().end())
+            if (symbols->ResolveType(name))
                 return {TokenID::TYPENAME, name, line};
             else
                 return {TokenID::IDEN, name, line};

@@ -11,7 +11,10 @@ ASTPrinter &operator<<(ASTPrinter &ast, std::string str)
 void ASTPrinter::PrintLiteral(Literal *l)
 {
     if (printTypes)
-        out << l->t;
+    {
+        symbols.PrintType(out, l->t);
+        out << " ";
+    }
 
     if (l->t.type == 4)
         out << "\"" << l->loc.literal << "\"";
@@ -91,7 +94,10 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
     {
         out << "<|";
         for (auto &t : fc->templates)
-            out << t << ", ";
+        {
+            symbols.PrintType(out, t);
+            out << ", ";
+        }
         out << "|>";
     }
 
@@ -115,7 +121,8 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai)
 
 void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 {
-    out << ia->t << "{";
+    symbols.PrintType(out, ia->t);
+    out << "{";
     for (size_t i = 0; i < ia->init.size(); i++)
     {
         ia->init[i]->Print(*this);
@@ -127,7 +134,8 @@ void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 
 void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da)
 {
-    out << da->t << "[";
+    symbols.PrintType(out, da->t);
+    out << "[";
     da->size->Print(*this);
     out << "]";
 }
@@ -142,7 +150,9 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
     out << "Cast";
-    gf->t.isArray ? out << "<" << gf->t << ">" : out << gf->t;
+    out << "<";
+    symbols.PrintType(out, gf->t);
+    out << ">";
     out << "(" << gf->arg.get() << ")";
 }
 
@@ -175,7 +185,8 @@ void ASTPrinter::PrintExprStmt(ExprStmt *es)
 
 void ASTPrinter::PrintDeclaredVar(DeclaredVar *v)
 {
-    out << v->t << " " << v->name;
+    symbols.PrintType(out, v->t);
+    out << " " << v->name;
 
     if (v->value != nullptr)
     {
@@ -238,18 +249,21 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
         out << "template<|";
         for (auto &t : fd->templates)
         {
-            GetTypeStringMap()[t.first.type] = t.second;
-            out << t.first << ", ";
+            symbols.AddType(t.second);
+            symbols.PrintType(out, t.first);
+            out << ", ";
         }
         out << "|>";
         NewLine();
     }
 
-    out << fd->ret << " " << fd->name << "(";
+    symbols.PrintType(out, fd->ret);
+    out << " " << fd->name << "(";
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
-        out << fd->params[i].first << " " << fd->params[i].second;
+        symbols.PrintType(out, fd->params[i].first);
+        out << " " << fd->params[i].second;
         if (i != fd->params.size() - 1)
             out << ", ";
     }
@@ -298,7 +312,7 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     NewLine();
 
     for (auto &t : fd->templates)
-        GetTypeStringMap().erase(t.first.type);
+        symbols.RemoveType(t.second);
 }
 
 void ASTPrinter::PrintReturn(Return *r)
@@ -358,7 +372,9 @@ void ASTPrinter::PrintTryCatch(TryCatch *tc)
     tc->tryClause->Print(*this);
     NewLine();
 
-    out << "catch(" << tc->catchVar.first << " " << tc->catchVar.second << ")";
+    out << "catch (";
+    symbols.PrintType(out, tc->catchVar.first);
+    out << " " << tc->catchVar.second << ")";
     NewLine();
 
     tc->catchClause->Print(*this);

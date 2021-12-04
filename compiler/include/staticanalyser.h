@@ -3,14 +3,14 @@
 
 class StaticAnalyser
 {
-    SymbolTable Symbols;
+    SymbolTable symbols;
     std::vector<SP<Stmt>> program;
     size_t parseIndex;
 
 public:
-    StaticAnalyser() = default;
+    StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols){};
 
-    SymbolTable GetSymbolTable() { return Symbols; };
+    SymbolTable GetSymbolTable() { return symbols; };
 
     void StaticAnalysisError(Token loc, std::string err);
     void TypeError(Token loc, std::string err);

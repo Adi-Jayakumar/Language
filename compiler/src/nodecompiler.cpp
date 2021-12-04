@@ -180,7 +180,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of int constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_INT, static_cast<oprand_t>(cur->ints.size() - 1)});
-        c.Symbols.UpdateSP(INT_SIZE);
+        c.symbols.UpdateSP(INT_SIZE);
     }
     else if (type == DOUBLE_TYPE)
     {
@@ -189,7 +189,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of double constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_DOUBLE, static_cast<oprand_t>(cur->doubles.size() - 1)});
-        c.Symbols.UpdateSP(DOUBLE_SIZE);
+        c.symbols.UpdateSP(DOUBLE_SIZE);
     }
     else if (type == BOOL_TYPE)
     {
@@ -198,7 +198,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of bool constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_BOOL, static_cast<oprand_t>(cur->bools.size() - 1)});
-        c.Symbols.UpdateSP(BOOL_SIZE);
+        c.symbols.UpdateSP(BOOL_SIZE);
     }
     else if (type == STRING_TYPE)
     {
@@ -207,7 +207,7 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of string constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_STRING, static_cast<oprand_t>(cur->strings.size() - 1)});
-        c.Symbols.UpdateSP(STRING_SIZE);
+        c.symbols.UpdateSP(STRING_SIZE);
     }
     else if (type == CHAR_TYPE)
     {
@@ -216,10 +216,8 @@ void NodeCompiler::CompileLiteral(Literal *l, Compiler &c)
             c.CompileError(l->Loc(), "Max number of char constants is " + std::to_string(MAX_OPRAND));
 
         c.AddCode({Opcode::LOAD_CHAR, static_cast<oprand_t>(cur->chars.size() - 1)});
-        c.Symbols.UpdateSP(CHAR_SIZE);
+        c.symbols.UpdateSP(CHAR_SIZE);
     }
-    else
-        c.TypeError(l->Loc(), "Cannot have a literal of type " + ToString(l->t));
 }
 
 void NodeCompiler::CompileUnary(Unary *u, Compiler &c)
@@ -249,9 +247,9 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
     if (targetAsVR != nullptr)
     {
-        VarID *vid = c.Symbols.GetVar(targetAsVR->name);
+        VarID *vid = c.symbols.GetVar(targetAsVR->name);
 
-        size_t varStackLoc = c.Symbols.GetVariableStackLoc(targetAsVR->name);
+        size_t varStackLoc = c.symbols.GetVariableStackLoc(targetAsVR->name);
         if (varStackLoc > MAX_OPRAND)
             c.CompileError(targetAsVR->Loc(), "Too many variables");
 
@@ -273,7 +271,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
         {
             c.AddCode({Opcode::ARR_SET, 0});
             --name.type;
-            c.AddCode({Opcode::PUSH, c.Symbols.SizeOf(name)});
+            c.AddCode({Opcode::PUSH, c.symbols.SizeOf(name)});
         }
         else
             c.AddCode({Opcode::STRING_SET, 0});
@@ -283,13 +281,13 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     if (targetAsFA != nullptr)
     {
         targetAsFA->accessor->NodeCompile(c);
-        StructID *sid = c.Symbols.GetStruct(targetAsFA->accessee->GetType());
+        StructID *sid = c.symbols.GetStruct(targetAsFA->accessee->GetType());
 
         VarReference *vrAccessee = dynamic_cast<VarReference *>(targetAsFA->accessee.get());
         size_t offset = SIZE_MAX;
         for (const auto &member : sid->nameTypes)
         {
-            offset += c.Symbols.SizeOf(member.second);
+            offset += c.symbols.SizeOf(member.second);
             if (member.first == vrAccessee->name)
                 break;
         }
@@ -300,8 +298,8 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    VarID *vid = c.Symbols.GetVar(vr->name);
-    size_t stackLoc = c.Symbols.GetVariableStackLoc(vr->name);
+    VarID *vid = c.symbols.GetVar(vr->name);
+    size_t stackLoc = c.symbols.GetVariableStackLoc(vr->name);
     if (stackLoc > MAX_OPRAND)
         c.CompileError(vr->Loc(), "Too many variables, maximum number is " + std::to_string(MAX_OPRAND));
 
@@ -317,37 +315,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     for (auto &e : fc->args)
         args.push_back(e->GetType());
 
-    FuncID *fid = c.Symbols.GetFunc(fc->name, fc->templates, args);
-    if (fid == nullptr)
-    {
-        std::ostringstream out;
-        out << fc->name;
-
-        if (fc->templates.size() > 0)
-        {
-            out << "<|";
-            for (size_t i = 0; i < fc->templates.size(); i++)
-            {
-                out << ToString(fc->templates[i]);
-                if (i != fc->templates.size() - 1)
-                    out << ", ";
-            }
-            out << "|>";
-        }
-
-        out << "(";
-        if (args.size() > 0)
-        {
-            for (size_t i = 0; i < args.size(); i++)
-            {
-                out << ToString(args[i]);
-                if (i != args.size() - 1)
-                    out << ", ";
-            }
-        }
-        out << ")";
-        c.SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
-    }
+    FuncID *fid = c.symbols.GetFunc(fc->name, fc->templates, args);
 
     ERROR_GUARD(
         {
@@ -360,7 +328,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     {
     case FunctionType::USER_DEFINED:
     {
-        size_t funcNum = c.Symbols.GetUDFuncNum(fid);
+        size_t funcNum = c.symbols.GetUDFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many functions, maximum number is " + std::to_string(MAX_OPRAND));
         c.AddCode({Opcode::CALL_F, static_cast<oprand_t>(funcNum + 1)});
@@ -372,7 +340,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     }
     case FunctionType::LIBRARY:
     {
-        size_t funcNum = c.Symbols.GetCLibFuncNum(fid);
+        size_t funcNum = c.symbols.GetCLibFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
         c.AddCode({Opcode::CALL_LIBRARY_FUNC, static_cast<oprand_t>(funcNum)});
@@ -380,13 +348,13 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     }
     case FunctionType::NATIVE:
     {
-        size_t funcNum = c.Symbols.GetNativeFuncNum(fid);
+        size_t funcNum = c.symbols.GetNativeFuncNum(fid);
         if (funcNum > MAX_OPRAND - 1)
             c.CompileError(fc->Loc(), "Too many C library functions, maximum number is " + std::to_string(MAX_OPRAND));
 
         size_t argSize = 0;
         for (const auto &type : args)
-            argSize += c.Symbols.SizeOf(type);
+            argSize += c.symbols.SizeOf(type);
 
         c.AddCode({Opcode::PUSH, static_cast<oprand_t>(argSize)});
         c.AddCode({Opcode::NATIVE_CALL, static_cast<oprand_t>(funcNum)});
@@ -404,7 +372,7 @@ void NodeCompiler::CompileArrayIndex(ArrayIndex *ai, Compiler &c)
     if (name.isArray)
     {
         --name.isArray;
-        size_t elementSize = c.Symbols.SizeOf(name);
+        size_t elementSize = c.symbols.SizeOf(name);
         c.AddCode({Opcode::PUSH, elementSize});
         c.AddCode({Opcode::ARR_INDEX, 0});
     }
@@ -422,9 +390,9 @@ void NodeCompiler::CompileBracedInitialiser(BracedInitialiser *bi, Compiler &c)
         },
         c)
     if (bi->GetType().isArray)
-        c.Symbols.UpdateSP(ARRAY_SIZE);
+        c.symbols.UpdateSP(ARRAY_SIZE);
     else
-        c.Symbols.UpdateSP(STRUCT_SIZE);
+        c.symbols.UpdateSP(STRUCT_SIZE);
 }
 
 void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
@@ -432,10 +400,10 @@ void NodeCompiler::CompileDynamicAllocArray(DynamicAllocArray *da, Compiler &c)
     da->size->NodeCompile(c);
     TypeData elementType = da->GetType();
     elementType.isArray--;
-    size_t elementSize = c.Symbols.SizeOf(elementType);
+    size_t elementSize = c.symbols.SizeOf(elementType);
     c.AddCode({Opcode::PUSH, static_cast<oprand_t>(elementSize)});
     c.AddCode({Opcode::ARR_ALLOC, 0});
-    c.Symbols.UpdateSP(ARRAY_SIZE);
+    c.symbols.UpdateSP(ARRAY_SIZE);
 }
 
 void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
@@ -443,10 +411,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     fa->accessor->NodeCompile(c);
     TypeData accessor = fa->accessor->GetType();
 
-    StructID *sid = c.Symbols.GetStruct(accessor);
-    if (sid == nullptr)
-        c.TypeError(fa->Loc(), "Type " + ToString(accessor) + " cannot be accessed into");
-
+    StructID *sid = c.symbols.GetStruct(accessor);
     VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
 
     // index of accessee in the underlying array
@@ -455,7 +420,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     {
         if (member.first == vAccessee->name)
             break;
-        offset += c.Symbols.SizeOf(member.second);
+        offset += c.symbols.SizeOf(member.second);
     }
 
     c.AddCode({Opcode::STRUCT_MEMBER, static_cast<oprand_t>(offset)});
@@ -464,15 +429,6 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 void NodeCompiler::CompileTypeCast(TypeCast *tc, Compiler &c)
 {
     tc->arg->NodeCompile(c);
-    TypeData old = tc->arg->GetType();
-    TypeData nw = tc->t;
-
-    bool isDownCast = c.Symbols.CanAssign(nw, old);
-    bool isUpCast = c.Symbols.CanAssign(old, nw);
-
-    if (!isDownCast && !isUpCast)
-        c.TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
-
     c.AddCode({Opcode::CAST, tc->t.type});
 }
 
@@ -489,7 +445,7 @@ void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
     TypeData exp = es->exp->GetType();
     if (exp != VOID_TYPE)
     {
-        c.AddCode({Opcode::POP, c.Symbols.SizeOf(exp)});
+        c.AddCode({Opcode::POP, c.symbols.SizeOf(exp)});
     }
 }
 
@@ -498,25 +454,21 @@ void NodeCompiler::CompileDeclaredVar(DeclaredVar *dv, Compiler &c)
     size_t size = 0;
     if (dv->value != nullptr)
     {
-        size_t beginning = c.Symbols.GetCurOffset();
+        size_t beginning = c.symbols.GetCurOffset();
         dv->value->NodeCompile(c);
-        size = c.Symbols.GetCurOffset() - beginning;
+        size = c.symbols.GetCurOffset() - beginning;
 
-        if (c.Symbols.depth == 0)
+        if (c.symbols.depth == 0)
             c.AddCode({GetAssignInstruction(dv->t, true), 0});
     }
     else
-    {
-        if (c.Symbols.depth == 0)
-            c.SymbolError(dv->Loc(), "Global variable must be initialised");
-        size = c.Symbols.SizeOf(dv->t);
-    }
-    c.Symbols.AddVar(dv->t, dv->name, size);
+        size = c.symbols.SizeOf(dv->t);
+    c.symbols.AddVar(dv->t, dv->name, size);
 }
 
 void NodeCompiler::CompileBlock(Block *b, Compiler &c)
 {
-    c.Symbols.depth++;
+    c.symbols.depth++;
 
     ERROR_GUARD(
         {
@@ -526,7 +478,7 @@ void NodeCompiler::CompileBlock(Block *b, Compiler &c)
         c)
 
     c.ClearCurrentDepthWithPOPInst();
-    c.Symbols.depth--;
+    c.symbols.depth--;
 }
 
 void NodeCompiler::CompileIfStmt(IfStmt *i, Compiler &c)
@@ -624,48 +576,14 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     for (auto &t : fd->templates)
         templates.push_back(t.first);
 
-    FuncID *isThere = c.Symbols.GetFunc(fd->name, templates, argtypes);
-    if (isThere != nullptr)
-    {
-        std::ostringstream out;
-
-        if (fd->templates.size() > 0)
-        {
-            out << "template<|";
-            for (size_t i = 0; i < fd->templates.size(); i++)
-            {
-                out << fd->templates[i].second;
-                if (i != fd->templates.size() - 1)
-                    out << ", ";
-            }
-            out << "|>";
-        }
-
-        out << fd->ret << " ";
-        out << fd->name;
-
-        out << "(";
-        if (fd->params.size() > 0)
-        {
-            for (size_t i = 0; i < fd->params.size(); i++)
-            {
-                out << fd->params[i].first << " " << fd->params[i].second;
-                if (i != fd->params.size() - 1)
-                    out << ", ";
-            }
-        }
-        out << ")";
-        c.SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
-    }
-
-    c.Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parseIndex));
+    c.symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parseIndex));
 
     if (fd->templates.size() > 0)
         return;
 
-    c.Symbols.depth++;
+    c.symbols.depth++;
     for (auto &arg : fd->params)
-        c.Symbols.AddVar(arg.first, arg.second, c.Symbols.SizeOf(arg.first));
+        c.symbols.AddVar(arg.first, arg.second, c.symbols.SizeOf(arg.first));
 
     ERROR_GUARD(
         {
@@ -675,7 +593,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
         c)
 
     c.ClearCurrentDepthWithPOPInst();
-    c.Symbols.depth--;
+    c.symbols.depth--;
     c.cur = &c.Functions[0];
 }
 
@@ -694,11 +612,7 @@ void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 
 void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 {
-    std::string name = sd->name;
-    TypeData type = GetTypeNameMap()[name];
-
-    if (type.type < NUM_DEF_TYPES)
-        c.SymbolError(sd->Loc(), "Invalid struct name");
+    TypeData type = c.symbols.ResolveType(sd->name).value();
 
     TypeData parent = sd->parent;
     std::vector<std::string> memberNames;
@@ -708,13 +622,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 
     if (parent != VOID_TYPE)
     {
-        if (parent.isArray)
-            c.TypeError(sd->Loc(), "Parent of a struct cannot be array");
-        StructID *sidParent = c.Symbols.GetStruct(parent);
-
-        if (sidParent == nullptr)
-            c.TypeError(sd->Loc(), "Invalid parent struct name");
-
+        StructID *sidParent = c.symbols.GetStruct(parent);
         for (const auto &kv : sidParent->nameTypes)
             nameTypes.push_back({kv.first, kv.second});
     }
@@ -724,9 +632,6 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
             for (auto &d : sd->decls)
             {
                 DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
-                if (asDV == nullptr)
-                    c.TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
-
                 if (asDV->value != nullptr)
                     c.CompileError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
 
@@ -737,7 +642,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
         },
         c)
 
-    c.Symbols.AddStruct(StructID(name, type, parent, nameTypes));
+    c.symbols.AddStruct(StructID(sd->name, type, parent, nameTypes));
 }
 
 void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
@@ -748,13 +653,13 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
         {
             for (const auto library : is->libraries)
             {
-                libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
+                libraryFuncs = c.symbols.GetLibraryFunctionNames(library);
                 for (auto &lf : libraryFuncs)
                 {
-                    FuncID func = c.Symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
-                    c.Symbols.AddCLibFunc(func);
+                    FuncID func = c.symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
+                    c.symbols.AddCLibFunc(func);
 
-                    if (c.Symbols.NumCFuncs() > MAX_OPRAND)
+                    if (c.symbols.NumCFuncs() > MAX_OPRAND)
                         c.CompileError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
 
                     c.libfuncs.push_back(LibraryFunctionDef(func.name, library, func.argtypes.size()));
@@ -806,7 +711,7 @@ void NodeCompiler::CompileTryCatch(TryCatch *tc, Compiler &c)
 
     ti.index = static_cast<oprand_t>(sIndex);
     c.throwStack.push_back(ti);
-    c.Symbols.AddVar(catchType, catchVarName, c.Symbols.SizeOf(catchType));
+    c.symbols.AddVar(catchType, catchVarName, c.symbols.SizeOf(catchType));
     tc->catchClause->NodeCompile(c);
 }
 

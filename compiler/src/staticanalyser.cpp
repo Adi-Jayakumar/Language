@@ -39,10 +39,10 @@ TypeData StaticAnalyser::AnalyseUnary(Unary *u)
 {
     TypeData right = u->right->Analyse(*this);
 
-    if (!CheckOperatorUse(VOID_TYPE, u->op.type, right))
-        TypeError(u->op, "Cannot use oprand of type " + ToString(right) + " with operator " + u->op.literal);
+    if (!symbols.CheckOperatorUse(VOID_TYPE, u->op.type, right))
+        TypeError(u->op, "Cannot use oprand of type " + symbols.ToString(right) + " with operator " + u->op.literal);
 
-    u->t = OperatorResult(VOID_TYPE, u->op.type, right);
+    u->t = symbols.OperatorResult(VOID_TYPE, u->op.type, right);
     return u->t;
 }
 
@@ -51,10 +51,10 @@ TypeData StaticAnalyser::AnalyseBinary(Binary *b)
     TypeData left = b->left->Analyse(*this);
     TypeData right = b->right->Analyse(*this);
 
-    if (!CheckOperatorUse(left, b->op.type, right))
-        TypeError(b->op, "Cannot use operands of type " + ToString(left) + " and " + ToString(right) + "with operator " + b->op.literal);
+    if (!symbols.CheckOperatorUse(left, b->op.type, right))
+        TypeError(b->op, "Cannot use operands of type " + symbols.ToString(left) + " and " + symbols.ToString(right) + "with operator " + b->op.literal);
 
-    b->t = OperatorResult(left, b->op.type, right);
+    b->t = symbols.OperatorResult(left, b->op.type, right);
     return b->t;
 }
 
@@ -69,8 +69,8 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
     TypeData value = a->val->Analyse(*this);
     TypeData target = a->target->Analyse(*this);
 
-    if (!Symbols.CanAssign(target, value))
-        StaticAnalysisError(a->target->Loc(), "Cannot assign a value of type " + ToString(value) + " to target of type " + ToString(target));
+    if (!symbols.CanAssign(target, value))
+        StaticAnalysisError(a->target->Loc(), "Cannot assign a value of type " + symbols.ToString(value) + " to target of type " + symbols.ToString(target));
 
     if (dynamic_cast<VarReference *>(a->target.get()) == nullptr &&
         dynamic_cast<ArrayIndex *>(a->target.get()) == nullptr &&
@@ -83,7 +83,7 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
 
 TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
 {
-    VarID *vid = Symbols.GetVar(vr->name);
+    VarID *vid = symbols.GetVar(vr->name);
     if (vid == nullptr)
         SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
     vr->t = vid->type;
@@ -96,7 +96,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         args.push_back(e->Analyse(*this));
 
-    FuncID *fid = Symbols.GetFunc(fc->name, fc->templates, args);
+    FuncID *fid = symbols.GetFunc(fc->name, fc->templates, args);
     if (fid == nullptr)
     {
         std::ostringstream out;
@@ -107,7 +107,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
             out << "<|";
             for (size_t i = 0; i < fc->templates.size(); i++)
             {
-                out << ToString(fc->templates[i]);
+                symbols.PrintType(out, fc->templates[i]);
                 if (i != fc->templates.size() - 1)
                     out << ", ";
             }
@@ -119,7 +119,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         {
             for (size_t i = 0; i < args.size(); i++)
             {
-                out << ToString(args[i]);
+                symbols.PrintType(out, args[i]);
                 if (i != args.size() - 1)
                     out << ", ";
             }
@@ -137,11 +137,11 @@ TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
     TypeData name = ai->name->Analyse(*this);
 
     if (!name.isArray && name != STRING_TYPE)
-        TypeError(ai->Loc(), "Cannot index into object of type " + ToString(name));
+        TypeError(ai->Loc(), "Cannot index into object of type " + symbols.ToString(name));
 
     TypeData index = ai->index->Analyse(*this);
     if (index != INT_TYPE)
-        TypeError(ai->index->Loc(), "Indices can only be of type int not " + ToString(index));
+        TypeError(ai->index->Loc(), "Indices can only be of type int not " + symbols.ToString(index));
 
     if (name.isArray)
     {
@@ -171,8 +171,8 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
 
         for (size_t i = 0; i < bi->init.size(); i++)
         {
-            if (!Symbols.CanAssign(target, args[i]))
-                TypeError(bi->init[i]->Loc(), "Cannot assign object of type " + ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
+            if (!symbols.CanAssign(target, args[i]))
+                TypeError(bi->init[i]->Loc(), "Cannot assign object of type " + symbols.ToString(args[i]) + " to the required type of the array specified at the beginning of the braced initialiser");
             bi->init[i]->t = target;
         }
 
@@ -180,7 +180,7 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
     }
     else
     {
-        StructID *sid = Symbols.GetStruct(biType);
+        StructID *sid = symbols.GetStruct(biType);
         if (sid == nullptr)
             TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
         if (sid->nameTypes.size() != args.size())
@@ -188,8 +188,8 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
 
         for (size_t i = 0; i < bi->size; i++)
         {
-            if (!Symbols.CanAssign(sid->nameTypes[i].second, args[i]))
-                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + ToString(args[i]) + " cannot be assigned to object of type " + ToString(sid->nameTypes[i].second));
+            if (!symbols.CanAssign(sid->nameTypes[i].second, args[i]))
+                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + symbols.ToString(args[i]) + " cannot be assigned to object of type " + symbols.ToString(sid->nameTypes[i].second));
             bi->init[i]->t = sid->nameTypes[i].second;
         }
 
@@ -204,7 +204,7 @@ TypeData StaticAnalyser::AnalyseDynamicAllocArray(DynamicAllocArray *da)
         TypeError(da->Loc(), "Must have array type");
     TypeData size = da->size->Analyse(*this);
     if (size != INT_TYPE)
-        TypeError(da->Loc(), "Size of dynamically allocated array must have type int not " + ToString(size));
+        TypeError(da->Loc(), "Size of dynamically allocated array must have type int not " + symbols.ToString(size));
 
     return da->t;
 }
@@ -213,9 +213,9 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
 {
     TypeData accessor = fa->accessor->Analyse(*this);
 
-    StructID *sid = Symbols.GetStruct(accessor);
+    StructID *sid = symbols.GetStruct(accessor);
     if (sid == nullptr)
-        TypeError(fa->Loc(), "Type " + ToString(accessor) + " cannot be accessed into");
+        TypeError(fa->Loc(), "Type " + symbols.ToString(accessor) + " cannot be accessed into");
 
     VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
     if (vAccessee == nullptr)
@@ -244,11 +244,11 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     TypeData old = tc->arg->Analyse(*this);
     TypeData nw = tc->t;
 
-    bool isDownCast = Symbols.CanAssign(nw, old);
-    bool isUpCast = Symbols.CanAssign(old, nw);
+    bool isDownCast = symbols.CanAssign(nw, old);
+    bool isUpCast = symbols.CanAssign(old, nw);
 
     if (!isDownCast && !isUpCast)
-        TypeError(tc->Loc(), "Cannot cast " + ToString(old) + " to " + ToString(nw));
+        TypeError(tc->Loc(), "Cannot cast " + symbols.ToString(old) + " to " + symbols.ToString(nw));
 
     return tc->t;
 }
@@ -268,24 +268,24 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
     if (end != INT_TYPE)
         TypeError(s->start->Loc(), "End of sequence must be of type int");
 
-    VarID *vid = Symbols.GetVar(s->var->name);
+    VarID *vid = symbols.GetVar(s->var->name);
     if (vid != nullptr)
         StaticAnalysisError(s->var->Loc(), "Indexing variable is already defined");
 
-    Symbols.depth++;
-    Symbols.AddVar(INT_TYPE, s->var->name, 0);
+    symbols.depth++;
+    symbols.AddVar(INT_TYPE, s->var->name, 0);
 
     TypeData term = s->term->Analyse(*this);
     if (term != INT_TYPE)
         TypeError(s->term->Loc(), "Term of Sequence must of of type int");
 
-    Symbols.CleanUpCurDepth();
-    Symbols.depth--;
+    symbols.CleanUpCurDepth();
+    symbols.depth--;
 
-    if (!CheckOperatorUse(INT_TYPE, s->op, INT_TYPE))
+    if (!symbols.CheckOperatorUse(INT_TYPE, s->op, INT_TYPE))
         StaticAnalysisError(s->term->Loc(), "The operator of a sequence must be able to take 2 integers as arguments");
 
-    if (OperatorResult(INT_TYPE, s->op, INT_TYPE) != INT_TYPE)
+    if (symbols.OperatorResult(INT_TYPE, s->op, INT_TYPE) != INT_TYPE)
         StaticAnalysisError(s->term->Loc(), "The result of using the operator on 2 integers must be an integer");
 
     s->t = INT_TYPE;
@@ -301,33 +301,33 @@ void StaticAnalyser::AnalyseExprStmt(ExprStmt *es)
 
 void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
 {
-    if (Symbols.vars.size() > MAX_OPRAND)
+    if (symbols.vars.size() > MAX_OPRAND)
         StaticAnalysisError(dv->Loc(), "Maximum number of variables is " + std::to_string(MAX_OPRAND));
 
-    VarID *vid = Symbols.GetVar(dv->name);
-    if (vid != nullptr && vid->depth == Symbols.depth)
-        SymbolError(dv->Loc(), "Variable '" + ToString(dv->t) + " " + dv->name + "' has already been defined in this scope");
+    VarID *vid = symbols.GetVar(dv->name);
+    if (vid != nullptr && vid->depth == symbols.depth)
+        SymbolError(dv->Loc(), "Variable '" + symbols.ToString(dv->t) + " " + dv->name + "' has already been defined in this scope");
 
     if (dv->value != nullptr)
     {
         TypeData val = dv->value->Analyse(*this);
-        if (!Symbols.CanAssign(dv->t, val))
-            TypeError(dv->Loc(), "Cannot initialise variable '" + dv->name + "' of type " + ToString(dv->t) + " with expression of type " + ToString(val));
+        if (!symbols.CanAssign(dv->t, val))
+            TypeError(dv->Loc(), "Cannot initialise variable '" + dv->name + "' of type " + symbols.ToString(dv->t) + " with expression of type " + symbols.ToString(val));
     }
     else
     {
-        if (Symbols.depth == 0)
+        if (symbols.depth == 0)
             SymbolError(dv->Loc(), "Global variable must be initialised");
     }
-    Symbols.AddVar(dv->t, dv->name, 0);
+    symbols.AddVar(dv->t, dv->name, 0);
 }
 
 void StaticAnalyser::AnalyseBlock(Block *b)
 {
-    Symbols.depth++;
+    symbols.depth++;
     for (auto &stmt : b->stmts)
         stmt->Analyse(*this);
-    Symbols.depth--;
+    symbols.depth--;
 }
 
 void StaticAnalyser::AnalyseIfStmt(IfStmt *i)
@@ -360,7 +360,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &t : fd->templates)
         templates.push_back(t.first);
 
-    FuncID *isThere = Symbols.GetFunc(fd->name, templates, argtypes);
+    FuncID *isThere = symbols.GetFunc(fd->name, templates, argtypes);
     if (isThere != nullptr)
     {
         std::ostringstream out;
@@ -377,15 +377,15 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
             out << "|>";
         }
 
-        out << fd->ret << " ";
-        out << fd->name;
+        symbols.PrintType(out, fd->ret);
+        out << " " << fd->name << "(";
 
-        out << "(";
         if (fd->params.size() > 0)
         {
             for (size_t i = 0; i < fd->params.size(); i++)
             {
-                out << fd->params[i].first << " " << fd->params[i].second;
+                symbols.PrintType(out, fd->params[i].first);
+                out << " " << fd->params[i].second;
                 if (i != fd->params.size() - 1)
                     out << ", ";
             }
@@ -394,20 +394,20 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
         SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
     }
 
-    Symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parseIndex));
+    symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parseIndex));
 
     if (fd->templates.size() > 0)
         return;
 
-    Symbols.depth++;
+    symbols.depth++;
     for (auto &arg : fd->params)
-        Symbols.AddVar(arg.first, arg.second, 0);
+        symbols.AddVar(arg.first, arg.second, 0);
 
     for (auto &stmt : fd->body)
         stmt->Analyse(*this);
 
-    Symbols.CleanUpCurDepth();
-    Symbols.depth--;
+    symbols.CleanUpCurDepth();
+    symbols.depth--;
 }
 
 void StaticAnalyser::AnalyseReturn(Return *r)
@@ -418,8 +418,7 @@ void StaticAnalyser::AnalyseReturn(Return *r)
 
 void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
 {
-    std::string name = sd->name;
-    TypeData type = GetTypeNameMap()[name];
+    TypeData type = symbols.ResolveType(sd->name).value();
 
     if (type.type < NUM_DEF_TYPES)
         SymbolError(sd->Loc(), "Invalid struct name");
@@ -432,7 +431,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
     {
         if (parent.isArray)
             TypeError(sd->Loc(), "Parent of a struct cannot be array");
-        StructID *sidParent = Symbols.GetStruct(parent);
+        StructID *sidParent = symbols.GetStruct(parent);
 
         if (sidParent == nullptr)
             TypeError(sd->Loc(), "Invalid parent struct name");
@@ -452,7 +451,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         nameTypes.push_back({asDV->name, asDV->t});
     }
 
-    Symbols.AddStruct(StructID(name, type, parent, nameTypes));
+    symbols.AddStruct(StructID(sd->name, type, parent, nameTypes));
 }
 
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
@@ -460,13 +459,13 @@ void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)
     std::vector<std::string> libraryFuncs;
     for (const auto &library : is->libraries)
     {
-        libraryFuncs = Symbols.GetLibraryFunctionNames(library);
+        libraryFuncs = symbols.GetLibraryFunctionNames(library);
         for (auto &lf : libraryFuncs)
         {
-            FuncID func = Symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
-            Symbols.AddCLibFunc(func);
+            FuncID func = symbols.ParseLibraryFunction(lf, FunctionType::LIBRARY);
+            symbols.AddCLibFunc(func);
 
-            if (Symbols.NumCFuncs() > MAX_OPRAND)
+            if (symbols.NumCFuncs() > MAX_OPRAND)
                 StaticAnalysisError(is->Loc(), "Cannot import more than " + std::to_string(MAX_OPRAND) + " library functions in total");
         }
     }

@@ -23,13 +23,11 @@ public:
     std::stack<std::vector<size_t>> breakIndices;
     std::vector<ThrowInfo> throwStack;
 
-    SymbolTable Symbols;
+    SymbolTable symbols;
 
     bool hadError = false;
 
     void CompileError(Token loc, std::string err);
-    void TypeError(Token loc, std::string err);
-    void SymbolError(Token loc, std::string err);
 
     Function *cur;
     std::pair<std::vector<Op> *, size_t> curRoutine;
