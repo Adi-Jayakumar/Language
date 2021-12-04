@@ -31,6 +31,6 @@ struct Error : public std::exception
     try                                     \
         program catch (std::exception & e)  \
     {                                       \
-        eh.hadError = true;                 \
+        eh.had_error = true;                 \
         std::cerr << e.what() << std::endl; \
     }

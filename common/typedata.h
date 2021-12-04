@@ -7,10 +7,10 @@
 class TypeData
 {
 public:
-    size_t isArray = 0;
+    size_t is_array = 0;
     TypeID type = 0;
     TypeData() = default;
-    TypeData(size_t _isArray, TypeID _type) : isArray(_isArray), type(_type){};
+    TypeData(size_t _isArray, TypeID _type) : is_array(_isArray), type(_type){};
 };
 
 #define VOID_TYPE TypeData(0, 0)
@@ -20,6 +20,8 @@ public:
 #define STRING_TYPE TypeData(0, 4)
 #define CHAR_TYPE TypeData(0, 5)
 #define NULL_TYPE TypeData(0, 6)
+
+constexpr size_t NUM_DEF_TYPES = 7UL;
 
 constexpr size_t INT_SIZE = sizeof(int);
 constexpr size_t DOUBLE_SIZE = sizeof(double);

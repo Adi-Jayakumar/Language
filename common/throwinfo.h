@@ -5,7 +5,7 @@ class ThrowInfo
 {
 public:
     // type of catch variable type
-    bool isArray;
+    bool is_array;
     TypeID type;
     // function to return to
     oprand_t func;
@@ -17,5 +17,5 @@ public:
     size_t callStackIndex;
 
     ThrowInfo() = default;
-    ThrowInfo(bool _isArray, uint8_t _type, uint8_t _func, uint8_t _index) : isArray(_isArray), type(_type), func(_func), index(_index), callStackIndex(0){};
+    ThrowInfo(bool _is_array, uint8_t _type, uint8_t _func, uint8_t _index) : is_array(_is_array), type(_type), func(_func), index(_index), callStackIndex(0){};
 };
