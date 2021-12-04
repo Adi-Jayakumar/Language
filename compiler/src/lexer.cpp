@@ -1,22 +1,22 @@
 #include "lexer.h"
 
-std::string IO::GetSrcString(std::string fName)
+std::string IO::GetSrcString(std::string file_name)
 {
-    std::ifstream in = std::ifstream(fName);
+    std::ifstream in = std::ifstream(file_name);
     if (in.fail())
     {
-        std::cerr << "File '" << fName << "' does not exist" << std::endl;
+        std::cerr << "File '" << file_name << "' does not exist" << std::endl;
         exit(2);
     }
     std::string src = std::string((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
     return src;
 }
 
-Lexer::Lexer(const std::string &fPath, SymbolTable *_symbols)
+Lexer::Lexer(const std::string &f_path, SymbolTable *_symbols)
 {
     index = 0;
     line = 1;
-    src = IO::GetSrcString(fPath);
+    src = IO::GetSrcString(f_path);
     symbols = _symbols;
 }
 
@@ -272,8 +272,8 @@ Token Lexer::NextToken()
     }
     default:
     {
-        size_t lineSize = LineSize();
-        LexError("Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)lineSize)) + "'");
+        size_t line_size = LineSize();
+        LexError("Unkown token on line " + std::to_string(line) + "\nNear:\n '" + src.substr(index, index + std::min(5U, (unsigned)line_size)) + "'");
         break;
     }
     }
@@ -329,14 +329,14 @@ Token Lexer::LexNumber()
     int start = index;
     int length = 0;
 
-    bool hadDot = false;
-    int eCount = 0;
+    bool had_dot = false;
+    int e_count = 0;
 
     while (isdigit(src[index]) || src[index] == '.' || src[index] == 'e')
     {
         if (src[index] == '.')
-            hadDot = true;
-        if ((src[index] == 'e' && !hadDot) || eCount > 1)
+            had_dot = true;
+        if ((src[index] == 'e' && !had_dot) || e_count > 1)
             LexError("Malformed double on line " + std::to_string(line));
 
         if (src[index] == 'e')
@@ -351,7 +351,7 @@ Token Lexer::LexNumber()
         length++;
     }
 
-    return {hadDot ? TokenID::DOUBLE_L : TokenID::INT_L, src.substr(start, length), line};
+    return {had_dot ? TokenID::DOUBLE_L : TokenID::INT_L, src.substr(start, length), line};
 }
 
 bool Lexer::CheckKeyword(Token &tok)

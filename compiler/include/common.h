@@ -14,6 +14,6 @@ struct TypeDataHasher
     {
         std::hash<size_t> stHasher;
         std::hash<TypeID> tHasher;
-        return stHasher(t.isArray) ^ tHasher(t.type);
+        return stHasher(t.is_array) ^ tHasher(t.type);
     }
 };

@@ -23,6 +23,6 @@ TypeSubstitution::TypeSubstitution(Token _loc)
 TypeData TypeSubstitution::operator[](TypeData t)
 {
     TypeData result = map[t.type];
-    result.type += t.isArray;
+    result.type += t.is_array;
     return result;
 }

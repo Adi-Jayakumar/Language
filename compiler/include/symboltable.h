@@ -27,8 +27,8 @@ struct TypeInfoHasher
         std::hash<size_t> stHasher;
         std::hash<TypeID> tHasher;
         std::hash<uint8_t> u8Hasher;
-        size_t l = stHasher(t.left.isArray) ^ tHasher(t.left.type);
-        size_t r = stHasher(t.right.isArray) ^ tHasher(t.right.type);
+        size_t l = stHasher(t.left.is_array) ^ tHasher(t.left.type);
+        size_t r = stHasher(t.right.is_array) ^ tHasher(t.right.type);
         size_t op = u8Hasher(static_cast<uint8_t>(t.t));
         return l ^ r ^ op;
     }

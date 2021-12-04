@@ -66,19 +66,19 @@ size_t Compiler::GetVariableStackLoc(std::string &name)
 void Compiler::Compile(std::vector<SP<Stmt>> &s)
 {
     main_index = MAX_OPRAND;
-    size_t numFunctions = 0;
+    size_t num_functions = 0;
     for (parse_index = 0; parse_index < s.size(); parse_index++)
     {
         s[parse_index]->NodeCompile(*this);
         if (dynamic_cast<FuncDecl *>(s[parse_index].get()) != nullptr)
         {
-            numFunctions++;
+            num_functions++;
             FuncDecl *asFD = static_cast<FuncDecl *>(s[parse_index].get());
             if (asFD->params.size() == 0 && asFD->name == "Main")
             {
                 if (main_index != MAX_OPRAND)
                     CompileError(asFD->Loc(), "Main function already defined");
-                main_index = numFunctions;
+                main_index = num_functions;
             }
         }
         else if (dynamic_cast<DeclaredVar *>(s[parse_index].get()) == nullptr &&
@@ -144,41 +144,41 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     file.write((char *)&STRUCT_TREE_ID, sizeof(STRUCT_TREE_ID));
 
     // writing the number of structs
-    TypeID numStructs = static_cast<TypeID>(prog.struct_tree.size());
-    file.write((char *)&numStructs, sizeof(numStructs));
+    TypeID num_structs = static_cast<TypeID>(prog.struct_tree.size());
+    file.write((char *)&num_structs, sizeof(num_structs));
 
     // writing: struct id, number of parents, parent ids for each struct
     for (auto &s : prog.struct_tree)
     {
         file.write((char *)&s.first, sizeof(s.first));
 
-        size_t numParents = s.second.size();
-        file.write((char *)&numParents, sizeof(numParents));
+        size_t num_parents = s.second.size();
+        file.write((char *)&num_parents, sizeof(num_parents));
 
         for (auto &parent : s.second)
             file.write((char *)&parent, sizeof(parent));
     }
 
-    size_t libFuncID = LIB_FUNC_ID;
-    file.write((char *)&libFuncID, sizeof(LIB_FUNC_ID));
+    size_t lib_funcID = LIB_FUNC_ID;
+    file.write((char *)&lib_funcID, sizeof(LIB_FUNC_ID));
 
-    size_t numLibFuncs = prog.lib_funcs.size();
-    file.write((char *)&numLibFuncs, sizeof(numLibFuncs));
+    size_t num_lib_funcs = prog.lib_funcs.size();
+    file.write((char *)&num_lib_funcs, sizeof(num_lib_funcs));
 
-    for (auto &libfunc : prog.lib_funcs)
+    for (auto &lib_func : prog.lib_funcs)
     {
         // writing the name of the function
-        size_t nameLen = libfunc.name.length();
-        file.write((char *)&nameLen, sizeof(nameLen));
-        SerialiseData(&libfunc.name[0], sizeof(char), nameLen, file);
+        size_t name_len = lib_func.name.length();
+        file.write((char *)&name_len, sizeof(name_len));
+        SerialiseData(&lib_func.name[0], sizeof(char), name_len, file);
 
         // writing the library
-        size_t libLen = libfunc.library.length();
-        file.write((char *)&libLen, sizeof(libLen));
-        SerialiseData(&libfunc.library[0], sizeof(char), libLen, file);
+        size_t lib_len = lib_func.library.length();
+        file.write((char *)&lib_len, sizeof(lib_len));
+        SerialiseData(&lib_func.library[0], sizeof(char), lib_len, file);
 
         // writing the arity of the library function
-        file.write((char *)&libfunc.arity, sizeof(libfunc.arity));
+        file.write((char *)&lib_func.arity, sizeof(lib_func.arity));
     }
 
     SerialiseThrowInfo(prog.throw_stack, file);
@@ -212,10 +212,10 @@ void Compiler::SerialiseFunction(Function &f, std::ofstream &file)
 
 // private:
 //=================================SERIALISATION=================================//
-void Compiler::SerialiseData(void *data, size_t typeSize, size_t numElements, std::ofstream &file)
+void Compiler::SerialiseData(void *data, size_t type_size, size_t num_elements, std::ofstream &file)
 {
-    file.write((char *)&numElements, sizeof(numElements));
-    file.write((char *)data, typeSize * numElements);
+    file.write((char *)&num_elements, sizeof(num_elements));
+    file.write((char *)data, type_size * num_elements);
 }
 
 void Compiler::SerialiseInts(Function &f, std::ofstream &file)
@@ -248,8 +248,8 @@ void Compiler::SerialiseChars(Function &f, std::ofstream &file)
 void Compiler::SerialiseStrings(Function &f, std::ofstream &file)
 {
     file.write((char *)&STRING_ID, sizeof(STRING_ID));
-    size_t numStrings = f.strings.size();
-    file.write((char *)&numStrings, sizeof(numStrings));
+    size_t num_strings = f.strings.size();
+    file.write((char *)&num_strings, sizeof(num_strings));
 
     for (std::string &str : f.strings)
         SerialiseData(&str[0], sizeof(char), str.length(), file);
@@ -259,17 +259,17 @@ void Compiler::SerialiseOps(Function &f, std::ofstream &file)
 {
     file.write((char *)&CODE_ID, sizeof(INT_ID));
 
-    size_t routineSize = f.routines.size();
-    file.write((char *)&routineSize, sizeof(routineSize));
+    size_t routine_size = f.routines.size();
+    file.write((char *)&routine_size, sizeof(routine_size));
     for (auto &routine : f.routines)
     {
-        size_t numOps = routine.size();
-        file.write((char *)&numOps, sizeof(numOps));
+        size_t num_ops = routine.size();
+        file.write((char *)&num_ops, sizeof(num_ops));
 
         for (auto &op : routine)
         {
-            op_t codeAsNum = static_cast<op_t>(op.code);
-            file.write((char *)&codeAsNum, sizeof(codeAsNum));
+            op_t code_as_num = static_cast<op_t>(op.code);
+            file.write((char *)&code_as_num, sizeof(code_as_num));
             file.write((char *)&op.op, sizeof(op.op));
         }
     }
@@ -279,12 +279,12 @@ void Compiler::SerialiseThrowInfo(std::vector<ThrowInfo> &infos, std::ofstream &
 {
     file.write((char *)&THROW_INFO_ID, sizeof(INT_ID));
 
-    size_t numThrows = infos.size();
-    SerialiseData(&numThrows, 0, numThrows, file);
+    size_t num_throws = infos.size();
+    SerialiseData(&num_throws, 0, num_throws, file);
 
     for (auto &ti : infos)
     {
-        file.write((char *)&ti.isArray, sizeof(ti.isArray));
+        file.write((char *)&ti.is_array, sizeof(ti.is_array));
         file.write((char *)&ti.type, sizeof(ti.type));
         file.write((char *)&ti.func, sizeof(ti.func));
         file.write((char *)&ti.index, sizeof(ti.index));

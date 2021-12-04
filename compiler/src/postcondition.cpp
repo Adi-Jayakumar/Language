@@ -8,11 +8,11 @@ inline SP<Expr> NEGATE(const SP<Expr> &cond)
 
 inline SP<Expr> MAKE_RETURN(const SP<Expr> &val)
 {
-    Token resLoc = Token(TokenID::IDEN, "result", val->Loc().line);
-    SP<Expr> result = std::make_shared<VarReference>(resLoc);
+    Token res_loc = Token(TokenID::IDEN, "result", val->Loc().line);
+    SP<Expr> result = std::make_shared<VarReference>(res_loc);
 
-    Token eqeqLoc = Token(TokenID::EQ_EQ, "==", val->Loc().line);
-    return std::make_shared<Binary>(result, eqeqLoc, val);
+    Token eqeq_loc = Token(TokenID::EQ_EQ, "==", val->Loc().line);
+    return std::make_shared<Binary>(result, eqeq_loc, val);
 }
 
 void PostConditionGenerator::AddReturnValue(const SP<Expr> &ret)
@@ -51,9 +51,9 @@ std::vector<std::vector<SP<Expr>>> PostConditionGenerator::Generate(SP<FuncDecl>
 
 void PostConditionGenerator::ReplaceFunctionCallInPost(std::vector<std::vector<SP<Expr>>> &post)
 {
-    for (auto &retCase : post)
+    for (auto &ret_case : post)
     {
-        for (auto &exp : retCase)
+        for (auto &exp : ret_case)
         {
             ReplaceFunctionCall(exp);
         }

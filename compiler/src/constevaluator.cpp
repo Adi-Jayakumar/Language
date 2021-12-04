@@ -300,11 +300,11 @@ SP<Expr> ConstantEvaluator::UNARY_BANG(const SP<Unary> &u)
     return std::make_shared<Literal>(right->Loc(), !GET_BOOL(right));
 }
 
-SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(const SP<Binary> &b, bool leftSeq)
+SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(const SP<Binary> &b, bool left_seq)
 {
     SP<Sequence> seq;
     SP<Expr> val;
-    if (leftSeq)
+    if (left_seq)
     {
         seq = std::dynamic_pointer_cast<Sequence>(b->left);
         val = b->right;
@@ -322,26 +322,26 @@ SP<Expr> ConstantEvaluator::BINARY_SEQUENCE(const SP<Binary> &b, bool leftSeq)
     high = SimplifyExpression(high);
 
     SP<Expr> index = seq->var;
-    SP<Expr> lowTerm = NodeSubstituter::Substitute(seq->term, index, low);
-    SP<Expr> highTerm = NodeSubstituter::Substitute(seq->term, index, high);
+    SP<Expr> low_term = NodeSubstituter::Substitute(seq->term, index, low);
+    SP<Expr> high_term = NodeSubstituter::Substitute(seq->term, index, high);
 
-    lowTerm = SimplifyExpression(lowTerm);
-    highTerm = SimplifyExpression(highTerm);
+    low_term = SimplifyExpression(low_term);
+    high_term = SimplifyExpression(high_term);
 
-    bool didSimpSeq = false;
+    bool did_simp_seq = false;
 
-    if (NodeEqual::Equal(highTerm, val))
+    if (NodeEqual::Equal(high_term, val))
     {
         seq->end = high;
-        didSimpSeq = true;
+        did_simp_seq = true;
     }
-    else if (NodeEqual::Equal(lowTerm, val))
+    else if (NodeEqual::Equal(low_term, val))
     {
         seq->start = low;
-        didSimpSeq = true;
+        did_simp_seq = true;
     }
 
-    if (didSimpSeq)
+    if (did_simp_seq)
         return seq;
     else
         return b;

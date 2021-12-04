@@ -22,12 +22,12 @@ void SymbolTable::RemoveType(const std::string &type)
 
 std::string SymbolTable::ToString(const TypeData &type)
 {
-    if (type.isArray == 0)
+    if (type.is_array == 0)
         return type_string_map[type.type];
     else
     {
         std::string res("Array<");
-        res += std::to_string(type.isArray);
+        res += std::to_string(type.is_array);
         res += ", " + type_string_map[type.type] + ">";
         return res;
     }
@@ -35,10 +35,10 @@ std::string SymbolTable::ToString(const TypeData &type)
 
 void SymbolTable::PrintType(std::ostream &out, const TypeData &type)
 {
-    if (type.isArray == 0)
+    if (type.is_array == 0)
         out << type_string_map[type.type];
     else
-        out << "Array<" << type.isArray << ", " << type_string_map[type.type] << ">";
+        out << "Array<" << type.is_array << ", " << type_string_map[type.type] << ">";
 }
 
 bool SymbolTable::CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
@@ -53,7 +53,7 @@ TypeData SymbolTable::OperatorResult(const TypeData &left, const TokenID &op, co
 
 bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
 {
-    if (varType.isArray != valType.isArray)
+    if (varType.is_array != valType.is_array)
         return false;
 
     if (varType.type == 6 || valType.type == 6)
@@ -74,7 +74,7 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
         if (parent == VOID_TYPE)
             return varType == valType;
 
-        parent.isArray = valType.isArray;
+        parent.is_array = valType.is_array;
         return CanAssign(varType, parent);
     }
 
@@ -83,7 +83,7 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
 
 size_t SymbolTable::SizeOf(const TypeData &type)
 {
-    if (type.isArray)
+    if (type.is_array)
         return ARRAY_SIZE;
     else if (type == INT_TYPE)
         return INT_SIZE;
@@ -247,7 +247,7 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
     {
         TypeData replacement = templateMap[f_args[j].type];
         f_args[j].type = replacement.type;
-        f_args[j].isArray += replacement.isArray;
+        f_args[j].is_array += replacement.is_array;
     }
 
     return IsEqual(f_args, args) || CanAssignAll(f_args, args);
@@ -450,7 +450,7 @@ TypeData SymbolTable::ParseType(const std::string &type)
     if (type_name_map.find(num_type) != type_name_map.end())
     {
         TypeData res = type_name_map[num_type];
-        res.isArray = num;
+        res.is_array = num;
         return res;
     }
     else

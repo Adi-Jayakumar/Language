@@ -77,8 +77,7 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
         dynamic_cast<FieldAccess *>(a->target.get()) == nullptr)
         StaticAnalysisError(a->target->Loc(), "Invalid assignment target");
 
-    a->t = target;
-    return a->t;
+    return a->t = target;
 }
 
 TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
@@ -86,8 +85,8 @@ TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
     VarID *vid = symbols.GetVar(vr->name);
     if (vid == nullptr)
         SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
-    vr->t = vid->type;
-    return vr->t;
+
+    return vr->t = vid->type;
 }
 
 TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
@@ -128,28 +127,28 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
 
-    fc->t = fid->ret;
-    return fc->t;
+    return fc->t = fid->ret;
 }
 
 TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
 {
     TypeData name = ai->name->Analyse(*this);
 
-    if (!name.isArray && name != STRING_TYPE)
+    if (!name.is_array && name != STRING_TYPE)
         TypeError(ai->Loc(), "Cannot index into object of type " + symbols.ToString(name));
 
     TypeData index = ai->index->Analyse(*this);
     if (index != INT_TYPE)
         TypeError(ai->index->Loc(), "Indices can only be of type int not " + symbols.ToString(index));
 
-    if (name.isArray)
+    if (name.is_array)
     {
-        name.isArray--;
+        name.is_array--;
         ai->t = name;
     }
     else
         ai->t = CHAR_TYPE;
+
     return ai->t;
 }
 
@@ -158,16 +157,16 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
     if (bi->size > MAX_OPRAND)
         StaticAnalysisError(bi->Loc(), "Braced initialisers can only have " + std::to_string(MAX_OPRAND) + " elements");
 
-    TypeData biType = bi->t;
+    TypeData bi_type = bi->t;
 
     std::vector<TypeData> args;
     for (auto &e : bi->init)
         args.push_back(e->Analyse(*this));
 
-    if (biType.isArray)
+    if (bi_type.is_array)
     {
-        TypeData target = biType;
-        target.isArray--;
+        TypeData target = bi_type;
+        target.is_array--;
 
         for (size_t i = 0; i < bi->init.size(); i++)
         {
@@ -176,11 +175,11 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
             bi->init[i]->t = target;
         }
 
-        bi->t = biType;
+        bi->t = bi_type;
     }
     else
     {
-        StructID *sid = symbols.GetStruct(biType);
+        StructID *sid = symbols.GetStruct(bi_type);
         if (sid == nullptr)
             TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
         if (sid->nameTypes.size() != args.size())
@@ -200,7 +199,7 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
 
 TypeData StaticAnalyser::AnalyseDynamicAllocArray(DynamicAllocArray *da)
 {
-    if (!da->t.isArray)
+    if (!da->t.is_array)
         TypeError(da->Loc(), "Must have array type");
     TypeData size = da->size->Analyse(*this);
     if (size != INT_TYPE)
@@ -217,15 +216,15 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     if (sid == nullptr)
         TypeError(fa->Loc(), "Type " + symbols.ToString(accessor) + " cannot be accessed into");
 
-    VarReference *vAccessee = dynamic_cast<VarReference *>(fa->accessee.get());
-    if (vAccessee == nullptr)
+    VarReference *vr_accessee = dynamic_cast<VarReference *>(fa->accessee.get());
+    if (vr_accessee == nullptr)
         TypeError(fa->accessee->Loc(), "Only an identifier can be used as a field accessee");
 
     // index of accessee in the underlying array
     size_t index = SIZE_MAX;
     for (size_t i = 0; i < sid->nameTypes.size(); i++)
     {
-        if (sid->nameTypes[i].first == vAccessee->name)
+        if (sid->nameTypes[i].first == vr_accessee->name)
         {
             index = i;
             break;
@@ -233,10 +232,9 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     }
 
     if (index == SIZE_MAX)
-        SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vAccessee->name);
+        SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vr_accessee->name);
 
-    fa->t = sid->nameTypes[index].second;
-    return fa->t;
+    return fa->t = sid->nameTypes[index].second;
 }
 
 TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
@@ -244,10 +242,10 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     TypeData old = tc->arg->Analyse(*this);
     TypeData nw = tc->t;
 
-    bool isDownCast = symbols.CanAssign(nw, old);
-    bool isUpCast = symbols.CanAssign(old, nw);
+    bool is_down_cast = symbols.CanAssign(nw, old);
+    bool is_up_cast = symbols.CanAssign(old, nw);
 
-    if (!isDownCast && !isUpCast)
+    if (!is_down_cast && !is_up_cast)
         TypeError(tc->Loc(), "Cannot cast " + symbols.ToString(old) + " to " + symbols.ToString(nw));
 
     return tc->t;
@@ -425,33 +423,33 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
 
     TypeData parent = sd->parent;
     std::vector<SP<Expr>> init;
-    std::vector<std::pair<std::string, TypeData>> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> name_types;
 
     if (parent != VOID_TYPE)
     {
-        if (parent.isArray)
+        if (parent.is_array)
             TypeError(sd->Loc(), "Parent of a struct cannot be array");
-        StructID *sidParent = symbols.GetStruct(parent);
+        StructID *sid_parent = symbols.GetStruct(parent);
 
-        if (sidParent == nullptr)
+        if (sid_parent == nullptr)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
-        nameTypes.insert(nameTypes.end(), sidParent->nameTypes.begin(), sidParent->nameTypes.end());
+        name_types.insert(name_types.end(), sid_parent->nameTypes.begin(), sid_parent->nameTypes.end());
     }
 
     for (auto &d : sd->decls)
     {
-        DeclaredVar *asDV = dynamic_cast<DeclaredVar *>(d.get());
-        if (asDV == nullptr)
+        DeclaredVar *as_dv = dynamic_cast<DeclaredVar *>(d.get());
+        if (as_dv == nullptr)
             TypeError(d->Loc(), "The body of struct declarations can only consist of variable declarations");
 
-        if (asDV->value != nullptr)
-            StaticAnalysisError(asDV->value->Loc(), "Variable declarations inside struct declarations cannot have values");
+        if (as_dv->value != nullptr)
+            StaticAnalysisError(as_dv->value->Loc(), "Variable declarations inside struct declarations cannot have values");
 
-        nameTypes.push_back({asDV->name, asDV->t});
+        name_types.push_back({as_dv->name, as_dv->t});
     }
 
-    symbols.AddStruct(StructID(sd->name, type, parent, nameTypes));
+    symbols.AddStruct(StructID(sd->name, type, parent, name_types));
 }
 
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)

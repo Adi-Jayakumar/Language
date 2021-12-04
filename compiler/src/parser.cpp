@@ -56,9 +56,9 @@ TypeData Parser::ParseType(std::string err)
 {
     if (cur.type == TokenID::TYPENAME)
     {
-        std::string sType = cur.literal;
+        std::string s_type = cur.literal;
         Advance();
-        return symbols.ResolveType(sType).value();
+        return symbols.ResolveType(s_type).value();
     }
     else if (cur.type == TokenID::ARRAY)
     {
@@ -93,7 +93,7 @@ TypeData Parser::ParseType(std::string err)
 
         Check(TokenID::GT, "Missing '>'");
         Advance();
-        type.isArray = dim;
+        type.is_array = dim;
         return type;
     }
     ParseError(cur, err);
@@ -202,19 +202,19 @@ SP<Stmt> Parser::Statement()
         Check(TokenID::OPEN_PAR, "Expect '(' after 'catch'");
 
         Advance();
-        TypeData catchType = ParseType("Expect type in catch statement");
+        TypeData catch_type = ParseType("Expect type in catch statement");
 
         Check(TokenID::IDEN, "Expect identifier after type in catch statement");
-        std::string catchVarName = cur.literal;
-        std::pair<TypeData, std::string> catchVar(catchType, catchVarName);
+        std::string catch_var_name = cur.literal;
+        std::pair<TypeData, std::string> catchVar(catch_type, catch_var_name);
 
         Advance();
         Check(TokenID::CLOSE_PAR, "Expect ')'");
 
         Advance();
-        SP<Stmt> catchClause = Statement();
+        SP<Stmt> catch_clause = Statement();
 
-        return std::make_shared<TryCatch>(try_clause, catchClause, catchVar, loc);
+        return std::make_shared<TryCatch>(try_clause, catch_clause, catchVar, loc);
     }
     return Declaration();
 }
@@ -398,7 +398,7 @@ SP<Stmt> Parser::TemplateFunction()
     Advance();
     Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
 
-    std::vector<std::pair<TypeData, std::string>> addedTypes;
+    std::vector<std::pair<TypeData, std::string>> added_types;
 
     size_t count = 0;
     while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
@@ -408,7 +408,7 @@ SP<Stmt> Parser::TemplateFunction()
 
         TypeData new_type = symbols.AddType(cur.literal);
 
-        addedTypes.push_back({new_type, cur.literal});
+        added_types.push_back({new_type, cur.literal});
         count++;
         Advance();
     }
@@ -418,13 +418,13 @@ SP<Stmt> Parser::TemplateFunction()
 
     SP<Stmt> function = Statement();
 
-    for (const auto &type_name : addedTypes)
+    for (const auto &type_name : added_types)
         symbols.RemoveType(type_name.second);
 
     FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
     if (fd == nullptr)
         ParseError(loc, "Can only have a templated function");
-    fd->templates = addedTypes;
+    fd->templates = added_types;
     return function;
 }
 

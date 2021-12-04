@@ -114,10 +114,10 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
         if (node->kind == ExprKind::VAR_REFERENCE &&
             val->kind == ExprKind::VAR_REFERENCE)
         {
-            SP<VarReference> vNode = std::dynamic_pointer_cast<VarReference>(node);
-            SP<VarReference> vVal = std::dynamic_pointer_cast<VarReference>(val);
-            if (dv->name == vNode->name)
-                dv->name = vVal->name;
+            SP<VarReference> v_node = std::dynamic_pointer_cast<VarReference>(node);
+            SP<VarReference> v_val = std::dynamic_pointer_cast<VarReference>(val);
+            if (dv->name == v_node->name)
+                dv->name = v_val->name;
         }
 
         dv->value = Substitute(dv->value, node, val);

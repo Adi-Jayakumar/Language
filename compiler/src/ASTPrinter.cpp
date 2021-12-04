@@ -149,11 +149,9 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
 
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
-    out << "Cast";
-    out << "<";
+    out << "Cast<";
     symbols.PrintType(out, gf->t);
-    out << ">";
-    out << "(" << gf->arg.get() << ")";
+    out << ">(" << gf->arg.get() << ")";
 }
 
 void ASTPrinter::PrintSequence(Sequence *s)
@@ -177,7 +175,6 @@ void ASTPrinter::PrintSequence(Sequence *s)
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es)
 {
-
     es->exp->Print(*this);
     out << ";";
     NewLine();
@@ -320,8 +317,8 @@ void ASTPrinter::PrintReturn(Return *r)
     out << "return ";
     if (r->ret_val != nullptr)
         r->ret_val->Print(*this);
+    
     out << ";";
-
     NewLine();
 }
 
