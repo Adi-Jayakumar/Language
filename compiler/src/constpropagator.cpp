@@ -219,12 +219,6 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
             r->ret_val = PropagateExpression(r->ret_val);
         break;
     }
-    case StmtKind::STRUCT_DECL:
-    case StmtKind::IMPORT_STMT:
-    case StmtKind::BREAK:
-    {
-        break;
-    }
     case StmtKind::THROW:
     {
         Throw *t = dynamic_cast<Throw *>(stmt.get());
@@ -245,6 +239,10 @@ void ConstantPropagator::PropagateStatement(SP<Stmt> &stmt)
         PropagateStatement(tc->catch_clause);
         symbols.depth--;
         constants.depth--;
+        break;
+    }
+    default:
+    {
         break;
     }
     }

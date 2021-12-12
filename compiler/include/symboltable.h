@@ -183,7 +183,8 @@ public:
     size_t GetVariableStackLoc(std::string &name);  // returns SIZE_MAX if variable is not found
 
     //-------------------FUNCTION OPERATIONS-------------------//
-    std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
+    std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &argtypes);
+    // std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
     size_t GetUDFuncNum(std::optional<FuncID> &fid);
     size_t GetCLibFuncNum(std::optional<FuncID> &fid);
     size_t NumCFuncs() { return c_lib_functions.size(); };

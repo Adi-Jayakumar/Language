@@ -101,7 +101,7 @@ void PostConditionGenerator::ReplaceFunctionCall(SP<Expr> &exp)
             argtypes.push_back(arg->GetType());
         }
 
-        std::optional<FuncID> fid = symbols.GetFunc(fc->name, fc->templates, argtypes);
+        std::optional<FuncID> fid = symbols.GetFunc(fc->name, argtypes);
         FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
 
         if (fd->post_cond == nullptr)
@@ -198,6 +198,10 @@ void PostConditionGenerator::GenerateFromFuncDecl(FuncDecl *fd)
         stmt->GeneratePost(*this);
 }
 
+void PostConditionGenerator::GenerateFromTemplateDecl(TemplateDecl *)
+{
+}
+
 void PostConditionGenerator::GenerateFromReturn(Return *r)
 {
     if (r->ret_val == nullptr)
@@ -258,6 +262,11 @@ void WhileStmt::GeneratePost(PostConditionGenerator &pc)
 void FuncDecl::GeneratePost(PostConditionGenerator &pc)
 {
     pc.GenerateFromFuncDecl(this);
+}
+
+void TemplateDecl::GeneratePost(PostConditionGenerator &pc)
+{
+    pc.GenerateFromTemplateDecl(this);
 }
 
 void Return::GeneratePost(PostConditionGenerator &pc)

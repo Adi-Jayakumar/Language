@@ -156,13 +156,11 @@ void SymbolTable::AddCLibFunc(const FuncID &func)
     c_lib_functions.push_back(func);
 }
 
-std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &args)
+std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 {
     for (auto &f : funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
-            return f;
-        if (f.name == name && MatchTemplateFunction(templates, args, f.templates, f.argtypes))
             return f;
     }
 

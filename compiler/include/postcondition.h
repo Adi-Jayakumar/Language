@@ -38,6 +38,7 @@ public:
     void GenerateFromIfStmt(IfStmt *i);
     void GenerateFromWhileStmt(WhileStmt *ws);
     void GenerateFromFuncDecl(FuncDecl *fd);
+    void GenerateFromTemplateDecl(TemplateDecl *td);
     void GenerateFromReturn(Return *r);
     void GenerateFromStructDecl(StructDecl *sd);
     void GenerateFromImportStmt(ImportStmt *is);

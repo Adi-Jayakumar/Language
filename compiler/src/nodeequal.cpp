@@ -243,6 +243,9 @@ bool NodeEqual::Equal(const SP<Stmt> &left, const SP<Stmt> &right)
         return Equal(l->try_clause, r->try_clause) &&
                Equal(l->catch_clause, r->catch_clause);
     }
+    default:
+    {
+        return false;
     }
-    return false;
+    }
 }

@@ -315,7 +315,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     for (auto &e : fc->args)
         args.push_back(e->GetType());
 
-    std::optional<FuncID> fid = c.symbols.GetFunc(fc->name, fc->templates, args);
+    std::optional<FuncID> fid = c.symbols.GetFunc(fc->name, args);
 
     ERROR_GUARD(
         {
@@ -570,14 +570,7 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     for (auto &arg : fd->params)
         argtypes.push_back(arg.first);
 
-    std::vector<TypeData> templates;
-    for (auto &t : fd->templates)
-        templates.push_back(t.first);
-
-    c.symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parse_index));
-
-    if (fd->templates.size() > 0)
-        return;
+    c.symbols.AddFunc(FuncID(fd->ret, fd->name, argtypes, FunctionType::USER_DEFINED, c.parse_index));
 
     c.symbols.depth++;
     for (auto &arg : fd->params)
@@ -593,6 +586,10 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     c.ClearCurrentDepthWithPOPInst();
     c.symbols.depth--;
     c.cur = &c.functions[0];
+}
+
+void NodeCompiler::CompileTemplateDecl(TemplateDecl *td, Compiler &c)
+{
 }
 
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
@@ -798,6 +795,11 @@ void WhileStmt::NodeCompile(Compiler &c)
 void FuncDecl::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileFuncDecl(this, c);
+}
+
+void TemplateDecl::NodeCompile(Compiler &c)
+{
+    NodeCompiler::CompileTemplateDecl(this, c);
 }
 
 void Return::NodeCompile(Compiler &c)

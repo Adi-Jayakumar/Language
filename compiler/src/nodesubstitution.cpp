@@ -158,12 +158,6 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
         r->ret_val = Substitute(r->ret_val, node, val);
         return r;
     }
-    case StmtKind::STRUCT_DECL:
-    case StmtKind::IMPORT_STMT:
-    case StmtKind::BREAK:
-    {
-        return tree;
-    }
     case StmtKind::THROW:
     {
         SP<Throw> t = COPY(Throw, tree);
@@ -177,6 +171,9 @@ SP<Stmt> NodeSubstituter::Substitute(SP<Stmt> &tree, SP<Expr> &node, SP<Expr> &v
         tc->catch_clause = Substitute(tc->catch_clause, node, val);
         return tc;
     }
+    default:
+    {
+        return tree;
     }
-    return nullptr;
+    }
 }

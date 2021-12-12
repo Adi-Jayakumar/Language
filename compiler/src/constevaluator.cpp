@@ -220,18 +220,6 @@ void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
         r->ret_val = SimplifyExpression(r->ret_val);
         break;
     }
-    case StmtKind::STRUCT_DECL:
-    {
-        break;
-    }
-    case StmtKind::IMPORT_STMT:
-    {
-        break;
-    }
-    case StmtKind::BREAK:
-    {
-        break;
-    }
     case StmtKind::THROW:
     {
         SP<Throw> t = std::dynamic_pointer_cast<Throw>(stmt);
@@ -243,6 +231,10 @@ void ConstantEvaluator::SimplifyStatement(const SP<Stmt> &stmt)
         SP<TryCatch> tc = std::dynamic_pointer_cast<TryCatch>(stmt);
         SimplifyStatement(tc->try_clause);
         SimplifyStatement(tc->catch_clause);
+        break;
+    }
+    default:
+    {
         break;
     }
     }

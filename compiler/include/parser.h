@@ -47,8 +47,8 @@ struct Parser
     SP<Stmt> FuncDeclaration();
     // parses a struct declaration
     SP<Stmt> ParseStructDecl();
-    // parses a template function
-    SP<Stmt> TemplateFunction();
+    // parses a template declaration
+    SP<Stmt> TemplateDeclNode();
     // parses an expression statement
     SP<Stmt> ExpressionStatement();
     // parses an import statement

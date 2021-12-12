@@ -38,6 +38,17 @@ struct FuncID
 
     FuncID(const TypeData &_ret,
            const std::string &_name,
+           const std::vector<TypeData> &_argtypes,
+           const FunctionType &_kind,
+           const size_t &_parse_index)
+        : ret(_ret),
+          name(_name),
+          argtypes(_argtypes),
+          kind(_kind),
+          parse_index(_parse_index){};
+
+    FuncID(const TypeData &_ret,
+           const std::string &_name,
            const std::vector<TypeData> &_templates,
            const std::vector<TypeData> &_argtypes,
            const FunctionType &_kind,

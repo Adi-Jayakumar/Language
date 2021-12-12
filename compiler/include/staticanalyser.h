@@ -39,6 +39,7 @@ public:
     void AnalyseIfStmt(IfStmt *i);
     void AnalyseWhileStmt(WhileStmt *ws);
     void AnalyseFuncDecl(FuncDecl *fd);
+    void AnalyseTemplateDecl(TemplateDecl *td);
     void AnalyseReturn(Return *r);
     void AnalyseStructDecl(StructDecl *sd);
     void AnalyseImportStmt(ImportStmt *is);

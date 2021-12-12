@@ -232,7 +232,7 @@ SP<Stmt> Parser::Declaration()
     else if (cur.type == TokenID::STRUCT)
         return ParseStructDecl();
     else if (cur.type == TokenID::TEMPLATE)
-        return TemplateFunction();
+        return TemplateDeclNode();
     else
         return ExpressionStatement();
 }
@@ -394,7 +394,7 @@ SP<Stmt> Parser::ParseStructDecl()
     return std::make_shared<StructDecl>(name, parent, decls, loc);
 }
 
-SP<Stmt> Parser::TemplateFunction()
+SP<Stmt> Parser::TemplateDeclNode()
 {
     Token loc = cur;
     Advance();
@@ -420,14 +420,13 @@ SP<Stmt> Parser::TemplateFunction()
 
     SP<Stmt> function = Statement();
 
+    if (!dynamic_cast<FuncDecl *>(function.get()))
+        ParseError(loc, "Can only have template functions");
+
     for (const auto &type_name : added_types)
         symbols.RemoveType(type_name.second);
 
-    FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
-    if (fd == nullptr)
-        ParseError(loc, "Can only have a templated function");
-    fd->templates = added_types;
-    return function;
+    return std::make_shared<TemplateDecl>(added_types, function, loc);
 }
 
 // ----------------------STATEMENTS----------------------- //

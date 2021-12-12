@@ -12,6 +12,7 @@ enum class StmtKind
     IF_STMT,
     WHILE_STMT,
     FUNC_DECL,
+    TEMPLATE_DECL,
     RETURN,
     STRUCT_DECL,
     IMPORT_STMT,
@@ -139,9 +140,6 @@ public:
 
     std::vector<SP<Stmt>> body;
     std::vector<SP<Expr>> pre_conds;
-
-    std::vector<std::pair<TypeData, std::string>> templates;
-
     SP<Expr> post_cond;
 
     FuncDecl(TypeData _ret,
@@ -160,6 +158,26 @@ public:
         body = _body;
         pre_conds = _preConds;
         post_cond = _postCond;
+    };
+
+    void Print(ASTPrinter &p) override;
+    void Analyse(StaticAnalyser &sa) override;
+    void NodeCompile(Compiler &c) override;
+    void GeneratePost(PostConditionGenerator &pc) override;
+};
+
+class TemplateDecl : public Stmt
+{
+public:
+    std::vector<std::pair<TypeData, std::string>> templates;
+    SP<Stmt> stmt;
+
+    TemplateDecl(std::vector<std::pair<TypeData, std::string>> &_templates, SP<Stmt> &_stmt, Token &_loc)
+    {
+        kind = StmtKind::TEMPLATE_DECL;
+        loc = _loc;
+        templates = _templates;
+        stmt = _stmt;
     };
 
     void Print(ASTPrinter &p) override;

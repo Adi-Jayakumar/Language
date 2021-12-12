@@ -95,7 +95,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         args.push_back(e->Analyse(*this));
 
-    std::optional<FuncID> fid = symbols.GetFunc(fc->name, fc->templates, args);
+    std::optional<FuncID> fid = symbols.GetFunc(fc->name, args);
     if (!fid)
     {
         std::ostringstream out;
@@ -103,14 +103,14 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
 
         if (fc->templates.size() > 0)
         {
-            out << "<|";
+            out << "<";
             for (size_t i = 0; i < fc->templates.size(); i++)
             {
                 symbols.PrintType(out, fc->templates[i]);
                 if (i != fc->templates.size() - 1)
                     out << ", ";
             }
-            out << "|>";
+            out << ">";
         }
 
         out << "(";
@@ -354,26 +354,10 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &arg : fd->params)
         argtypes.push_back(arg.first);
 
-    std::vector<TypeData> templates;
-    for (auto &t : fd->templates)
-        templates.push_back(t.first);
-
-    std::optional<FuncID> is_there = symbols.GetFunc(fd->name, templates, argtypes);
+    std::optional<FuncID> is_there = symbols.GetFunc(fd->name, argtypes);
     if (is_there)
     {
         std::ostringstream out;
-
-        if (fd->templates.size() > 0)
-        {
-            out << "template<";
-            for (size_t i = 0; i < fd->templates.size(); i++)
-            {
-                out << fd->templates[i].second;
-                if (i != fd->templates.size() - 1)
-                    out << ", ";
-            }
-            out << ">";
-        }
 
         symbols.PrintType(out, fd->ret);
         out << " " << fd->name << "(";
@@ -392,10 +376,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
         SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
     }
 
-    symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parse_index));
-
-    if (fd->templates.size() > 0)
-        return;
+    symbols.AddFunc(FuncID(fd->ret, fd->name, argtypes, FunctionType::USER_DEFINED, parse_index));
 
     symbols.depth++;
     for (auto &arg : fd->params)
@@ -406,6 +387,10 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
     symbols.CleanUpCurDepth();
     symbols.depth--;
+}
+
+void StaticAnalyser::AnalyseTemplateDecl(TemplateDecl *td)
+{
 }
 
 void StaticAnalyser::AnalyseReturn(Return *r)
@@ -576,6 +561,11 @@ void WhileStmt::Analyse(StaticAnalyser &sa)
 void FuncDecl::Analyse(StaticAnalyser &sa)
 {
     sa.AnalyseFuncDecl(this);
+}
+
+void TemplateDecl::Analyse(StaticAnalyser &sa)
+{
+    sa.AnalyseTemplateDecl(this);
 }
 
 void Return::Analyse(StaticAnalyser &sa)
