@@ -101,7 +101,7 @@ void PostConditionGenerator::ReplaceFunctionCall(SP<Expr> &exp)
             argtypes.push_back(arg->GetType());
         }
 
-        FuncID *fid = symbols.GetFunc(fc->name, fc->templates, argtypes);
+        std::optional<FuncID> fid = symbols.GetFunc(fc->name, fc->templates, argtypes);
         FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
 
         if (fd->post_cond == nullptr)

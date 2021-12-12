@@ -117,9 +117,9 @@ inline bool IsTruthy(const TypeData &td)
     inline Opcode GetGETInstruction(const TypeData &type, const bool is_global) \
     {                                                                           \
                                                                                 \
-        if (type.is_array && is_global)                                          \
+        if (type.is_array && is_global)                                         \
             return Opcode::GET_ARRAY_GLOBAL;                                    \
-        else if (type.is_array && !is_global)                                    \
+        else if (type.is_array && !is_global)                                   \
             return Opcode::GET_ARRAY;                                           \
         else if (type.type > (NUM_DEF_TYPES - 1) && is_global)                  \
             return Opcode::GET_STRUCT_GLOBAL;                                   \
@@ -148,9 +148,9 @@ GET(x)
         x(BOOL);                                                                   \
         x(STRING);                                                                 \
         x(CHAR);                                                                   \
-        if (type.is_array && is_global)                                             \
+        if (type.is_array && is_global)                                            \
             return Opcode::ARRAY_ASSIGN_GLOBAL;                                    \
-        if (type.is_array && !is_global)                                            \
+        if (type.is_array && !is_global)                                           \
             return Opcode::ARRAY_ASSIGN;                                           \
         if (type.type > NUM_DEF_TYPES - 1 && is_global)                            \
             return Opcode::STRUCT_ASSIGN_GLOBAL;                                   \
@@ -247,7 +247,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     VarReference *target_as_vr = dynamic_cast<VarReference *>(a->target.get());
     if (target_as_vr != nullptr)
     {
-        VarID *vid = c.symbols.GetVar(target_as_vr->name);
+        std::optional<VarID> vid = c.symbols.GetVar(target_as_vr->name);
 
         size_t var_stack_loc = c.symbols.GetVariableStackLoc(target_as_vr->name);
         if (var_stack_loc > MAX_OPRAND)
@@ -281,7 +281,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
     if (target_as_fa != nullptr)
     {
         target_as_fa->accessor->NodeCompile(c);
-        StructID *sid = c.symbols.GetStruct(target_as_fa->accessee->GetType());
+        std::optional<StructID> sid = c.symbols.GetStruct(target_as_fa->accessee->GetType());
 
         VarReference *vr_accessee = dynamic_cast<VarReference *>(target_as_fa->accessee.get());
         size_t offset = SIZE_MAX;
@@ -298,7 +298,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
 void NodeCompiler::CompileVarReference(VarReference *vr, Compiler &c)
 {
-    VarID *vid = c.symbols.GetVar(vr->name);
+    std::optional<VarID> vid = c.symbols.GetVar(vr->name);
     size_t stack_loc = c.symbols.GetVariableStackLoc(vr->name);
     if (stack_loc > MAX_OPRAND)
         c.CompileError(vr->Loc(), "Too many variables, maximum number is " + std::to_string(MAX_OPRAND));
@@ -315,7 +315,7 @@ void NodeCompiler::CompileFunctionCall(FunctionCall *fc, Compiler &c)
     for (auto &e : fc->args)
         args.push_back(e->GetType());
 
-    FuncID *fid = c.symbols.GetFunc(fc->name, fc->templates, args);
+    std::optional<FuncID> fid = c.symbols.GetFunc(fc->name, fc->templates, args);
 
     ERROR_GUARD(
         {
@@ -411,7 +411,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
     fa->accessor->NodeCompile(c);
     TypeData accessor = fa->accessor->GetType();
 
-    StructID *sid = c.symbols.GetStruct(accessor);
+    std::optional<StructID> sid = c.symbols.GetStruct(accessor);
     VarReference *vr_accessee = dynamic_cast<VarReference *>(fa->accessee.get());
 
     // index of accessee in the underlying array
@@ -620,25 +620,18 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 
     if (parent != VOID_TYPE)
     {
-        StructID *sidParent = c.symbols.GetStruct(parent);
-        for (const auto &kv : sidParent->nameTypes)
+        std::optional<StructID> sid_parent = c.symbols.GetStruct(parent);
+        for (const auto &kv : sid_parent->nameTypes)
             name_types.push_back({kv.first, kv.second});
     }
 
-    ERROR_GUARD(
-        {
-            for (auto &d : sd->decls)
-            {
-                DeclaredVar *as_dv = dynamic_cast<DeclaredVar *>(d.get());
-                if (as_dv->value != nullptr)
-                    c.CompileError(as_dv->value->Loc(), "Variable declarations inside struct declarations cannot have values");
-
-                member_names.push_back(as_dv->name);
-                mem_types.push_back(as_dv->t);
-                name_types.push_back({as_dv->name, as_dv->t});
-            }
-        },
-        c)
+    for (auto &d : sd->decls)
+    {
+        DeclaredVar *as_dv = dynamic_cast<DeclaredVar *>(d.get());
+        member_names.push_back(as_dv->name);
+        mem_types.push_back(as_dv->t);
+        name_types.push_back({as_dv->name, as_dv->t});
+    }
 
     c.symbols.AddStruct(StructID(sd->name, type, parent, name_types));
 }

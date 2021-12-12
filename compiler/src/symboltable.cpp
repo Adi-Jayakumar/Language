@@ -41,14 +41,12 @@ void SymbolTable::PrintType(std::ostream &out, const TypeData &type)
         out << "Array<" << type.is_array << ", " << type_string_map[type.type] << ">";
 }
 
-bool SymbolTable::CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right)
+std::optional<TypeData> SymbolTable::OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
 {
-    return operator_map.find(TypeInfo(left, op, right)) != operator_map.end();
-}
-
-TypeData SymbolTable::OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
-{
-    return operator_map.at(TypeInfo(left, op, right));
+    if (operator_map.find(TypeInfo(left, op, right)) != operator_map.end())
+        return operator_map.at(TypeInfo(left, op, right));
+    else
+        return std::nullopt;
 }
 
 bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
@@ -68,7 +66,7 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
         if (varType == valType)
             return true;
 
-        StructID *sVal = GetStruct(valType);
+        std::optional<StructID> sVal = GetStruct(valType);
         TypeData parent = sVal->parent;
 
         if (parent == VOID_TYPE)
@@ -116,23 +114,7 @@ void SymbolTable::AddVar(const TypeData &type, const std::string &name, const si
     vars.push_back(VarID(type, name, depth, size));
 }
 
-bool SymbolTable::IsVarInScope(std::string &name)
-{
-    size_t varIndex = SIZE_MAX;
-
-    for (size_t i = vars.size() - 1; (int)i >= 0; i--)
-    {
-        if (vars[i].name == name && vars[i].depth == depth)
-        {
-            varIndex = i;
-            break;
-        }
-    }
-
-    return varIndex != SIZE_MAX;
-}
-
-VarID *SymbolTable::GetVar(std::string &name)
+std::optional<VarID> SymbolTable::GetVar(std::string &name)
 {
     size_t varIndex = SIZE_MAX;
 
@@ -146,9 +128,9 @@ VarID *SymbolTable::GetVar(std::string &name)
     }
 
     if (varIndex == SIZE_MAX)
-        return nullptr;
+        return std::nullopt;
 
-    return &vars[varIndex];
+    return vars[varIndex];
 }
 
 size_t SymbolTable::GetVariableStackLoc(std::string &name)
@@ -174,60 +156,60 @@ void SymbolTable::AddCLibFunc(const FuncID &func)
     c_lib_functions.push_back(func);
 }
 
-FuncID *SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &args)
+std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &args)
 {
     for (auto &f : funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
-            return &f;
+            return f;
         if (f.name == name && MatchTemplateFunction(templates, args, f.templates, f.argtypes))
-            return &f;
+            return f;
     }
 
     for (auto &f : funcs)
     {
         if (f.name == name && CanAssignAll(f.argtypes, args))
-            return &f;
+            return f;
     }
 
-    FuncID *f = FindCLibraryFunctions(args, name);
-    if (f != nullptr)
+    std::optional<FuncID> f = FindCLibraryFunctions(args, name);
+    if (f)
         return f;
 
     for (auto &f : native_funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
-            return &f;
+            return f;
     }
 
-    return nullptr;
+    return std::nullopt;
 }
 
-size_t SymbolTable::GetUDFuncNum(FuncID *fid)
+size_t SymbolTable::GetUDFuncNum(std::optional<FuncID> &fid)
 {
     for (size_t i = 0; i < funcs.size(); i++)
     {
-        if (fid == &funcs[i])
+        if (FuncIDEq()(fid.value(), funcs[i]))
             return i;
     }
     return SIZE_MAX;
 }
 
-size_t SymbolTable::GetCLibFuncNum(FuncID *fid)
+size_t SymbolTable::GetCLibFuncNum(std::optional<FuncID> &fid)
 {
     for (size_t i = 0; i < c_lib_functions.size(); i++)
     {
-        if (fid == &c_lib_functions[i])
+        if (FuncIDEq()(fid.value(), c_lib_functions[i]))
             return i;
     }
     return SIZE_MAX;
 }
 
-size_t SymbolTable::GetNativeFuncNum(FuncID *fid)
+size_t SymbolTable::GetNativeFuncNum(std::optional<FuncID> &fid)
 {
     for (size_t i = 0; i < native_funcs.size(); i++)
     {
-        if (fid == &native_funcs[i])
+        if (FuncIDEq()(fid.value(), native_funcs[i]))
             return i;
     }
     return SIZE_MAX;
@@ -253,20 +235,21 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
     return IsEqual(f_args, args) || CanAssignAll(f_args, args);
 }
 
-FuncID *SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
+std::optional<FuncID> SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
     for (auto &lf : c_lib_functions)
     {
         if (lf.name == name && IsEqual(lf.argtypes, args))
-            return &lf;
+            return lf;
     }
 
     for (auto &lf : c_lib_functions)
     {
         if (lf.name == name && CanAssignAll(lf.argtypes, args))
-            return &lf;
+            return lf;
     }
-    return nullptr;
+
+    return std::nullopt;
 }
 
 bool SymbolTable::IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given)
@@ -326,15 +309,15 @@ void SymbolTable::AddStruct(const StructID &s)
     strcts.push_back(s);
 }
 
-StructID *SymbolTable::GetStruct(const TypeData &td)
+std::optional<StructID> SymbolTable::GetStruct(const TypeData &td)
 {
     for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
     {
         if (strcts[i].type.type == td.type)
-            return &strcts[i];
+            return strcts[i];
     }
 
-    return nullptr;
+    return std::nullopt;
 }
 
 void SymbolError(const std::string &msg)

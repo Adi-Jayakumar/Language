@@ -38,24 +38,24 @@ TypeData StaticAnalyser::AnalyseLiteral(Literal *l)
 TypeData StaticAnalyser::AnalyseUnary(Unary *u)
 {
     TypeData right = u->right->Analyse(*this);
+    std::optional<TypeData> result = symbols.OperatorResult(VOID_TYPE, u->op.type, right);
 
-    if (!symbols.CheckOperatorUse(VOID_TYPE, u->op.type, right))
+    if (!result)
         TypeError(u->op, "Cannot use oprand of type " + symbols.ToString(right) + " with operator " + u->op.literal);
 
-    u->t = symbols.OperatorResult(VOID_TYPE, u->op.type, right);
-    return u->t;
+    return u->t = result.value();
 }
 
 TypeData StaticAnalyser::AnalyseBinary(Binary *b)
 {
     TypeData left = b->left->Analyse(*this);
     TypeData right = b->right->Analyse(*this);
+    std::optional<TypeData> result = symbols.OperatorResult(left, b->op.type, right);
 
-    if (!symbols.CheckOperatorUse(left, b->op.type, right))
+    if (!result)
         TypeError(b->op, "Cannot use operands of type " + symbols.ToString(left) + " and " + symbols.ToString(right) + "with operator " + b->op.literal);
 
-    b->t = symbols.OperatorResult(left, b->op.type, right);
-    return b->t;
+    return b->t = result.value();
 }
 
 TypeData StaticAnalyser::AnalyseAssign(Assign *a)
@@ -82,11 +82,11 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
 
 TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
 {
-    VarID *vid = symbols.GetVar(vr->name);
-    if (vid == nullptr)
+    std::optional<VarID> vid = symbols.GetVar(vr->name);
+    if (!vid)
         SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
 
-    return vr->t = vid->type;
+    return vr->t = vid.value().type;
 }
 
 TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
@@ -95,8 +95,8 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
     for (auto &e : fc->args)
         args.push_back(e->Analyse(*this));
 
-    FuncID *fid = symbols.GetFunc(fc->name, fc->templates, args);
-    if (fid == nullptr)
+    std::optional<FuncID> fid = symbols.GetFunc(fc->name, fc->templates, args);
+    if (!fid)
     {
         std::ostringstream out;
         out << fc->name;
@@ -179,8 +179,8 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
     }
     else
     {
-        StructID *sid = symbols.GetStruct(bi_type);
-        if (sid == nullptr)
+        std::optional<StructID> sid = symbols.GetStruct(bi_type);
+        if (sid)
             TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
         if (sid->nameTypes.size() != args.size())
             TypeError(bi->Loc(), "Number of arguments in braced initialiser is not equal to the number of arguments in struct declaration");
@@ -212,8 +212,8 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
 {
     TypeData accessor = fa->accessor->Analyse(*this);
 
-    StructID *sid = symbols.GetStruct(accessor);
-    if (sid == nullptr)
+    std::optional<StructID> sid = symbols.GetStruct(accessor);
+    if (sid)
         TypeError(fa->Loc(), "Type " + symbols.ToString(accessor) + " cannot be accessed into");
 
     VarReference *vr_accessee = dynamic_cast<VarReference *>(fa->accessee.get());
@@ -266,8 +266,8 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
     if (end != INT_TYPE)
         TypeError(s->start->Loc(), "End of sequence must be of type int");
 
-    VarID *vid = symbols.GetVar(s->var->name);
-    if (vid != nullptr)
+    std::optional<VarID> vid = symbols.GetVar(s->var->name);
+    if (vid)
         StaticAnalysisError(s->var->Loc(), "Indexing variable is already defined");
 
     symbols.depth++;
@@ -280,7 +280,7 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
     symbols.CleanUpCurDepth();
     symbols.depth--;
 
-    if (!symbols.CheckOperatorUse(INT_TYPE, s->op, INT_TYPE))
+    if (!symbols.OperatorResult(INT_TYPE, s->op, INT_TYPE))
         StaticAnalysisError(s->term->Loc(), "The operator of a sequence must be able to take 2 integers as arguments");
 
     if (symbols.OperatorResult(INT_TYPE, s->op, INT_TYPE) != INT_TYPE)
@@ -302,8 +302,8 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
     if (symbols.vars.size() > MAX_OPRAND)
         StaticAnalysisError(dv->Loc(), "Maximum number of variables is " + std::to_string(MAX_OPRAND));
 
-    VarID *vid = symbols.GetVar(dv->name);
-    if (vid != nullptr && vid->depth == symbols.depth)
+    std::optional<VarID> vid = symbols.GetVar(dv->name);
+    if (vid && vid->depth == symbols.depth)
         SymbolError(dv->Loc(), "Variable '" + symbols.ToString(dv->t) + " " + dv->name + "' has already been defined in this scope");
 
     if (dv->value != nullptr)
@@ -358,8 +358,8 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &t : fd->templates)
         templates.push_back(t.first);
 
-    FuncID *isThere = symbols.GetFunc(fd->name, templates, argtypes);
-    if (isThere != nullptr)
+    std::optional<FuncID> is_there = symbols.GetFunc(fd->name, templates, argtypes);
+    if (is_there)
     {
         std::ostringstream out;
 
@@ -429,9 +429,9 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
     {
         if (parent.is_array)
             TypeError(sd->Loc(), "Parent of a struct cannot be array");
-        StructID *sid_parent = symbols.GetStruct(parent);
+        std::optional<StructID> sid_parent = symbols.GetStruct(parent);
 
-        if (sid_parent == nullptr)
+        if (sid_parent)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
         name_types.insert(name_types.end(), sid_parent->nameTypes.begin(), sid_parent->nameTypes.end());

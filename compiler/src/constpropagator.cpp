@@ -35,7 +35,7 @@ SP<Expr> ConstantPropagator::PropagateExpression(SP<Expr> &expr)
     case ExprKind::VAR_REFERENCE:
     {
         SP<VarReference> vr = std::dynamic_pointer_cast<VarReference>(expr);
-        VarID *vid = symbols.GetVar(vr->name);
+        std::optional<VarID> vid = symbols.GetVar(vr->name);
 
         SP<Expr> val = constants.GetVarVal(vid->type, vid->name);
 
@@ -55,7 +55,7 @@ SP<Expr> ConstantPropagator::PropagateExpression(SP<Expr> &expr)
         VarReference *targetAsVR = dynamic_cast<VarReference *>(a->target.get());
         if (targetAsVR != nullptr)
         {
-            VarID *vid = symbols.GetVar(targetAsVR->name);
+            std::optional<VarID> vid = symbols.GetVar(targetAsVR->name);
             constants.RemoveVarVal(vid->type, vid->name);
         }
         return a;

@@ -162,9 +162,7 @@ public:
     void PrintType(std::ostream &out, const TypeData &type);
 
     //-------------------OPERATOR USE METHODS-------------------//
-
-    bool CheckOperatorUse(const TypeData &left, const TokenID &op, const TypeData &right);
-    TypeData OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);
+    std::optional<TypeData> OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);
 
     //-------------------BASE POINTER OFFSET METHODS-------------------//
     // returns the offset from the base pointer of the last variable added to the stack
@@ -181,23 +179,22 @@ public:
     void AddStruct(const StructID &sid);
 
     //-------------------VARIABLE OPERATIONS-------------------//
-    bool IsVarInScope(std::string &name);
-    VarID *GetVar(std::string &name);              // getters of identifiers
-    size_t GetVariableStackLoc(std::string &name); // returns SIZE_MAX if variable is not found
+    std::optional<VarID> GetVar(std::string &name); // getters of identifiers
+    size_t GetVariableStackLoc(std::string &name);  // returns SIZE_MAX if variable is not found
 
     //-------------------FUNCTION OPERATIONS-------------------//
-    FuncID *GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
-    size_t GetUDFuncNum(FuncID *fid);
-    size_t GetCLibFuncNum(FuncID *fid);
+    std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
+    size_t GetUDFuncNum(std::optional<FuncID> &fid);
+    size_t GetCLibFuncNum(std::optional<FuncID> &fid);
     size_t NumCFuncs() { return c_lib_functions.size(); };
-    size_t GetNativeFuncNum(FuncID *fid);
+    size_t GetNativeFuncNum(std::optional<FuncID> &fid);
 
     bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
                                std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
-    FuncID *FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
+    std::optional<FuncID> FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
 
     //-------------------STRUCT OPERATIONS-------------------//
-    StructID *GetStruct(const TypeData &type);
+    std::optional<StructID> GetStruct(const TypeData &type);
 
     //-------------------UTILITY WRAPPERS-------------------//
     bool IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given);
