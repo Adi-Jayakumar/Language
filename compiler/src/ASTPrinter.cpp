@@ -299,6 +299,10 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 void ASTPrinter::PrintTemplateDecl(TemplateDecl *td)
 {
     out << "template<";
+
+    for (const auto &type : td->templates)
+        symbols.AddType(type.second);
+
     for (size_t i = 0; i < td->templates.size(); i++)
     {
         symbols.PrintType(out, td->templates[i].first);
@@ -306,8 +310,12 @@ void ASTPrinter::PrintTemplateDecl(TemplateDecl *td)
             out << ", ";
     }
     out << ">";
+
     NewLine();
     td->stmt->Print(*this);
+
+    for (const auto &type : td->templates)
+        symbols.RemoveType(type.second);
 }
 
 void ASTPrinter::PrintReturn(Return *r)
