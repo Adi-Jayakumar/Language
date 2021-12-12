@@ -75,9 +75,6 @@ enum class TokenID : uint8_t
     // opening and closing verifcation statements
     OPEN_VER,  // (|
     CLOSE_VER, // |)
-    // opening and closing template functions
-    OPEN_TEMPLATE,  // <|
-    CLOSE_TEMPLATE, // |>
     // result of calling a function used in the verifier's post conditions
     RESULT,
     // 'Sequence' keyword, used in verification conditions

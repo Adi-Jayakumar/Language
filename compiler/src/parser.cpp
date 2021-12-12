@@ -6,6 +6,7 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
 {
     cur = lex.NextToken();
     next = lex.NextToken();
+    two_next = lex.NextToken();
 }
 
 void Parser::ParseError(Token loc, std::string err)
@@ -44,12 +45,13 @@ void Parser::Advance()
 {
     prev = cur;
     cur = next;
+    next = two_next;
 
-    if (cur.type != TokenID::END)
-        next = lex.NextToken();
+    if (next.type != TokenID::END)
+        two_next = lex.NextToken();
 
-    if (prev.type == TokenID::STRUCT && cur.type == TokenID::TYPENAME_KW)
-        symbols.AddType(next.literal);
+    if (cur.type == TokenID::STRUCT && next.type == TokenID::TYPENAME_KW)
+        symbols.AddType(two_next.literal);
 }
 
 TypeData Parser::ParseType(std::string err)
@@ -396,12 +398,12 @@ SP<Stmt> Parser::TemplateFunction()
 {
     Token loc = cur;
     Advance();
-    Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
+    Check(TokenID::LT, "Expect '<' after 'template'");
 
     std::vector<std::pair<TypeData, std::string>> added_types;
 
     size_t count = 0;
-    while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+    while (cur.type != TokenID::GT && cur.type != TokenID::END)
     {
         Advance();
         Check(TokenID::IDEN, "Expect type identifier");
@@ -413,7 +415,7 @@ SP<Stmt> Parser::TemplateFunction()
         Advance();
     }
 
-    Check(TokenID::CLOSE_TEMPLATE, "Expect '|>' after template declaration");
+    Check(TokenID::GT, "Expect '>' after template declaration");
     Advance();
 
     SP<Stmt> function = Statement();
@@ -765,7 +767,7 @@ SP<Expr> Parser::LiteralNode()
         res = ParseSequenceNode();
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
-    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_TEMPLATE)
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::LT && (two_next.type == TokenID::ARRAY || two_next.type == TokenID::TYPENAME))
         res = FuncCall();
     else if (cur.type == TokenID::CAST)
         res = FuncCall();
@@ -801,20 +803,13 @@ SP<Expr> Parser::FuncCall()
 
     if (cur.type == TokenID::LT)
     {
-        Advance();
-        type = ParseType("Invalid type for generic function call");
-        Check(TokenID::GT, "Missing '>'");
-        Advance();
-    }
-    else if (cur.type == TokenID::OPEN_TEMPLATE)
-    {
-        while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+        while (cur.type != TokenID::GT && cur.type != TokenID::END)
         {
             Advance();
             templates.push_back(ParseType("Expect type in a template list"));
         }
 
-        Check(TokenID::CLOSE_TEMPLATE, "Missing '|>'");
+        Check(TokenID::GT, "Missing '>'");
         Advance();
     }
 

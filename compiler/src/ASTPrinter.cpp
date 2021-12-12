@@ -92,13 +92,13 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
 
     if (fc->templates.size() != 0)
     {
-        out << "<|";
+        out << "<";
         for (auto &t : fc->templates)
         {
             symbols.PrintType(out, t);
             out << ", ";
         }
-        out << "|>";
+        out << ">";
     }
 
     out << "(";
@@ -243,14 +243,14 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
     if (fd->templates.size() != 0)
     {
-        out << "template<|";
+        out << "template<";
         for (auto &t : fd->templates)
         {
             symbols.AddType(t.second);
             symbols.PrintType(out, t.first);
             out << ", ";
         }
-        out << "|>";
+        out << ">";
         NewLine();
     }
 
@@ -317,7 +317,7 @@ void ASTPrinter::PrintReturn(Return *r)
     out << "return ";
     if (r->ret_val != nullptr)
         r->ret_val->Print(*this);
-    
+
     out << ";";
     NewLine();
 }

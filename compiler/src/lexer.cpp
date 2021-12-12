@@ -115,11 +115,6 @@ Token Lexer::NextToken()
             res = {TokenID::LEQ, "<=", line};
             index++;
         }
-        else if (src[index + 1] == '|')
-        {
-            res = {TokenID::OPEN_TEMPLATE, "<|", line};
-            index++;
-        }
         else
             res = {TokenID::LT, "<", line};
         break;
@@ -186,11 +181,6 @@ Token Lexer::NextToken()
         else if (src[index + 1] == ')')
         {
             res = {TokenID::CLOSE_VER, "|)", line};
-            index++;
-        }
-        else if (src[index + 1] == '>')
-        {
-            res = {TokenID::CLOSE_TEMPLATE, "|>", line};
             index++;
         }
         break;

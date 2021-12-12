@@ -185,14 +185,6 @@ std::string ToString(const TokenID &t)
     {
         return "CLOSE_VER";
     }
-    case TokenID::OPEN_TEMPLATE:
-    {
-        return "OPEN_TEMPLATE";
-    }
-    case TokenID::CLOSE_TEMPLATE:
-    {
-        return "CLOSE_TEMPLATE";
-    }
     case TokenID::RESULT:
     {
         return "RESULT";

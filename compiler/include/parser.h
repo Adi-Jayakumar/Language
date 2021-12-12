@@ -8,9 +8,7 @@ struct Parser
 {
     SymbolTable symbols;
     Lexer lex;
-    Token prev;
-    Token cur;
-    Token next;
+    Token prev, cur, next, two_next;
 
     size_t depth;
     bool had_error;
