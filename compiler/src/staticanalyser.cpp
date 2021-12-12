@@ -365,14 +365,14 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
         if (fd->templates.size() > 0)
         {
-            out << "template<|";
+            out << "template<";
             for (size_t i = 0; i < fd->templates.size(); i++)
             {
                 out << fd->templates[i].second;
                 if (i != fd->templates.size() - 1)
                     out << ", ";
             }
-            out << "|>";
+            out << ">";
         }
 
         symbols.PrintType(out, fd->ret);
