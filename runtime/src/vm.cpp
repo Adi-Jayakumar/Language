@@ -973,7 +973,7 @@ std::vector<ThrowInfo> VM::DeserialiseThrowInfos(std::ifstream &file)
     for (size_t i = 0; i < num_throws; i++)
     {
         ThrowInfo ti = ThrowInfo();
-        file.read((char *)&ti.isArray, sizeof(bool));
+        file.read((char *)&ti.is_array, sizeof(bool));
         file.read((char *)&ti.type, sizeof(ti.type));
         file.read((char *)&ti.func, sizeof(ti.func));
         file.read((char *)&ti.index, sizeof(ti.index));
