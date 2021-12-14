@@ -81,6 +81,7 @@ bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
 
 size_t SymbolTable::SizeOf(const TypeData &type)
 {
+    assert(type != VOID_TYPE);
     if (type.is_array)
         return ARRAY_SIZE;
     else if (type == INT_TYPE)
@@ -148,23 +149,23 @@ size_t SymbolTable::GetVariableStackLoc(std::string &name)
 
 void SymbolTable::AddFunc(const FuncID &func)
 {
-    funcs.emplace_back(func);
+    plain_funcs.emplace_back(func);
 }
 
 void SymbolTable::AddCLibFunc(const FuncID &func)
 {
-    c_lib_functions.push_back(func);
+    c_lib_funcs.push_back(func);
 }
 
 std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
 {
-    for (auto &f : funcs)
+    for (auto &f : plain_funcs)
     {
         if (f.name == name && IsEqual(f.argtypes, args))
             return f;
     }
 
-    for (auto &f : funcs)
+    for (auto &f : plain_funcs)
     {
         if (f.name == name && CanAssignAll(f.argtypes, args))
             return f;
@@ -185,9 +186,9 @@ std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeDa
 
 size_t SymbolTable::GetUDFuncNum(std::optional<FuncID> &fid)
 {
-    for (size_t i = 0; i < funcs.size(); i++)
+    for (size_t i = 0; i < plain_funcs.size(); i++)
     {
-        if (FuncIDEq()(fid.value(), funcs[i]))
+        if (FuncIDEq()(fid.value(), plain_funcs[i]))
             return i;
     }
     return SIZE_MAX;
@@ -195,9 +196,9 @@ size_t SymbolTable::GetUDFuncNum(std::optional<FuncID> &fid)
 
 size_t SymbolTable::GetCLibFuncNum(std::optional<FuncID> &fid)
 {
-    for (size_t i = 0; i < c_lib_functions.size(); i++)
+    for (size_t i = 0; i < c_lib_funcs.size(); i++)
     {
-        if (FuncIDEq()(fid.value(), c_lib_functions[i]))
+        if (FuncIDEq()(fid.value(), c_lib_funcs[i]))
             return i;
     }
     return SIZE_MAX;
@@ -235,13 +236,13 @@ bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::v
 
 std::optional<FuncID> SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
-    for (auto &lf : c_lib_functions)
+    for (auto &lf : c_lib_funcs)
     {
         if (lf.name == name && IsEqual(lf.argtypes, args))
             return lf;
     }
 
-    for (auto &lf : c_lib_functions)
+    for (auto &lf : c_lib_funcs)
     {
         if (lf.name == name && CanAssignAll(lf.argtypes, args))
             return lf;

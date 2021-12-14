@@ -3,6 +3,7 @@
 #include "nativefuncs.h"
 #include "perror.h"
 #include "templateutils.h"
+#include <cassert>
 #include <dlfcn.h>
 #include <optional>
 #include <sstream>
@@ -40,9 +41,12 @@ public:
     std::vector<VarID> vars;
 
 private:
-    std::vector<FuncID> funcs;
-    std::vector<FuncID> native_funcs;
-    std::vector<FuncID> c_lib_functions;
+    std::vector<FuncID> plain_funcs,
+        template_funcs,
+        initialised_template_funcs,
+        native_funcs,
+        c_lib_funcs;
+
     std::vector<StructID> strcts;
 
     std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
@@ -187,7 +191,7 @@ public:
     // std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
     size_t GetUDFuncNum(std::optional<FuncID> &fid);
     size_t GetCLibFuncNum(std::optional<FuncID> &fid);
-    size_t NumCFuncs() { return c_lib_functions.size(); };
+    size_t NumCFuncs() { return c_lib_funcs.size(); };
     size_t GetNativeFuncNum(std::optional<FuncID> &fid);
 
     bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,

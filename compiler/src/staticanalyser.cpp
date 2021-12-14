@@ -391,6 +391,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
 void StaticAnalyser::AnalyseTemplateDecl(TemplateDecl *td)
 {
+    
 }
 
 void StaticAnalyser::AnalyseReturn(Return *r)
