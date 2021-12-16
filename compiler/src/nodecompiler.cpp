@@ -562,6 +562,8 @@ void NodeCompiler::CompileWhileStmt(WhileStmt *ws, Compiler &c)
 
 void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
 {
+    c.cur_func = fd;
+
     c.AddFunction();
 
     c.cur->arity = fd->params.size();
@@ -586,6 +588,8 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     c.ClearCurrentDepthWithPOPInst();
     c.symbols.depth--;
     c.cur = &c.functions[0];
+
+    c.cur_func = nullptr;
 }
 
 void NodeCompiler::CompileTemplateDecl(TemplateDecl *td, Compiler &c)
