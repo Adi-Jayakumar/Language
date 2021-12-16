@@ -11,8 +11,35 @@ Compiler::Compiler()
 
 void Compiler::CompileError(Token loc, std::string err)
 {
-    Error e = Error("[COMPILE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
+    std::ostringstream out;
+
+    if (cur_func != nullptr)
+    {
+        out << "[STATIC ANALYSIS ERROR] In function '";
+        symbols.PrintType(out, cur_func->ret);
+        out << " " << cur_func->name << "(";
+
+        if (cur_func->params.size() > 0)
+        {
+            for (size_t i = 0; i < cur_func->params.size(); i++)
+            {
+                symbols.PrintType(out, cur_func->params[i].first);
+                out << " " << cur_func->params[i].second;
+                if (i != cur_func->params.size() - 1)
+                    out << ", ";
+            }
+        }
+
+        out << ")'\n"
+            << "On line ";
+    }
+    else
+        out << "[STATIC ANALYSIS ERROR] on line ";
+
+    out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
+        << err << "\n";
+
+    throw Error(out.str());
 }
 
 void Compiler::AddCode(Op o)

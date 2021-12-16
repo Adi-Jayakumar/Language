@@ -14,20 +14,101 @@ void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
 
 void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
 {
-    Error e = Error("[STATIC ANALYSIS ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
+    std::ostringstream out;
+
+    if (cur_func != nullptr)
+    {
+        out << "[STATIC ANALYSIS ERROR] In function '";
+        symbols.PrintType(out, cur_func->ret);
+        out << " " << cur_func->name << "(";
+
+        if (cur_func->params.size() > 0)
+        {
+            for (size_t i = 0; i < cur_func->params.size(); i++)
+            {
+                symbols.PrintType(out, cur_func->params[i].first);
+                out << " " << cur_func->params[i].second;
+                if (i != cur_func->params.size() - 1)
+                    out << ", ";
+            }
+        }
+
+        out << ")'\n"
+            << "On line ";
+    }
+    else
+        out << "[STATIC ANALYSIS ERROR] on line ";
+
+    out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
+        << err << "\n";
+
+    throw Error(out.str());
 }
 
 void StaticAnalyser::TypeError(Token loc, std::string err)
 {
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
+    std::ostringstream out;
+
+    if (cur_func != nullptr)
+    {
+        out << "[TYPE ERROR] In function '";
+        symbols.PrintType(out, cur_func->ret);
+        out << " " << cur_func->name << "(";
+
+        if (cur_func->params.size() > 0)
+        {
+            for (size_t i = 0; i < cur_func->params.size(); i++)
+            {
+                symbols.PrintType(out, cur_func->params[i].first);
+                out << " " << cur_func->params[i].second;
+                if (i != cur_func->params.size() - 1)
+                    out << ", ";
+            }
+        }
+
+        out << ")'\n"
+            << "On line ";
+    }
+    else
+        out << "[TYPE ERROR] on line ";
+
+    out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
+        << err << "\n";
+
+    throw Error(out.str());
 }
 
 void StaticAnalyser::SymbolError(Token loc, std::string err)
 {
-    Error e = Error("[SYMBOL ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
+    std::ostringstream out;
+
+    if (cur_func != nullptr)
+    {
+        out << "[SYMBOL ERROR] In function '";
+        symbols.PrintType(out, cur_func->ret);
+        out << " " << cur_func->name << "(";
+
+        if (cur_func->params.size() > 0)
+        {
+            for (size_t i = 0; i < cur_func->params.size(); i++)
+            {
+                symbols.PrintType(out, cur_func->params[i].first);
+                out << " " << cur_func->params[i].second;
+                if (i != cur_func->params.size() - 1)
+                    out << ", ";
+            }
+        }
+
+        out << ")'\n"
+            << "On line ";
+    }
+    else
+        out << "[SYMBOL ERROR] on line ";
+
+    out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
+        << err << "\n";
+
+    throw Error(out.str());
 }
 
 TypeData StaticAnalyser::AnalyseLiteral(Literal *l)
@@ -350,6 +431,8 @@ void StaticAnalyser::AnalyseWhileStmt(WhileStmt *ws)
 
 void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 {
+    cur_func = fd;
+
     std::vector<TypeData> argtypes;
     for (auto &arg : fd->params)
         argtypes.push_back(arg.first);
@@ -382,16 +465,30 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &arg : fd->params)
         symbols.AddVar(arg.first, arg.second, 0);
 
+    for (auto &pre : fd->pre_conds)
+    {
+        if (pre->Analyse(*this) != BOOL_TYPE)
+            TypeError(pre->Loc(), "Precondition must have type bool");
+    }
+
     for (auto &stmt : fd->body)
         stmt->Analyse(*this);
 
+    symbols.AddVar(fd->ret, "result", 0);
+    if (fd->post_cond != nullptr)
+    {
+        if (fd->post_cond->Analyse(*this) != BOOL_TYPE)
+            TypeError(fd->post_cond->Loc(), "Postcondition must have type bool");
+    }
+
     symbols.CleanUpCurDepth();
     symbols.depth--;
+    
+    cur_func = nullptr;
 }
 
 void StaticAnalyser::AnalyseTemplateDecl(TemplateDecl *td)
 {
-    
 }
 
 void StaticAnalyser::AnalyseReturn(Return *r)

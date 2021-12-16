@@ -17,6 +17,7 @@ public:
     oprand_t parse_index;
     std::vector<Function> functions;
     std::unordered_map<TypeID, std::unordered_set<TypeID>> struct_tree;
+    FuncDecl *cur_func;
 
     std::vector<LibraryFunctionDef> lib_funcs;
 

@@ -7,31 +7,45 @@
 
 class PostConditionGenerator
 {
-    std::vector<std::vector<SP<Expr>>> post;
-    std::vector<SP<Expr>> conditions;
+    std::vector<std::vector<z3::expr>> post;
+    std::vector<z3::expr> conditions;
     std::vector<SP<Stmt>> program;
     SymbolTable symbols; // for function calls
+    FuncDecl *cur_func;
+    z3::context context;
 
 public:
     // Should pass in the SymbolTable used to StaticAnalyse the code
-    PostConditionGenerator(const SymbolTable &_symbols) : symbols(_symbols)
-    {
-        post.push_back(std::vector<SP<Expr>>());
-    };
+    PostConditionGenerator(const SymbolTable &_symbols) : symbols(_symbols){
+                                                              // post.push_back(std::vector<z3::expr>());
+                                                          };
+
+    void Generate(FuncDecl *fd);
+    z3::expr GetZ3Post();
 
     void PostConditionError(Token loc, std::string err);
-    std::vector<std::vector<SP<Expr>>> Generate(SP<FuncDecl> &function, std::vector<SP<Stmt>> &_program);
-
-    void ReplaceFunctionCallInPost(std::vector<std::vector<SP<Expr>>> &post);
-    // Replaces a function call with its postcondition but function arguments
-    // substituted for the function all's arguments
     void ReplaceFunctionCall(SP<Expr> &post);
 
-    void AddReturnValue(const SP<Expr> &ret);
-    void AddCondition(const SP<Expr> &c);
+    z3::expr MAKE_RETURN(const TypeData &type, const z3::expr &val, const Token &loc);
+    void AddReturnValue(const z3::expr &ret);
+    void AddCondition(const z3::expr &c);
     void RemoveLastCondition();
 
-    // statement analysis
+    // expression generation
+    z3::expr GenerateFromLiteral(Literal *l);
+    z3::expr GenerateFromUnary(Unary *u);
+    z3::expr GenerateFromBinary(Binary *b);
+    z3::expr GenerateFromAssign(Assign *a);
+    z3::expr GenerateFromVarReference(VarReference *vr);
+    z3::expr GenerateFromFunctionCall(FunctionCall *fc);
+    z3::expr GenerateFromArrayIndex(ArrayIndex *ai);
+    z3::expr GenerateFromBracedInitialiser(BracedInitialiser *ia);
+    z3::expr GenerateFromDynamicAllocArray(DynamicAllocArray *da);
+    z3::expr GenerateFromFieldAccess(FieldAccess *fa);
+    z3::expr GenerateFromTypeCast(TypeCast *tc);
+    z3::expr GenerateFromSequence(Sequence *s);
+
+    // statement generation
     void GenerateFromExprStmt(ExprStmt *es);
     void GenerateFromDeclaredVar(DeclaredVar *dv);
     void GenerateFromBlock(Block *b);

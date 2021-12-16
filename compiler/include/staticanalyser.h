@@ -6,6 +6,7 @@ class StaticAnalyser
     SymbolTable symbols;
     std::vector<SP<Stmt>> program;
     size_t parse_index;
+    FuncDecl *cur_func;
 
 public:
     StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols){};
