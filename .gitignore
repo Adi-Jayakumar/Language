@@ -42,3 +42,4 @@ verifier_ex/*
 
 # vscode specific
 *.code-workspace
+c_cpp_properties.json
