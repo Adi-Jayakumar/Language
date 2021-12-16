@@ -1,8 +1,6 @@
 CC		:= g++
 
 # -fsanitize=leak -fsanitize=address -fsanitize=undefined
-
-
 C_FLAGS := -g -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra -Wpedantic -march=native -Wl,--export-dynamic
 
 BIN		:= bin
@@ -11,7 +9,7 @@ INCLUDE_ONE	:= include
 INCLUDE_TWO := ../common
 LIB		:= lib
 
-LIBRARIES	:= -ldl
+LIBRARIES	:= -ldl -lz3
 
 ifeq ($(OS),Windows_NT)
 EXECUTABLE	:= compiler.exe
