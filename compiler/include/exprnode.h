@@ -3,6 +3,7 @@
 #include "token.h"
 #include <cstring>
 #include <memory>
+#include <z3++.h>
 
 template <class T>
 using SP = std::shared_ptr<T>;
@@ -10,6 +11,7 @@ using SP = std::shared_ptr<T>;
 class ASTPrinter;
 class Compiler;
 class StaticAnalyser;
+class Verifier;
 
 enum class ExprKind
 {
@@ -41,8 +43,10 @@ public:
     virtual void Print(ASTPrinter &p) = 0;
     // ensures that the node is a valid node or throws error
     virtual TypeData Analyse(StaticAnalyser &sa) = 0;
-    // compiles the node - implmented in Compiler.cpp
+    // compiles the node - implmented in compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
+    // generates a postcondition from the node - implemented in postcondition.cpp
+    virtual z3::expr CreateZ3Expr(Verifier &v) = 0;
     // virtual ~Expr() = 0;
 };
 
@@ -134,6 +138,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class Unary : public Expr
@@ -153,6 +158,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class Binary : public Expr
@@ -174,6 +180,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class VarReference : public Expr
@@ -192,6 +199,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class Assign : public Expr
@@ -213,6 +221,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class FunctionCall : public Expr
@@ -236,6 +245,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class ArrayIndex : public Expr
@@ -257,6 +267,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class BracedInitialiser : public Expr
@@ -278,6 +289,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class DynamicAllocArray : public Expr
@@ -297,6 +309,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class FieldAccess : public Expr
@@ -318,6 +331,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 class TypeCast : public Expr
@@ -325,7 +339,7 @@ class TypeCast : public Expr
 public:
     Token loc;
     SP<Expr> arg;
-    
+
     TypeCast(const TypeData &_type, const SP<Expr> &_arg, const Token &_loc)
     {
         kind = ExprKind::TYPE_CAST;
@@ -338,6 +352,7 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };
 
 // Sequence of integers, essentially a
@@ -378,4 +393,5 @@ public:
     void Print(ASTPrinter &p) override;
     TypeData Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    z3::expr CreateZ3Expr(Verifier &v) override;
 };

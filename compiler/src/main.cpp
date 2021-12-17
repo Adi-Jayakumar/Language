@@ -4,8 +4,8 @@
 #include "constevaluator.h"
 #include "nodesubstitution.h"
 #include "parser.h"
-#include "postcondition.h"
 #include "serialise.h"
+#include "staticanalyser.h"
 #include "verifier.h"
 
 void DumpTokens(std::string fPath, SymbolTable &symbols)
@@ -100,34 +100,8 @@ int main(int argc, char **argv)
 
     if (arg.IsSwitchOn("-exp"))
     {
-        // Verifier v(parsed);
-        // std::vector<std::vector<SP<Expr>>> post = v.GeneratePost(std::dynamic_pointer_cast<FuncDecl>(parsed[0]), sa);
-        // PrintPost(post);
-
-        // SP<Expr> ten = std::make_shared<Literal>(10);
-        // SP<Expr> hund = std::make_shared<Literal>(100);
-        // Token loc = ten->Loc();
-        // loc.type = TokenID::STAR;
-        // SP<Expr> mult = std::make_shared<Binary>(ten, loc, ten);
-
-        // ConstantPropagator cp;
-
-        // for (auto &stmt : parsed)
-        // {
-        //     cp.PropagateStatement(stmt);
-        //     // ConstantEvaluator::SimplifyStatement(stmt);
-        //     // replaced.push_back(NodeSubstituter::Substitute(stmt, mult, hund));
-        // }
-
-        // if (arg.IsSwitchOn("-p"))
-        // {
-        //     std::cout << "PARSED" << std::endl;
-        //     ASTPrinter ast(false);
-
-        //     for (auto &stmt : parsed)
-        //         stmt->Print(ast);
-        //     ast.Flush();
-        // }
+        Verifier v(symbols);
+        v.Generate(dynamic_cast<FuncDecl *>(parsed[0].get()));
     }
 
     Compiler c;

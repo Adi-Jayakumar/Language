@@ -2,8 +2,6 @@
 #include "exprnode.h"
 #include <vector>
 
-class PostConditionGenerator;
-
 enum class StmtKind
 {
     EXPR_STMT,
@@ -30,9 +28,10 @@ public:
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
     virtual void Analyse(StaticAnalyser &sa) = 0;
-    // compiles the node - implemented in Compiler.cpp
+    // compiles the node - implemented in compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
-    virtual void GeneratePost(PostConditionGenerator &v) = 0;
+    // generates a postcondition from the node - implemented in postcondition.cpp
+    virtual void CreateZ3Expr(Verifier &v) = 0;
 };
 
 class ExprStmt : public Stmt
@@ -49,7 +48,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class DeclaredVar : public Stmt
@@ -70,7 +69,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Block : public Stmt
@@ -86,7 +85,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class IfStmt : public Stmt
@@ -107,7 +106,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class WhileStmt : public Stmt
@@ -128,7 +127,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class FuncDecl : public Stmt
@@ -163,7 +162,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class TemplateDecl : public Stmt
@@ -183,7 +182,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Return : public Stmt
@@ -201,7 +200,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class StructDecl : public Stmt
@@ -222,7 +221,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class ImportStmt : public Stmt
@@ -239,7 +238,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Break : public Stmt
@@ -253,7 +252,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Throw : public Stmt
@@ -270,7 +269,7 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class TryCatch : public Stmt
@@ -294,5 +293,5 @@ public:
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
-    void GeneratePost(PostConditionGenerator &pc) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
