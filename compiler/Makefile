@@ -1,5 +1,5 @@
 CC		:= g++
-C_FLAGS := -g -std=c++17 -Wall -Wextra -march=native -fext-numeric-literals
+C_FLAGS := -g -std=c++17 -Wall -Wextra -Wpedantic -march=native -fext-numeric-literals
 ASAN_FLAGS := -fsanitize=leak -fsanitize=address -fsanitize=undefined
 
 BIN		:= bin
