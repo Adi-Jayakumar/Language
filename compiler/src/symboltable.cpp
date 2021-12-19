@@ -214,26 +214,6 @@ size_t SymbolTable::GetNativeFuncNum(std::optional<FuncID> &fid)
     return SIZE_MAX;
 }
 
-bool SymbolTable::MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
-                                        std::vector<TypeData> f_templates, std::vector<TypeData> f_args)
-{
-    if (templates.size() != f_templates.size() || args.size() != f_args.size())
-        return false;
-
-    std::unordered_map<TypeID, TypeData> templateMap = GetTemplateMap();
-    for (size_t i = 0; i < templates.size(); i++)
-        templateMap[f_templates[i].type] = templates[i];
-
-    for (size_t j = 0; j < f_args.size(); j++)
-    {
-        TypeData replacement = templateMap[f_args[j].type];
-        f_args[j].type = replacement.type;
-        f_args[j].is_array += replacement.is_array;
-    }
-
-    return IsEqual(f_args, args) || CanAssignAll(f_args, args);
-}
-
 std::optional<FuncID> SymbolTable::FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name)
 {
     for (auto &lf : c_lib_funcs)

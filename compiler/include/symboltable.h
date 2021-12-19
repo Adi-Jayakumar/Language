@@ -2,11 +2,12 @@
 #include "idstructs.h"
 #include "nativefuncs.h"
 #include "perror.h"
-#include "templateutils.h"
+#include "token.h"
 #include <cassert>
 #include <dlfcn.h>
 #include <optional>
 #include <sstream>
+#include <unordered_map>
 
 class TypeInfo
 {
@@ -194,8 +195,8 @@ public:
     size_t NumCFuncs() { return c_lib_funcs.size(); };
     size_t GetNativeFuncNum(std::optional<FuncID> &fid);
 
-    bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
-                               std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
+    // bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
+    //                            std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
     std::optional<FuncID> FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
 
     //-------------------STRUCT OPERATIONS-------------------//

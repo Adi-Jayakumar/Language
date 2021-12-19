@@ -1,6 +1,6 @@
 #pragma once
-#include "common.h"
 #include "token.h"
+#include "typedata.h"
 #include <cstring>
 #include <memory>
 #include <z3++.h>

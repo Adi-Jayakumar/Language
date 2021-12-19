@@ -42,3 +42,20 @@ const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE
 #define STRING_ARRAY TypeData(1, 4)
 #define CHAR_ARRAY TypeData(1, 5)
 #define NULL_ARRAY TypeData(1, 6)
+
+bool operator==(const TypeData &left, const TypeData &right);
+bool operator!=(const TypeData &left, const TypeData &right);
+
+namespace std
+{
+    template <>
+    struct hash<TypeData>
+    {
+        size_t operator()(const TypeData &t) const
+        {
+            std::hash<size_t> stHasher;
+            std::hash<TypeID> tHasher;
+            return stHasher(t.is_array) ^ tHasher(t.type);
+        }
+    };
+}

@@ -1,5 +1,4 @@
 #pragma once
-#include "common.h"
 #include "typedata.h"
 #include <string>
 #include <vector>
@@ -81,7 +80,7 @@ struct FuncIDHasher
 {
     size_t operator()(const FuncID &fi) const
     {
-        TypeDataHasher t;
+        std::hash<TypeData> t;
         size_t argHash = 0;
 
         for (const auto &arg : fi.argtypes)

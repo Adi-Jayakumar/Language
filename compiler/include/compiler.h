@@ -9,6 +9,7 @@
 #include "throwinfo.h"
 #include <fstream>
 #include <stack>
+#include <unordered_set>
 
 class Compiler
 {

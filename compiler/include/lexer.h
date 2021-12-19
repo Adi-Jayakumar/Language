@@ -1,8 +1,8 @@
 #pragma once
-#include "common.h"
 #include "perror.h"
 #include "symboltable.h"
 #include "token.h"
+#include "typedata.h"
 #include <fstream>
 #include <streambuf>
 #include <string>
