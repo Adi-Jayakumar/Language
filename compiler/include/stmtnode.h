@@ -165,26 +165,6 @@ public:
     void CreateZ3Expr(Verifier &v) override;
 };
 
-class TemplateDecl : public Stmt
-{
-public:
-    std::vector<std::pair<TypeData, std::string>> templates;
-    SP<Stmt> stmt;
-
-    TemplateDecl(std::vector<std::pair<TypeData, std::string>> &_templates, SP<Stmt> &_stmt, Token &_loc)
-    {
-        kind = StmtKind::TEMPLATE_DECL;
-        loc = _loc;
-        templates = _templates;
-        stmt = _stmt;
-    };
-
-    void Print(ASTPrinter &p) override;
-    void Analyse(StaticAnalyser &sa) override;
-    void NodeCompile(Compiler &c) override;
-    void CreateZ3Expr(Verifier &v) override;
-};
-
 class Return : public Stmt
 {
 public:

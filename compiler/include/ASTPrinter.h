@@ -63,7 +63,6 @@ public:
     void PrintIfStmt(IfStmt *i);
     void PrintWhileStmt(WhileStmt *ws);
     void PrintFuncDecl(FuncDecl *fd);
-    void PrintTemplateDecl(TemplateDecl *td);
     void PrintReturn(Return *r);
     void PrintStructDecl(StructDecl *sd);
     void PrintImportStmt(ImportStmt *is);

@@ -592,10 +592,6 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     c.cur_func = nullptr;
 }
 
-void NodeCompiler::CompileTemplateDecl(TemplateDecl *td, Compiler &c)
-{
-}
-
 void NodeCompiler::CompileReturn(Return *r, Compiler &c)
 {
     if (r->ret_val == nullptr)
@@ -799,11 +795,6 @@ void WhileStmt::NodeCompile(Compiler &c)
 void FuncDecl::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileFuncDecl(this, c);
-}
-
-void TemplateDecl::NodeCompile(Compiler &c)
-{
-    NodeCompiler::CompileTemplateDecl(this, c);
 }
 
 void Return::NodeCompile(Compiler &c)

@@ -113,7 +113,7 @@ void StaticAnalyser::SymbolError(Token loc, std::string err)
 
 TypeData StaticAnalyser::AnalyseLiteral(Literal *l)
 {
-    return l->t;
+    return (*cur_type_subst)[l->t];
 }
 
 TypeData StaticAnalyser::AnalyseUnary(Unary *u)
@@ -124,7 +124,7 @@ TypeData StaticAnalyser::AnalyseUnary(Unary *u)
     if (!result)
         TypeError(u->op, "Cannot use oprand of type " + symbols.ToString(right) + " with operator " + u->op.literal);
 
-    return u->t = result.value();
+    return u->t = (*cur_type_subst)[result.value()];
 }
 
 TypeData StaticAnalyser::AnalyseBinary(Binary *b)
@@ -136,7 +136,7 @@ TypeData StaticAnalyser::AnalyseBinary(Binary *b)
     if (!result)
         TypeError(b->op, "Cannot use operands of type " + symbols.ToString(left) + " and " + symbols.ToString(right) + "with operator " + b->op.literal);
 
-    return b->t = result.value();
+    return b->t = (*cur_type_subst)[result.value()];
 }
 
 TypeData StaticAnalyser::AnalyseAssign(Assign *a)
@@ -158,7 +158,7 @@ TypeData StaticAnalyser::AnalyseAssign(Assign *a)
         dynamic_cast<FieldAccess *>(a->target.get()) == nullptr)
         StaticAnalysisError(a->target->Loc(), "Invalid assignment target");
 
-    return a->t = target;
+    return a->t = (*cur_type_subst)[target];
 }
 
 TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
@@ -167,7 +167,7 @@ TypeData StaticAnalyser::AnalyseVarReference(VarReference *vr)
     if (!vid)
         SymbolError(vr->Loc(), "Variable '" + vr->name + "' has not been defined");
 
-    return vr->t = vid.value().type;
+    return vr->t = (*cur_type_subst)[vid.value().type];
 }
 
 TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
@@ -208,7 +208,13 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
 
-    return fc->t = fid->ret;
+    if (fc->templates.size() > 0)
+    {
+        FuncDecl *decl = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
+        RegisterTypeSubst(TypeSubstituter(decl->templates, fc->templates, decl->Loc()));
+    }
+
+    return fc->t = (*cur_type_subst)[fid->ret];
 }
 
 TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
@@ -230,7 +236,7 @@ TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
     else
         ai->t = CHAR_TYPE;
 
-    return ai->t;
+    return (*cur_type_subst)[ai->t];
 }
 
 TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
@@ -286,7 +292,7 @@ TypeData StaticAnalyser::AnalyseDynamicAllocArray(DynamicAllocArray *da)
     if (size != INT_TYPE)
         TypeError(da->Loc(), "Size of dynamically allocated array must have type int not " + symbols.ToString(size));
 
-    return da->t;
+    return (*cur_type_subst)[da->t];
 }
 
 TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
@@ -315,7 +321,7 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     if (index == SIZE_MAX)
         SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vr_accessee->name);
 
-    return fa->t = sid->nameTypes[index].second;
+    return fa->t = (*cur_type_subst)[sid->nameTypes[index].second];
 }
 
 TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
@@ -329,7 +335,7 @@ TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
     if (!is_down_cast && !is_up_cast)
         TypeError(tc->Loc(), "Cannot cast " + symbols.ToString(old) + " to " + symbols.ToString(nw));
 
-    return tc->t;
+    return (*cur_type_subst)[tc->t];
 }
 
 TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
@@ -390,7 +396,7 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
     if (dv->value != nullptr)
     {
         TypeData val = dv->value->Analyse(*this);
-        if (!symbols.CanAssign(dv->t, val))
+        if (!symbols.CanAssign((*cur_type_subst)[dv->t], val))
             TypeError(dv->Loc(), "Cannot initialise variable '" + dv->name + "' of type " + symbols.ToString(dv->t) + " with expression of type " + symbols.ToString(val));
     }
     else
@@ -398,7 +404,7 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
         if (symbols.depth == 0)
             SymbolError(dv->Loc(), "Global variable must be initialised");
     }
-    symbols.AddVar(dv->t, dv->name, 0);
+    symbols.AddVar((*cur_type_subst)[dv->t], dv->name, 0);
 }
 
 void StaticAnalyser::AnalyseBlock(Block *b)
@@ -483,16 +489,13 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 
     symbols.CleanUpCurDepth();
     symbols.depth--;
-    
-    cur_func = nullptr;
-}
 
-void StaticAnalyser::AnalyseTemplateDecl(TemplateDecl *td)
-{
+    cur_func = nullptr;
 }
 
 void StaticAnalyser::AnalyseReturn(Return *r)
 {
+    // TODO Check this matches current function's return type
     if (r->ret_val != nullptr)
         r->ret_val->Analyse(*this);
 }
@@ -659,11 +662,6 @@ void WhileStmt::Analyse(StaticAnalyser &sa)
 void FuncDecl::Analyse(StaticAnalyser &sa)
 {
     sa.AnalyseFuncDecl(this);
-}
-
-void TemplateDecl::Analyse(StaticAnalyser &sa)
-{
-    sa.AnalyseTemplateDecl(this);
 }
 
 void Return::Analyse(StaticAnalyser &sa)

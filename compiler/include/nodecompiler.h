@@ -29,7 +29,6 @@ namespace NodeCompiler
     void CompileIfStmt(IfStmt *i, Compiler &c);
     void CompileWhileStmt(WhileStmt *ws, Compiler &c);
     void CompileFuncDecl(FuncDecl *fd, Compiler &c);
-    void CompileTemplateDecl(TemplateDecl *td, Compiler &c);
     void CompileReturn(Return *r, Compiler &c);
     void CompileStructDecl(StructDecl *sd, Compiler &c);
     void CompileImportStmt(ImportStmt *is, Compiler &C);

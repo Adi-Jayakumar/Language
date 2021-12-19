@@ -353,10 +353,6 @@ void Verifier::GenerateFromFuncDecl(FuncDecl *fd)
     cur_func = nullptr;
 }
 
-void Verifier::GenerateFromTemplateDecl(TemplateDecl *)
-{
-}
-
 void Verifier::GenerateFromReturn(Return *r)
 {
     if (r->ret_val == nullptr)
@@ -479,11 +475,6 @@ void WhileStmt::CreateZ3Expr(Verifier &v)
 void FuncDecl::CreateZ3Expr(Verifier &v)
 {
     v.GenerateFromFuncDecl(this);
-}
-
-void TemplateDecl::CreateZ3Expr(Verifier &v)
-{
-    v.GenerateFromTemplateDecl(this);
 }
 
 void Return::CreateZ3Expr(Verifier &v)

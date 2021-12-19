@@ -1,21 +1,32 @@
 #include "stmtnode.h"
 #include "symboltable.h"
+#include "typesubst.h"
+#include <stack>
 
 class StaticAnalyser
 {
     SymbolTable symbols;
     std::vector<SP<Stmt>> program;
     size_t parse_index;
+    std::stack<TypeSubstituter> template_stack;
+    TypeSubstituter *cur_type_subst;
     FuncDecl *cur_func;
 
 public:
-    StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols){};
-
-    SymbolTable GetSymbolTable() { return symbols; };
+    StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols)
+    {
+        RegisterTypeSubst(TypeSubstituter());
+    }
 
     void StaticAnalysisError(Token loc, std::string err);
     void TypeError(Token loc, std::string err);
     void SymbolError(Token loc, std::string err);
+
+    void RegisterTypeSubst(const TypeSubstituter &substitution)
+    {
+        template_stack.push(TypeSubstituter());
+        cur_type_subst = &template_stack.top();
+    };
 
     void Analyse(std::vector<SP<Stmt>> &program);
 
@@ -40,7 +51,6 @@ public:
     void AnalyseIfStmt(IfStmt *i);
     void AnalyseWhileStmt(WhileStmt *ws);
     void AnalyseFuncDecl(FuncDecl *fd);
-    void AnalyseTemplateDecl(TemplateDecl *td);
     void AnalyseReturn(Return *r);
     void AnalyseStructDecl(StructDecl *sd);
     void AnalyseImportStmt(ImportStmt *is);

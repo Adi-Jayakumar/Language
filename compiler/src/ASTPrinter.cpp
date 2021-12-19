@@ -296,28 +296,6 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     NewLine();
 }
 
-void ASTPrinter::PrintTemplateDecl(TemplateDecl *td)
-{
-    out << "template<";
-
-    for (const auto &type : td->templates)
-        symbols.AddType(type.second);
-
-    for (size_t i = 0; i < td->templates.size(); i++)
-    {
-        symbols.PrintType(out, td->templates[i].first);
-        if (i != td->templates.size() - 1)
-            out << ", ";
-    }
-    out << ">";
-
-    NewLine();
-    td->stmt->Print(*this);
-
-    for (const auto &type : td->templates)
-        symbols.RemoveType(type.second);
-}
-
 void ASTPrinter::PrintReturn(Return *r)
 {
     out << "return ";
@@ -475,11 +453,6 @@ void WhileStmt::Print(ASTPrinter &p)
 void FuncDecl::Print(ASTPrinter &p)
 {
     p.PrintFuncDecl(this);
-}
-
-void TemplateDecl::Print(ASTPrinter &p)
-{
-    p.PrintTemplateDecl(this);
 }
 
 void Return::Print(ASTPrinter &p)
