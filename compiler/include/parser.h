@@ -45,6 +45,8 @@ struct Parser
     SP<Stmt> WhileStatement();
     // parses a function declrataion
     SP<Stmt> FuncDeclaration();
+    // parses a template declaration
+    SP<Stmt> TemplateDeclaration();
     // parses a struct declaration
     SP<Stmt> ParseStructDecl();
     // parses an expression statement

@@ -8,15 +8,12 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
 TypeData SymbolTable::AddType(const std::string &name)
 {
     TypeData new_type(0, num_types++);
-    type_name_map[name] = new_type;
     type_string_map[new_type.type] = name;
     return new_type;
 }
 
-void SymbolTable::RemoveType(const std::string &type)
+void SymbolTable::RemoveType(const TypeID type_id)
 {
-    TypeID type_id = type_name_map[type].type;
-    type_name_map.erase(type);
     type_string_map.erase(type_id);
 }
 
@@ -152,12 +149,18 @@ void SymbolTable::AddFunc(const FuncID &func)
     plain_funcs.emplace_back(func);
 }
 
+void SymbolTable::AddTemplateFunc(const FuncID &func)
+{
+    template_funcs.push_back(func);
+}
+
 void SymbolTable::AddCLibFunc(const FuncID &func)
 {
     c_lib_funcs.push_back(func);
 }
 
-std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeData> &args)
+std::optional<FuncID> SymbolTable::GetFunc(const std::string &name,
+                                           std::vector<TypeData> &args)
 {
     for (auto &f : plain_funcs)
     {
@@ -168,6 +171,18 @@ std::optional<FuncID> SymbolTable::GetFunc(std::string &name, std::vector<TypeDa
     for (auto &f : plain_funcs)
     {
         if (f.name == name && CanAssignAll(f.argtypes, args))
+            return f;
+    }
+
+    // for (auto &f : initialised_template_funcs)
+    // {
+    //     if (MatchTemplateFunc(name, args, subst, f))
+    //         return f;
+    // }
+
+    for (auto &f : template_funcs)
+    {
+        if (MatchTemplateFunc(name, args, f))
             return f;
     }
 
@@ -229,6 +244,22 @@ std::optional<FuncID> SymbolTable::FindCLibraryFunctions(const std::vector<TypeD
     }
 
     return std::nullopt;
+}
+
+std::optional<FuncID> SymbolTable::MatchTemplateFunc(const std::string &name,
+                                                     std::vector<TypeData> &args,
+                                                     FuncID &fid)
+{
+    if (name != fid.name || args.size() != fid.argtypes.size())
+        return std::nullopt;
+
+    for (size_t i = 0; i < args.size(); i++)
+    {
+        if (args[i].is_array != fid.argtypes[i].is_array)
+            return std::nullopt;
+    }
+
+    return fid;
 }
 
 bool SymbolTable::IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given)
@@ -378,45 +409,46 @@ std::vector<std::string> SymbolTable::GetLibraryFunctionNames(const std::string 
 
 TypeData SymbolTable::ParseType(const std::string &type)
 {
-    if (type_name_map.find(type) != type_name_map.end())
-        return type_name_map[type];
+    // std::optional<TypeData> td_type = ResolveType(type);
+    // if (td_type)
+    //     return td_type.value();
 
-    static const std::string array("Array");
+    // static const std::string array("Array");
 
-    if (!std::equal(array.begin(), array.end(), type.begin()))
-        LibraryError("Invalid type '" + type + "'");
+    // if (!std::equal(array.begin(), array.end(), type.begin()))
+    //     LibraryError("Invalid type '" + type + "'");
 
-    if (type[5] != '<' || type[type.length() - 1] != '>')
-        LibraryError("Invalid type '" + type + "'");
+    // if (type[5] != '<' || type[type.length() - 1] != '>')
+    //     LibraryError("Invalid type '" + type + "'");
 
-    std::string num_type(type.begin() + 6, type.end() - 1);
-    std::cout << "numtype = " << num_type << std::endl;
-    std::stringstream ss(num_type);
+    // std::string num_type(type.begin() + 6, type.end() - 1);
+    // std::stringstream ss(num_type);
 
-    std::string sNum;
+    // std::string sNum;
 
-    if (!std::getline(ss, sNum, ','))
-    {
-        if (type_name_map.find(num_type) != type_name_map.end())
-            return type_name_map[num_type];
-        else
-            LibraryError("Invalid type '" + type + "'");
-    }
+    // if (!std::getline(ss, sNum, ','))
+    // {
+    //     std::optional<TypeData> arr_type = ResolveType(sNum);
+    //     if (type_name_map.find(num_type) != type_name_map.end())
+    //         return type_name_map[num_type];
+    //     else
+    //         LibraryError("Invalid type '" + type + "'");
+    // }
 
-    size_t num = std::stol(sNum);
-    std::string sType;
+    // size_t num = std::stol(sNum);
+    // std::string sType;
 
-    if (!std::getline(ss, sType, ','))
-        LibraryError("Invalid type '" + type + "'");
+    // if (!std::getline(ss, sType, ','))
+    //     LibraryError("Invalid type '" + type + "'");
 
-    if (type_name_map.find(num_type) != type_name_map.end())
-    {
-        TypeData res = type_name_map[num_type];
-        res.is_array = num;
-        return res;
-    }
-    else
-        LibraryError("Invalid type '" + type + "'");
+    // if (type_name_map.find(num_type) != type_name_map.end())
+    // {
+    //     TypeData res = type_name_map[num_type];
+    //     res.is_array = num;
+    //     return res;
+    // }
+    // else
+    //     LibraryError("Invalid type '" + type + "'");
     return VOID_TYPE;
 }
 

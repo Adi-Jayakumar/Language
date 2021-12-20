@@ -3,6 +3,7 @@
 #include "nativefuncs.h"
 #include "perror.h"
 #include "token.h"
+#include "typesubst.h"
 #include <cassert>
 #include <dlfcn.h>
 #include <optional>
@@ -117,13 +118,13 @@ private:
             {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
         };
 
-    std::unordered_map<std::string, TypeData> type_name_map{{"void", VOID_TYPE},
-                                                            {"int", INT_TYPE},
-                                                            {"double", DOUBLE_TYPE},
-                                                            {"bool", BOOL_TYPE},
-                                                            {"string", STRING_TYPE},
-                                                            {"char", CHAR_TYPE},
-                                                            {"null_t", NULL_TYPE}};
+    // std::unordered_map<std::string, TypeData> type_name_map{{"void", VOID_TYPE},
+    //                                                         {"int", INT_TYPE},
+    //                                                         {"double", DOUBLE_TYPE},
+    //                                                         {"bool", BOOL_TYPE},
+    //                                                         {"string", STRING_TYPE},
+    //                                                         {"char", CHAR_TYPE},
+    //                                                         {"null_t", NULL_TYPE}};
 
     std::unordered_map<TypeID, std::string> type_string_map{{0, "void"},
                                                             {1, "int"},
@@ -153,14 +154,22 @@ public:
     //-------------------TYPE METHODS-------------------//
 
     TypeData AddType(const std::string &name);
-    void RemoveType(const std::string &type);
+    void AddTypeString(const TypeData &type, const std::string &name)
+    {
+        type_string_map[type.type] = name;
+    };
 
+    void RemoveType(const TypeID type_id);
+
+    // Potentially unreliable for template types which have the same name
     std::optional<TypeData> ResolveType(const std::string &type)
     {
-        if (type_name_map.find(type) != type_name_map.end())
-            return type_name_map[type];
-        else
-            return std::nullopt;
+        for (const auto &kv : type_string_map)
+        {
+            if (kv.second == type)
+                return TypeData(0, kv.first);
+        }
+        return std::nullopt;
     };
 
     std::string ToString(const TypeData &type);
@@ -179,8 +188,9 @@ public:
 
     //-------------------ADD SYMBOLS-------------------//
     void AddVar(const TypeData &type, const std::string &name, const size_t size);
-    void AddFunc(const FuncID &fid);
-    void AddCLibFunc(const FuncID &fid);
+    void AddFunc(const FuncID &func);
+    void AddTemplateFunc(const FuncID &func);
+    void AddCLibFunc(const FuncID &func);
     void AddStruct(const StructID &sid);
 
     //-------------------VARIABLE OPERATIONS-------------------//
@@ -188,16 +198,17 @@ public:
     size_t GetVariableStackLoc(std::string &name);  // returns SIZE_MAX if variable is not found
 
     //-------------------FUNCTION OPERATIONS-------------------//
-    std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &argtypes);
-    // std::optional<FuncID> GetFunc(std::string &name, std::vector<TypeData> &templates, std::vector<TypeData> &argtypes);
+    std::optional<FuncID> GetFunc(const std::string &name,
+                                  std::vector<TypeData> &argtypes);
     size_t GetUDFuncNum(std::optional<FuncID> &fid);
     size_t GetCLibFuncNum(std::optional<FuncID> &fid);
     size_t NumCFuncs() { return c_lib_funcs.size(); };
     size_t GetNativeFuncNum(std::optional<FuncID> &fid);
 
-    // bool MatchTemplateFunction(std::vector<TypeData> &templates, std::vector<TypeData> &args,
-    //                            std::vector<TypeData> f_templates, std::vector<TypeData> f_args);
     std::optional<FuncID> FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
+    std::optional<FuncID> MatchTemplateFunc(const std::string &name,
+                                            std::vector<TypeData> &args,
+                                            FuncID &fid);
 
     //-------------------STRUCT OPERATIONS-------------------//
     std::optional<StructID> GetStruct(const TypeData &type);

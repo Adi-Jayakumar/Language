@@ -2,6 +2,7 @@
 #include "internaltypes.h"
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <vector>
 
 class TypeData
@@ -45,6 +46,7 @@ const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE
 
 bool operator==(const TypeData &left, const TypeData &right);
 bool operator!=(const TypeData &left, const TypeData &right);
+std::ostream &operator<<(std::ostream &out, const TypeData td);
 
 namespace std
 {

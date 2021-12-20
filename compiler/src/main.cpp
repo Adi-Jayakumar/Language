@@ -98,6 +98,16 @@ int main(int argc, char **argv)
     StaticAnalyser sa(symbols);
     sa.Analyse(parsed);
 
+    if (arg.IsSwitchOn("-t"))
+    {
+        std::cout << "ANALYSED" << std::endl;
+        ASTPrinter ast(true, symbols);
+
+        for (auto &stmt : parsed)
+            stmt->Print(ast);
+        ast.Flush();
+    }
+
     if (arg.IsSwitchOn("-exp"))
     {
         Verifier v(symbols);
