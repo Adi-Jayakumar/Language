@@ -76,23 +76,27 @@ struct FuncIDEq
     }
 };
 
-struct FuncIDHasher
+namespace std
 {
-    size_t operator()(const FuncID &fi) const
+    template <>
+    struct hash<FuncID>
     {
-        std::hash<TypeData> t;
-        size_t argHash = 0;
+        size_t operator()(const FuncID &fi) const
+        {
+            std::hash<TypeData> t;
+            size_t argHash = 0;
 
-        for (const auto &arg : fi.argtypes)
-            argHash = argHash ^ t(arg);
+            for (const auto &arg : fi.argtypes)
+                argHash = argHash ^ t(arg);
 
-        std::hash<std::string> strHasher;
-        size_t nameHash = strHasher(fi.name);
+            std::hash<std::string> str_hasher;
+            size_t name_hash = str_hasher(fi.name);
 
-        size_t retHash = t(fi.ret);
-        return argHash ^ nameHash ^ retHash;
-    }
-};
+            size_t retHash = t(fi.ret);
+            return argHash ^ name_hash ^ retHash;
+        }
+    };
+}
 
 struct StructID
 {

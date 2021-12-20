@@ -55,9 +55,9 @@ namespace std
     {
         size_t operator()(const TypeData &t) const
         {
-            std::hash<size_t> stHasher;
-            std::hash<TypeID> tHasher;
-            return stHasher(t.is_array) ^ tHasher(t.type);
+            std::hash<size_t> st_hasher;
+            std::hash<TypeID> type_id_hasher;
+            return st_hasher(t.is_array) ^ type_id_hasher(t.type);
         }
     };
 }

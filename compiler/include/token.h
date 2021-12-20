@@ -3,7 +3,9 @@
 #include <iostream>
 #include <string>
 
-enum class TokenID : uint8_t
+using token_int_type = uint8_t;
+
+enum class TokenID : token_int_type
 {
     // literal values
     INT_L,

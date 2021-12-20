@@ -23,19 +23,23 @@ public:
 
 bool operator==(const TypeInfo &l, const TypeInfo &r);
 
-struct TypeInfoHasher
+namespace std
 {
-    size_t operator()(const TypeInfo &t) const
+    template <>
+    struct hash<TypeInfo>
     {
-        std::hash<size_t> stHasher;
-        std::hash<TypeID> tHasher;
-        std::hash<uint8_t> u8Hasher;
-        size_t l = stHasher(t.left.is_array) ^ tHasher(t.left.type);
-        size_t r = stHasher(t.right.is_array) ^ tHasher(t.right.type);
-        size_t op = u8Hasher(static_cast<uint8_t>(t.t));
-        return l ^ r ^ op;
-    }
-};
+        size_t operator()(const TypeInfo &t) const
+        {
+            std::hash<size_t> st_hasher;
+            std::hash<TypeID> type_id_hasher;
+            std::hash<token_int_type> token_id_hasher;
+            size_t l = st_hasher(t.left.is_array) ^ type_id_hasher(t.left.type);
+            size_t r = st_hasher(t.right.is_array) ^ type_id_hasher(t.right.type);
+            size_t op = token_id_hasher(static_cast<token_int_type>(t.t));
+            return l ^ r ^ op;
+        }
+    };
+}
 
 class SymbolTable
 {
@@ -51,7 +55,7 @@ private:
 
     std::vector<StructID> strcts;
 
-    std::unordered_map<TypeInfo, TypeData, TypeInfoHasher>
+    std::unordered_map<TypeInfo, TypeData>
         operator_map{
             // binary plus
             {{INT_TYPE, TokenID::PLUS, INT_TYPE}, INT_TYPE},
