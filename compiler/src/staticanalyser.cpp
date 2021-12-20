@@ -12,32 +12,58 @@ void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
         program[parse_index]->Analyse(*this);
 }
 
-void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
+void StaticAnalyser::ErrorPreamble(std::ostream &out, const std::string err_type)
 {
-    std::ostringstream out;
 
     if (cur_func != nullptr)
     {
-        out << "[STATIC ANALYSIS ERROR] In function '";
-        symbols.PrintType(out, cur_func->ret);
+        out << "\n\n\n[STATIC ANALYSIS ERROR] In function '";
+
+        symbols.PrintType(out, (*cur_type_subst)[cur_func->ret]);
         out << " " << cur_func->name << "(";
 
         if (cur_func->params.size() > 0)
         {
             for (size_t i = 0; i < cur_func->params.size(); i++)
             {
-                symbols.PrintType(out, cur_func->params[i].first);
+                symbols.PrintType(out, (*cur_type_subst)[cur_func->params[i].first]);
                 out << " " << cur_func->params[i].second;
                 if (i != cur_func->params.size() - 1)
                     out << ", ";
             }
         }
 
-        out << ")'\n"
-            << "On line ";
+        out << ")'";
+
+        if (template_stack.size() > 1)
+        {
+            while (template_stack.size() > 1)
+            {
+                TypeSubstituter ts = template_stack.top();
+                template_stack.pop();
+                out << "\nInstantiated from the template declaration on line " << ts.loc.line << std::endl;
+                for (auto &kv : ts.subst)
+                {
+                    if (kv.first.type >= NUM_DEF_TYPES)
+                    {
+                        symbols.PrintType(out, kv.first);
+                        out << " = ";
+                        symbols.PrintType(out, kv.second);
+                    }
+                }
+            }
+            out << '\n';
+        }
+        out << "\nOn line ";
     }
     else
-        out << "[STATIC ANALYSIS ERROR] on line ";
+        out << "\n[" << err_type << "] on line ";
+}
+
+void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
+{
+    std::ostringstream out;
+    ErrorPreamble(out, "STATIC ANALYSIS ERROR");
 
     out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
         << err << "\n";
@@ -48,29 +74,7 @@ void StaticAnalyser::StaticAnalysisError(Token loc, std::string err)
 void StaticAnalyser::TypeError(Token loc, std::string err)
 {
     std::ostringstream out;
-
-    if (cur_func != nullptr)
-    {
-        out << "[TYPE ERROR] In function '";
-        symbols.PrintType(out, cur_func->ret);
-        out << " " << cur_func->name << "(";
-
-        if (cur_func->params.size() > 0)
-        {
-            for (size_t i = 0; i < cur_func->params.size(); i++)
-            {
-                symbols.PrintType(out, cur_func->params[i].first);
-                out << " " << cur_func->params[i].second;
-                if (i != cur_func->params.size() - 1)
-                    out << ", ";
-            }
-        }
-
-        out << ")'\n"
-            << "On line ";
-    }
-    else
-        out << "[TYPE ERROR] on line ";
+    ErrorPreamble(out, "TYPE ERROR");
 
     out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
         << err << "\n";
@@ -81,29 +85,7 @@ void StaticAnalyser::TypeError(Token loc, std::string err)
 void StaticAnalyser::SymbolError(Token loc, std::string err)
 {
     std::ostringstream out;
-
-    if (cur_func != nullptr)
-    {
-        out << "[SYMBOL ERROR] In function '";
-        symbols.PrintType(out, cur_func->ret);
-        out << " " << cur_func->name << "(";
-
-        if (cur_func->params.size() > 0)
-        {
-            for (size_t i = 0; i < cur_func->params.size(); i++)
-            {
-                symbols.PrintType(out, cur_func->params[i].first);
-                out << " " << cur_func->params[i].second;
-                if (i != cur_func->params.size() - 1)
-                    out << ", ";
-            }
-        }
-
-        out << ")'\n"
-            << "On line ";
-    }
-    else
-        out << "[SYMBOL ERROR] on line ";
+    ErrorPreamble(out, "SYMBOL ERROR");
 
     out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
         << err << "\n";
@@ -134,7 +116,7 @@ TypeData StaticAnalyser::AnalyseBinary(Binary *b)
     std::optional<TypeData> result = symbols.OperatorResult(left, b->op.type, right);
 
     if (!result)
-        TypeError(b->op, "Cannot use operands of type " + symbols.ToString(left) + " and " + symbols.ToString(right) + "with operator " + b->op.literal);
+        TypeError(b->op, "Cannot use operands of type " + symbols.ToString(left) + " and " + symbols.ToString(right) + " with operator " + b->op.literal);
 
     return b->t = (*cur_type_subst)[result.value()];
 }
@@ -208,13 +190,32 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
 
+    bool typestack_needs_pop = false;
+
     if (fc->templates.size() > 0)
     {
         FuncDecl *decl = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
-        RegisterTypeSubst(TypeSubstituter(decl->templates, fc->templates, decl->Loc()));
+        std::vector<TypeData> templates;
+
+        for (auto &tmp : decl->templates)
+            templates.push_back(tmp.first);
+
+        std::vector<TypeData> new_types;
+        for (auto &new_t : fc->templates)
+            new_types.push_back((*cur_type_subst)[new_t]);
+
+        RegisterTypeSubst(TypeSubstituter(templates, new_types, decl->Loc()));
+        typestack_needs_pop = true;
+
+        analyse_template_func = true;
+        decl->Analyse(*this);
+        analyse_template_func = false;
     }
 
-    return fc->t = (*cur_type_subst)[fid->ret];
+    TypeData res = fc->t = (*cur_type_subst)[fid->ret];
+    if (typestack_needs_pop)
+        PopTypeSubst();
+    return res;
 }
 
 TypeData StaticAnalyser::AnalyseArrayIndex(ArrayIndex *ai)
@@ -443,29 +444,48 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     for (auto &arg : fd->params)
         argtypes.push_back(arg.first);
 
-    std::optional<FuncID> is_there = symbols.GetFunc(fd->name, argtypes);
-    if (is_there)
+    std::vector<TypeData> templates;
+    for (const auto &temp : fd->templates)
     {
-        std::ostringstream out;
-
-        symbols.PrintType(out, fd->ret);
-        out << " " << fd->name << "(";
-
-        if (fd->params.size() > 0)
-        {
-            for (size_t i = 0; i < fd->params.size(); i++)
-            {
-                symbols.PrintType(out, fd->params[i].first);
-                out << " " << fd->params[i].second;
-                if (i != fd->params.size() - 1)
-                    out << ", ";
-            }
-        }
-        out << ")";
-        SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
+        symbols.AddTypeString(temp.first, temp.second);
+        templates.push_back(temp.first);
     }
 
-    symbols.AddFunc(FuncID(fd->ret, fd->name, argtypes, FunctionType::USER_DEFINED, parse_index));
+    // only check whether a function is already defined when we are not
+    // analysing a template function instantiaion as that is sure to be
+    // defined already
+    if (fd->templates.size() > 0 && !analyse_template_func)
+    {
+        std::optional<FuncID> is_there = symbols.GetFunc(fd->name, argtypes);
+        if (is_there)
+        {
+            std::ostringstream out;
+
+            symbols.PrintType(out, fd->ret);
+            out << " " << fd->name << "(";
+
+            if (fd->params.size() > 0)
+            {
+                for (size_t i = 0; i < fd->params.size(); i++)
+                {
+                    symbols.PrintType(out, fd->params[i].first);
+                    out << " " << fd->params[i].second;
+                    if (i != fd->params.size() - 1)
+                        out << ", ";
+                }
+            }
+            out << ")";
+            SymbolError(fd->Loc(), "Function '" + out.str() + "' has already been defined");
+        }
+    }
+
+    if (fd->templates.size() == 0)
+        symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, parse_index));
+    else
+        symbols.AddTemplateFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED_TEMPLATE, parse_index));
+
+    if (fd->templates.size() > 0 && !analyse_template_func)
+        return;
 
     symbols.depth++;
     for (auto &arg : fd->params)

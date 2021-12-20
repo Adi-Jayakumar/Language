@@ -136,7 +136,7 @@ public:
     TypeData ret;
     std::string name;
     std::vector<std::pair<TypeData, std::string>> params;
-
+    std::vector<std::pair<TypeData, std::string>> templates;
     std::vector<SP<Stmt>> body;
     std::vector<SP<Expr>> pre_conds;
     SP<Expr> post_cond;

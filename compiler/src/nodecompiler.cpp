@@ -572,7 +572,11 @@ void NodeCompiler::CompileFuncDecl(FuncDecl *fd, Compiler &c)
     for (auto &arg : fd->params)
         argtypes.push_back(arg.first);
 
-    c.symbols.AddFunc(FuncID(fd->ret, fd->name, argtypes, FunctionType::USER_DEFINED, c.parse_index));
+    std::vector<TypeData> templates;
+    for (const auto &temp : fd->templates)
+        templates.push_back(temp.first);
+
+    c.symbols.AddFunc(FuncID(fd->ret, fd->name, templates, argtypes, FunctionType::USER_DEFINED, c.parse_index));
 
     c.symbols.depth++;
     for (auto &arg : fd->params)

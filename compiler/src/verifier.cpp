@@ -143,27 +143,27 @@ void Verifier::ReplaceFunctionCall(SP<Expr> &exp)
     }
     case ExprKind::FUNCTION_CALL:
     {
-        FunctionCall *fc = dynamic_cast<FunctionCall *>(exp.get());
-        std::vector<TypeData> argtypes;
-        for (auto &arg : fc->args)
-        {
-            ReplaceFunctionCall(arg);
-            argtypes.push_back(arg->GetType());
-        }
+        // FunctionCall *fc = dynamic_cast<FunctionCall *>(exp.get());
+        // std::vector<TypeData> argtypes;
+        // for (auto &arg : fc->args)
+        // {
+        //     ReplaceFunctionCall(arg);
+        //     argtypes.push_back(arg->GetType());
+        // }
 
-        std::optional<FuncID> fid = symbols.GetFunc(fc->name, argtypes);
-        FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
+        // std::optional<FuncID> fid = symbols.GetFunc(fc->name, argtypes);
+        // FuncDecl *fd = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
 
-        if (fd->post_cond == nullptr)
-            PostConditionError(fd->Loc(), "Cannot have call to function which does not have a post condition in the strongest postcondition");
+        // if (fd->post_cond == nullptr)
+        //     PostConditionError(fd->Loc(), "Cannot have call to function which does not have a post condition in the strongest postcondition");
 
-        exp = fd->post_cond;
-        assert(fd->params.size() == fc->args.size());
-        for (size_t i = 0; i < fd->params.size(); i++)
-        {
-            SP<Expr> arg = std::make_shared<VarReference>(Token(TokenID::IDEN, fd->params[i].second, 0));
-            exp = NodeSubstituter::Substitute(exp, arg, fc->args[i]);
-        }
+        // exp = fd->post_cond;
+        // assert(fd->params.size() == fc->args.size());
+        // for (size_t i = 0; i < fd->params.size(); i++)
+        // {
+        //     SP<Expr> arg = std::make_shared<VarReference>(Token(TokenID::IDEN, fd->params[i].second, 0));
+        //     exp = NodeSubstituter::Substitute(exp, arg, fc->args[i]);
+        // }
         break;
     }
     case ExprKind::ARRAY_INDEX:

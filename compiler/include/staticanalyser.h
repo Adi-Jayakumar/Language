@@ -9,6 +9,7 @@ class StaticAnalyser
     std::vector<SP<Stmt>> program;
     size_t parse_index;
     std::stack<TypeSubstituter> template_stack;
+    bool analyse_template_func;
     TypeSubstituter *cur_type_subst;
     FuncDecl *cur_func;
 
@@ -18,15 +19,22 @@ public:
         RegisterTypeSubst(TypeSubstituter());
     }
 
+    void ErrorPreamble(std::ostream &out, const std::string err_type);
     void StaticAnalysisError(Token loc, std::string err);
     void TypeError(Token loc, std::string err);
     void SymbolError(Token loc, std::string err);
 
     void RegisterTypeSubst(const TypeSubstituter &substitution)
     {
-        template_stack.push(TypeSubstituter());
+        template_stack.push(substitution);
         cur_type_subst = &template_stack.top();
     };
+
+    void PopTypeSubst()
+    {
+        template_stack.pop();
+        cur_type_subst = &template_stack.top();
+    }
 
     void Analyse(std::vector<SP<Stmt>> &program);
 
