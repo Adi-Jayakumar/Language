@@ -194,6 +194,7 @@ public:
     void AddVar(const TypeData &type, const std::string &name, const size_t size);
     void AddFunc(const FuncID &func);
     void AddTemplateFunc(const FuncID &func);
+    void AddInitialisedTemplateFunc(const FuncID &func);
     void AddCLibFunc(const FuncID &func);
     void AddStruct(const StructID &sid);
 
@@ -210,9 +211,12 @@ public:
     size_t GetNativeFuncNum(std::optional<FuncID> &fid);
 
     std::optional<FuncID> FindCLibraryFunctions(const std::vector<TypeData> &args, const std::string &name);
-    std::optional<FuncID> MatchTemplateFunc(const std::string &name,
-                                            std::vector<TypeData> &args,
-                                            FuncID &fid);
+    std::optional<FuncID> MatchUninitialisedTemplateFunc(const std::string &name,
+                                                         std::vector<TypeData> &args,
+                                                         FuncID &fid);
+    std::optional<FuncID> IsInitialisedTemplateFunc(const std::string &name,
+                                                    const std::vector<TypeData> &templates,
+                                                    const std::vector<TypeData> &args);
 
     //-------------------STRUCT OPERATIONS-------------------//
     std::optional<StructID> GetStruct(const TypeData &type);

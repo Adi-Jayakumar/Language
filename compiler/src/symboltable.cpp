@@ -154,6 +154,11 @@ void SymbolTable::AddTemplateFunc(const FuncID &func)
     template_funcs.push_back(func);
 }
 
+void SymbolTable::AddInitialisedTemplateFunc(const FuncID &func)
+{
+    initialised_template_funcs.push_back(func);
+}
+
 void SymbolTable::AddCLibFunc(const FuncID &func)
 {
     c_lib_funcs.push_back(func);
@@ -174,15 +179,9 @@ std::optional<FuncID> SymbolTable::GetFunc(const std::string &name,
             return f;
     }
 
-    // for (auto &f : initialised_template_funcs)
-    // {
-    //     if (MatchTemplateFunc(name, args, subst, f))
-    //         return f;
-    // }
-
     for (auto &f : template_funcs)
     {
-        if (MatchTemplateFunc(name, args, f))
+        if (MatchUninitialisedTemplateFunc(name, args, f))
             return f;
     }
 
@@ -246,9 +245,9 @@ std::optional<FuncID> SymbolTable::FindCLibraryFunctions(const std::vector<TypeD
     return std::nullopt;
 }
 
-std::optional<FuncID> SymbolTable::MatchTemplateFunc(const std::string &name,
-                                                     std::vector<TypeData> &args,
-                                                     FuncID &fid)
+std::optional<FuncID> SymbolTable::MatchUninitialisedTemplateFunc(const std::string &name,
+                                                                  std::vector<TypeData> &args,
+                                                                  FuncID &fid)
 {
     if (name != fid.name || args.size() != fid.argtypes.size())
         return std::nullopt;
@@ -260,6 +259,21 @@ std::optional<FuncID> SymbolTable::MatchTemplateFunc(const std::string &name,
     }
 
     return fid;
+}
+
+std::optional<FuncID> SymbolTable::IsInitialisedTemplateFunc(const std::string &name,
+                                                             const std::vector<TypeData> &templates,
+                                                             const std::vector<TypeData> &args)
+{
+    for (auto &init : initialised_template_funcs)
+    {
+        if (init.name == name &&
+            IsEqual(init.templates, templates) &&
+            IsEqual(init.argtypes, args))
+            return init;
+    }
+
+    return std::nullopt;
 }
 
 bool SymbolTable::IsEqual(const std::vector<TypeData> &actual, const std::vector<TypeData> &given)

@@ -5,6 +5,39 @@ inline bool IsTruthy(const TypeData &td)
     return td == INT_TYPE || td == BOOL_TYPE;
 }
 
+static void PrintFunctionCall(std::string &name,
+                              std::vector<TypeData> &templates,
+                              std::vector<TypeData> &args,
+                              SymbolTable &symbols,
+                              std::ostream &out)
+{
+    out << name;
+
+    if (templates.size() > 0)
+    {
+        out << "<";
+        for (size_t i = 0; i < templates.size(); i++)
+        {
+            symbols.PrintType(out, templates[i]);
+            if (i != templates.size() - 1)
+                out << ", ";
+        }
+        out << ">";
+    }
+
+    out << "(";
+    if (args.size() > 0)
+    {
+        for (size_t i = 0; i < args.size(); i++)
+        {
+            symbols.PrintType(out, args[i]);
+            if (i != args.size() - 1)
+                out << ", ";
+        }
+    }
+    out << ")";
+}
+
 void StaticAnalyser::Analyse(std::vector<SP<Stmt>> &_program)
 {
     program = _program;
@@ -162,31 +195,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
     if (!fid)
     {
         std::ostringstream out;
-        out << fc->name;
-
-        if (fc->templates.size() > 0)
-        {
-            out << "<";
-            for (size_t i = 0; i < fc->templates.size(); i++)
-            {
-                symbols.PrintType(out, fc->templates[i]);
-                if (i != fc->templates.size() - 1)
-                    out << ", ";
-            }
-            out << ">";
-        }
-
-        out << "(";
-        if (args.size() > 0)
-        {
-            for (size_t i = 0; i < args.size(); i++)
-            {
-                symbols.PrintType(out, args[i]);
-                if (i != args.size() - 1)
-                    out << ", ";
-            }
-        }
-        out << ")";
+        PrintFunctionCall(fc->name, fc->templates, args, symbols, out);
         SymbolError(fc->Loc(), "Function '" + out.str() + "' has not been defined yet");
     }
 
@@ -210,6 +219,34 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
 
         RegisterTypeSubst(TypeSubstituter(templates, new_types, decl->Loc()));
         typestack_needs_pop = true;
+
+        assert(decl->params.size() == fc->args.size());
+        bool template_arg_error = false;
+        for (size_t i = 0; i < decl->params.size(); i++)
+        {
+            if ((*cur_type_subst)[decl->params[i].first] != args[i])
+            {
+                template_arg_error = true;
+                break;
+            }
+        }
+
+        if (template_arg_error)
+        {
+            std::ostringstream out;
+            PrintFunctionCall(fc->name, fc->templates, args, symbols, out);
+            TypeError(fc->Loc(), "Arguments not equal to types specified by templates in function call '" + out.str() + "'");
+        }
+
+        std::optional<FuncID> is_already_init = symbols.IsInitialisedTemplateFunc(fc->name, fc->templates, args);
+
+        if (is_already_init)
+        {
+            PopTypeSubst();
+            return is_already_init->ret;
+        }
+        else
+            symbols.AddInitialisedTemplateFunc(FuncID((*cur_type_subst)[decl->ret], decl->name, new_types, args, FunctionType::USER_DEFINED, 0));
 
         analyse_template_func = true;
         decl->Analyse(*this);
