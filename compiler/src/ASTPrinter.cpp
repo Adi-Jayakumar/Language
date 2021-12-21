@@ -171,26 +171,6 @@ void ASTPrinter::PrintSequence(Sequence *s)
     out << ")";
 }
 
-void ASTPrinter::PrintSequence(Sequence *s)
-{
-    out << "Sequence(";
-
-    s->start->Print(*this);
-    out << ", ";
-
-    s->step->Print(*this);
-    out << ", ";
-
-    s->end->Print(*this);
-    out << ", ";
-
-    s->var->Print(*this);
-    out << ", ";
-
-    s->term->Print(*this);
-    out << ")";
-}
-
 //------------------STATEMENTS---------------------//
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es)

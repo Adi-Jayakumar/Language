@@ -437,11 +437,6 @@ void NodeCompiler::CompileSequence(Sequence *, Compiler &)
     return;
 }
 
-TypeData NodeCompiler::CompileSequence(Sequence *s, Compiler &c)
-{
-    return VOID_TYPE;
-}
-
 //------------------STATEMENTS---------------------//
 
 void NodeCompiler::CompileExprStmt(ExprStmt *es, Compiler &c)
@@ -626,27 +621,9 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
 
     if (parent != VOID_TYPE)
     {
-<<<<<<< HEAD
-        if (parent.isArray)
-            c.TypeError(sd->Loc(), "Parent of a struct cannot be array");
-        StructID *sidParent = c.Symbols.GetStruct(parent);
-
-        if (sidParent == nullptr)
-            c.TypeError(sd->Loc(), "Invalid parent struct name");
-
-        for (const std::string &name : sidParent->memberNames)
-            memberNames.push_back(name);
-
-        for (const TypeData &type : sidParent->memTypes)
-            memTypes.push_back(type);
-
-        for (const auto &kv : sidParent->nameTypes)
-            nameTypes[kv.first] = kv.second;
-=======
         std::optional<StructID> sid_parent = c.symbols.GetStruct(parent);
         for (const auto &kv : sid_parent->nameTypes)
             name_types.push_back({kv.first, kv.second});
->>>>>>> literal_execution
     }
 
     for (auto &d : sd->decls)
@@ -664,14 +641,7 @@ void NodeCompiler::CompileImportStmt(ImportStmt *is, Compiler &c)
 {
     std::vector<std::string> library_funcs;
     assert(is->libraries.size() > 0);
-<<<<<<< HEAD
-    for (const auto &library : is->libraries)
-    {
-        libraryFuncs = c.Symbols.GetLibraryFunctionNames(library);
-        for (auto &lf : libraryFuncs)
-=======
     ERROR_GUARD(
->>>>>>> literal_execution
         {
             for (const auto library : is->libraries)
             {
@@ -797,11 +767,6 @@ void TypeCast::NodeCompile(Compiler &c)
 void Sequence::NodeCompile(Compiler &c)
 {
     NodeCompiler::CompileSequence(this, c);
-}
-
-TypeData Sequence::NodeCompile(Compiler &c)
-{
-    return NodeCompiler::CompileSequence(this, c);
 }
 
 //------------------STATEMENTS---------------------//

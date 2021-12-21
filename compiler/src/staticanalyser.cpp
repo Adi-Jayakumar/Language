@@ -382,26 +382,6 @@ TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
     return s->t;
 }
 
-TypeData StaticAnalyser::AnalyseSequence(Sequence *s)
-{
-    TypeData start = s->start->Analyse(*this);
-    if (start != INT_TYPE)
-        StaticAnalysisError(s->start->Loc(), "Start of Sequence Node must have 'int' type");
-
-    TypeData step = s->step->Analyse(*this);
-    if (step != INT_TYPE)
-        StaticAnalysisError(s->step->Loc(), "Step of Sequence must have 'int' type");
-
-    TypeData end = s->end->Analyse(*this);
-    if (end != INT_TYPE)
-        StaticAnalysisError(s->end->Loc(), "End of Sequence must have 'int' type");
-
-    TypeData term = s->term->Analyse(*this);
-
-    if (!CheckOperatorUse(term, s->op, term))
-        StaticAnalysisError(s->term->Loc(), "Cannot use the operator on term types");
-}
-
 //------------------STATEMENTS---------------------//
 
 void StaticAnalyser::AnalyseExprStmt(ExprStmt *es)
@@ -564,18 +544,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (sid_parent)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
-<<<<<<< HEAD
-        for (const std::string &name : sidParent->memberNames)
-            memberNames.push_back(name);
-
-        for (const TypeData &type : sidParent->memTypes)
-            memTypes.push_back(type);
-
-        for (const auto &kv : sidParent->nameTypes)
-            nameTypes[kv.first] = kv.second;
-=======
         name_types.insert(name_types.end(), sid_parent->nameTypes.begin(), sid_parent->nameTypes.end());
->>>>>>> literal_execution
     }
 
     for (auto &d : sd->decls)
