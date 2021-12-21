@@ -143,6 +143,8 @@ private:
     size_t sp_offset;
 
 public:
+    void __print_type_string_map();
+
     size_t depth;
     SymbolTable() : num_types(NUM_DEF_TYPES), func_var_begin(0), sp_offset(0), depth(0)
     {
@@ -168,11 +170,16 @@ public:
     // Potentially unreliable for template types which have the same name
     std::optional<TypeData> ResolveType(const std::string &type)
     {
+        // std::cout << "trying to resolve " << type << std::endl;
         for (const auto &kv : type_string_map)
         {
             if (kv.second == type)
+            {
+                // std::cout << "resolved to " << +kv.first << std::endl;
                 return TypeData(0, kv.first);
+            }
         }
+        // std::cout << "failed to resolve " << type << std::endl;
         return std::nullopt;
     };
 

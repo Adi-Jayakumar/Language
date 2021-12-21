@@ -1,5 +1,14 @@
 #include "symboltable.h"
 
+void SymbolTable::__print_type_string_map()
+{
+    for (auto &kv : type_string_map)
+    {
+        if (kv.first >= NUM_DEF_TYPES)
+            std::cout << +kv.first << " --> " << kv.second << std::endl;
+    }
+}
+
 bool operator==(const TypeInfo &l, const TypeInfo &r)
 {
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
@@ -8,6 +17,7 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
 TypeData SymbolTable::AddType(const std::string &name)
 {
     TypeData new_type(0, num_types++);
+    // std::cout << "adding type " << name << " with id " << +new_type.type << std::endl;
     type_string_map[new_type.type] = name;
     return new_type;
 }

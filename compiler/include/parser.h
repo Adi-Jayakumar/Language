@@ -15,14 +15,15 @@ struct Parser
 
     Parser(const std::string &fPath, SymbolTable &_symbols);
 
-    void ParseError(Token loc, std::string err);
-    void PanicMode(std::initializer_list<TokenID> recovery);
+    void ParseError(const Token &loc, const std::string &err);
+    void PanicMode(const std::initializer_list<TokenID> &recovery);
 
     // updates the previous and current tokens
     void Advance();
     // checks t has same type as cur.type, gives an error
-    void Check(TokenID t, std::string err);
+    void Check(const TokenID t, const std::string &err);
 
+    TypeData IsCurType(const std::string &name);
     // parses a type eg. 'int', 'bool', 'Array<int>', etc...
     TypeData ParseType(std::string err);
 
@@ -69,7 +70,7 @@ struct Parser
     // parses any function call
     SP<Expr> FuncCall();
     // parses an array index expression
-    SP<Expr> ParseArrayIndex(SP<Expr>);
+    SP<Expr> ParseArrayIndex(const SP<Expr> &);
     // parses any assignment
     SP<Expr> Assignment();
     // parses a series of == or != operations

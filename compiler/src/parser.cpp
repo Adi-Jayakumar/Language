@@ -9,13 +9,19 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
     two_next = lex.NextToken();
 }
 
-void Parser::ParseError(Token loc, std::string err)
+#define PARSER_ASSERT(exp, msg) \
+    if (!(exp))                 \
+    {                           \
+        ParseError(cur, msg);   \
+    }
+
+void Parser::ParseError(const Token &loc, const std::string &err)
 {
     Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err + "\n");
     throw e;
 }
 
-void Parser::PanicMode(std::initializer_list<TokenID> recovery)
+void Parser::PanicMode(const std::initializer_list<TokenID> &recovery)
 {
     while (true)
     {
@@ -35,7 +41,7 @@ void Parser::PanicMode(std::initializer_list<TokenID> recovery)
     }
 }
 
-void Parser::Check(TokenID t, std::string err)
+void Parser::Check(const TokenID t, const std::string &err)
 {
     if (t != cur.type)
         ParseError(cur, err);
@@ -54,13 +60,23 @@ void Parser::Advance()
         symbols.AddType(two_next.literal);
 }
 
+TypeData Parser::IsCurType(const std::string &name)
+{
+    std::optional<TypeData> candidate = symbols.ResolveType(name);
+    if (candidate)
+        return candidate.value();
+    ParseError(cur, "Invalid type name '" + name + "'");
+    // dummy return - should never be reached
+    return VOID_TYPE;
+}
+
 TypeData Parser::ParseType(std::string err)
 {
     if (cur.type == TokenID::TYPENAME)
     {
         std::string s_type = cur.literal;
         Advance();
-        return symbols.ResolveType(s_type).value();
+        return IsCurType(s_type);
     }
     else if (cur.type == TokenID::ARRAY)
     {
@@ -83,13 +99,13 @@ TypeData Parser::ParseType(std::string err)
             Advance();
 
             Check(TokenID::TYPENAME, "Expect type name in multi dimensional array type");
-            type = symbols.ResolveType(cur.literal).value();
+            type = IsCurType(cur.literal);
             Advance();
         }
         else
         {
             Check(TokenID::TYPENAME, "1 dimensional array requires type name");
-            type = symbols.ResolveType(cur.literal).value();
+            type = IsCurType(cur.literal);
             Advance();
         }
 
@@ -402,16 +418,19 @@ SP<Stmt> Parser::TemplateDeclaration()
 
     std::vector<std::pair<TypeData, std::string>> added_types;
 
-    size_t count = 0;
     while (cur.type != TokenID::GT && cur.type != TokenID::END)
     {
         Advance();
-        Check(TokenID::IDEN, "Expect type identifier");
+        PARSER_ASSERT(cur.type == TokenID::IDEN || cur.type == TokenID::TYPENAME, "Expect type identifier");
 
+        if (cur.type == TokenID::TYPENAME)
+        {
+            std::optional<TypeData> temp = symbols.ResolveType(cur.literal);
+            if (temp)
+                ParseError(cur, "Invalid template type name '" + cur.literal + "' - it already names a type");
+        }
         TypeData new_type = symbols.AddType(cur.literal);
-
         added_types.push_back({new_type, cur.literal});
-        count++;
         Advance();
     }
 
@@ -722,7 +741,7 @@ SP<Expr> Parser::UnaryOp()
     return ParseArrayIndex(ParseFieldAccess());
 }
 
-SP<Expr> Parser::ParseArrayIndex(SP<Expr> name)
+SP<Expr> Parser::ParseArrayIndex(const SP<Expr> &name)
 {
     if (cur.type == TokenID::OPEN_SQ)
     {
