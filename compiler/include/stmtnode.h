@@ -10,6 +10,7 @@ enum class StmtKind
     IF_STMT,
     WHILE_STMT,
     FUNC_DECL,
+    TEMPLATE_DECL,
     RETURN,
     STRUCT_DECL,
     IMPORT_STMT,
@@ -23,24 +24,31 @@ class Stmt
 public:
     StmtKind kind;
     Token loc;
-    virtual Token Loc() = 0;
+    Token Loc() { return loc; };
     // prints the node - implemented in ASTPrinter.cpp
     virtual void Print(ASTPrinter &p) = 0;
     virtual void Analyse(StaticAnalyser &sa) = 0;
-    // compiles the node - implemented in Compiler.cpp
+    // compiles the node - implemented in compiler.cpp
     virtual void NodeCompile(Compiler &c) = 0;
+    // generates a postcondition from the node - implemented in postcondition.cpp
+    virtual void CreateZ3Expr(Verifier &v) = 0;
 };
 
 class ExprStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> exp;
-    ExprStmt(std::shared_ptr<Expr>, Token);
+    SP<Expr> exp;
+    ExprStmt(const SP<Expr> &_exp, const Token &_loc)
+    {
+        kind = StmtKind::EXPR_STMT;
+        loc = _loc;
+        exp = _exp;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class DeclaredVar : public Stmt
@@ -48,55 +56,78 @@ class DeclaredVar : public Stmt
 public:
     TypeData t;
     std::string name;
-    std::shared_ptr<Expr> value;
-    DeclaredVar(TypeData, std::string, std::shared_ptr<Expr>, Token);
+    SP<Expr> value;
+    DeclaredVar(const TypeData &_t, const std::string &_name, const SP<Expr> &_value, Token _loc)
+    {
+        kind = StmtKind::DECLARED_VAR;
+        loc = _loc;
+        t = _t;
+        name = _name;
+        value = _value;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Block : public Stmt
 {
 public:
-    uint8_t depth;
-    std::vector<std::shared_ptr<Stmt>> stmts;
-    Block(uint8_t, Token);
+    std::vector<SP<Stmt>> stmts;
+    Block(const Token &_loc)
+    {
+        kind = StmtKind::BLOCK;
+        loc = _loc;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class IfStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> cond;
-    std::shared_ptr<Stmt> thenBranch;
-    std::shared_ptr<Stmt> elseBranch;
-    IfStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, std::shared_ptr<Stmt>, Token);
+    SP<Expr> cond;
+    SP<Stmt> then_branch;
+    SP<Stmt> else_branch;
+    IfStmt(const SP<Expr> &_cond, const SP<Stmt> &_then_branch, const SP<Stmt> &_else_branch, const Token &_loc)
+    {
+        kind = StmtKind::IF_STMT;
+        loc = _loc;
+        cond = _cond;
+        then_branch = _then_branch;
+        else_branch = _else_branch;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class WhileStmt : public Stmt
 {
 public:
-    std::shared_ptr<Expr> cond;
-    std::shared_ptr<Stmt> body;
+    SP<Expr> cond;
+    SP<Stmt> body;
     Token loc;
 
-    WhileStmt(std::shared_ptr<Expr>, std::shared_ptr<Stmt>, Token);
+    WhileStmt(const SP<Expr> &_cond, const SP<Stmt> &_body, const Token &_loc)
+    {
+        kind = StmtKind::WHILE_STMT;
+        loc = _loc;
+        cond = _cond;
+        body = _body;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class FuncDecl : public Stmt
@@ -105,39 +136,51 @@ public:
     TypeData ret;
     std::string name;
     std::vector<std::pair<TypeData, std::string>> params;
-
-    std::vector<std::shared_ptr<Stmt>> body;
-    std::vector<std::shared_ptr<Expr>> preConds;
-
     std::vector<std::pair<TypeData, std::string>> templates;
-
-    std::shared_ptr<Expr> postCond;
+    std::vector<SP<Stmt>> body;
+    std::vector<SP<Expr>> pre_conds;
+    SP<Expr> post_cond;
 
     FuncDecl(TypeData _ret,
              std::string &_name,
              std::vector<std::pair<TypeData, std::string>> &_params,
-             std::vector<std::shared_ptr<Stmt>> &_body,
-             std::vector<std::shared_ptr<Expr>> &_preConds,
-             std::shared_ptr<Expr> &_postCond,
-             Token _loc);
+             std::vector<SP<Stmt>> &_body,
+             std::vector<SP<Expr>> &_preConds,
+             SP<Expr> &_postCond,
+             Token _loc)
+    {
+        kind = StmtKind::FUNC_DECL;
+        loc = _loc;
+        ret = _ret;
+        name = _name;
+        params = _params;
+        body = _body;
+        pre_conds = _preConds;
+        post_cond = _postCond;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Return : public Stmt
 {
 public:
-    std::shared_ptr<Expr> retVal;
+    SP<Expr> ret_val;
 
-    Return(std::shared_ptr<Expr>, Token);
+    Return(const SP<Expr> &_ret_val, const Token &_loc)
+    {
+        kind = StmtKind::RETURN;
+        loc = _loc;
+        ret_val = _ret_val;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class StructDecl : public Stmt
@@ -145,65 +188,90 @@ class StructDecl : public Stmt
 public:
     std::string name;
     TypeData parent = VOID_TYPE;
-    std::vector<std::shared_ptr<Stmt>> decls;
-    StructDecl(std::string &, TypeData &parent, std::vector<std::shared_ptr<Stmt>> &, Token);
+    std::vector<SP<Stmt>> decls;
+    StructDecl(const std::string &_name, const TypeData &_parent, const std::vector<SP<Stmt>> &_decls, const Token &_loc)
+    {
+        kind = StmtKind::STRUCT_DECL;
+        loc = _loc;
+        name = _name;
+        parent = _parent;
+        decls = _decls;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
-/*
-import math, physics
-from latin import nominative, accusative
-i.e. import --> comma seperated list of libraries <---- imports everything
-i.e. from --> single module name import comma seperated list of symbols <---- only imports those symbols
-*/
 class ImportStmt : public Stmt
 {
 public:
     std::vector<std::string> libraries;
-    ImportStmt(std::vector<std::string> &, Token &);
+    ImportStmt(const std::vector<std::string> &_libraries, const Token &_loc)
+    {
+        kind = StmtKind::IMPORT_STMT;
+        loc = _loc;
+        libraries = _libraries;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Break : public Stmt
 {
 public:
-    Break(Token);
-    Token Loc() override;
+    Break(Token _loc)
+    {
+        kind = StmtKind::BREAK;
+        loc = _loc;
+    };
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class Throw : public Stmt
 {
 public:
-    std::shared_ptr<Expr> exp;
-    Throw(std::shared_ptr<Expr> &, Token &);
+    SP<Expr> exp;
+    Throw(const SP<Expr> &_exp, const Token &_loc)
+    {
+        kind = StmtKind::THROW;
+        loc = _loc;
+        exp = _exp;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };
 
 class TryCatch : public Stmt
 {
 public:
-    std::shared_ptr<Stmt> tryClause, catchClause;
-    std::pair<TypeData, std::string> catchVar;
+    SP<Stmt> try_clause, catch_clause;
+    std::pair<TypeData, std::string> catch_var;
 
-    TryCatch(std::shared_ptr<Stmt> &, std::shared_ptr<Stmt> &, std::pair<TypeData, std::string> &, Token &);
+    TryCatch(const SP<Stmt> &_try_clause,
+             const SP<Stmt> &_catch_clause,
+             const std::pair<TypeData, std::string> &_catch_var,
+             const Token &_loc)
+    {
+        kind = StmtKind::TRY_CATCH;
+        loc = _loc;
+        try_clause = _try_clause;
+        catch_clause = _catch_clause;
+        catch_var = _catch_var;
+    };
 
-    Token Loc() override;
     void Print(ASTPrinter &p) override;
     void Analyse(StaticAnalyser &sa) override;
     void NodeCompile(Compiler &c) override;
+    void CreateZ3Expr(Verifier &v) override;
 };

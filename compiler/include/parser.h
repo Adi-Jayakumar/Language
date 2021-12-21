@@ -1,21 +1,19 @@
 #pragma once
 #include "lexer.h"
 #include "stmtnode.h"
+#include "symboltable.h"
 #include <cassert>
 
 struct Parser
 {
+    SymbolTable symbols;
     Lexer lex;
-    Token prev;
-    Token cur;
-    Token next;
+    Token prev, cur, next, two_next;
 
-    size_t numTypes = NUM_DEF_TYPES;
+    size_t depth;
+    bool had_error;
 
-    uint8_t depth = 1;
-    bool hadError = false;
-
-    Parser(const std::string &fPath);
+    Parser(const std::string &fPath, SymbolTable &_symbols);
 
     void ParseError(Token loc, std::string err);
     void PanicMode(std::initializer_list<TokenID> recovery);
@@ -29,63 +27,63 @@ struct Parser
     TypeData ParseType(std::string err);
 
     // parses a file into a list of statements
-    std::vector<std::shared_ptr<Stmt>> Parse();
+    std::vector<SP<Stmt>> Parse();
 
-    std::vector<std::shared_ptr<Expr>> ParseVerCondition();
+    std::vector<SP<Expr>> ParseVerCondition();
 
     // parses a block
-    std::shared_ptr<Block> ParseBlock();
+    SP<Block> ParseBlock();
     // parses any declaration
-    std::shared_ptr<Stmt> Declaration();
+    SP<Stmt> Declaration();
     // parses a variable declaraion
-    std::shared_ptr<Stmt> VarDeclaration();
+    SP<Stmt> VarDeclaration();
     // parses any statement
-    std::shared_ptr<Stmt> Statement();
+    SP<Stmt> Statement();
     // parses an if statement
-    std::shared_ptr<Stmt> IfStatement();
+    SP<Stmt> IfStatement();
     // parses a while statement
-    std::shared_ptr<Stmt> WhileStatement();
+    SP<Stmt> WhileStatement();
     // parses a function declrataion
-    std::shared_ptr<Stmt> FuncDeclaration();
+    SP<Stmt> FuncDeclaration();
+    // parses a template declaration
+    SP<Stmt> TemplateDeclaration();
     // parses a struct declaration
-    std::shared_ptr<Stmt> ParseStructDecl();
-    // parses a template function
-    std::shared_ptr<Stmt> TemplateFunction();
+    SP<Stmt> ParseStructDecl();
     // parses an expression statement
-    std::shared_ptr<Stmt> ExpressionStatement();
+    SP<Stmt> ExpressionStatement();
     // parses an import statement
-    std::shared_ptr<Stmt> ParseImportStmt();
+    SP<Stmt> ParseImportStmt();
     std::vector<std::string> CommaSeparatedStrings();
     // parses any expression
-    std::shared_ptr<Expr> Expression();
+    SP<Expr> Expression();
     // parses a sequence node
-    std::shared_ptr<Expr> ParseSequenceNode();
+    SP<Expr> ParseSequenceNode();
     // parses an or expression
-    std::shared_ptr<Expr> Or();
+    SP<Expr> Or();
     // parses an and expression
-    std::shared_ptr<Expr> And();
+    SP<Expr> And();
     // parses any field access
-    std::shared_ptr<Expr> ParseFieldAccess();
+    SP<Expr> ParseFieldAccess();
     // parses an inline array
-    std::shared_ptr<Expr> ParseBracedInitialiser();
+    SP<Expr> ParseBracedInitialiser();
     // parses any function call
-    std::shared_ptr<Expr> FuncCall();
+    SP<Expr> FuncCall();
     // parses an array index expression
-    std::shared_ptr<Expr> ParseArrayIndex(std::shared_ptr<Expr>);
+    SP<Expr> ParseArrayIndex(SP<Expr>);
     // parses any assignment
-    std::shared_ptr<Expr> Assignment();
+    SP<Expr> Assignment();
     // parses a series of == or != operations
-    std::shared_ptr<Expr> EqualityCheck();
+    SP<Expr> EqualityCheck();
     // parses a series of >, <, >=, <= operations
-    std::shared_ptr<Expr> Comparison();
+    SP<Expr> Comparison();
     // parses a series of + or - operations
-    std::shared_ptr<Expr> Sum();
+    SP<Expr> Sum();
     // parses a series of* or / operations
-    std::shared_ptr<Expr> Product();
+    SP<Expr> Product();
     // parses a series of - operations for the moment
-    std::shared_ptr<Expr> UnaryOp();
+    SP<Expr> UnaryOp();
     // parses an experession of the form '(' expression ')'
-    std::shared_ptr<Expr> Grouping();
+    SP<Expr> Grouping();
     // parses a literal -- just a double for now
-    std::shared_ptr<Expr> LiteralNode();
+    SP<Expr> LiteralNode();
 };

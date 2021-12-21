@@ -1,18 +1,17 @@
 #pragma once
+#include "typedata.h"
 #include <string>
 #include <vector>
-#include "typedata.h"
-#include "common.h"
 
 struct VarID
 {
     TypeData type;
     std::string name;
     size_t depth;
-    size_t index;
-    bool isStructMember = false;
+    size_t size;
+    bool is_struct_member;
     VarID() = default;
-    VarID(TypeData _type, std::string _name, size_t _depth, size_t _index) : type(_type), name(_name), depth(_depth), index(_index){};
+    VarID(TypeData _type, std::string _name, size_t _depth, size_t _size) : type(_type), name(_name), depth(_depth), size(_size), is_struct_member(false){};
 };
 
 enum class FunctionType
@@ -33,21 +32,32 @@ struct FuncID
     // necessary for trigerring analysis/compilation of
     // a template function upon encountering a template
     // function call
-    size_t parseIndex;
+    size_t parse_index;
     FuncID() = default;
 
-    FuncID(TypeData _ret,
-           std::string _name,
-           std::vector<TypeData> _templates,
-           std::vector<TypeData> _argtypes,
-           FunctionType _kind,
-           size_t _parseIndex)
+    FuncID(const TypeData &_ret,
+           const std::string &_name,
+           const std::vector<TypeData> &_argtypes,
+           const FunctionType &_kind,
+           const size_t &_parse_index)
+        : ret(_ret),
+          name(_name),
+          argtypes(_argtypes),
+          kind(_kind),
+          parse_index(_parse_index){};
+
+    FuncID(const TypeData &_ret,
+           const std::string &_name,
+           const std::vector<TypeData> &_templates,
+           const std::vector<TypeData> &_argtypes,
+           const FunctionType &_kind,
+           const size_t &_parse_index)
         : ret(_ret),
           name(_name),
           templates(_templates),
           argtypes(_argtypes),
           kind(_kind),
-          parseIndex(_parseIndex){};
+          parse_index(_parse_index){};
 };
 
 struct FuncIDEq
@@ -66,43 +76,41 @@ struct FuncIDEq
     }
 };
 
-struct FuncIDHasher
+namespace std
 {
-    size_t operator()(const FuncID &fi) const
+    template <>
+    struct hash<FuncID>
     {
-        TypeDataHasher t;
-        size_t argHash = 0;
+        size_t operator()(const FuncID &fi) const
+        {
+            std::hash<TypeData> t;
+            size_t argHash = 0;
 
-        for (const auto &arg : fi.argtypes)
-            argHash = argHash ^ t(arg);
+            for (const auto &arg : fi.argtypes)
+                argHash = argHash ^ t(arg);
 
-        std::hash<std::string> strHasher;
-        size_t nameHash = strHasher(fi.name);
+            std::hash<std::string> str_hasher;
+            size_t name_hash = str_hasher(fi.name);
 
-        size_t retHash = t(fi.ret);
-        return argHash ^ nameHash ^ retHash;
-    }
-};
+            size_t retHash = t(fi.ret);
+            return argHash ^ name_hash ^ retHash;
+        }
+    };
+}
 
 struct StructID
 {
     std::string name;
     TypeData type;
     TypeData parent;
-    std::vector<std::string> memberNames;
-    std::vector<TypeData> memTypes;
-    std::unordered_map<std::string, TypeData> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> nameTypes;
 
-    StructID(std::string _name,
-             TypeData _type,
-             TypeData _parent,
-             std::vector<std::string> _memberNames,
-             std::vector<TypeData> _memTypes,
-             std::unordered_map<std::string, TypeData> _nameTypes)
+    StructID(const std::string &_name,
+             const TypeData &_type,
+             const TypeData &_parent,
+             const std::vector<std::pair<std::string, TypeData>> &_nameTypes)
         : name(_name),
           type(_type),
           parent(_parent),
-          memberNames(_memberNames),
-          memTypes(_memTypes),
           nameTypes(_nameTypes){};
 };

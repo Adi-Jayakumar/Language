@@ -6,65 +6,27 @@ VM::VM(std::vector<Function> &_functions, oprand_t mainIndex,
        std::vector<ThrowInfo> &_throwInfos)
 {
     functions = _functions;
-    StructTree = _StructTree;
-    throwInfos = _throwInfos;
+    struct_tree = _StructTree;
+    throw_infos = _throwInfos;
 
     for (auto &lf : _syms)
     {
         std::string libpath = "./lib/lib" + lf.library + ".so";
         void *handle = dlopen(libpath.c_str(), RTLD_NOW);
-        libHandles.push_back(handle);
+        lib_handles.push_back(handle);
 
         LibFunc func;
         *(void **)&func = dlsym(handle, lf.name.c_str());
         CLibs.push_back({func, lf.arity});
     }
 
-    curFunc = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
+    cur_func = mainIndex == UINT8_MAX ? UINT8_MAX : 0;
     cs.push_back({0, 0, 0});
     cs.push_back({0, mainIndex, 0});
-    curCF = &cs.back();
+    cur_cf = &cs.back();
 
     ip = 0;
-}
-
-VM::~VM()
-{
-#ifndef VM_SILENT_DESTRUCT
-    if (stack.count > 0)
-    {
-        std::cout << "Stack was not empty" << std::endl;
-        for (size_t i = stack.count - 1; (int)i >= 0; i--)
-            std::cout << stack[i]->ToString() << std::endl;
-    }
-#endif
-
-    if (libHandles.size() > 0)
-    {
-#ifndef VM_SILENT_DESTRUCT
-        std::cout << "Closing libraries" << std::endl;
-#endif
-        for (auto &handle : libHandles)
-            dlclose(handle);
-    }
-#ifndef VM_SILENT_DESTRUCT
-    std::cout << "====================HEAP====================" << std::endl
-              << std::endl
-              << std::endl;
-
-    for (size_t i = 0; i < heap.Size(); i++)
-        std::cout << (heap[i]->state != GCState::FREED ? heap[i]->ToString() : "FREED") << std::endl;
-
-    std::cout << std::endl
-              << std::endl;
-#endif
-
-    for (size_t i = 0; i < heap.Size(); i++)
-    {
-        if (heap[i]->state != GCState::FREED)
-            heap[i]->DestroyOwnedMemory();
-        delete heap[i];
-    }
+    cur_routine = 0;
 }
 
 void VM::Disasemble()
@@ -83,25 +45,15 @@ void VM::Disasemble()
     }
 }
 
-void VM::PrintStack()
-{
-    std::cout << "index\t|\tvalue" << std::endl;
-    for (size_t i = stack.count - 1; (int)i >= 0; i--)
-        std::cout << i << "\t|\t" << stack[i]->ToString() << std::endl;
-
-    std::cout << std::endl
-              << std::endl;
-}
-
 void VM::PrintCallStack()
 {
     for (auto &cf : cs)
-        std::cout << "(" << cf.retIndex << ", " << cf.retFunction << ", " << cf.valStackMin << ")" << std::endl;
+        std::cout << "(" << cf.ret_index << ", " << cf.ret_function << ", " << cf.val_stack_min << ")" << std::endl;
 }
 
-void VM::RuntimeError(std::string msg)
+void VM::RuntimeError(const std::string &msg)
 {
-    std::cout << "[RUNTIME ERROR] " << msg << std::endl;
+    std::cerr << "[RUNTIME ERROR] " << msg << std::endl;
     exit(4);
 }
 
@@ -112,12 +64,11 @@ void VM::Jump(size_t jump)
 
 void VM::ExecuteProgram()
 {
-    if (curFunc == UINT8_MAX)
+    if (cur_func == UINT8_MAX)
         return;
     while (true)
     {
-
-        while (ip < functions[curFunc].code.size())
+        while (ip < functions[cur_func].routines[cur_routine].size())
         {
             ExecuteInstruction();
             Jump(1);
@@ -126,298 +77,167 @@ void VM::ExecuteProgram()
         if (!cs.empty())
         {
 
-            CallFrame returnCF = *curCF;
+            CallFrame return_cf = *cur_cf;
             cs.pop_back();
-            curCF = &cs.back();
-            ip = returnCF.retIndex;
+            cur_cf = &cs.back();
+            ip = return_cf.ret_index;
 
-            if (curFunc != 0)
+            if (cur_func != 0)
                 ip++;
 
-            curFunc = returnCF.retFunction;
-            size_t stackDiff = stack.count - returnCF.valStackMin;
+            cur_func = return_cf.ret_function;
+            cur_routine = 0;
+            ip = 0;
+            size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
 
             // cleaning up the function's constants
-            stack.count -= stackDiff;
-            stack.back = stack[stack.count];
+            stack.ReduceSize(stack_diff);
         }
         else
             return;
     }
 }
 
-Object *VM::NewInt(int i)
-{
-    Object *obj = CreateInt(i);
-    heap.AddObject(obj, sizeof(int));
-    return obj;
-}
-
-Object *VM::NewDouble(double d)
-{
-    Object *obj = CreateDouble(d);
-    heap.AddObject(obj, sizeof(double));
-    return obj;
-}
-
-Object *VM::NewBool(bool b)
-{
-    Object *obj = CreateBool(b);
-    heap.AddObject(obj, sizeof(bool));
-    return obj;
-}
-
-Object *VM::NewArray(Object **arr, size_t n)
-{
-    Object *obj = CreateArray(arr, n);
-    heap.AddObject(obj, n * sizeof(Object *));
-    return obj;
-}
-
-Object *VM::NewStruct(Object **data, size_t n, TypeID t)
-{
-    Object *obj = CreateStruct(data, n, t);
-    heap.AddObject(obj, n * sizeof(Object *) + sizeof(TypeID));
-    return obj;
-}
-
-Object *VM::NewChar(char c)
-{
-    Object *obj = CreateChar(c);
-    heap.AddObject(obj, sizeof(char));
-    return obj;
-}
-
-Object *VM::NewString(char *str, size_t n)
-{
-    Object *obj = CreateString(str, n);
-    heap.AddObject(obj, n * sizeof(char));
-    return obj;
-}
-
-Object *VM::NewNull_T()
-{
-    Object *obj = CreateNull_T();
-    heap.AddObject(obj, sizeof(Null_T));
-    return obj;
-}
-
-#define BINARY_I_OP(l, op, r) \
-    NewInt(GetInt(l) op GetInt(r))
-
-#define BINARY_DI_OP(l, op, r) \
-    NewDouble(GetDouble(l) op GetInt(r))
-
-#define BINARY_ID_OP(l, op, r) \
-    NewDouble(GetInt(l) op GetDouble(r))
-
-#define BINARY_D_OP(l, op, r) \
-    NewDouble(GetDouble(l) op GetDouble(r))
-
-#define UNARY_I_OP(op, r) \
-    NewInt(op GetInt(r))
-
-#define UNARY_D_OP(op, r) \
-    NewDouble(op GetDouble(r))
-
-#define UNARY_B_OP(op, r) \
-    NewBool(op r->as.b)
-
-#define TAKE_LEFT_RIGHT(left, right, stack) \
-    right = stack.back;                     \
-    stack.pop_back();                       \
-    left = stack.back;                      \
-    stack.pop_back()
+#define ERROR_OUT()                             \
+    std::cerr << "Not implmented" << std::endl; \
+    exit(3)
 
 void VM::ExecuteInstruction()
 {
-    Op o = functions[curFunc].code[ip];
+    Op o = functions[cur_func].routines[cur_routine][ip];
     switch (o.code)
     {
     case Opcode::POP:
     {
-        stack.pop_back();
+        stack.PopBytes(o.op);
         break;
     }
     case Opcode::LOAD_INT:
     {
-        int i = functions[curFunc].ints[o.op];
-        Object *obj = NewInt(i);
-        stack.push_back(obj);
+        stack.PushInt(functions[cur_func].ints[o.op]);
         break;
     }
     case Opcode::LOAD_DOUBLE:
     {
-        double d = functions[curFunc].doubles[o.op];
-        Object *obj = NewDouble(d);
-        stack.push_back(obj);
+        stack.PushDouble(functions[cur_func].doubles[o.op]);
         break;
     }
     case Opcode::LOAD_BOOL:
     {
-
-        bool b = functions[curFunc].bools[o.op];
-        Object *obj = NewBool(b);
-        stack.push_back(obj);
+        stack.PushBool(functions[cur_func].bools[o.op]);
         break;
     }
     case Opcode::LOAD_STRING:
     {
-        std::string str = functions[curFunc].strings[o.op];
-        char *c = new char[str.length() + 1];
-        stack.push_back(CreateString(strcpy(c, str.c_str()), str.length()));
+        stack.PushString(functions[cur_func].strings[o.op]);
         break;
     }
     case Opcode::LOAD_CHAR:
     {
-        char c = functions[curFunc].chars[o.op];
-        stack.push_back(CreateChar(c));
+        stack.PushChar(functions[cur_func].chars[o.op]);
         break;
     }
-    case Opcode::VAR_A:
+    case Opcode::INT_ASSIGN:
     {
-        stack.data[o.op + curCF->valStackMin] = stack.back;
+        stack.SetInt(o.op, stack.PeekInt());
         break;
     }
-    case Opcode::VAR_A_GLOBAL:
+    case Opcode::DOUBLE_ASSIGN:
     {
-        // globals[o.op] = stack.back;
+        stack.SetDouble(o.op, stack.PeekDouble());
         break;
     }
-    case Opcode::VAR_D_GLOBAL:
+    case Opcode::BOOL_ASSIGN:
     {
-        // globals.push_back(stack.back);
+        stack.SetBool(o.op, stack.PeekBool());
         break;
     }
-    case Opcode::GET_V:
+    case Opcode::STRING_ASSIGN:
     {
-        stack.push_back(stack[o.op + curCF->valStackMin]);
+        int len = stack.PeekInt();
+        char *str = stack.PeekPtr();
+        stack.SetString(o.op, str, len);
         break;
     }
-    case Opcode::GET_V_GLOBAL:
+    case Opcode::CHAR_ASSIGN:
     {
-        // stack.push_back(globals[o.op]);
+        stack.SetChar(o.op, stack.PeekChar());
         break;
     }
-    case Opcode::ARR_D:
+    case Opcode::ARRAY_ASSIGN:
     {
-        Object *array = stack[stack.count - o.op - 1];
-        Object **data = GetArray(array);
-
-        for (size_t i = 0; i < o.op; i++)
-            data[i] = stack[stack.count - o.op + i];
-
-        stack.pop_N(o.op);
+        ERROR_OUT();
         break;
+    }
+    case Opcode::STRUCT_ASSIGN:
+    {
+        ERROR_OUT();
+        break;
+    }
+    case Opcode::PUSH:
+    {
+        stack.PushOprandT(o.op);
+        break;
+    }
+    case Opcode::PUSH_SP_OFFSET:
+    {
+        stack.PushPtr(stack.GetTop() + o.op);
+        break;
+    }
+    case Opcode::GET_INT:
+    {
+        stack.PushInt(stack.GetInt(o.op));
+        break;
+    }
+    case Opcode::GET_DOUBLE:
+    {
+        stack.PushDouble(stack.GetDouble(o.op));
+        break;
+    }
+    case Opcode::GET_BOOL:
+    {
+        stack.PushBool(stack.GetBool(o.op));
+        break;
+    }
+    case Opcode::GET_STRING:
+    {
+        char *str_len = stack.GetString(o.op);
+        int len = *(int *)(str_len + PTR_SIZE);
+        stack.PushString(str_len, len);
+        break;
+    }
+    case Opcode::GET_CHAR:
+    {
+        stack.PushChar(stack.GetChar(o.op));
+        break;
+    }
+    case Opcode::GET_ARRAY:
+    {
+        ERROR_OUT();
+        break;
+    }
+    case Opcode::GET_STRUCT:
+    {
+        ERROR_OUT();
     }
     case Opcode::ARR_INDEX:
     {
-        Object *index = stack.back;
-        stack.pop_back();
-        Object *obj = stack.back;
-
-        if (IsNull_T(obj))
-            RuntimeError("Cannot index into an uninitialised array");
-
-        Object **data = GetArray(obj);
-        stack.pop_back();
-
-        size_t size = GetArrayLength(obj);
-        int i = GetInt(index);
-
-        if (i >= (int)size || i < 0)
-            RuntimeError("Array i " + std::to_string(i) + " out of bounds for array of size " + std::to_string(size));
-
-        stack.push_back(data[i]);
         break;
     }
     case Opcode::ARR_SET:
     {
-        Object *index = stack.back;
-        stack.pop_back();
-        int i = GetInt(index);
-
-        Object *obj = stack.back;
-        Object **data = GetArray(obj);
-        stack.pop_back();
-
-        size_t size = GetArrayLength(obj);
-        if (i >= (int)size || i < 0)
-            RuntimeError("Array index " + std::to_string(i) + " out of bounds for array of size " + std::to_string(size));
-
-        data[i] = stack.back;
         break;
     }
     case Opcode::ARR_ALLOC:
     {
-        size_t size = o.op;
-        Object **data = new Object *[size];
-        Object *arr = CreateArray(data, size);
-
-        for (size_t i = 0; i < size; i++)
-            data[i] = CreateNull_T();
-
-        stack.push_back(arr);
-        break;
-    }
-    case Opcode::STRUCT_ALLOC:
-    {
-        size_t size = o.op;
-        Object **data = new Object *[size];
-        Object *strct = CreateStruct(data, size, 1);
-
-        stack.push_back(strct);
         break;
     }
     case Opcode::STRING_INDEX:
     {
-        Object *indexObj = stack.back;
-        stack.pop_back();
-        Object *obj = stack.back;
-
-        if (IsNull_T(obj))
-            RuntimeError("Cannot index into an uninitialised array");
-        stack.pop_back();
-
-        char *str = GetString(obj);
-
-        size_t size = GetStringLen(obj);
-        int index = GetInt(indexObj);
-
-        if (index >= (int)size || index < 0)
-            RuntimeError("String index " + std::to_string(index) + " out of bounds for array of size " + std::to_string(size));
-
-        stack.push_back(CreateChar(str[index]));
         break;
     }
     case Opcode::STRING_SET:
     {
-        Object *index = stack.back;
-        stack.pop_back();
-        int i = GetInt(index);
-
-        Object *strObj = stack.back;
-        stack.pop_back();
-
-        char *str = GetString(strObj);
-        size_t strLen = GetStringLen(strObj);
-
-        if (i >= (int)strLen || i < 0)
-            RuntimeError("String index " + std::to_string(i) + " out of bounds for string of size " + std::to_string(strLen));
-
-        str[i] = GetChar(stack.back);
-        break;
-    }
-    case Opcode::JUMP_IF_FALSE:
-    {
-        if (!stack.back->IsTruthy())
-            ip += o.op;
-        stack.pop_back();
-        break;
-    }
-    case Opcode::JUMP:
-    {
-        ip += o.op;
         break;
     }
     case Opcode::SET_IP:
@@ -425,206 +245,147 @@ void VM::ExecuteInstruction()
         ip = o.op;
         break;
     }
+    case Opcode::GOTO_LABEL:
+    {
+        cur_routine = o.op;
+        ip = -1;
+        break;
+    }
+    case Opcode::GOTO_LABEL_IF_FALSE:
+    {
+        break;
+    }
     case Opcode::CALL_F:
     {
-        cs.push_back({ip, curFunc, stack.count - functions[o.op].arity});
-        curCF = &cs.back();
+        cs.push_back({ip, cur_func, stack.GetSize() - functions[o.op].arity});
+        cur_cf = &cs.back();
 
         if (cs.size() > STACK_MAX)
-            RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frams");
+            RuntimeError("CallStack overflow. Used: " + std::to_string(cs.size()) + " call-frames");
 
-        curFunc = o.op;
+        cur_func = o.op;
         ip = -1;
         break;
     }
     case Opcode::CALL_LIBRARY_FUNC:
     {
-        std::pair<LibFunc, size_t> func = CLibs[o.op];
-        Object **args = &stack.data[stack.count - func.second];
-        Object *result = func.first(this, args);
-
-        stack.pop_N(func.second);
-        if (result != nullptr)
-            stack.push_back(result);
-
         break;
     }
     case Opcode::RETURN:
     {
-#ifdef TEST
-        if (cs.empty())
-        {
-            Object *retVal = stack.back;
-            stack.pop_N(stack.count);
-            stack.push_back(retVal);
-            ip = functions[curFunc].code.size();
-            break;
-        }
-#endif
-
-        CallFrame returnCF = *curCF;
+        CallFrame return_cf = *cur_cf;
         cs.pop_back();
-        curCF = &cs.back();
+        cur_cf = &cs.back();
 
-        ip = returnCF.retIndex;
-        curFunc = returnCF.retFunction;
+        ip = return_cf.ret_index;
+        cur_func = return_cf.ret_function;
 
-        size_t stackDiff = stack.count - returnCF.valStackMin;
-        Object *retVal = stack.back;
+        size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
+        // Object *retVal = stack.back;
 
         // cleaning up the function's constants
-        stack.pop_N(stackDiff);
-        stack.push_back(retVal);
+        stack.PopBytes(stack_diff);
+        // stack.push_back(retVal);
         break;
     }
     case Opcode::RETURN_VOID:
     {
-        CallFrame returnCF = *curCF;
+        CallFrame return_cf = *cur_cf;
         cs.pop_back();
-        curCF = &cs.back();
+        cur_cf = &cs.back();
 
-        ip = returnCF.retIndex;
-        curFunc = returnCF.retFunction;
+        ip = return_cf.ret_index;
+        cur_func = return_cf.ret_function;
 
-        size_t stackDiff = stack.count - returnCF.valStackMin;
+        size_t stack_diff = stack.GetSize() - return_cf.val_stack_min;
 
         // cleaning up the function's constants
-        stack.pop_N(stackDiff);
+        stack.PopBytes(stack_diff);
         break;
     }
     case Opcode::PUSH_THROW_INFO:
     {
-        ThrowStack.push(throwInfos[o.op]);
+        throw_stack.push(throw_infos[o.op]);
         break;
     }
     case Opcode::THROW:
     {
-        ThrowObject();
         break;
     }
     case Opcode::NATIVE_CALL:
     {
-        switch (o.op)
-        {
-        case 1:
-        {
-            NativeToString();
-            break;
-        }
-        default:
-            break;
-        }
-        break;
-    }
-    case Opcode::PRINT:
-    {
-        NativePrint(o.op);
+        oprand_t num_bytes = stack.PopOprandT();
+        ReturnValue ret = natives[o.op](stack.GetTop() - num_bytes);
+        if (ret != NULL_RETURN)
+            stack.PushReturnValue(ret);
         break;
     }
     case Opcode::STRUCT_MEMBER:
     {
-        Object *strct = stack.back;
-        if (IsNull_T(strct))
-            RuntimeError("Cannot access into a null struct");
-        stack.pop_back();
-        stack.push_back(GetStructMembers(strct)[o.op]);
         break;
     }
     case Opcode::STRUCT_D:
     {
-        Object *arr = stack[stack.count - o.op - 2];
-
-        Object *type = stack[stack.count - o.op - 1];
-        Object **data = GetStructMembers(arr);
-
-        SetStructType(arr, static_cast<TypeID>(GetInt(arr)));
-
-        for (size_t i = 0; i < o.op; i++)
-            data[i] = stack[stack.count - o.op + i];
-
-        stack.pop_N(o.op);
         break;
     }
     case Opcode::STRUCT_MEMBER_SET:
     {
-        Object *strct = stack.back;
-
-        if (IsNull_T(strct))
-            RuntimeError("Cannot set a member of a null struct");
-        stack.pop_back();
-        GetStructMembers(strct)[o.op] = stack.back;
         break;
     }
     case Opcode::CAST:
     {
-        Object *obj = stack.back;
-        stack.pop_back();
-        if (IsNull_T(obj))
-            RuntimeError("Cannot cast a null value");
-        else if (dynamic_cast<Int *>(obj) != nullptr)
-        {
-            stack.push_back(NewDouble((double)GetInt(obj)));
-            break;
-        }
-        else if (dynamic_cast<Double *>(obj) != nullptr)
-        {
-            stack.push_back(NewInt((int)GetDouble(obj)));
-            break;
-        }
-        else if (dynamic_cast<Struct *>(obj) != nullptr)
-        {
-            size_t type = GetStructType(obj);
-            if (StructTree[o.op].find(type) == StructTree[o.op].end() && type != o.op)
-            {
-                stack.pop_back();
-                stack.push_back(CreateNull_T());
-            }
-            break;
-        }
         break;
     }
     // ADDITIONS: adds the last 2 things on the stack
     case Opcode::I_ADD:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, +, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushInt(l + r);
+        std::cout << l + r << std::endl;
         break;
     }
     case Opcode::DI_ADD:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, +, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::ID_ADD:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, +, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::D_ADD:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, +, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l + r);
         break;
     }
     case Opcode::S_ADD:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        char *lStr = GetString(left);
-        char *rStr = GetString(right);
+        char *l = stack.PopString();
+        char *r = stack.PopString();
 
-        size_t leftSize = GetStringLen(left);
-        size_t rightSize = GetStringLen(right);
-        size_t newStrSize = leftSize + rightSize;
+        int l_len = *(int *)l;
+        int r_len = *(int *)r;
 
-        char *concat = new char[newStrSize + 1];
-        strcpy(concat, lStr);
+        char *l_ptr = l + INT_SIZE;
+        char *r_ptr = r + INT_SIZE;
 
-        char *next = concat + leftSize;
-        strcpy(next, rStr);
+        int new_len = l_len + r_len;
+        char *new_ptr = new char[new_len];
 
-        stack.push_back(CreateString(concat, newStrSize));
+        std::memcpy(new_ptr, l_ptr, l_len);
+        char *next = new_ptr + l_len;
+        std::memcpy(next, r_ptr, r_len);
+
+        stack.PushInt(new_len);
+        stack.PushPtr(new_ptr);
         break;
     }
     // SUBTRACTIONS: subtracts the last 2 things on the stack
@@ -632,292 +393,316 @@ void VM::ExecuteInstruction()
     // for I_SUB and D_SUB obviously)
     case Opcode::I_SUB:
     {
-        Object *right = stack.back;
-        stack.pop_back();
-        if (o.op == 0)
+        int r = stack.PopInt();
+        if (o.op != 0)
         {
-            Object *left = stack.back;
-            stack.pop_back();
-
-            stack.push_back(NewInt(GetInt(left) - GetInt(right)));
+            int l = stack.PopInt();
+            stack.PushInt(l - r);
         }
         else
-            stack.push_back(NewInt(-GetInt(right)));
+            stack.PushInt(-r);
         break;
     }
     case Opcode::DI_SUB:
     {
-        // DI_SUB cannot be a unary operation
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-
-        stack.push_back(BINARY_DI_OP(left, -, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l - r);
         break;
     }
     case Opcode::ID_SUB:
     {
-        // ID_SUB cannot be a unary operation
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-
-        stack.push_back(BINARY_ID_OP(left, -, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l - r);
         break;
     }
     case Opcode::D_SUB:
     {
-        Object *right = stack.back;
-        stack.pop_back();
-
-        if (o.op == 0)
+        double r = stack.PopDouble();
+        if (o.op != 0)
         {
-            Object *left = stack.back;
-            stack.pop_back();
-
-            stack.push_back(NewDouble(GetDouble(left) - GetDouble(right)));
+            double l = stack.PopDouble();
+            stack.PushDouble(l - r);
         }
         else
-            stack.push_back(NewDouble(-GetDouble(right)));
+            stack.PushDouble(-r);
         break;
     }
     // multiplies the last 2 things on the stack
     case Opcode::I_MUL:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, *, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::DI_MUL:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, *, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::ID_MUL:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, *, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l * r);
         break;
     }
     case Opcode::D_MUL:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, *, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l * r);
         break;
     }
     // divides the last 2 things on the stack
     case Opcode::I_DIV:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, /, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushInt(l / r);
         break;
     }
     case Opcode::DI_DIV:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, /, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushDouble(l / r);
         break;
     }
     case Opcode::ID_DIV:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, /, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushDouble(l / r);
         break;
     }
     case Opcode::D_DIV:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, /, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushDouble(l / r);
         break;
     }
     // does a greater than comparison on the last 2 things on the stack
     case Opcode::I_GT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, >, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::DI_GT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, >, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::ID_GT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, >, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l > r);
         break;
     }
     case Opcode::D_GT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, >, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l > r);
         break;
     }
     // does a less than comparison on the last 2 things on the stack
     case Opcode::I_LT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, <, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::DI_LT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, <, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::ID_LT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, <, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l < r);
         break;
     }
     case Opcode::D_LT:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, <, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l < r);
         break;
     }
     // does a greater than or equal comparison on the last 2 things on the stack
     case Opcode::I_GEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, >=, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::DI_GEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, >=, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::ID_GEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, >=, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l >= r);
         break;
     }
     case Opcode::D_GEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, >=, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l >= r);
         break;
     }
     // does a less than or equal comparison on the last 2 things on the stack
     case Opcode::I_LEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, <=, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::DI_LEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, <=, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::ID_LEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, <=, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::D_LEQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, <=, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l <= r);
         break;
     }
     case Opcode::N_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(IsNull_T(left) && IsNull_T(right)));
+        ERROR_OUT();
         break;
     }
     // does an equality check on the last 2 things on the stack
     case Opcode::I_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, ==, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::DI_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, ==, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::ID_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, ==, right));
+        double r = stack.PopDouble();
+        int l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::D_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, ==, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::B_EQ_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(GetBool(left) == GetBool(right)));
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l == r);
         break;
     }
     case Opcode::N_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(!IsNull_T(left) || !IsNull_T(right)));
+        ERROR_OUT();
         break;
     }
     // does an inequality check on the last 2 things on the stack
     case Opcode::I_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_I_OP(left, !=, right));
+        int r = stack.PopInt();
+        int l = stack.PopInt();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::DI_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_DI_OP(left, !=, right));
+        int r = stack.PopInt();
+        double l = stack.PopDouble();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::ID_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_ID_OP(left, !=, right));
+        double r = stack.PopDouble();
+        int l = stack.PopInt();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::D_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(BINARY_D_OP(left, !=, right));
+        double r = stack.PopDouble();
+        double l = stack.PopDouble();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::B_BANG_EQ:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(GetBool(left) != GetBool(right)));
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l != r);
         break;
     }
     case Opcode::B_AND_AND:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(GetBool(left) && GetBool(right)));
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l && r);
         break;
     }
     case Opcode::B_OR_OR:
     {
-        TAKE_LEFT_RIGHT(Object * left, Object * right, stack);
-        stack.push_back(NewBool(GetBool(left) || GetBool(right)));
+        bool r = stack.PopBool();
+        bool l = stack.PopBool();
+        stack.PushBool(l || r);
         break;
     }
     case Opcode::BANG:
     {
-        Object *right = stack.back;
-        stack.pop_back();
-        stack.push_back(NewBool(!GetBool(right)));
+        bool r = stack.PopBool();
+        stack.PushBool(!r);
         break;
     }
     // Does nothing
@@ -928,101 +713,27 @@ void VM::ExecuteInstruction()
     }
 }
 
-void VM::NativePrint(int arity)
-{
-    for (size_t i = 0; i < (size_t)arity; i++)
-        std::cout << stack[stack.count - arity + i]->ToString();
-
-    std::cout << std::endl;
-    stack.pop_N((size_t)arity);
-}
-
-void VM::NativeToString()
-{
-    std::string str = stack.back->ToString();
-    stack.pop_back();
-    char *c = new char[str.length() + 1];
-    stack.push_back(new String(strcpy(c, str.c_str()), str.length()));
-}
-
-void VM::ThrowObject()
-{
-    Object *throwObj = stack.back;
-    stack.pop_back();
-
-    while (!ThrowStack.empty())
-    {
-        if (MatchType(throwObj, ThrowStack.top().isArray, ThrowStack.top().type))
-        {
-            ThrowInfo loc = ThrowStack.top();
-            ThrowStack.pop();
-            curFunc = loc.func;
-            ip = loc.index - 1;
-
-            cs.erase(cs.begin() + loc.callStackIndex, cs.end());
-            curCF = &cs[loc.callStackIndex];
-
-            stack.count = cs[loc.callStackIndex].valStackMin;
-            stack.back = stack[stack.count];
-
-            stack.push_back(throwObj);
-            return;
-        }
-        ThrowStack.pop();
-    }
-    RuntimeError("Uncaught throw. '" + throwObj->ToString() + "' was thrown");
-}
-
-bool VM::MatchType(Object *obj, size_t isArray, uint8_t type)
-{
-    Int *i = dynamic_cast<Int *>(obj);
-    if (i != nullptr)
-        return (isArray == 0) && (type == 1);
-
-    Double *d = dynamic_cast<Double *>(obj);
-    if (d != nullptr)
-        return (isArray == 0) && (type == 2);
-
-    Bool *b = dynamic_cast<Bool *>(obj);
-    if (b != nullptr)
-        return (isArray == 0) && (type == 3);
-
-    Struct *s = dynamic_cast<Struct *>(obj);
-    if (s != nullptr)
-        return (isArray == 0) && (type == GetStructType(obj));
-
-    Char *c = dynamic_cast<Char *>(obj);
-    if (c != nullptr)
-        return (isArray == 0) && (type == 5);
-
-    String *str = dynamic_cast<String *>(obj);
-    if (str != nullptr)
-        return (isArray == 0) && (type == 4);
-
-    return false;
-}
-
-VM VM::DeserialiseProgram(std::string fPath)
+VM VM::DeserialiseProgram(const std::string &f_path)
 {
     std::ifstream file;
-    if (!DoesFileExist(fPath))
-        DeserialisationError("File '" + fPath + "' does not exist");
+    if (!DoesFileExist(f_path))
+        DeserialisationError("File '" + f_path + "' does not exist");
 
-    file.open(fPath, std::ios::in | std::ios::binary);
+    file.open(f_path, std::ios::in | std::ios::binary);
 
-    oprand_t mainIndex;
-    file.read((char *)&mainIndex, sizeof(mainIndex));
+    oprand_t main_index;
+    file.read((char *)&main_index, sizeof(main_index));
 
-    oprand_t numFunctions;
-    file.read((char *)&numFunctions, sizeof(numFunctions));
+    oprand_t num_functions;
+    file.read((char *)&num_functions, sizeof(num_functions));
 
     std::vector<Function> program;
-    for (oprand_t i = 0; i < numFunctions; i++)
+    for (oprand_t i = 0; i < num_functions; i++)
         program.push_back(DeserialiseFunction(file));
 
-    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> StructTree;
-    std::vector<LibraryFunctionDef> libFuncs;
-    std::vector<ThrowInfo> throwInfos;
+    std::unordered_map<oprand_t, std::unordered_set<oprand_t>> struct_tree;
+    std::vector<LibraryFunctionDef> lib_funcs;
+    std::vector<ThrowInfo> throw_infos;
 
     while (file.peek() != EOF)
     {
@@ -1031,49 +742,51 @@ VM VM::DeserialiseProgram(std::string fPath)
         {
         case STRUCT_TREE_ID:
         {
-            TypeID numStructs;
-            file.read((char *)&numStructs, sizeof(numStructs));
+            TypeID num_structs;
+            file.read((char *)&num_structs, sizeof(num_structs));
 
-            for (size_t i = 0; i < numStructs; i++)
+            for (size_t i = 0; i < num_structs; i++)
             {
-                TypeID structId;
-                file.read((char *)&structId, sizeof(structId));
+                TypeID struct_id;
+                file.read((char *)&struct_id, sizeof(struct_id));
 
-                size_t numParents = ReadSizeT(file);
+                size_t num_parents = ReadSizeT(file);
 
-                for (size_t i = 0; i < numParents; i++)
+                for (size_t i = 0; i < num_parents; i++)
                 {
                     TypeID parent;
                     file.read((char *)&parent, sizeof(parent));
-                    StructTree[structId].insert(parent);
+                    struct_tree[struct_id].insert(parent);
                 }
             }
             break;
         }
         case LIB_FUNC_ID:
         {
-            size_t numLibFuncs = ReadSizeT(file);
+            size_t num_lib_funcs = ReadSizeT(file);
 
-            for (size_t i = 0; i < numLibFuncs; i++)
+            for (size_t i = 0; i < num_lib_funcs; i++)
             {
-                size_t nameLen = ReadSizeT(file);
-                char *cName = (char *)DeserialiseData(nameLen, sizeof(char), file);
-                std::string name(cName, nameLen);
-                delete[] cName;
+                size_t name_len = ReadSizeT(file);
+                ReadSizeT(file);
+                char *c_name = (char *)DeserialiseData(name_len, sizeof(char), file);
+                std::string name(c_name, name_len);
+                delete[] c_name;
 
-                size_t libLen = ReadSizeT(file);
-                char *cLibName = (char *)DeserialiseData(libLen, sizeof(char), file);
-                std::string libName(cLibName, libLen);
-                delete[] cLibName;
+                size_t lib_len = ReadSizeT(file);
+                ReadSizeT(file);
+                char *c_lib_name = (char *)DeserialiseData(lib_len, sizeof(char), file);
+                std::string lib_name(c_lib_name, lib_len);
+                delete[] c_lib_name;
 
                 size_t arity = ReadSizeT(file);
-                libFuncs.push_back(LibraryFunctionDef(name, libName, arity));
+                lib_funcs.push_back(LibraryFunctionDef(name, lib_name, arity));
             }
             break;
         }
         case THROW_INFO_ID:
         {
-            throwInfos = DeserialiseThrowInfos(file);
+            throw_infos = DeserialiseThrowInfos(file);
             break;
         }
         default:
@@ -1084,15 +797,15 @@ VM VM::DeserialiseProgram(std::string fPath)
         }
     }
     file.close();
-    return VM(program, mainIndex, StructTree, libFuncs, throwInfos);
+    return VM(program, main_index, struct_tree, lib_funcs, throw_infos);
 }
 
-bool VM::DoesFileExist(std::string &path)
+bool VM::DoesFileExist(const std::string &path)
 {
     return std::ifstream(path).good();
 }
 
-void VM::DeserialisationError(std::string err)
+void VM::DeserialisationError(const std::string &err)
 {
     Error e = Error("[DE-SERIALISATION ERROR]\n" + err + "\n");
     throw e;
@@ -1103,141 +816,150 @@ Function VM::DeserialiseFunction(std::ifstream &file)
     oprand_t arity;
     file.read((char *)&arity, sizeof(arity));
 
-    std::vector<int> Ints;
-    std::vector<double> Doubles;
-    std::vector<bool> Bools;
-    std::vector<char> Chars;
-    std::vector<std::string> Strings;
-    std::vector<Op> Code;
+    std::vector<int> ints;
+    std::vector<double> doubles;
+    std::vector<bool> bools;
+    std::vector<char> chars;
+    std::vector<std::string> strings;
+    std::vector<std::vector<Op>> code;
 
     for (size_t i = 0; i < 6; i++)
     {
-        size_t typeCode = ReadSizeT(file);
-        switch (typeCode)
+        size_t type_code = ReadSizeT(file);
+        switch (type_code)
         {
         case INT_ID:
         {
-            Ints = DeserialiseInts(file);
+            ints = DeserialiseInts(file);
             break;
         }
         case DOUBLE_ID:
         {
-            Doubles = DeserialiseDoubles(file);
+            doubles = DeserialiseDoubles(file);
             break;
         }
         case BOOL_ID:
         {
-            Bools = DeserialiseBools(file);
+            bools = DeserialiseBools(file);
             break;
         }
         case CHAR_ID:
         {
-            Chars = DeserialiseChars(file);
+            chars = DeserialiseChars(file);
             break;
         }
         case STRING_ID:
         {
-            Strings = DeserialiseStrings(file);
+            strings = DeserialiseStrings(file);
             break;
         }
         case CODE_ID:
         {
-            Code = DeserialiseOps(file);
+            code = DeserialiseOps(file);
             break;
         }
         }
     }
 
-    return Function(arity, Code, Ints, Doubles, Bools, Chars, Strings);
+    return Function(arity, code, ints, doubles, bools, chars, strings);
 }
 
 //=================================DE-SERIALISATION=================================//
 
 size_t VM::ReadSizeT(std::ifstream &file)
 {
-    char cNumElements[sizeof(size_t)];
-    file.read(cNumElements, sizeof(size_t));
+    char c_num_elements[sizeof(size_t)];
+    file.read(c_num_elements, sizeof(size_t));
 
-    return *(size_t *)cNumElements;
+    return *(size_t *)c_num_elements;
 }
 
-void *VM::DeserialiseData(size_t numElements, size_t typeSize, std::ifstream &file)
+void *VM::DeserialiseData(size_t num_elements, size_t type_size, std::ifstream &file)
 {
-    char *cData = new char[typeSize * numElements];
+    char *c_data = new char[type_size * num_elements];
 
-    file.read(cData, typeSize * numElements);
-    return cData;
+    file.read(c_data, type_size * num_elements);
+    return c_data;
 }
 
 std::vector<int> VM::DeserialiseInts(std::ifstream &file)
 {
-    size_t numInts = ReadSizeT(file);
-    int *data = (int *)DeserialiseData(numInts, sizeof(int), file);
+    size_t num_ints = ReadSizeT(file);
+    int *data = (int *)DeserialiseData(num_ints, sizeof(int), file);
 
-    std::vector<int> result(data, data + numInts);
+    std::vector<int> result(data, data + num_ints);
     delete[] data;
     return result;
 }
 
 std::vector<double> VM::DeserialiseDoubles(std::ifstream &file)
 {
-    size_t numDoubles = ReadSizeT(file);
-    double *data = (double *)DeserialiseData(numDoubles, sizeof(double), file);
+    size_t num_doubles = ReadSizeT(file);
+    double *data = (double *)DeserialiseData(num_doubles, sizeof(double), file);
 
-    std::vector<double> result(data, data + numDoubles);
+    std::vector<double> result(data, data + num_doubles);
     delete[] data;
     return result;
 }
 
 std::vector<bool> VM::DeserialiseBools(std::ifstream &file)
 {
-    size_t numBools = ReadSizeT(file);
-    bool *data = (bool *)DeserialiseData(numBools, sizeof(bool), file);
+    size_t num_bools = ReadSizeT(file);
+    bool *data = (bool *)DeserialiseData(num_bools, sizeof(bool), file);
 
-    std::vector<bool> result(data, data + numBools);
+    std::vector<bool> result(data, data + num_bools);
     delete[] data;
     return result;
 }
 
 std::vector<char> VM::DeserialiseChars(std::ifstream &file)
 {
-    size_t numChars = ReadSizeT(file);
-    char *data = (char *)DeserialiseData(numChars, sizeof(char), file);
+    size_t num_chars = ReadSizeT(file);
+    char *data = (char *)DeserialiseData(num_chars, sizeof(char), file);
 
-    std::vector<char> result(data, data + numChars);
+    std::vector<char> result(data, data + num_chars);
     delete[] data;
     return result;
 }
 
 std::vector<std::string> VM::DeserialiseStrings(std::ifstream &file)
 {
-    size_t numStrings = ReadSizeT(file);
+    size_t num_strings = ReadSizeT(file);
     std::vector<std::string> result;
 
-    for (size_t i = 0; i < numStrings; i++)
+    for (size_t i = 0; i < num_strings; i++)
     {
-        size_t strLen = ReadSizeT(file);
-        char *data = (char *)DeserialiseData(strLen, sizeof(char), file);
-        result.push_back(std::string(data, strLen));
+        size_t str_len = ReadSizeT(file);
+        char *data = (char *)DeserialiseData(str_len, sizeof(char), file);
+        result.push_back(std::string(data, str_len));
         delete[] data;
     }
 
     return result;
 }
 
-std::vector<Op> VM::DeserialiseOps(std::ifstream &file)
+std::vector<std::vector<Op>> VM::DeserialiseOps(std::ifstream &file)
 {
-    size_t numOps = ReadSizeT(file);
-    std::vector<Op> result;
+    size_t num_routines = ReadSizeT(file);
+    std::vector<std::vector<Op>> result;
 
-    for (size_t i = 0; i < numOps; i++)
+    for (size_t j = 0; j < num_routines; j++)
     {
-        Opcode code;
-        file.read((char *)&code, sizeof(code));
 
-        oprand_t oprand;
-        file.read((char *)&oprand, sizeof(oprand));
-        result.push_back(Op(code, oprand));
+        size_t num_ops = ReadSizeT(file);
+        std::vector<Op> routine;
+
+        for (size_t i = 0; i < num_ops; i++)
+        {
+            Opcode code;
+            file.read((char *)&code, sizeof(code));
+
+            oprand_t oprand;
+            file.read((char *)&oprand, sizeof(oprand));
+            routine.push_back(Op(code, oprand));
+        }
+
+        result.push_back(routine);
     }
 
     return result;
@@ -1245,13 +967,13 @@ std::vector<Op> VM::DeserialiseOps(std::ifstream &file)
 
 std::vector<ThrowInfo> VM::DeserialiseThrowInfos(std::ifstream &file)
 {
-    size_t numThrows = ReadSizeT(file);
+    size_t num_throws = ReadSizeT(file);
     std::vector<ThrowInfo> result;
 
-    for (size_t i = 0; i < numThrows; i++)
+    for (size_t i = 0; i < num_throws; i++)
     {
         ThrowInfo ti = ThrowInfo();
-        file.read((char *)&ti.isArray, sizeof(bool));
+        file.read((char *)&ti.is_array, sizeof(bool));
         file.read((char *)&ti.type, sizeof(ti.type));
         file.read((char *)&ti.func, sizeof(ti.func));
         file.read((char *)&ti.index, sizeof(ti.index));

@@ -12,20 +12,47 @@ enum class Opcode : op_t
     LOAD_CHAR,
 
     // variables
-    VAR_A,
-    VAR_A_GLOBAL,
+    INT_ASSIGN,
+    DOUBLE_ASSIGN,
+    BOOL_ASSIGN,
+    STRING_ASSIGN,
+    CHAR_ASSIGN,
+    ARRAY_ASSIGN,
+    STRUCT_ASSIGN,
 
-    VAR_D_GLOBAL,
+    INT_ASSIGN_GLOBAL,
+    DOUBLE_ASSIGN_GLOBAL,
+    BOOL_ASSIGN_GLOBAL,
+    STRING_ASSIGN_GLOBAL,
+    CHAR_ASSIGN_GLOBAL,
+    ARRAY_ASSIGN_GLOBAL,
+    STRUCT_ASSIGN_GLOBAL,
 
-    GET_V,
-    GET_V_GLOBAL,
+    // pushes the oprand onto the stack
+    // by value
+    PUSH,
+    PUSH_SP_OFFSET,
 
-    // arrays
-    ARR_D,
+    GET_INT,
+    GET_DOUBLE,
+    GET_BOOL,
+    GET_STRING,
+    GET_CHAR,
+    GET_ARRAY,
+    GET_STRUCT,
+
+    GET_INT_GLOBAL,
+    GET_DOUBLE_GLOBAL,
+    GET_BOOL_GLOBAL,
+    GET_STRING_GLOBAL,
+    GET_CHAR_GLOBAL,
+    GET_ARRAY_GLOBAL,
+    GET_STRUCT_GLOBAL,
+
+    // arrays and arrays
     ARR_INDEX,
     ARR_SET,
     ARR_ALLOC,
-    STRUCT_ALLOC,
 
     STRING_INDEX,
     STRING_SET,
@@ -162,29 +189,97 @@ inline std::string ToString(Opcode o)
     {
         return "LOAD_CHAR";
     }
-    case Opcode::VAR_A:
+    case Opcode::INT_ASSIGN:
     {
-        return "VAR_A";
+        return "INT_ASSIGN";
     }
-    case Opcode::VAR_A_GLOBAL:
+    case Opcode::DOUBLE_ASSIGN:
     {
-        return "VAR_A_GLOBAL";
+        return "DOUBLE_ASSIGN";
     }
-    case Opcode::VAR_D_GLOBAL:
+    case Opcode::BOOL_ASSIGN:
     {
-        return "VAR_D_GLOBAL";
+        return "BOOL_ASSIGN";
     }
-    case Opcode::GET_V:
+    case Opcode::STRING_ASSIGN:
     {
-        return "GET_V";
+        return "STRING_ASSIGN";
     }
-    case Opcode::GET_V_GLOBAL:
+    case Opcode::CHAR_ASSIGN:
     {
-        return "GET_V_GLOBAL";
+        return "CHAR_ASSIGN";
     }
-    case Opcode::ARR_D:
+    case Opcode::ARRAY_ASSIGN:
     {
-        return "ARR_D";
+        return "ARRAY_ASSIGN";
+    }
+    case Opcode::STRUCT_ASSIGN:
+    {
+        return "STRUCT_ASSIGN";
+    }
+    case Opcode::PUSH:
+    {
+        return "PUSH";
+    }
+    case Opcode::PUSH_SP_OFFSET:
+    {
+        return "PUSH_SP_OFFSET";
+    }
+    case Opcode::GET_INT:
+    {
+        return "GET_INT";
+    }
+    case Opcode::GET_DOUBLE:
+    {
+        return "GET_DOUBLE";
+    }
+    case Opcode::GET_BOOL:
+    {
+        return "GET_BOOL";
+    }
+    case Opcode::GET_STRING:
+    {
+        return "GET_STRING";
+    }
+    case Opcode::GET_CHAR:
+    {
+        return "GET_CHAR";
+    }
+    case Opcode::GET_ARRAY:
+    {
+        return "GET_ARRAY";
+    }
+    case Opcode::GET_STRUCT:
+    {
+        return "GET_STUCT";
+    }
+    case Opcode::GET_INT_GLOBAL:
+    {
+        return "GET_INT_GLOBAL";
+    }
+    case Opcode::GET_DOUBLE_GLOBAL:
+    {
+        return "GET_DOUBLE_GLOBAL";
+    }
+    case Opcode::GET_BOOL_GLOBAL:
+    {
+        return "GET_BOOL_GLOBAL";
+    }
+    case Opcode::GET_STRING_GLOBAL:
+    {
+        return "GET_STRING_GLOBAL";
+    }
+    case Opcode::GET_CHAR_GLOBAL:
+    {
+        return "GET_CHAR_GLOBAL";
+    }
+    case Opcode::GET_ARRAY_GLOBAL:
+    {
+        return "GET_ARRAY_GLOBAL";
+    }
+    case Opcode::GET_STRUCT_GLOBAL:
+    {
+        return "GET_STRUCT_GLOBAL";
     }
     case Opcode::ARR_INDEX:
     {
@@ -197,10 +292,6 @@ inline std::string ToString(Opcode o)
     case Opcode::ARR_ALLOC:
     {
         return "ARR_ALLOC";
-    }
-    case Opcode::STRUCT_ALLOC:
-    {
-        return "STRUCT_ALLOC";
     }
     case Opcode::STRING_INDEX:
     {

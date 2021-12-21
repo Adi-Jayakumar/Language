@@ -3,7 +3,9 @@
 #include <iostream>
 #include <string>
 
-enum class TokenID : uint8_t
+using token_int_type = uint8_t;
+
+enum class TokenID : token_int_type
 {
     // literal values
     INT_L,
@@ -75,9 +77,6 @@ enum class TokenID : uint8_t
     // opening and closing verifcation statements
     OPEN_VER,  // (|
     CLOSE_VER, // |)
-    // opening and closing template functions
-    OPEN_TEMPLATE,  // <|
-    CLOSE_TEMPLATE, // |>
     // result of calling a function used in the verifier's post conditions
     RESULT,
     // 'Sequence' keyword, used in verification conditions

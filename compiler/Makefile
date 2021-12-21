@@ -1,17 +1,19 @@
 CC		:= g++
-
-# -fsanitize=leak -fsanitize=address -fsanitize=undefined
-
-
-C_FLAGS := -std=c++17 -fsanitize=leak -fsanitize=address -fsanitize=undefined -O0 -Wall -Wextra -march=native -Wl,--export-dynamic
+C_FLAGS := -g -std=c++17 -Wall -Wextra -Wpedantic -march=native -fext-numeric-literals
+ASAN_FLAGS := -fsanitize=leak -fsanitize=address -fsanitize=undefined
 
 BIN		:= bin
 SRC		:= src
+OBJ		:= obj
+TEST	:= test
 INCLUDE_ONE	:= include
 INCLUDE_TWO := ../common
-LIB		:= lib
+INCLUDE_PATHS := -I$(INCLUDE_ONE) -I$(INCLUDE_TWO)
 
-LIBRARIES	:= -ldl
+SRC_FILES := $(wildcard $(SRC)/*.cpp)
+OBJ_FILES := $(patsubst $(SRC)/%.cpp, $(OBJ)/%.o, $(SRC_FILES))
+
+LIBRARIES	:= -lz3
 
 ifeq ($(OS),Windows_NT)
 EXECUTABLE	:= compiler.exe
@@ -21,11 +23,14 @@ endif
 
 all: $(BIN)/$(EXECUTABLE)
 
+$(OBJ)/%.o: $(SRC)/%.cpp
+	$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -c $< -o $@
+
+$(BIN)/$(EXECUTABLE): $(OBJ_FILES)
+	$(CC) $(ASAN_FLAGS) $(LIBRARIES) $^ -o $@
+
 clean:
 	$(RM) $(BIN)/$(EXECUTABLE)
 
 run: all
 	./$(BIN)/$(EXECUTABLE)
-
-$(BIN)/$(EXECUTABLE): $(SRC)/*
-	$(CC) $(C_FLAGS) -I$(INCLUDE_ONE) -I$(INCLUDE_TWO) -L$(LIB) $^ -o $@ $(LIBRARIES)

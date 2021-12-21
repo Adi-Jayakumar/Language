@@ -1,49 +1,61 @@
 #pragma once
-#include "exprnode.h"
-#include "function.h"
+#include "nodesubstitution.h"
 #include "perror.h"
+#include "stmtnode.h"
+#include "symboltable.h"
+#include <cassert>
 
-enum class ConditionOperation : uint8_t
-{
-    POP,
-    NEGATE_TOP
-};
-
-std::string ToString(ConditionOperation c);
-std::ostream &operator<<(std::ostream &out, ConditionOperation c);
-
-struct ConditionStackOp
-{
-    ConditionOperation op;
-    size_t idx;
-    ConditionStackOp(ConditionOperation _op, size_t _idx) : op(_op), idx(_idx){};
-};
-
-// TODO - In static analysis ensure that top level
-// verification expressions are only of types
-// 'VarReference' or 'Assign' and that the number of
-// pre conditions is equal to the number of arguments
 class Verifier
 {
-    std::vector<std::shared_ptr<Expr>> stack;
-    std::vector<std::shared_ptr<Expr>> conditions;
-    std::vector<ConditionStackOp> conditionPop;
-    Function f;
+    std::vector<std::vector<z3::expr>> post;
+    std::vector<z3::expr> conditions;
+    std::vector<SP<Stmt>> program;
+    SymbolTable symbols; // for function calls
+    FuncDecl *cur_func;
+    z3::context context;
 
 public:
-    std::vector<std::vector<std::shared_ptr<Expr>>> post;
-    Verifier() = default;
-    Verifier(Function &_f) : f(_f){};
+    // Should pass in the SymbolTable used to StaticAnalyse the code
+    Verifier(const SymbolTable &_symbols) : symbols(_symbols){
+                                                              // post.push_back(std::vector<z3::expr>());
+                                                          };
 
-    void VerificationError(std::string msg);
-    void SetFunction(const Function &_f)
-    {
-        f = _f;
-    }
+    void Generate(FuncDecl *fd);
+    z3::expr GetZ3Post();
 
-    std::vector<std::shared_ptr<Expr>> GetAssumptions();
+    void PostConditionError(Token loc, std::string err);
+    void ReplaceFunctionCall(SP<Expr> &post);
 
-    // populates 'post' with the strongest post condition for the
-    // supplied pre condition
-    void GenerateStrongestPost(std::vector<std::shared_ptr<Expr>> &pre);
+    z3::expr MAKE_RETURN(const TypeData &type, const z3::expr &val, const Token &loc);
+    void AddReturnValue(const z3::expr &ret);
+    void AddCondition(const z3::expr &c);
+    void RemoveLastCondition();
+
+    // expression generation
+    z3::expr GenerateFromLiteral(Literal *l);
+    z3::expr GenerateFromUnary(Unary *u);
+    z3::expr GenerateFromBinary(Binary *b);
+    z3::expr GenerateFromAssign(Assign *a);
+    z3::expr GenerateFromVarReference(VarReference *vr);
+    z3::expr GenerateFromFunctionCall(FunctionCall *fc);
+    z3::expr GenerateFromArrayIndex(ArrayIndex *ai);
+    z3::expr GenerateFromBracedInitialiser(BracedInitialiser *ia);
+    z3::expr GenerateFromDynamicAllocArray(DynamicAllocArray *da);
+    z3::expr GenerateFromFieldAccess(FieldAccess *fa);
+    z3::expr GenerateFromTypeCast(TypeCast *tc);
+    z3::expr GenerateFromSequence(Sequence *s);
+
+    // statement generation
+    void GenerateFromExprStmt(ExprStmt *es);
+    void GenerateFromDeclaredVar(DeclaredVar *dv);
+    void GenerateFromBlock(Block *b);
+    void GenerateFromIfStmt(IfStmt *i);
+    void GenerateFromWhileStmt(WhileStmt *ws);
+    void GenerateFromFuncDecl(FuncDecl *fd);
+    void GenerateFromReturn(Return *r);
+    void GenerateFromStructDecl(StructDecl *sd);
+    void GenerateFromImportStmt(ImportStmt *is);
+    void GenerateFromBreak(Break *b);
+    void GenerateFromThrow(Throw *t);
+    void GenerateFromTryCatch(TryCatch *tc);
 };

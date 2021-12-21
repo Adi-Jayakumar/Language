@@ -9,30 +9,30 @@
 #include "throwinfo.h"
 #include <fstream>
 #include <stack>
+#include <unordered_set>
 
 class Compiler
 {
 public:
-    oprand_t mainIndex;
-    oprand_t parseIndex;
-    std::vector<Function> Functions;
-    std::unordered_map<TypeID, std::unordered_set<TypeID>> StructTree;
+    oprand_t main_index;
+    oprand_t parse_index;
+    std::vector<Function> functions;
+    std::unordered_map<TypeID, std::unordered_set<TypeID>> struct_tree;
+    FuncDecl *cur_func;
 
-    std::vector<LibraryFunctionDef> libfuncs;
+    std::vector<LibraryFunctionDef> lib_funcs;
 
-    std::stack<std::vector<size_t>> breakIndices;
-    std::vector<ThrowInfo> throwStack;
+    std::stack<std::vector<size_t>> break_indices;
+    std::vector<ThrowInfo> throw_stack;
 
-    SymbolTable Symbols;
+    SymbolTable symbols;
 
-    bool hadError = false;
+    bool had_error = false;
 
     void CompileError(Token loc, std::string err);
-    void TypeError(Token loc, std::string err);
-    void SymbolError(Token loc, std::string err);
 
     Function *cur;
-    std::pair<std::vector<Op> *, size_t> curRoutine;
+    std::pair<std::vector<Op> *, size_t> cur_routine;
     Compiler();
 
     void AddCode(Op o);
@@ -55,7 +55,7 @@ public:
     size_t GetVariableStackLoc(std::string &name);
 
     // sets the index of the 'void Main()' function
-    void Compile(std::vector<std::shared_ptr<Stmt>> &s);
+    void Compile(std::vector<SP<Stmt>> &s);
     void Disassemble();
 
     void ClearCurrentDepthWithPOPInst();
@@ -66,7 +66,7 @@ private:
     static void SerialisationError(std::string err);
     static bool DoesFileExist(std::string &path);
     static void SerialiseFunction(Function &f, std::ofstream &file);
-    static void SerialiseData(void *data, size_t typeSize, size_t numElements, std::ofstream &file);
+    static void SerialiseData(void *data, size_t typeSize, size_t num_elements, std::ofstream &file);
     static void SerialiseInts(Function &f, std::ofstream &file);
     static void SerialiseDoubles(Function &f, std::ofstream &file);
     static void SerialiseBools(Function &f, std::ofstream &file);

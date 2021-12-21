@@ -10,13 +10,16 @@ ASTPrinter &operator<<(ASTPrinter &ast, std::string str)
 
 void ASTPrinter::PrintLiteral(Literal *l)
 {
-    if (printTypes)
-        out << l->t;
+    if (print_types)
+    {
+        symbols.PrintType(out, l->t);
+        out << " ";
+    }
 
     if (l->t.type == 4)
-        out << " \"" << l->loc.literal << "\"";
+        out << "\"" << l->loc.literal << "\"";
     else if (l->t.type == 5)
-        out << " \'" << l->loc.literal << "\'";
+        out << "\'" << l->loc.literal << "\'";
     else
         out << l->loc.literal;
 }
@@ -24,9 +27,9 @@ void ASTPrinter::PrintLiteral(Literal *l)
 void ASTPrinter::PrintUnary(Unary *u)
 {
     if (u->op.type == TokenID::MINUS)
-        out << " -";
+        out << "-";
     else if (u->op.type == TokenID::BANG)
-        out << " !";
+        out << "!";
     else
         out << u->op;
     out << "(";
@@ -36,7 +39,7 @@ void ASTPrinter::PrintUnary(Unary *u)
 
 void ASTPrinter::PrintBinary(Binary *b)
 {
-    out << " (";
+    out << "(";
     b->left->Print(*this);
 
     if (b->op.type == TokenID::PLUS)
@@ -68,7 +71,7 @@ void ASTPrinter::PrintBinary(Binary *b)
 
     b->right->Print(*this);
 
-    out << ") ";
+    out << ")";
 }
 
 void ASTPrinter::PrintAssign(Assign *a)
@@ -89,10 +92,13 @@ void ASTPrinter::PrintFunctionCall(FunctionCall *fc)
 
     if (fc->templates.size() != 0)
     {
-        out << "<|";
+        out << "<";
         for (auto &t : fc->templates)
-            out << t << ", ";
-        out << "|>";
+        {
+            symbols.PrintType(out, t);
+            out << ", ";
+        }
+        out << ">";
     }
 
     out << "(";
@@ -111,14 +117,12 @@ void ASTPrinter::PrintArrayIndex(ArrayIndex *ai)
     out << "[";
     ai->index->Print(*this);
     out << "]";
-
-    if (printTypes)
-        out << ")";
 }
 
 void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 {
-    out << ia->t << " {";
+    symbols.PrintType(out, ia->t);
+    out << "{";
     for (size_t i = 0; i < ia->init.size(); i++)
     {
         ia->init[i]->Print(*this);
@@ -130,7 +134,8 @@ void ASTPrinter::PrintBracedInitialiser(BracedInitialiser *ia)
 
 void ASTPrinter::PrintDynamicAllocArray(DynamicAllocArray *da)
 {
-    out << da->t << "[";
+    symbols.PrintType(out, da->t);
+    out << "[";
     da->size->Print(*this);
     out << "]";
 }
@@ -140,17 +145,30 @@ void ASTPrinter::PrintFieldAccess(FieldAccess *fa)
     fa->accessor->Print(*this);
     out << ".";
     fa->accessee->Print(*this);
-
-    if (printTypes)
-        out << ")";
 }
 
 void ASTPrinter::PrintTypeCast(TypeCast *gf)
 {
-    out << "Cast";
+    out << "Cast<";
+    symbols.PrintType(out, gf->t);
+    out << ">(" << gf->arg.get() << ")";
+}
 
-    gf->type.isArray ? out << "<" << gf->type << ">" : out << gf->type;
-    out << "(" << gf->arg.get() << ")";
+void ASTPrinter::PrintSequence(Sequence *s)
+{
+    out << "Sequence(";
+    s->start->Print(*this);
+    out << ", ";
+    s->step->Print(*this);
+    out << ", ";
+    s->end->Print(*this);
+    out << ", ";
+    s->var->Print(*this);
+    out << ", ";
+    s->term->Print(*this);
+    out << ", ";
+    out << ToString(s->op);
+    out << ")";
 }
 
 void ASTPrinter::PrintSequence(Sequence *s)
@@ -177,7 +195,6 @@ void ASTPrinter::PrintSequence(Sequence *s)
 
 void ASTPrinter::PrintExprStmt(ExprStmt *es)
 {
-
     es->exp->Print(*this);
     out << ";";
     NewLine();
@@ -185,7 +202,8 @@ void ASTPrinter::PrintExprStmt(ExprStmt *es)
 
 void ASTPrinter::PrintDeclaredVar(DeclaredVar *v)
 {
-    out << v->t << " " << v->name;
+    symbols.PrintType(out, v->t);
+    out << " " << v->name;
 
     if (v->value != nullptr)
     {
@@ -210,6 +228,7 @@ void ASTPrinter::PrintBlock(Block *b)
     depth--;
     NewLine();
     out << "}";
+    NewLine();
 }
 
 void ASTPrinter::PrintIfStmt(IfStmt *i)
@@ -220,21 +239,18 @@ void ASTPrinter::PrintIfStmt(IfStmt *i)
 
     NewLine();
 
-    i->thenBranch->Print(*this);
-    if (i->elseBranch != nullptr)
+    i->then_branch->Print(*this);
+    if (i->else_branch != nullptr)
     {
         NewLine();
         out << "else";
         NewLine();
-        i->elseBranch->Print(*this);
+        i->else_branch->Print(*this);
     }
 }
 
 void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 {
-    if (ws->body == nullptr)
-        return;
-
     out << "while (";
     ws->cond->Print(*this);
     out << ")";
@@ -245,23 +261,28 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
-    if (fd->templates.size() != 0)
+    if (fd->templates.size() > 0)
     {
-        out << "template<|";
-        for (auto &t : fd->templates)
+        out << "template<";
+
+        for (size_t i = 0; i < fd->templates.size() - 1; i++)
         {
-            GetTypeStringMap()[t.first.type] = t.second;
-            out << t.first << ", ";
+            out << fd->templates[i].second << ", ";
+            symbols.AddType(fd->templates[i].second);
         }
-        out << "|>";
+
+        out << fd->templates.back().second << '>';
+        symbols.AddType(fd->templates.back().second);
         NewLine();
     }
-
-    out << fd->ret << " " << fd->name << "(";
+    out << "function ";
+    symbols.PrintType(out, fd->ret);
+    out << " " << fd->name << "(";
 
     for (size_t i = 0; i < fd->params.size(); i++)
     {
-        out << fd->params[i].first << " " << fd->params[i].second;
+        symbols.PrintType(out, fd->params[i].first);
+        out << " " << fd->params[i].second;
         if (i != fd->params.size() - 1)
             out << ", ";
     }
@@ -270,10 +291,10 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 
     NewLine();
 
-    if (fd->preConds.size() != 0)
+    if (fd->pre_conds.size() != 0)
     {
         out << "(|";
-        for (auto exp : fd->preConds)
+        for (auto exp : fd->pre_conds)
         {
             exp->Print(*this);
             out << ";";
@@ -299,29 +320,25 @@ void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
     out << "}";
     NewLine();
 
-    if (fd->postCond != nullptr)
+    if (fd->post_cond != nullptr)
     {
         out << "(|";
-        fd->postCond->Print(*this);
+        fd->post_cond->Print(*this);
         out << "|)";
     }
 
     NewLine();
     NewLine();
-
-    for (auto &t : fd->templates)
-        GetTypeStringMap().erase(t.first.type);
 }
 
 void ASTPrinter::PrintReturn(Return *r)
 {
     out << "return ";
-    if (r->retVal != nullptr)
-        r->retVal->Print(*this);
-    out << ";";
+    if (r->ret_val != nullptr)
+        r->ret_val->Print(*this);
 
+    out << ";";
     NewLine();
-    return;
 }
 
 void ASTPrinter::PrintStructDecl(StructDecl *sd)
@@ -338,7 +355,6 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd)
     depth--;
     NewLine();
     out << "}";
-    NewLine();
     NewLine();
 }
 
@@ -369,13 +385,15 @@ void ASTPrinter::PrintTryCatch(TryCatch *tc)
     out << "try";
     NewLine();
 
-    tc->tryClause->Print(*this);
+    tc->try_clause->Print(*this);
     NewLine();
 
-    out << "catch(" << tc->catchVar.first << " " << tc->catchVar.second << ")";
+    out << "catch (";
+    symbols.PrintType(out, tc->catch_var.first);
+    out << " " << tc->catch_var.second << ")";
     NewLine();
 
-    tc->catchClause->Print(*this);
+    tc->catch_clause->Print(*this);
 }
 
 //-----------------EXPRESSIONS---------------------//

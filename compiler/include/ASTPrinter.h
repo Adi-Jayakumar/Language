@@ -1,5 +1,6 @@
 #pragma once
 #include "stmtnode.h"
+#include "symboltable.h"
 #include <iostream>
 #include <sstream>
 
@@ -7,13 +8,14 @@ class ASTPrinter
 {
 public:
     std::ostringstream out;
-    bool printTypes = false;
-    size_t depth = 0;
-    std::string tab = "\t";
+    bool print_types;
+    size_t depth;
+    std::string tab;
+    SymbolTable symbols;
 
-    ASTPrinter(bool _printTypes, std::string _tab) : printTypes(_printTypes), tab(_tab){};
-    ASTPrinter(bool _printTypes) : printTypes(_printTypes){};
-    ASTPrinter(std::string _tab) : tab(_tab){};
+    ASTPrinter(bool _print_types, std::string _tab, SymbolTable &_symbols) : print_types(_print_types), depth(0), tab(_tab), symbols(_symbols){};
+    ASTPrinter(bool _printTypes, SymbolTable &_symbols) : print_types(_printTypes), depth(0), tab("\t"), symbols(_symbols){};
+    ASTPrinter(std::string _tab, SymbolTable &_symbols) : print_types(false), depth(0), tab(_tab), symbols(_symbols){};
 
     void Flush()
     {
@@ -23,6 +25,7 @@ public:
 
     void Clear()
     {
+        out.str("");
         out.clear();
     }
 
@@ -31,6 +34,12 @@ public:
         out << '\n';
         for (size_t i = 0; i < depth; i++)
             out << tab;
+    }
+
+    void Log(const std::string &text)
+    {
+        out << text;
+        NewLine();
     }
 
     // expression printing

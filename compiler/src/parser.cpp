@@ -1,12 +1,12 @@
 #include "parser.h"
 #include "ASTPrinter.h"
 
-Parser::Parser(const std::string &fPath)
+Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
+    : symbols(_symbols), lex(fPath, &symbols), depth(0), had_error(false)
 {
-    lex = Lexer(fPath);
     cur = lex.NextToken();
     next = lex.NextToken();
-    depth = 0;
+    two_next = lex.NextToken();
 }
 
 void Parser::ParseError(Token loc, std::string err)
@@ -45,25 +45,22 @@ void Parser::Advance()
 {
     prev = cur;
     cur = next;
-    if (cur.type != TokenID::END)
-        next = lex.NextToken();
+    next = two_next;
 
-    if (prev.type == TokenID::STRUCT && cur.type == TokenID::TYPENAME_KW)
-    {
-        TypeData newType(0, numTypes);
-        numTypes++;
-        GetTypeNameMap()[next.literal] = newType;
-        GetTypeStringMap()[newType.type] = next.literal;
-    }
+    if (next.type != TokenID::END)
+        two_next = lex.NextToken();
+
+    if (cur.type == TokenID::STRUCT && next.type == TokenID::TYPENAME_KW)
+        symbols.AddType(two_next.literal);
 }
 
 TypeData Parser::ParseType(std::string err)
 {
     if (cur.type == TokenID::TYPENAME)
     {
-        std::string sType = cur.literal;
+        std::string s_type = cur.literal;
         Advance();
-        return GetTypeNameMap()[sType];
+        return symbols.ResolveType(s_type).value();
     }
     else if (cur.type == TokenID::ARRAY)
     {
@@ -86,19 +83,19 @@ TypeData Parser::ParseType(std::string err)
             Advance();
 
             Check(TokenID::TYPENAME, "Expect type name in multi dimensional array type");
-            type = GetTypeNameMap()[cur.literal];
+            type = symbols.ResolveType(cur.literal).value();
             Advance();
         }
         else
         {
             Check(TokenID::TYPENAME, "1 dimensional array requires type name");
-            type = GetTypeNameMap()[cur.literal];
+            type = symbols.ResolveType(cur.literal).value();
             Advance();
         }
 
         Check(TokenID::GT, "Missing '>'");
         Advance();
-        type.isArray = dim;
+        type.is_array = dim;
         return type;
     }
     ParseError(cur, err);
@@ -106,9 +103,9 @@ TypeData Parser::ParseType(std::string err)
     return {false, UINT8_MAX};
 }
 
-std::vector<std::shared_ptr<Stmt>> Parser::Parse()
+std::vector<SP<Stmt>> Parser::Parse()
 {
-    std::vector<std::shared_ptr<Stmt>> res;
+    std::vector<SP<Stmt>> res;
     while (cur.type != TokenID::END)
     {
         try
@@ -117,7 +114,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::Parse()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -126,9 +123,9 @@ std::vector<std::shared_ptr<Stmt>> Parser::Parse()
     return res;
 }
 
-std::vector<std::shared_ptr<Expr>> Parser::ParseVerCondition()
+std::vector<SP<Expr>> Parser::ParseVerCondition()
 {
-    std::vector<std::shared_ptr<Expr>> post;
+    std::vector<SP<Expr>> post;
     if (cur.type == TokenID::OPEN_VER)
     {
         Advance();
@@ -145,7 +142,7 @@ std::vector<std::shared_ptr<Expr>> Parser::ParseVerCondition()
     return post;
 }
 
-std::shared_ptr<Stmt> Parser::Statement()
+SP<Stmt> Parser::Statement()
 {
     if (cur.type == TokenID::OPEN_BRACE)
         return ParseBlock();
@@ -166,14 +163,14 @@ std::shared_ptr<Stmt> Parser::Statement()
         }
 
         // parsing the return value
-        std::shared_ptr<Expr> retVal = Expression();
+        SP<Expr> ret_val = Expression();
 
         // checking for the semicolon
         Check(TokenID::SEMI, "Require ';' at the end of a return statement");
 
         // advancing over the semicolon
         Advance();
-        return std::make_shared<Return>(retVal, cur);
+        return std::make_shared<Return>(ret_val, cur);
     }
     else if (cur.type == TokenID::IMPORT || cur.type == TokenID::FROM)
         return ParseImportStmt();
@@ -189,7 +186,7 @@ std::shared_ptr<Stmt> Parser::Statement()
     {
         Token loc = cur;
         Advance();
-        std::shared_ptr<Expr> exp = Expression();
+        SP<Expr> exp = Expression();
         Check(TokenID::SEMI, "Expect ';' after expression of throw");
         Advance();
         return std::make_shared<Throw>(exp, loc);
@@ -199,7 +196,7 @@ std::shared_ptr<Stmt> Parser::Statement()
         Token loc = cur;
         Advance();
 
-        std::shared_ptr<Stmt> tryClause = Statement();
+        SP<Stmt> try_clause = Statement();
 
         Check(TokenID::CATCH, "Expect 'catch' after 'try' block");
 
@@ -207,26 +204,26 @@ std::shared_ptr<Stmt> Parser::Statement()
         Check(TokenID::OPEN_PAR, "Expect '(' after 'catch'");
 
         Advance();
-        TypeData catchType = ParseType("Expect type in catch statement");
+        TypeData catch_type = ParseType("Expect type in catch statement");
 
         Check(TokenID::IDEN, "Expect identifier after type in catch statement");
-        std::string catchVarName = cur.literal;
-        std::pair<TypeData, std::string> catchVar(catchType, catchVarName);
+        std::string catch_var_name = cur.literal;
+        std::pair<TypeData, std::string> catchVar(catch_type, catch_var_name);
 
         Advance();
         Check(TokenID::CLOSE_PAR, "Expect ')'");
 
         Advance();
-        std::shared_ptr<Stmt> catchClause = Statement();
+        SP<Stmt> catch_clause = Statement();
 
-        return std::make_shared<TryCatch>(tryClause, catchClause, catchVar, loc);
+        return std::make_shared<TryCatch>(try_clause, catch_clause, catchVar, loc);
     }
     return Declaration();
 }
 
 // ----------------------DECLARATIONS----------------------- //
 
-std::shared_ptr<Stmt> Parser::Declaration()
+SP<Stmt> Parser::Declaration()
 {
     if (cur.type == TokenID::TYPENAME || cur.type == TokenID::ARRAY)
         return VarDeclaration();
@@ -235,12 +232,12 @@ std::shared_ptr<Stmt> Parser::Declaration()
     else if (cur.type == TokenID::STRUCT)
         return ParseStructDecl();
     else if (cur.type == TokenID::TEMPLATE)
-        return TemplateFunction();
+        return TemplateDeclaration();
     else
         return ExpressionStatement();
 }
 
-std::shared_ptr<Stmt> Parser::VarDeclaration()
+SP<Stmt> Parser::VarDeclaration()
 {
     TypeData type = ParseType("Expect type name at the beginning of a variable decaration");
     if (type == VOID_TYPE)
@@ -252,7 +249,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     Token loc = cur;
 
     Advance();
-    std::shared_ptr<Expr> init = nullptr;
+    SP<Expr> init = nullptr;
 
     if (cur.type == TokenID::EQ)
     {
@@ -266,7 +263,7 @@ std::shared_ptr<Stmt> Parser::VarDeclaration()
     return std::make_shared<DeclaredVar>(type, name, init, loc);
 }
 
-std::shared_ptr<Stmt> Parser::FuncDeclaration()
+SP<Stmt> Parser::FuncDeclaration()
 {
     if (depth > 1)
         ParseError(cur, "Cannot declare function inside nested scope");
@@ -276,7 +273,6 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     TypeData ret = ParseType("Invalid return type");
 
     Check(TokenID::IDEN, "Expect name after function declaration");
-
     std::string name = cur.literal;
 
     Advance();
@@ -300,7 +296,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::COMMA, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -309,13 +305,13 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
 
     Advance();
 
-    std::vector<std::shared_ptr<Expr>> pre = ParseVerCondition();
+    std::vector<SP<Expr>> pre = ParseVerCondition();
     Check(TokenID::OPEN_BRACE, "Function body must start with an open brace");
     depth++;
 
     Advance();
 
-    std::vector<std::shared_ptr<Stmt>> body;
+    std::vector<SP<Stmt>> body;
 
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
@@ -325,7 +321,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -336,7 +332,7 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
     depth--;
     Advance();
 
-    std::shared_ptr<Expr> post = nullptr;
+    SP<Expr> post = nullptr;
     if (cur.type == TokenID::OPEN_VER)
     {
         Advance();
@@ -345,11 +341,11 @@ std::shared_ptr<Stmt> Parser::FuncDeclaration()
         Advance();
     }
 
-    std::shared_ptr<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, pre, post, beg);
+    SP<FuncDecl> func = std::make_shared<FuncDecl>(ret, name, params, body, pre, post, beg);
     return func;
 }
 
-std::shared_ptr<Stmt> Parser::ParseStructDecl()
+SP<Stmt> Parser::ParseStructDecl()
 {
     if (depth >= 1)
         ParseError(cur, "Struct declarations are only allowed in the global region");
@@ -365,7 +361,7 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     std::string name = cur.literal;
     Advance();
 
-    TypeData parent = {0, 0};
+    TypeData parent = VOID_TYPE;
 
     if (cur.type == TokenID::COLON)
     {
@@ -376,7 +372,7 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     Check(TokenID::OPEN_BRACE, "Expect an open brace after struct declaration");
     Advance();
 
-    std::vector<std::shared_ptr<Stmt>> decls;
+    std::vector<SP<Stmt>> decls;
 
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
@@ -386,7 +382,7 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -398,55 +394,50 @@ std::shared_ptr<Stmt> Parser::ParseStructDecl()
     return std::make_shared<StructDecl>(name, parent, decls, loc);
 }
 
-std::shared_ptr<Stmt> Parser::TemplateFunction()
+SP<Stmt> Parser::TemplateDeclaration()
 {
     Token loc = cur;
     Advance();
-    Check(TokenID::OPEN_TEMPLATE, "Expect '<|' after 'template'");
+    Check(TokenID::LT, "Expect '<' after 'template'");
 
-    std::vector<std::pair<TypeData, std::string>> addedTypes;
+    std::vector<std::pair<TypeData, std::string>> added_types;
 
     size_t count = 0;
-    while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+    while (cur.type != TokenID::GT && cur.type != TokenID::END)
     {
         Advance();
         Check(TokenID::IDEN, "Expect type identifier");
-        TypeData newType(0, MAX_TYPE - count);
-        std::string name = cur.literal;
 
-        GetTypeNameMap()[name] = newType;
-        GetTypeStringMap()[newType.type] = name;
+        TypeData new_type = symbols.AddType(cur.literal);
 
-        addedTypes.push_back({newType, name});
+        added_types.push_back({new_type, cur.literal});
         count++;
         Advance();
     }
 
-    Check(TokenID::CLOSE_TEMPLATE, "Expect '|>' after template declaration");
+    Check(TokenID::GT, "Expect '>' after template declaration");
     Advance();
 
-    std::shared_ptr<Stmt> function = Statement();
+    SP<Stmt> function = Statement();
+    FuncDecl *as_fd = dynamic_cast<FuncDecl *>(function.get());
 
-    for (size_t i = 0; i < addedTypes.size(); i++)
-    {
-        GetTypeNameMap().erase(addedTypes[i].second);
-        GetTypeStringMap().erase(addedTypes[i].first.type);
-    }
+    if (!as_fd)
+        ParseError(loc, "Can only have template functions");
 
-    FuncDecl *fd = dynamic_cast<FuncDecl *>(function.get());
-    if (fd == nullptr)
-        ParseError(loc, "Can only have a templated function");
-    fd->templates = addedTypes;
+    for (const auto &type_name : added_types)
+        symbols.RemoveType(type_name.first.type);
+
+    as_fd->templates = added_types;
     return function;
 }
 
 // ----------------------STATEMENTS----------------------- //
 
-std::shared_ptr<Block> Parser::ParseBlock()
+SP<Block> Parser::ParseBlock()
 {
     Advance();
     depth++;
-    std::shared_ptr<Block> result = std::make_shared<Block>(depth, cur);
+    SP<Block> result = std::make_shared<Block>(cur);
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
         try
@@ -458,7 +449,7 @@ std::shared_ptr<Block> Parser::ParseBlock()
         }
         catch (const std::exception &e)
         {
-            hadError = true;
+            had_error = true;
             PanicMode({TokenID::SEMI, TokenID::END});
             Advance();
             std::cerr << e.what() << std::endl;
@@ -474,26 +465,26 @@ std::shared_ptr<Block> Parser::ParseBlock()
     return result;
 }
 
-std::shared_ptr<Stmt> Parser::IfStatement()
+SP<Stmt> Parser::IfStatement()
 {
     Token loc = cur;
     Advance();
     Check(TokenID::OPEN_PAR, "Need an open paranthesis at the beginning of an if statement");
     Advance();
-    std::shared_ptr<Expr> cond = Expression();
+    SP<Expr> cond = Expression();
     Check(TokenID::CLOSE_PAR, "Missing a close parenthesis");
     Advance();
-    std::shared_ptr<Stmt> thenBranch = Statement();
-    std::shared_ptr<Stmt> elseBranch = nullptr;
+    SP<Stmt> then_branch = Statement();
+    SP<Stmt> else_branch = nullptr;
     if (cur.type == TokenID::ELSE)
     {
         Advance();
-        elseBranch = Statement();
+        else_branch = Statement();
     }
-    return std::make_shared<IfStmt>(cond, thenBranch, elseBranch, loc);
+    return std::make_shared<IfStmt>(cond, then_branch, else_branch, loc);
 }
 
-std::shared_ptr<Stmt> Parser::WhileStatement()
+SP<Stmt> Parser::WhileStatement()
 {
     Token loc = cur;
     // skip the WHILE token
@@ -503,28 +494,28 @@ std::shared_ptr<Stmt> Parser::WhileStatement()
     //skipping over the OPEN_PAR
     Advance();
 
-    std::shared_ptr<Expr> cond = Expression();
+    SP<Expr> cond = Expression();
     Check(TokenID::CLOSE_PAR, "Missing close parenthesis");
 
     // skipping over the CLOSE_PAR
     Advance();
 
-    std::shared_ptr<Stmt> body = Statement();
+    SP<Stmt> body = Statement();
 
     return std::make_shared<WhileStmt>(cond, body, loc);
 }
 
-std::shared_ptr<Stmt> Parser::ExpressionStatement()
+SP<Stmt> Parser::ExpressionStatement()
 {
     Token loc = cur;
-    std::shared_ptr<Expr> exp = Expression();
+    SP<Expr> exp = Expression();
 
     Check(TokenID::SEMI, "Missing ';'");
     Advance();
     return std::make_shared<ExprStmt>(exp, loc);
 }
 
-std::shared_ptr<Stmt> Parser::ParseImportStmt()
+SP<Stmt> Parser::ParseImportStmt()
 {
     Token loc = cur;
     Check(TokenID::IMPORT, "Expect 'import' before import statements");
@@ -552,39 +543,42 @@ std::vector<std::string> Parser::CommaSeparatedStrings()
 
 // ----------------------EPRESSIONS----------------------- //
 
-std::shared_ptr<Expr> Parser::Expression()
+SP<Expr> Parser::Expression()
 {
-    if (cur.type == TokenID::SEQUENCE)
-        return ParseSequenceNode();
     return Or();
 }
 
-std::shared_ptr<Expr> Parser::ParseSequenceNode()
+SP<Expr> Parser::ParseSequenceNode()
 {
     Token loc = cur;
     Check(TokenID::SEQUENCE, "Expect 'Sequence' at the beginning of a sequence declaration");
     Advance();
     Check(TokenID::OPEN_PAR, "Expect '(' after Sequence declaration");
+    Advance();
 
-    std::shared_ptr<Expr> start = Expression();
+    SP<Expr> start = Expression();
     Check(TokenID::COMMA, "Expect ',' after start of sequence");
     Advance();
 
-    std::shared_ptr<Expr> step = Expression();
+    SP<Expr> step = Expression();
     Check(TokenID::COMMA, "Expect ',' after sequence step");
     Advance();
 
-    std::shared_ptr<Expr> end = Expression();
+    SP<Expr> end = Expression();
     Check(TokenID::COMMA, "Expect ',' after sequence end");
     Advance();
 
     Check(TokenID::IDEN, "Expect index variable");
+<<<<<<< HEAD
     std::shared_ptr<VarReference> var = std::make_shared<VarReference>(cur);
+=======
+    SP<VarReference> var = std::make_shared<VarReference>(cur);
+>>>>>>> literal_execution
     Advance();
     Check(TokenID::COMMA, "Expect ',' after sequence index variable");
     Advance();
 
-    std::shared_ptr<Expr> term = Expression();
+    SP<Expr> term = Expression();
     Check(TokenID::COMMA, "Expect ',' after sequence general term");
     Advance();
 
@@ -595,15 +589,15 @@ std::shared_ptr<Expr> Parser::ParseSequenceNode()
     return std::make_shared<Sequence>(start, step, end, var, term, op, loc);
 }
 
-std::shared_ptr<Expr> Parser::Or()
+SP<Expr> Parser::Or()
 {
-    std::shared_ptr<Expr> left = And();
+    SP<Expr> left = And();
     Token op = cur;
 
     while (cur.type == TokenID::OR_OR)
     {
         Advance();
-        std::shared_ptr<Expr> right = And();
+        SP<Expr> right = And();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -611,15 +605,15 @@ std::shared_ptr<Expr> Parser::Or()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::And()
+SP<Expr> Parser::And()
 {
-    std::shared_ptr<Expr> left = Assignment();
+    SP<Expr> left = Assignment();
     Token op = cur;
 
     while (cur.type == TokenID::AND_AND)
     {
         Advance();
-        std::shared_ptr<Expr> right = Assignment();
+        SP<Expr> right = Assignment();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -627,20 +621,20 @@ std::shared_ptr<Expr> Parser::And()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::Assignment()
+SP<Expr> Parser::Assignment()
 {
-    std::shared_ptr<Expr> exp = EqualityCheck();
+    SP<Expr> exp = EqualityCheck();
 
     if (cur.type == TokenID::EQ)
     {
         Token loc = cur;
         Advance();
-        std::shared_ptr<Expr> val = Assignment();
+        SP<Expr> val = Assignment();
 
         VarReference *v = dynamic_cast<VarReference *>(exp.get());
         if (v != nullptr)
         {
-            std::shared_ptr<VarReference> u = std::make_shared<VarReference>(v->Loc());
+            SP<VarReference> u = std::make_shared<VarReference>(v->Loc());
             return std::make_shared<Assign>(u, val, loc);
         }
         else if (dynamic_cast<ArrayIndex *>(exp.get()) != nullptr)
@@ -655,15 +649,15 @@ std::shared_ptr<Expr> Parser::Assignment()
     return exp;
 }
 
-std::shared_ptr<Expr> Parser::EqualityCheck()
+SP<Expr> Parser::EqualityCheck()
 {
-    std::shared_ptr<Expr> left = Comparison();
+    SP<Expr> left = Comparison();
     Token op = cur;
 
     while (cur.type == TokenID::EQ_EQ || cur.type == TokenID::BANG_EQ)
     {
         Advance();
-        std::shared_ptr<Expr> right = Comparison();
+        SP<Expr> right = Comparison();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -671,15 +665,15 @@ std::shared_ptr<Expr> Parser::EqualityCheck()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::Comparison()
+SP<Expr> Parser::Comparison()
 {
-    std::shared_ptr<Expr> left = Sum();
+    SP<Expr> left = Sum();
     Token op = cur;
 
     while (cur.type == TokenID::GT || cur.type == TokenID::LT || cur.type == TokenID::GEQ || cur.type == TokenID::LEQ)
     {
         Advance();
-        std::shared_ptr<Expr> right = Sum();
+        SP<Expr> right = Sum();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -687,15 +681,15 @@ std::shared_ptr<Expr> Parser::Comparison()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::Sum()
+SP<Expr> Parser::Sum()
 {
-    std::shared_ptr<Expr> left = Product();
+    SP<Expr> left = Product();
     Token op = cur;
 
     while (cur.type == TokenID::PLUS || cur.type == TokenID::MINUS)
     {
         Advance();
-        std::shared_ptr<Expr> right = Product();
+        SP<Expr> right = Product();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -703,15 +697,15 @@ std::shared_ptr<Expr> Parser::Sum()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::Product()
+SP<Expr> Parser::Product()
 {
-    std::shared_ptr<Expr> left = UnaryOp();
+    SP<Expr> left = UnaryOp();
     Token op = cur;
 
     while (cur.type == TokenID::STAR || cur.type == TokenID::SLASH)
     {
         Advance();
-        std::shared_ptr<Expr> right = UnaryOp();
+        SP<Expr> right = UnaryOp();
         left = std::make_shared<Binary>(left, op, right);
         op = cur;
     }
@@ -719,31 +713,31 @@ std::shared_ptr<Expr> Parser::Product()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::UnaryOp()
+SP<Expr> Parser::UnaryOp()
 {
     if (cur.type == TokenID::MINUS || cur.type == TokenID::BANG)
     {
         Token loc = cur;
         Advance();
-        std::shared_ptr<Expr> right = std::make_shared<Unary>(loc, UnaryOp());
+        SP<Expr> right = std::make_shared<Unary>(loc, UnaryOp());
         return right;
     }
 
     return ParseArrayIndex(ParseFieldAccess());
 }
 
-std::shared_ptr<Expr> Parser::ParseArrayIndex(std::shared_ptr<Expr> name)
+SP<Expr> Parser::ParseArrayIndex(SP<Expr> name)
 {
     if (cur.type == TokenID::OPEN_SQ)
     {
         Token loc = cur;
         Advance();
 
-        std::shared_ptr<Expr> idx = Expression();
+        SP<Expr> idx = Expression();
         Check(TokenID::CLOSE_SQ, "Missing ']'");
         Advance();
 
-        std::shared_ptr<Expr> res = std::make_shared<ArrayIndex>(name, idx, loc);
+        SP<Expr> res = std::make_shared<ArrayIndex>(name, idx, loc);
 
         if (cur.type != TokenID::OPEN_SQ)
             return res;
@@ -753,15 +747,15 @@ std::shared_ptr<Expr> Parser::ParseArrayIndex(std::shared_ptr<Expr> name)
     return name;
 }
 
-std::shared_ptr<Expr> Parser::ParseFieldAccess()
+SP<Expr> Parser::ParseFieldAccess()
 {
-    std::shared_ptr<Expr> left = LiteralNode();
+    SP<Expr> left = LiteralNode();
     Token loc = cur;
 
     while (cur.type == TokenID::DOT)
     {
         Advance();
-        std::shared_ptr<Expr> right = LiteralNode();
+        SP<Expr> right = LiteralNode();
         left = std::make_shared<FieldAccess>(left, right, loc);
         loc = cur;
     }
@@ -769,14 +763,16 @@ std::shared_ptr<Expr> Parser::ParseFieldAccess()
     return left;
 }
 
-std::shared_ptr<Expr> Parser::LiteralNode()
+SP<Expr> Parser::LiteralNode()
 {
-    std::shared_ptr<Expr> res = nullptr;
+    SP<Expr> res = nullptr;
     if (cur.type == TokenID::NULL_T || IsLiteral(cur))
         res = std::make_shared<Literal>(cur);
+    else if (cur.type == TokenID::SEQUENCE && next.type == TokenID::OPEN_PAR)
+        res = ParseSequenceNode();
     else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_PAR)
         res = FuncCall();
-    else if (cur.type == TokenID::IDEN && next.type == TokenID::OPEN_TEMPLATE)
+    else if (cur.type == TokenID::IDEN && next.type == TokenID::LT && (two_next.type == TokenID::ARRAY || two_next.type == TokenID::TYPENAME))
         res = FuncCall();
     else if (cur.type == TokenID::CAST)
         res = FuncCall();
@@ -800,7 +796,7 @@ std::shared_ptr<Expr> Parser::LiteralNode()
     return res;
 }
 
-std::shared_ptr<Expr> Parser::FuncCall()
+SP<Expr> Parser::FuncCall()
 {
     std::string name = cur.literal;
     Token loc = cur;
@@ -812,24 +808,17 @@ std::shared_ptr<Expr> Parser::FuncCall()
 
     if (cur.type == TokenID::LT)
     {
-        Advance();
-        type = ParseType("Invalid type for generic function call");
-        Check(TokenID::GT, "Missing '>'");
-        Advance();
-    }
-    else if (cur.type == TokenID::OPEN_TEMPLATE)
-    {
-        while (cur.type != TokenID::CLOSE_TEMPLATE && cur.type != TokenID::END)
+        while (cur.type != TokenID::GT && cur.type != TokenID::END)
         {
             Advance();
             templates.push_back(ParseType("Expect type in a template list"));
         }
 
-        Check(TokenID::CLOSE_TEMPLATE, "Missing '|>'");
+        Check(TokenID::GT, "Missing '>'");
         Advance();
     }
 
-    std::vector<std::shared_ptr<Expr>> args;
+    std::vector<SP<Expr>> args;
 
     while (cur.type != TokenID::CLOSE_PAR && cur.type != TokenID::END)
     {
@@ -845,7 +834,7 @@ std::shared_ptr<Expr> Parser::FuncCall()
         return std::make_shared<FunctionCall>(name, templates, args, loc);
 }
 
-std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
+SP<Expr> Parser::ParseBracedInitialiser()
 {
     Token loc = cur;
     TypeData type = VOID_TYPE;
@@ -856,14 +845,14 @@ std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
     if (cur.type == TokenID::OPEN_SQ)
     {
         Advance();
-        std::shared_ptr<Expr> index = Expression();
+        SP<Expr> index = Expression();
         Check(TokenID::CLOSE_SQ, "Missing ']'");
         return std::make_shared<DynamicAllocArray>(type, index, loc);
     }
 
     Check(TokenID::OPEN_BRACE, "Braced initialiser starts with a type name and an open brace");
     // Advance();
-    std::vector<std::shared_ptr<Expr>> init;
+    std::vector<SP<Expr>> init;
 
     while (cur.type != TokenID::CLOSE_BRACE && cur.type != TokenID::END)
     {
@@ -873,7 +862,7 @@ std::shared_ptr<Expr> Parser::ParseBracedInitialiser()
     }
 
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
-    std::shared_ptr<BracedInitialiser> res = std::make_shared<BracedInitialiser>(init.size(), init, loc);
+    SP<BracedInitialiser> res = std::make_shared<BracedInitialiser>(init.size(), init, loc);
     res->t = type;
     return res;
 }

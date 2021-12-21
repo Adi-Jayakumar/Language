@@ -2,44 +2,59 @@
 
 Compiler::Compiler()
 {
-    Functions.push_back(Function());
-    Functions[0].arity = 0;
-    cur = &Functions[0];
+    functions.push_back(Function());
+    functions[0].arity = 0;
+    cur = &functions[0];
 
-    curRoutine = {&cur->routines[0], 0};
+    cur_routine = {&cur->routines[0], 0};
 }
 
 void Compiler::CompileError(Token loc, std::string err)
 {
-    Error e = Error("[COMPILE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
-}
+    std::ostringstream out;
 
-void Compiler::TypeError(Token loc, std::string err)
-{
-    Error e = Error("[TYPE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
-}
+    if (cur_func != nullptr)
+    {
+        out << "[STATIC ANALYSIS ERROR] In function '";
+        symbols.PrintType(out, cur_func->ret);
+        out << " " << cur_func->name << "(";
 
-void Compiler::SymbolError(Token loc, std::string err)
-{
-    Error e = Error("[SYMBOL ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
-    throw e;
+        if (cur_func->params.size() > 0)
+        {
+            for (size_t i = 0; i < cur_func->params.size(); i++)
+            {
+                symbols.PrintType(out, cur_func->params[i].first);
+                out << " " << cur_func->params[i].second;
+                if (i != cur_func->params.size() - 1)
+                    out << ", ";
+            }
+        }
+
+        out << ")'\n"
+            << "On line ";
+    }
+    else
+        out << "[STATIC ANALYSIS ERROR] on line ";
+
+    out << std::to_string(loc.line) << " near '" << loc.literal << "'\n"
+        << err << "\n";
+
+    throw Error(out.str());
 }
 
 void Compiler::AddCode(Op o)
 {
-    curRoutine.first->push_back(o);
+    cur_routine.first->push_back(o);
 }
 
 size_t Compiler::CodeSize()
 {
-    return curRoutine.first->size();
+    return cur_routine.first->size();
 }
 
 std::pair<size_t, size_t> Compiler::LastAddedCodeLoc()
 {
-    return {GetCurRoutineIndex(), curRoutine.first->size() - 1};
+    return {GetCurRoutineIndex(), cur_routine.first->size() - 1};
 }
 
 void Compiler::ModifyOprandAt(std::pair<size_t, size_t> loc, oprand_t oprand)
@@ -55,61 +70,61 @@ void Compiler::ModifyOpcodeAt(std::pair<size_t, size_t> loc, Opcode opcode)
 void Compiler::AddRoutine()
 {
     cur->routines.push_back(std::vector<Op>());
-    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
+    cur_routine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetCurRoutineIndex()
 {
-    return curRoutine.second;
+    return cur_routine.second;
 }
 
 void Compiler::AddFunction()
 {
-    Functions.push_back(Function());
-    cur = &Functions.back();
-    curRoutine = {&cur->routines.back(), cur->routines.size() - 1};
+    functions.push_back(Function());
+    cur = &functions.back();
+    cur_routine = {&cur->routines.back(), cur->routines.size() - 1};
 }
 
 size_t Compiler::GetVariableStackLoc(std::string &name)
 {
-    return Symbols.GetVariableStackLoc(name);
+    return symbols.GetVariableStackLoc(name);
 }
 
-void Compiler::Compile(std::vector<std::shared_ptr<Stmt>> &s)
+void Compiler::Compile(std::vector<SP<Stmt>> &s)
 {
-    mainIndex = MAX_OPRAND;
-    size_t numFunctions = 0;
-    for (parseIndex = 0; parseIndex < s.size(); parseIndex++)
+    main_index = MAX_OPRAND;
+    size_t num_functions = 0;
+    for (parse_index = 0; parse_index < s.size(); parse_index++)
     {
-        s[parseIndex]->NodeCompile(*this);
-        if (dynamic_cast<FuncDecl *>(s[parseIndex].get()) != nullptr)
+        s[parse_index]->NodeCompile(*this);
+        if (dynamic_cast<FuncDecl *>(s[parse_index].get()) != nullptr)
         {
-            numFunctions++;
-            FuncDecl *asFD = static_cast<FuncDecl *>(s[parseIndex].get());
+            num_functions++;
+            FuncDecl *asFD = static_cast<FuncDecl *>(s[parse_index].get());
             if (asFD->params.size() == 0 && asFD->name == "Main")
             {
-                if (mainIndex != MAX_OPRAND)
+                if (main_index != MAX_OPRAND)
                     CompileError(asFD->Loc(), "Main function already defined");
-                mainIndex = numFunctions;
+                main_index = num_functions;
             }
         }
-        else if (dynamic_cast<DeclaredVar *>(s[parseIndex].get()) == nullptr &&
-                 dynamic_cast<StructDecl *>(s[parseIndex].get()) == nullptr &&
-                 dynamic_cast<ImportStmt *>(s[parseIndex].get()) == nullptr)
-            CompileError(s[parseIndex]->Loc(), "Only declarations allowed in global region");
+        else if (dynamic_cast<DeclaredVar *>(s[parse_index].get()) == nullptr &&
+                 dynamic_cast<StructDecl *>(s[parse_index].get()) == nullptr &&
+                 dynamic_cast<ImportStmt *>(s[parse_index].get()) == nullptr)
+            CompileError(s[parse_index]->Loc(), "Only declarations allowed in global region");
     }
 }
 
 void Compiler::Disassemble()
 {
-    for (size_t i = 0; i < Functions.size(); i++)
+    for (size_t i = 0; i < functions.size(); i++)
     {
         std::cout << "Function index: " << i << std::endl
-                  << "Function arity: " << +Functions[i].arity
+                  << "Function arity: " << +functions[i].arity
                   << std::endl
                   << std::endl;
 
-        Functions[i].PrintCode();
+        functions[i].PrintCode();
 
         std::cout << std::endl
                   << std::endl;
@@ -118,10 +133,18 @@ void Compiler::Disassemble()
 
 void Compiler::ClearCurrentDepthWithPOPInst()
 {
-    while (Symbols.vars.size() > 0 && Symbols.vars.back().depth == Symbols.depth)
+    if (symbols.vars.size() == 0)
+        return;
+
+    size_t count = 0;
+
+    while (symbols.vars.size() > 0 && symbols.vars.back().depth == symbols.depth)
     {
-        Symbols.vars.pop_back();
-        AddCode({Opcode::POP, 0});
+        size_t varSize = symbols.vars.back().size;
+        symbols.ReduceSP(varSize);
+        AddCode({Opcode::POP, varSize});
+        symbols.vars.pop_back();
+        count++;
     }
 }
 
@@ -135,57 +158,57 @@ void Compiler::SerialiseProgram(Compiler &prog, std::string fPath)
     file.open(fPath, std::ios::out | std::ios::app | std::ios::binary);
 
     // serialising the index of the 'void Main()' function
-    file.write((char *)&prog.mainIndex, sizeof(prog.mainIndex));
+    file.write((char *)&prog.main_index, sizeof(prog.main_index));
 
     // serialising the number of functions
-    oprand_t numFunctions = static_cast<oprand_t>(prog.Functions.size());
+    oprand_t numFunctions = static_cast<oprand_t>(prog.functions.size());
     file.write((char *)&numFunctions, sizeof(numFunctions));
 
-    for (Function &func : prog.Functions)
+    for (Function &func : prog.functions)
         SerialiseFunction(func, file);
 
     // serialising the struct tree
     file.write((char *)&STRUCT_TREE_ID, sizeof(STRUCT_TREE_ID));
 
     // writing the number of structs
-    TypeID numStructs = static_cast<TypeID>(prog.StructTree.size());
-    file.write((char *)&numStructs, sizeof(numStructs));
+    TypeID num_structs = static_cast<TypeID>(prog.struct_tree.size());
+    file.write((char *)&num_structs, sizeof(num_structs));
 
     // writing: struct id, number of parents, parent ids for each struct
-    for (auto &s : prog.StructTree)
+    for (auto &s : prog.struct_tree)
     {
         file.write((char *)&s.first, sizeof(s.first));
 
-        size_t numParents = s.second.size();
-        file.write((char *)&numParents, sizeof(numParents));
+        size_t num_parents = s.second.size();
+        file.write((char *)&num_parents, sizeof(num_parents));
 
         for (auto &parent : s.second)
             file.write((char *)&parent, sizeof(parent));
     }
 
-    size_t libFuncID = LIB_FUNC_ID;
-    file.write((char *)&libFuncID, sizeof(LIB_FUNC_ID));
+    size_t lib_funcID = LIB_FUNC_ID;
+    file.write((char *)&lib_funcID, sizeof(LIB_FUNC_ID));
 
-    size_t numLibFuncs = prog.libfuncs.size();
-    file.write((char *)&numLibFuncs, sizeof(numLibFuncs));
+    size_t num_lib_funcs = prog.lib_funcs.size();
+    file.write((char *)&num_lib_funcs, sizeof(num_lib_funcs));
 
-    for (auto &libfunc : prog.libfuncs)
+    for (auto &lib_func : prog.lib_funcs)
     {
         // writing the name of the function
-        size_t nameLen = libfunc.name.length();
-        file.write((char *)&nameLen, sizeof(nameLen));
-        SerialiseData(&libfunc.name[0], sizeof(char), nameLen, file);
+        size_t name_len = lib_func.name.length();
+        file.write((char *)&name_len, sizeof(name_len));
+        SerialiseData(&lib_func.name[0], sizeof(char), name_len, file);
 
         // writing the library
-        size_t libLen = libfunc.library.length();
-        file.write((char *)&libLen, sizeof(libLen));
-        SerialiseData(&libfunc.library[0], sizeof(char), libLen, file);
+        size_t lib_len = lib_func.library.length();
+        file.write((char *)&lib_len, sizeof(lib_len));
+        SerialiseData(&lib_func.library[0], sizeof(char), lib_len, file);
 
         // writing the arity of the library function
-        file.write((char *)&libfunc.arity, sizeof(libfunc.arity));
+        file.write((char *)&lib_func.arity, sizeof(lib_func.arity));
     }
 
-    SerialiseThrowInfo(prog.throwStack, file);
+    SerialiseThrowInfo(prog.throw_stack, file);
     file.close();
 }
 
@@ -216,10 +239,10 @@ void Compiler::SerialiseFunction(Function &f, std::ofstream &file)
 
 // private:
 //=================================SERIALISATION=================================//
-void Compiler::SerialiseData(void *data, size_t typeSize, size_t numElements, std::ofstream &file)
+void Compiler::SerialiseData(void *data, size_t type_size, size_t num_elements, std::ofstream &file)
 {
-    file.write((char *)&numElements, sizeof(numElements));
-    file.write((char *)data, typeSize * numElements);
+    file.write((char *)&num_elements, sizeof(num_elements));
+    file.write((char *)data, type_size * num_elements);
 }
 
 void Compiler::SerialiseInts(Function &f, std::ofstream &file)
@@ -252,8 +275,8 @@ void Compiler::SerialiseChars(Function &f, std::ofstream &file)
 void Compiler::SerialiseStrings(Function &f, std::ofstream &file)
 {
     file.write((char *)&STRING_ID, sizeof(STRING_ID));
-    size_t numStrings = f.strings.size();
-    file.write((char *)&numStrings, sizeof(numStrings));
+    size_t num_strings = f.strings.size();
+    file.write((char *)&num_strings, sizeof(num_strings));
 
     for (std::string &str : f.strings)
         SerialiseData(&str[0], sizeof(char), str.length(), file);
@@ -263,17 +286,17 @@ void Compiler::SerialiseOps(Function &f, std::ofstream &file)
 {
     file.write((char *)&CODE_ID, sizeof(INT_ID));
 
-    size_t routineSize = f.routines.size();
-    file.write((char *)&routineSize, sizeof(routineSize));
+    size_t routine_size = f.routines.size();
+    file.write((char *)&routine_size, sizeof(routine_size));
     for (auto &routine : f.routines)
     {
-        size_t numOps = routine.size();
-        file.write((char *)&numOps, sizeof(numOps));
+        size_t num_ops = routine.size();
+        file.write((char *)&num_ops, sizeof(num_ops));
 
         for (auto &op : routine)
         {
-            op_t codeAsNum = static_cast<op_t>(op.code);
-            file.write((char *)&codeAsNum, sizeof(codeAsNum));
+            op_t code_as_num = static_cast<op_t>(op.code);
+            file.write((char *)&code_as_num, sizeof(code_as_num));
             file.write((char *)&op.op, sizeof(op.op));
         }
     }
@@ -283,12 +306,12 @@ void Compiler::SerialiseThrowInfo(std::vector<ThrowInfo> &infos, std::ofstream &
 {
     file.write((char *)&THROW_INFO_ID, sizeof(INT_ID));
 
-    size_t numThrows = infos.size();
-    SerialiseData(&numThrows, 0, numThrows, file);
+    size_t num_throws = infos.size();
+    SerialiseData(&num_throws, 0, num_throws, file);
 
     for (auto &ti : infos)
     {
-        file.write((char *)&ti.isArray, sizeof(ti.isArray));
+        file.write((char *)&ti.is_array, sizeof(ti.is_array));
         file.write((char *)&ti.type, sizeof(ti.type));
         file.write((char *)&ti.func, sizeof(ti.func));
         file.write((char *)&ti.index, sizeof(ti.index));

@@ -4,10 +4,11 @@
 class CallFrame
 {
 public:
-    size_t retIndex;
-    size_t retFunction;
-    size_t valStackMin;
+    size_t ret_index;
+    size_t ret_function;
+    size_t val_stack_min;
+    //TODO - Include routine to return to
 
     CallFrame() = default;
-    CallFrame(size_t _retIndex, size_t _retFunction, size_t _valStackMin) : retIndex(_retIndex), retFunction(_retFunction), valStackMin(_valStackMin){};
+    CallFrame(size_t _ret_index, size_t _ret_function, size_t _val_stack_min) : ret_index(_ret_index), ret_function(_ret_function), val_stack_min(_val_stack_min){};
 };

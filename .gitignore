@@ -39,6 +39,3 @@ ex/*
 notes/*
 analyses/*
 verifier_ex/*
-
-# vscode specific
-*.code-workspace
