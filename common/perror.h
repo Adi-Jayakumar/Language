@@ -11,7 +11,7 @@ struct Error : public std::exception
 
     Error(const std::string &_msg) : msg(_msg){};
 
-    const char *what() const throw()
+    const char *what() const noexcept override
     {
         return msg.c_str();
     }
