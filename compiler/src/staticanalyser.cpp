@@ -483,7 +483,6 @@ void StaticAnalyser::AnalyseWhileStmt(WhileStmt *ws)
 void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 {
     cur_func = fd;
-    std::cout << "fd->name " << fd->name << std::endl;
 
     std::vector<TypeData> argtypes;
     for (auto &arg : fd->params)
