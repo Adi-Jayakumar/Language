@@ -116,7 +116,7 @@ TypeData Parser::ParseType(std::string err)
     }
     ParseError(cur, err);
     // never reaches here, just to silence compiler warnings
-    return {false, UINT8_MAX};
+    return VOID_TYPE;
 }
 
 std::vector<SP<Stmt>> Parser::Parse()
