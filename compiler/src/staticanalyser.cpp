@@ -50,16 +50,18 @@ void StaticAnalyser::ErrorPreamble(std::ostream &out, const std::string err_type
 
     if (cur_func != nullptr)
     {
-        out << "\n\n\n[STATIC ANALYSIS ERROR] In function '";
+        out << "\n\n\n[" << err_type << "] In function '";
 
-        symbols.PrintType(out, (*cur_type_subst)[cur_func->ret]);
+        TypeSubstituter *type_subst = template_stack.size() > 1 ? &template_stack[1] : cur_type_subst;
+
+        symbols.PrintType(out, (*type_subst)[cur_func->ret]);
         out << " " << cur_func->name << "(";
 
         if (cur_func->params.size() > 0)
         {
             for (size_t i = 0; i < cur_func->params.size(); i++)
             {
-                symbols.PrintType(out, (*cur_type_subst)[cur_func->params[i].first]);
+                symbols.PrintType(out, (*type_subst)[cur_func->params[i].first]);
                 out << " " << cur_func->params[i].second;
                 if (i != cur_func->params.size() - 1)
                     out << ", ";
@@ -70,10 +72,9 @@ void StaticAnalyser::ErrorPreamble(std::ostream &out, const std::string err_type
 
         if (template_stack.size() > 1)
         {
-            while (template_stack.size() > 1)
+            for (size_t i = template_stack.size() - 1; i > 0; --i)
             {
-                TypeSubstituter ts = template_stack.back();
-                template_stack.pop_back();
+                TypeSubstituter ts = template_stack[i];
                 out << "\nInstantiated from the template declaration on line " << ts.loc.line << std::endl;
                 for (auto &kv : ts.subst)
                 {
@@ -255,7 +256,11 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
             analyse_template_func = false;
         }
     }
-
+    else
+    {
+        if (fid->templates.size() > 0)
+            StaticAnalysisError(fc->Loc(), "Calling template function with no templates");
+    }
     TypeData res = fc->t = (*cur_type_subst)[fid->ret];
     if (typestack_needs_pop)
         PopTypeSubst();
