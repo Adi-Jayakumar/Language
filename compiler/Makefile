@@ -27,7 +27,7 @@ $(OBJ)/%.o: $(SRC)/%.cpp
 	$(CC) $(C_FLAGS) $(INCLUDE_PATHS) -c $< -o $@
 
 $(BIN)/$(EXECUTABLE): $(OBJ_FILES)
-	$(CC) $(ASAN_FLAGS) $(LIBRARIES) $^ -o $@
+	$(CC) $(ASAN_FLAGS) $^ -o $@ $(LIBRARIES)
 
 clean:
 	$(RM) $(BIN)/$(EXECUTABLE)
