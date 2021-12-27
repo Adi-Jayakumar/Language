@@ -25,6 +25,7 @@ TypeData SymbolTable::AddType(const std::string &name)
 void SymbolTable::RemoveType(const TypeID type_id)
 {
     type_string_map.erase(type_id);
+    --num_types;
 }
 
 std::string SymbolTable::ToString(const TypeData &type)

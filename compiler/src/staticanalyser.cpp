@@ -72,8 +72,8 @@ void StaticAnalyser::ErrorPreamble(std::ostream &out, const std::string err_type
         {
             while (template_stack.size() > 1)
             {
-                TypeSubstituter ts = template_stack.top();
-                template_stack.pop();
+                TypeSubstituter ts = template_stack.back();
+                template_stack.pop_back();
                 out << "\nInstantiated from the template declaration on line " << ts.loc.line << std::endl;
                 for (auto &kv : ts.subst)
                 {
@@ -82,6 +82,7 @@ void StaticAnalyser::ErrorPreamble(std::ostream &out, const std::string err_type
                         symbols.PrintType(out, kv.first);
                         out << " = ";
                         symbols.PrintType(out, kv.second);
+                        out << '\n';
                     }
                 }
             }
@@ -208,6 +209,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
     if (fc->templates.size() > 0)
     {
         FuncDecl *decl = dynamic_cast<FuncDecl *>(program[fid->parse_index].get());
+        assert(decl != nullptr);
         std::vector<TypeData> templates;
 
         for (auto &tmp : decl->templates)
@@ -217,7 +219,7 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
         for (auto &new_t : fc->templates)
             new_types.push_back((*cur_type_subst)[new_t]);
 
-        RegisterTypeSubst(TypeSubstituter(templates, new_types, decl->Loc()));
+        RegisterTypeSubst(TypeSubstituter(templates, new_types, fc->Loc()));
         typestack_needs_pop = true;
 
         assert(decl->params.size() == fc->args.size());
@@ -246,11 +248,12 @@ TypeData StaticAnalyser::AnalyseFunctionCall(FunctionCall *fc)
             return is_already_init->ret;
         }
         else
+        {
             symbols.AddInitialisedTemplateFunc(FuncID((*cur_type_subst)[decl->ret], decl->name, new_types, args, FunctionType::USER_DEFINED, 0));
-
-        analyse_template_func = true;
-        decl->Analyse(*this);
-        analyse_template_func = false;
+            analyse_template_func = true;
+            decl->Analyse(*this);
+            analyse_template_func = false;
+        }
     }
 
     TypeData res = fc->t = (*cur_type_subst)[fid->ret];
@@ -480,6 +483,7 @@ void StaticAnalyser::AnalyseWhileStmt(WhileStmt *ws)
 void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
 {
     cur_func = fd;
+    std::cout << "fd->name " << fd->name << std::endl;
 
     std::vector<TypeData> argtypes;
     for (auto &arg : fd->params)
@@ -495,7 +499,7 @@ void StaticAnalyser::AnalyseFuncDecl(FuncDecl *fd)
     // only check whether a function is already defined when we are not
     // analysing a template function instantiaion as that is sure to be
     // defined already
-    if (fd->templates.size() > 0 && !analyse_template_func)
+    if (fd->templates.size() == 0)
     {
         std::optional<FuncID> is_there = symbols.GetFunc(fd->name, argtypes);
         if (is_there)

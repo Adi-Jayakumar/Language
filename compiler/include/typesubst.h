@@ -27,5 +27,5 @@ public:
     };
 
     TypeData operator[](TypeData &tmp_type);
-    void PrintTypeMappings();
+    void PrintTypeMappings(std::ostream &out);
 };

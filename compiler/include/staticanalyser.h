@@ -8,13 +8,18 @@ class StaticAnalyser
     SymbolTable symbols;
     std::vector<SP<Stmt>> program;
     size_t parse_index;
-    std::stack<TypeSubstituter> template_stack;
+    std::vector<TypeSubstituter> template_stack;
     bool analyse_template_func;
     TypeSubstituter *cur_type_subst;
     FuncDecl *cur_func;
 
 public:
-    StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols)
+    StaticAnalyser(SymbolTable &_symbols) : symbols(_symbols),
+                                            program(std::vector<SP<Stmt>>()),
+                                            parse_index(0),
+                                            analyse_template_func(false),
+                                            cur_type_subst(nullptr),
+                                            cur_func(nullptr)
     {
         RegisterTypeSubst(TypeSubstituter());
     }
@@ -26,14 +31,14 @@ public:
 
     void RegisterTypeSubst(const TypeSubstituter &substitution)
     {
-        template_stack.push(substitution);
-        cur_type_subst = &template_stack.top();
+        template_stack.push_back(substitution);
+        cur_type_subst = &template_stack.back();
     };
 
     void PopTypeSubst()
     {
-        template_stack.pop();
-        cur_type_subst = &template_stack.top();
+        template_stack.pop_back();
+        cur_type_subst = &template_stack.back();
     }
 
     void Analyse(std::vector<SP<Stmt>> &program);
