@@ -17,6 +17,7 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
 
 void Parser::ParseError(const Token &loc, const std::string &err)
 {
+    had_error = true;
     Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err + "\n");
     throw e;
 }

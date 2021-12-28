@@ -236,7 +236,7 @@ std::ostream &operator<<(std::ostream &out, const TokenID &t)
 
 std::ostream &operator<<(std::ostream &out, const Token &t)
 {
-    out << "[Type: " << t.type << ", Literal: " << t.literal << ", Line: " << t.line << "]";
+    out << "[Type: " << t.type << ", Literal: " << t.literal << ", loc: " << t.line << ':' << t.col << "]";
     return out;
 }
 

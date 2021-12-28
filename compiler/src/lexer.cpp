@@ -12,14 +12,6 @@ std::string IO::GetSrcString(std::string file_name)
     return src;
 }
 
-Lexer::Lexer(const std::string &f_path, SymbolTable *_symbols)
-{
-    index = 0;
-    line = 1;
-    src = IO::GetSrcString(f_path);
-    symbols = _symbols;
-}
-
 void Lexer::LexError(std::string msg)
 {
     Error e = Error("\n[LEX ERROR]: On line " + std::to_string(line) + "\n" + msg + "\n");
@@ -38,13 +30,18 @@ size_t Lexer::LineSize()
     return l;
 }
 
+size_t Lexer::GetColPos(size_t start)
+{
+    return start - cur_line_beg + 2;
+}
+
 Token Lexer::NextToken()
 {
     SkipComment();
     SkipWhiteSpace();
 
     if (index == src.length())
-        return {TokenID::END, "", line};
+        return Token(TokenID::END, "", line, GetColPos(index));
 
     if (isdigit(src[index]))
         return LexNumber();
@@ -59,6 +56,7 @@ Token Lexer::NextToken()
         }
         else
         {
+            size_t start = index;
             std::string name;
             while (isalnum(src[index]) || src[index] == '_')
             {
@@ -67,9 +65,9 @@ Token Lexer::NextToken()
             }
             // used for when custom types are added in the form of classes
             if (symbols->ResolveType(name))
-                return {TokenID::TYPENAME, name, line};
+                return Token(TokenID::TYPENAME, name, line, GetColPos(start));
             else
-                return {TokenID::IDEN, name, line};
+                return Token(TokenID::IDEN, name, line, GetColPos(start));
         }
     }
 
@@ -79,140 +77,140 @@ Token Lexer::NextToken()
     {
     case '+':
     {
-        res = {TokenID::PLUS, "+", line};
+        res = Token(TokenID::PLUS, "+", line, GetColPos(index));
         break;
     }
     case '-':
     {
-        res = {TokenID::MINUS, "-", line};
+        res = Token(TokenID::MINUS, "-", line, GetColPos(index));
         break;
     }
     case '*':
     {
-        res = {TokenID::STAR, "*", line};
+        res = Token(TokenID::STAR, "*", line, GetColPos(index));
         break;
     }
     case '/':
     {
-        res = {TokenID::SLASH, "/", line};
+        res = Token(TokenID::SLASH, "/", line, GetColPos(index));
         break;
     }
     case '>':
     {
         if (src[index + 1] == '=')
         {
-            res = {TokenID::GEQ, ">=", line};
+            res = Token(TokenID::GEQ, ">=", line, GetColPos(index));
             index++;
         }
         else
-            res = {TokenID::GT, ">", line};
+            res = Token(TokenID::GT, ">", line, GetColPos(index));
         break;
     }
     case '<':
     {
         if (src[index + 1] == '=')
         {
-            res = {TokenID::LEQ, "<=", line};
+            res = Token(TokenID::LEQ, "<=", line, GetColPos(index));
             index++;
         }
         else
-            res = {TokenID::LT, "<", line};
+            res = Token(TokenID::LT, "<", line, GetColPos(index));
         break;
     }
     case '=':
     {
         if (src[index + 1] == '=')
         {
-            res = {TokenID::EQ_EQ, "==", line};
+            res = Token(TokenID::EQ_EQ, "==", line, GetColPos(index));
             index++;
         }
         else
-            res = {TokenID::EQ, "=", line};
+            res = Token(TokenID::EQ, "=", line, GetColPos(index));
         break;
     }
     case '!':
     {
         if (src[index + 1] == '=')
         {
-            res = {TokenID::BANG_EQ, "!=", line};
+            res = Token(TokenID::BANG_EQ, "!=", line, GetColPos(index));
             index++;
         }
         else
-            res = {TokenID::BANG, "!", line};
+            res = Token(TokenID::BANG, "!", line, GetColPos(index));
         break;
     }
     case '&':
     {
         if (src[index + 1] == '&')
         {
-            res = {TokenID::AND_AND, "&&", line};
+            res = Token(TokenID::AND_AND, "&&", line, GetColPos(index));
             index++;
         }
         break;
     }
     case ';':
     {
-        res = {TokenID::SEMI, ";", line};
+        res = Token(TokenID::SEMI, ";", line, GetColPos(index));
         break;
     }
     case '(':
     {
         if (src[index + 1] == '|')
         {
-            res = {TokenID::OPEN_VER, "(|", line};
+            res = Token(TokenID::OPEN_VER, "(|", line, GetColPos(index));
             index++;
         }
         else
-            res = {TokenID::OPEN_PAR, "(", line};
+            res = Token(TokenID::OPEN_PAR, "(", line, GetColPos(index));
         break;
     }
     case ')':
     {
-        res = {TokenID::CLOSE_PAR, ")", line};
+        res = Token(TokenID::CLOSE_PAR, ")", line, GetColPos(index));
         break;
     }
     case '|':
     {
         if (src[index + 1] == '|')
         {
-            res = {TokenID::OR_OR, "||", line};
+            res = Token(TokenID::OR_OR, "||", line, GetColPos(index));
             index++;
         }
         else if (src[index + 1] == ')')
         {
-            res = {TokenID::CLOSE_VER, "|)", line};
+            res = Token(TokenID::CLOSE_VER, "|)", line, GetColPos(index));
             index++;
         }
         break;
     }
     case '{':
     {
-        res = {TokenID::OPEN_BRACE, "{", line};
+        res = Token(TokenID::OPEN_BRACE, "{", line, GetColPos(index));
         break;
     }
     case '}':
     {
-        res = {TokenID::CLOSE_BRACE, "}", line};
+        res = Token(TokenID::CLOSE_BRACE, "}", line, GetColPos(index));
         break;
     }
     case '[':
     {
-        res = {TokenID::OPEN_SQ, "[", line};
+        res = Token(TokenID::OPEN_SQ, "[", line, GetColPos(index));
         break;
     }
     case ']':
     {
-        res = {TokenID::CLOSE_SQ, "]", line};
+        res = Token(TokenID::CLOSE_SQ, "]", line, GetColPos(index));
         break;
     }
     case ',':
     {
-        res = {TokenID::COMMA, ",", line};
+        res = Token(TokenID::COMMA, ",", line, GetColPos(index));
         break;
     }
     case '.':
     {
-        res = {TokenID::DOT, ".", line};
+        res = Token(TokenID::DOT, ".", line, GetColPos(index));
         break;
     }
     case '"':
@@ -228,7 +226,7 @@ Token Lexer::NextToken()
 
         index = end;
 
-        res = {TokenID::STRING_L, src.substr(start, end - start), line};
+        res = Token(TokenID::STRING_L, src.substr(start, end - start), line, GetColPos(start - 1));
         break;
     }
     case '\'':
@@ -252,12 +250,12 @@ Token Lexer::NextToken()
             LexError("Invalid character literal");
         }
 
-        res = {TokenID::CHAR_L, literal, line};
+        res = Token(TokenID::CHAR_L, literal, line, GetColPos(start - 1));
         break;
     }
     case ':':
     {
-        res = {TokenID::COLON, ":", line};
+        res = Token(TokenID::COLON, ":", line, GetColPos(index));
         break;
     }
     default:
@@ -284,7 +282,10 @@ void Lexer::SkipWhiteSpace()
     while (isspace(src[index]))
     {
         if (src[index] == '\n')
+        {
             line++;
+            cur_line_beg = index + 1;
+        }
         index++;
     }
 }
@@ -309,6 +310,7 @@ void Lexer::SkipComment()
         {
             index++;
             line++;
+            cur_line_beg = index;
             SkipWhiteSpace();
         }
     }
@@ -341,7 +343,7 @@ Token Lexer::LexNumber()
         length++;
     }
 
-    return {had_dot ? TokenID::DOUBLE_L : TokenID::INT_L, src.substr(start, length), line};
+    return Token(had_dot ? TokenID::DOUBLE_L : TokenID::INT_L, src.substr(start, length), line, GetColPos(start));
 }
 
 bool Lexer::CheckKeyword(Token &tok)
@@ -429,7 +431,7 @@ bool Lexer::MatchKeyWord(std::string kw, TokenID t, Token &tok)
     std::string candidate = src.substr(index + 1, kw.length());
     if (candidate == kw)
     {
-        tok = {t, src[index] + candidate, line};
+        tok = Token(t, src[index] + candidate, line, GetColPos(index));
         return true;
     }
     else

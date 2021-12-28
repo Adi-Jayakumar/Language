@@ -95,14 +95,17 @@ enum class TokenID : token_int_type
     END,
 };
 
+// TODO Implement a location struct containing line, col, and file_name and integrate with AST nodes
 struct Token
 {
     TokenID type;
     std::string literal;
     size_t line;
+    size_t col;
+    // std::string file_name
 
     Token() = default;
-    Token(TokenID _type, std::string _literal, size_t _line) : type(_type), literal(_literal), line(_line){};
+    Token(const TokenID _type, const std::string _literal, const size_t _line, const size_t _col) : type(_type), literal(_literal), line(_line), col(_col){};
 };
 
 bool IsLiteral(const Token &);

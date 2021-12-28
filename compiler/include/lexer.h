@@ -17,12 +17,18 @@ class Lexer
 public:
     size_t index;
     size_t line;
+    size_t cur_line_beg;
     std::string src;
     SymbolTable *symbols;
 
-    Lexer(const std::string &fPath, SymbolTable *_symbols);
+    Lexer(const std::string &f_path, SymbolTable *_symbols) : index(0),
+                                                              line(1),
+                                                              cur_line_beg(0),
+                                                              src(IO::GetSrcString(f_path)),
+                                                              symbols(_symbols){};
 
     size_t LineSize();
+    size_t GetColPos(size_t start);
 
     void LexError(std::string msg);
 
