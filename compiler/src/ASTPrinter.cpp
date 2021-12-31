@@ -173,6 +173,24 @@ void ASTPrinter::PrintSequence(Sequence *s)
 
 //------------------STATEMENTS---------------------//
 
+void ASTPrinter::PrintTemplateHeader(const std::vector<std::pair<TypeData, std::string>> &templates)
+{
+    if (templates.size() > 0)
+    {
+        out << "template<";
+
+        for (size_t i = 0; i < templates.size() - 1; i++)
+        {
+            out << templates[i].second << ", ";
+            symbols.AddType(templates[i].second);
+        }
+
+        out << templates.back().second << '>';
+        symbols.AddType(templates.back().second);
+        NewLine();
+    }
+}
+
 void ASTPrinter::PrintExprStmt(ExprStmt *es)
 {
     es->exp->Print(*this);
@@ -241,20 +259,7 @@ void ASTPrinter::PrintWhileStmt(WhileStmt *ws)
 
 void ASTPrinter::PrintFuncDecl(FuncDecl *fd)
 {
-    if (fd->templates.size() > 0)
-    {
-        out << "template<";
-
-        for (size_t i = 0; i < fd->templates.size() - 1; i++)
-        {
-            out << fd->templates[i].second << ", ";
-            symbols.AddType(fd->templates[i].second);
-        }
-
-        out << fd->templates.back().second << '>';
-        symbols.AddType(fd->templates.back().second);
-        NewLine();
-    }
+    PrintTemplateHeader(fd->templates);
     out << "function ";
     symbols.PrintType(out, fd->ret);
     out << " " << fd->name << "(";
@@ -323,7 +328,7 @@ void ASTPrinter::PrintReturn(Return *r)
 
 void ASTPrinter::PrintStructDecl(StructDecl *sd)
 {
-
+    PrintTemplateHeader(sd->templates);
     out << "struct typename " << sd->name;
     NewLine();
     out << "{";

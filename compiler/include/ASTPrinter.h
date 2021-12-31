@@ -42,6 +42,8 @@ public:
         NewLine();
     }
 
+    void PrintTemplateHeader(const std::vector<std::pair<TypeData, std::string>> &templates);
+
     // expression printing
     void PrintLiteral(Literal *l);
     void PrintUnary(Unary *u);

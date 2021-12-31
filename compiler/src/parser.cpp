@@ -438,17 +438,20 @@ SP<Stmt> Parser::TemplateDeclaration()
     Check(TokenID::GT, "Expect '>' after template declaration");
     Advance();
 
-    SP<Stmt> function = Statement();
-    FuncDecl *as_fd = dynamic_cast<FuncDecl *>(function.get());
+    SP<Stmt> function_or_struct = Statement();
 
-    if (!as_fd)
-        ParseError(loc, "Can only have template functions");
+    FuncDecl *as_fd = dynamic_cast<FuncDecl *>(function_or_struct.get());
+    if (as_fd != nullptr)
+        as_fd->templates = added_types;
+
+    StructDecl *as_sd = dynamic_cast<StructDecl *>(function_or_struct.get());
+    if (as_sd != nullptr)
+        as_sd->templates = added_types;
 
     for (const auto &type_name : added_types)
         symbols.RemoveType(type_name.first.type);
 
-    as_fd->templates = added_types;
-    return function;
+    return function_or_struct;
 }
 
 // ----------------------STATEMENTS----------------------- //
