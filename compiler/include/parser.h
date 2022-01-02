@@ -6,7 +6,7 @@
 
 struct Parser
 {
-    SymbolTable symbols;
+    SymbolTable &symbols;
     Lexer lex;
     Token prev, cur, next, two_next;
 

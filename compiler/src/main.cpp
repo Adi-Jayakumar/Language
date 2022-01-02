@@ -87,7 +87,8 @@ int main(int argc, char **argv)
 
     if (arg.IsSwitchOn("-p"))
     {
-        std::cout << "PARSED" << std::endl;
+        std::cout << "PARSED\n\n"
+                  << std::endl;
         ASTPrinter ast(false, symbols);
 
         for (auto &stmt : parsed)

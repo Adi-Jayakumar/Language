@@ -182,11 +182,11 @@ void ASTPrinter::PrintTemplateHeader(const std::vector<std::pair<TypeData, std::
         for (size_t i = 0; i < templates.size() - 1; i++)
         {
             out << templates[i].second << ", ";
-            symbols.AddType(templates[i].second);
+            symbols.AddTypeString(templates[i].first, templates[i].second);
         }
 
         out << templates.back().second << '>';
-        symbols.AddType(templates.back().second);
+        symbols.AddTypeString(templates.back().first, templates.back().second);
         NewLine();
     }
 }

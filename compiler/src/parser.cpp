@@ -81,16 +81,43 @@ TypeData Parser::ParseType(std::string err)
     {
         std::string s_type = cur.literal;
         Advance();
-        return IsCurType(s_type);
+
+        TypeData base_type = IsCurType(s_type);
+
+        if (cur.type == TokenID::LT)
+        {
+            std::vector<TypeData> tmps;
+            Advance();
+
+            while (cur.type != TokenID::GT && cur.type != TokenID::END)
+            {
+                tmps.push_back(ParseType(err));
+
+                if (cur.type == TokenID::GT || cur.type == TokenID::END)
+                    break;
+                else if (cur.type == TokenID::COMMA)
+                    Advance();
+            }
+
+            Check(TokenID::GT, "Missing close caret in template type");
+            Advance();
+            return TypeData(base_type, tmps);
+        }
+
+        return base_type;
     }
     else if (cur.type == TokenID::ARRAY)
     {
         Advance();
+
         Check(TokenID::LT, "Expect array type surrounded by open/close carets");
         Advance();
+
         TypeData arr_type = ParseType(err);
+
         Check(TokenID::GT, "Expect array type surrounded by open/close carets");
         Advance();
+
         ++arr_type.is_array;
         return arr_type;
     }
@@ -116,6 +143,12 @@ std::vector<SP<Stmt>> Parser::Parse()
             std::cerr << e.what() << std::endl;
         }
     }
+
+    std::cout << "\n\n\n\n\n\n\n\n\n\n\n\nAt end of parse" << std::endl;
+    symbols.__print_type_string_map();
+    std::cout << "\n\n\n\n\n\n\n\n\n\n\n"
+              << std::endl;
+
     return res;
 }
 
@@ -236,6 +269,9 @@ SP<Stmt> Parser::Declaration()
 SP<Stmt> Parser::VarDeclaration()
 {
     TypeData type = ParseType("Expect type name at the beginning of a variable decaration");
+    std::string type_name = symbols.ToString(type);
+    std::cout << "type in var decl = " << type_name << std::endl;
+
     if (type == VOID_TYPE)
         ParseError(cur, "A variable cannot have 'void' type");
 
