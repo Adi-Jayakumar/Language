@@ -30,22 +30,45 @@ void SymbolTable::RemoveType(const TypeID type_id)
 std::string SymbolTable::ToString(const TypeData &type)
 {
     if (type.is_array == 0)
-        return type_string_map[type.type];
+    {
+        std::string base_type = type_string_map[type.type];
+
+        if (type.tmps.size() > 0)
+        {
+            base_type += "<";
+
+            for (size_t i = 0; i < type.tmps.size() - 1; i++)
+                base_type += ToString(type.tmps[i]) + ", ";
+
+            base_type += ToString(type.tmps.back()) + ">";
+        }
+
+        return base_type;
+    }
     else
     {
         std::string res("Array<");
         res += std::to_string(type.is_array);
-        res += ", " + type_string_map[type.type] + ">";
+        res += ", " + type_string_map[type.type];
+        
+        if (type.tmps.size() > 0)
+        {
+            res += "<";
+
+            for (size_t i = 0; i < type.tmps.size() - 1; i++)
+                res += ToString(type.tmps[i]) + ", ";
+
+            res += ToString(type.tmps.back()) + ">";
+        }
+
+        res += ">";
         return res;
     }
 }
 
 void SymbolTable::PrintType(std::ostream &out, const TypeData &type)
 {
-    if (type.is_array == 0)
-        out << type_string_map[type.type];
-    else
-        out << "Array<" << type.is_array << ", " << type_string_map[type.type] << ">";
+    out << ToString(type);
 }
 
 std::optional<TypeData> SymbolTable::OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right)
