@@ -144,11 +144,6 @@ std::vector<SP<Stmt>> Parser::Parse()
         }
     }
 
-    std::cout << "\n\n\n\n\n\n\n\n\n\n\n\nAt end of parse" << std::endl;
-    symbols.__print_type_string_map();
-    std::cout << "\n\n\n\n\n\n\n\n\n\n\n"
-              << std::endl;
-
     return res;
 }
 
@@ -269,9 +264,6 @@ SP<Stmt> Parser::Declaration()
 SP<Stmt> Parser::VarDeclaration()
 {
     TypeData type = ParseType("Expect type name at the beginning of a variable decaration");
-    std::string type_name = symbols.ToString(type);
-    std::cout << "type in var decl = " << type_name << std::endl;
-
     if (type == VOID_TYPE)
         ParseError(cur, "A variable cannot have 'void' type");
 
