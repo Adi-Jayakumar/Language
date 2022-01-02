@@ -13,4 +13,5 @@ bool operator!=(const TypeData &left, const TypeData &right)
 std::ostream &operator<<(std::ostream &out, const TypeData td)
 {
     out << '(' << td.is_array << ", " << +td.type << ')';
+    return out;
 }

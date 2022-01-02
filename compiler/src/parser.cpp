@@ -6,6 +6,10 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
 {
     cur = lex.NextToken();
     next = lex.NextToken();
+
+    if (cur.type == TokenID::STRUCT)
+        symbols.AddType(next.literal);
+
     two_next = lex.NextToken();
 }
 
@@ -18,7 +22,7 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
 void Parser::ParseError(const Token &loc, const std::string &err)
 {
     had_error = true;
-    Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + "\n" + err + "\n");
+    Error e = Error("[PARSE ERROR] On line " + std::to_string(loc.line) + " near '" + loc.literal + "'\n" + err + "\n");
     throw e;
 }
 
@@ -54,11 +58,11 @@ void Parser::Advance()
     cur = next;
     next = two_next;
 
-    if (next.type != TokenID::END)
+    if (two_next.type != TokenID::END)
         two_next = lex.NextToken();
 
-    if (cur.type == TokenID::STRUCT && next.type == TokenID::TYPENAME_KW)
-        symbols.AddType(two_next.literal);
+    if (cur.type == TokenID::STRUCT)
+        symbols.AddType(next.literal);
 }
 
 TypeData Parser::IsCurType(const std::string &name)
@@ -81,39 +85,14 @@ TypeData Parser::ParseType(std::string err)
     }
     else if (cur.type == TokenID::ARRAY)
     {
-        Check(TokenID::ARRAY, "Types can only be a default type name or 'Array<T>'");
         Advance();
-
-        Check(TokenID::LT, "The element type of an array is surrounded by angle brackets");
+        Check(TokenID::LT, "Expect array type surrounded by open/close carets");
         Advance();
-
-        int dim = 1;
-        TypeData type;
-        if (cur.type == TokenID::INT_L)
-        {
-            dim = std::stoi(cur.literal);
-            if (dim < 1)
-                ParseError(cur, "Multi dimensional array's dimension must be a positive int literal");
-            Advance();
-
-            Check(TokenID::COMMA, "Expect comma seperating dimension and type name");
-            Advance();
-
-            Check(TokenID::TYPENAME, "Expect type name in multi dimensional array type");
-            type = IsCurType(cur.literal);
-            Advance();
-        }
-        else
-        {
-            Check(TokenID::TYPENAME, "1 dimensional array requires type name");
-            type = IsCurType(cur.literal);
-            Advance();
-        }
-
-        Check(TokenID::GT, "Missing '>'");
+        TypeData arr_type = ParseType(err);
+        Check(TokenID::GT, "Expect array type surrounded by open/close carets");
         Advance();
-        type.is_array = dim;
-        return type;
+        ++arr_type.is_array;
+        return arr_type;
     }
     ParseError(cur, err);
     // never reaches here, just to silence compiler warnings
@@ -369,9 +348,6 @@ SP<Stmt> Parser::ParseStructDecl()
 
     Token loc = cur;
     Check(TokenID::STRUCT, "Struct declaration must begin with 'struct'");
-    Advance();
-
-    Check(TokenID::TYPENAME_KW, "Must have keyword 'typename' here");
     Advance();
 
     Check(TokenID::IDEN, "Struct declaration must be 'struct' followed by a type name");
