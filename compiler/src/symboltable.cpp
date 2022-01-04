@@ -25,16 +25,14 @@ TypeID SymbolTable::GenerateNewTypeID()
     if (active_types.size() == MAX_TYPE)
         assert(false != true); // TODO handle more gracefully
 
-    do
-    {
-        if (!active_types.count(candidate_id))
-            return candidate_id;
+    while (active_types.count(candidate_id))
         candidate_id = distro(gen);
-    } while (active_types.count(candidate_id));
 
-    std::cout << "I SHOULD NOT BE PRINTED" << std::endl;
-    assert(false); // TODO handle more gracefully
-    return 0;      // should never reach here
+    return candidate_id;
+
+    // std::cout << "I SHOULD NOT BE PRINTED" << std::endl;
+    // assert(false); // TODO handle more gracefully
+    // return 0;      // should never reach here
 }
 
 TypeData SymbolTable::AddType(const std::string &name)
@@ -134,32 +132,29 @@ std::optional<TypeData> SymbolTable::OperatorResult(const TypeData &left, const 
 
 bool SymbolTable::CanAssign(const TypeData &var_type, const TypeData &val_type)
 {
-    if (var_type.is_array != val_type.is_array)
+    if (var_type == val_type)
+        return true;
+    else if (var_type.tmps.size() != val_type.tmps.size()) // can never assign 'thing<X>' to 'thing<Y>' or 'other'
         return false;
-
-    if (var_type.type == 6 || val_type.type == 6)
-        return true;
-    else if (var_type.type == 1 && val_type.type == 2)
-        return true;
-    else if (var_type.type == 2 && val_type.type == 1)
-        return true;
-
-    if (var_type.type > 6 && val_type.type > 6)
+    else if (var_type == INT_TYPE)
+        return INT_ASSIGNABLES.count(val_type);
+    else if (var_type == DOUBLE_TYPE)
+        return DOUBLE_ASSIGNABLES.count(val_type);
+    else if (var_type == BOOL_TYPE)
+        return BOOL_ASSIGNABLES.count(val_type);
+    else if (var_type == STRING_TYPE)
+        return STRING_ASSIGNABLES.count(val_type);
+    else if (var_type == CHAR_TYPE)
+        return CHAR_ASSIGNABLES.count(val_type);
+    else if (!BuiltInTypeIDs.count(var_type.type) && BuiltInTypeIDs.count(val_type.type))
     {
-        if (var_type == val_type)
-            return true;
-
-        std::optional<StructID> s_val = GetStruct(val_type);
-        TypeData parent = s_val->parent;
-
-        if (parent == VOID_TYPE)
-            return var_type == val_type;
-
-        parent.is_array = val_type.is_array;
-        return CanAssign(var_type, parent);
+        std::optional<StructID> parent = GetStruct(val_type);
+        if (!parent)
+            return false;
+        return CanAssign(var_type, parent->type);
     }
-
-    return var_type == val_type;
+    else
+        return false;
 }
 
 size_t SymbolTable::SizeOf(const TypeData &type)

@@ -124,6 +124,12 @@ private:
             {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
         };
 
+    std::unordered_set<TypeData> INT_ASSIGNABLES{INT_TYPE, DOUBLE_TYPE};
+    std::unordered_set<TypeData> DOUBLE_ASSIGNABLES{INT_TYPE, DOUBLE_TYPE};
+    std::unordered_set<TypeData> BOOL_ASSIGNABLES{BOOL_TYPE};
+    std::unordered_set<TypeData> STRING_ASSIGNABLES{STRING_TYPE};
+    std::unordered_set<TypeData> CHAR_ASSIGNABLES{CHAR_TYPE};
+
     std::unordered_map<TypeID, std::string> type_string_map{{VOID_TYPE.type, "void"},
                                                             {INT_TYPE.type, "int"},
                                                             {DOUBLE_TYPE.type, "double"},
