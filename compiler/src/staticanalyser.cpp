@@ -591,12 +591,12 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
             TypeError(sd->Loc(), "Parent of a struct cannot be array");
         std::optional<StructID> sid_parent = symbols.GetStruct(parent);
 
-        if (sid_parent)
+        if (!sid_parent)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
         name_types.insert(name_types.end(), sid_parent->name_types.begin(), sid_parent->name_types.end());
     }
-
+    
     for (auto &d : sd->decls)
     {
         DeclaredVar *as_dv = dynamic_cast<DeclaredVar *>(d.get());

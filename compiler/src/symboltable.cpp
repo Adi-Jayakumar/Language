@@ -146,12 +146,14 @@ bool SymbolTable::CanAssign(const TypeData &var_type, const TypeData &val_type)
         return STRING_ASSIGNABLES.count(val_type);
     else if (var_type == CHAR_TYPE)
         return CHAR_ASSIGNABLES.count(val_type);
-    else if (!BuiltInTypeIDs.count(var_type.type) && BuiltInTypeIDs.count(val_type.type))
+    else if (!BuiltInTypeIDs.count(var_type.type) && !BuiltInTypeIDs.count(val_type.type))
     {
-        std::optional<StructID> parent = GetStruct(val_type);
-        if (!parent)
+        std::optional<StructID> sid_val_type = GetStruct(val_type);
+
+        if (!sid_val_type)
             return false;
-        return CanAssign(var_type, parent->type);
+
+        return CanAssign(var_type, sid_val_type->parent);
     }
     else
         return false;
