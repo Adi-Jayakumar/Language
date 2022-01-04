@@ -341,6 +341,8 @@ void ASTPrinter::PrintStructDecl(StructDecl *sd)
     NewLine();
     out << "}";
     NewLine();
+    NewLine();
+    NewLine();
 }
 
 void ASTPrinter::PrintImportStmt(ImportStmt *is)
