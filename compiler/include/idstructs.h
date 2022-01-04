@@ -103,14 +103,26 @@ struct StructID
     std::string name;
     TypeData type;
     TypeData parent;
-    std::vector<std::pair<std::string, TypeData>> nameTypes;
+    std::vector<std::pair<std::string, TypeData>> name_types;
+    std::vector<TypeData> tmps;
 
     StructID(const std::string &_name,
              const TypeData &_type,
              const TypeData &_parent,
-             const std::vector<std::pair<std::string, TypeData>> &_nameTypes)
+             const std::vector<std::pair<std::string, TypeData>> &_name_types)
         : name(_name),
           type(_type),
           parent(_parent),
-          nameTypes(_nameTypes){};
+          name_types(_name_types){};
+
+    StructID(const std::string &_name,
+             const TypeData &_type,
+             const TypeData &_parent,
+             const std::vector<std::pair<std::string, TypeData>> &_name_types,
+             const std::vector<TypeData> &_tmps)
+        : name(_name),
+          type(_type),
+          parent(_parent),
+          name_types(_name_types),
+          tmps(_tmps){};
 };

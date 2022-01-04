@@ -73,17 +73,17 @@ int main(int argc, char **argv)
 
     SymbolTable symbols;
 
-    Parser p(ifPath, symbols);
-    std::vector<SP<Stmt>> parsed = p.Parse();
-
-    if (p.had_error)
-        exit(2);
-
     if (arg.IsSwitchOn("-l"))
     {
         std::cout << "Dumping tokens" << std::endl;
         DumpTokens(ifPath, symbols);
     }
+
+    Parser p(ifPath, symbols);
+    std::vector<SP<Stmt>> parsed = p.Parse();
+
+    if (p.had_error)
+        exit(2);
 
     if (arg.IsSwitchOn("-p"))
     {
@@ -96,46 +96,46 @@ int main(int argc, char **argv)
         ast.Flush();
     }
 
-    StaticAnalyser sa(symbols);
-    sa.Analyse(parsed);
+    // StaticAnalyser sa(symbols);
+    // sa.Analyse(parsed);
 
-    if (arg.IsSwitchOn("-t"))
-    {
-        std::cout << "ANALYSED" << std::endl;
-        ASTPrinter ast(true, symbols);
+    // if (arg.IsSwitchOn("-t"))
+    // {
+    //     std::cout << "ANALYSED" << std::endl;
+    //     ASTPrinter ast(true, symbols);
 
-        for (auto &stmt : parsed)
-            stmt->Print(ast);
-        ast.Flush();
-    }
+    //     for (auto &stmt : parsed)
+    //         stmt->Print(ast);
+    //     ast.Flush();
+    // }
 
-    if (arg.IsSwitchOn("-exp"))
-    {
-        Verifier v(symbols);
-        v.Generate(dynamic_cast<FuncDecl *>(parsed[0].get()));
-    }
+    // if (arg.IsSwitchOn("-exp"))
+    // {
+    //     Verifier v(symbols);
+    //     v.Generate(dynamic_cast<FuncDecl *>(parsed[0].get()));
+    // }
 
-    Compiler c;
-    c.Compile(parsed);
+    // Compiler c;
+    // c.Compile(parsed);
 
-    if (c.had_error)
-        exit(3);
+    // if (c.had_error)
+    //     exit(3);
 
-    if (arg.IsSwitchOn("-c"))
-    {
-        std::cout << "\n\nCOMPILED" << std::endl;
-        c.Disassemble();
-    }
+    // if (arg.IsSwitchOn("-c"))
+    // {
+    //     std::cout << "\n\nCOMPILED" << std::endl;
+    //     c.Disassemble();
+    // }
 
-    std::string ofPath = arg.GetArgVal("-o");
+    // std::string ofPath = arg.GetArgVal("-o");
 
-    if (arg.IsSwitchOn("--rm-bin"))
-    {
-        std::string rm = "rm -f " + ofPath;
-        int sysCode = system(rm.c_str());
-        if (sysCode == -1)
-            std::cerr << "Command to remove serialisation of program failed" << std::endl;
-    }
-    Compiler::SerialiseProgram(c, ofPath);
+    // if (arg.IsSwitchOn("--rm-bin"))
+    // {
+    //     std::string rm = "rm -f " + ofPath;
+    //     int sysCode = system(rm.c_str());
+    //     if (sysCode == -1)
+    //         std::cerr << "Command to remove serialisation of program failed" << std::endl;
+    // }
+    // Compiler::SerialiseProgram(c, ofPath);
     return 0;
 }

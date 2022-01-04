@@ -7,8 +7,10 @@
 #include <cassert>
 #include <dlfcn.h>
 #include <optional>
+#include <random>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 
 class TypeInfo
 {
@@ -122,21 +124,16 @@ private:
             {{STRING_TYPE, TokenID::PLUS, STRING_TYPE}, STRING_TYPE},
         };
 
-    // std::unordered_map<std::string, TypeData> type_name_map{{"void", VOID_TYPE},
-    //                                                         {"int", INT_TYPE},
-    //                                                         {"double", DOUBLE_TYPE},
-    //                                                         {"bool", BOOL_TYPE},
-    //                                                         {"string", STRING_TYPE},
-    //                                                         {"char", CHAR_TYPE},
-    //                                                         {"null_t", NULL_TYPE}};
+    std::unordered_map<TypeID, std::string> type_string_map{{VOID_TYPE.type, "void"},
+                                                            {INT_TYPE.type, "int"},
+                                                            {DOUBLE_TYPE.type, "double"},
+                                                            {BOOL_TYPE.type, "bool"},
+                                                            {STRING_TYPE.type, "string"},
+                                                            {CHAR_TYPE.type, "char"},
+                                                            {NULL_TYPE.type, "null_t"}};
 
-    std::unordered_map<TypeID, std::string> type_string_map{{0, "void"},
-                                                            {1, "int"},
-                                                            {2, "double"},
-                                                            {3, "bool"},
-                                                            {4, "string"},
-                                                            {5, "char"},
-                                                            {6, "null_t"}};
+    std::unordered_set<TypeID> active_types;
+
     size_t num_types;
 
     size_t func_var_begin;
@@ -146,7 +143,7 @@ public:
     void __print_type_string_map();
 
     size_t depth;
-    SymbolTable() : num_types(NUM_DEF_TYPES), func_var_begin(0), sp_offset(0), depth(0)
+    SymbolTable() : active_types(BuiltInTypeIDs), num_types(NUM_DEF_TYPES), func_var_begin(0), sp_offset(0), depth(0)
     {
         for (const auto &func : NativeFunctions)
             native_funcs.push_back(ParseLibraryFunction(func, FunctionType::NATIVE));
@@ -159,30 +156,15 @@ public:
 
     //-------------------TYPE METHODS-------------------//
 
+    TypeID GenerateNewTypeID();
     TypeData AddType(const std::string &name);
     void AddTypeString(const TypeData &type, const std::string &name)
     {
         type_string_map[type.type] = name;
     };
-
     void RemoveType(const TypeID type_id);
-
-    // Potentially unreliable for template types which have the same name
-    std::optional<TypeData> ResolveType(const std::string &type)
-    {
-        // std::cout << "trying to resolve " << type << std::endl;
-        for (const auto &kv : type_string_map)
-        {
-            if (kv.second == type)
-            {
-                // std::cout << "resolved to " << +kv.first << std::endl;
-                return TypeData(0, kv.first);
-            }
-        }
-        // std::cout << "failed to resolve " << type << std::endl;
-        return std::nullopt;
-    };
-
+    std::optional<TypeData> ResolveType(const std::string &type); // Potentially unreliable for template types which have the same name
+    std::optional<StructID> InitialiseTemplateStructIfRequired(const TypeData &type);
     std::string ToString(const TypeData &type);
     void PrintType(std::ostream &out, const TypeData &type);
 
@@ -190,8 +172,7 @@ public:
     std::optional<TypeData> OperatorResult(const TypeData &left, const TokenID &op, const TypeData &right);
 
     //-------------------BASE POINTER OFFSET METHODS-------------------//
-    // returns the offset from the base pointer of the last variable added to the stack
-    size_t GetCurOffset();
+    size_t GetCurOffset(); // returns the offset from the base pointer of the last variable added to the stack
     void UpdateSP(const size_t &offset) { sp_offset += offset; };
     void ReduceSP(const size_t &offset) { sp_offset -= offset; };
     void SetSP(const size_t &newLoc) { sp_offset = newLoc; };

@@ -6,10 +6,6 @@ Parser::Parser(const std::string &fPath, SymbolTable &_symbols)
 {
     cur = lex.NextToken();
     next = lex.NextToken();
-
-    if (cur.type == TokenID::STRUCT)
-        symbols.AddType(next.literal);
-
     two_next = lex.NextToken();
 }
 
@@ -60,9 +56,6 @@ void Parser::Advance()
 
     if (two_next.type != TokenID::END)
         two_next = lex.NextToken();
-
-    if (cur.type == TokenID::STRUCT)
-        symbols.AddType(next.literal);
 }
 
 TypeData Parser::IsCurType(const std::string &name)
@@ -378,8 +371,9 @@ SP<Stmt> Parser::ParseStructDecl()
     Check(TokenID::STRUCT, "Struct declaration must begin with 'struct'");
     Advance();
 
-    Check(TokenID::IDEN, "Struct declaration must be 'struct' followed by a type name");
+    PARSER_ASSERT(cur.type == TokenID::IDEN || cur.type == TokenID::TYPENAME, "Struct declaration must be 'struct' followed by a type name");
     std::string name = cur.literal;
+    TypeData type = symbols.AddType(cur.literal);
     Advance();
 
     TypeData parent = VOID_TYPE;
@@ -412,7 +406,7 @@ SP<Stmt> Parser::ParseStructDecl()
 
     Check(TokenID::CLOSE_BRACE, "Missing close brace");
     Advance();
-    return std::make_shared<StructDecl>(name, parent, decls, loc);
+    return std::make_shared<StructDecl>(name, type, parent, decls, loc);
 }
 
 SP<Stmt> Parser::TemplateDeclaration()

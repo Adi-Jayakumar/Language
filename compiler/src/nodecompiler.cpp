@@ -285,7 +285,7 @@ void NodeCompiler::CompileAssign(Assign *a, Compiler &c)
 
         VarReference *vr_accessee = dynamic_cast<VarReference *>(target_as_fa->accessee.get());
         size_t offset = SIZE_MAX;
-        for (const auto &member : sid->nameTypes)
+        for (const auto &member : sid->name_types)
         {
             offset += c.symbols.SizeOf(member.second);
             if (member.first == vr_accessee->name)
@@ -416,7 +416,7 @@ void NodeCompiler::CompileFieldAccess(FieldAccess *fa, Compiler &c)
 
     // index of accessee in the underlying array
     size_t offset = 0;
-    for (const auto &member : sid->nameTypes)
+    for (const auto &member : sid->name_types)
     {
         if (member.first == vr_accessee->name)
             break;
@@ -622,7 +622,7 @@ void NodeCompiler::CompileStructDecl(StructDecl *sd, Compiler &c)
     if (parent != VOID_TYPE)
     {
         std::optional<StructID> sid_parent = c.symbols.GetStruct(parent);
-        for (const auto &kv : sid_parent->nameTypes)
+        for (const auto &kv : sid_parent->name_types)
             name_types.push_back({kv.first, kv.second});
     }
 

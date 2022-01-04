@@ -26,6 +26,8 @@ public:
             subst[templates[i]] = new_types[i];
     };
 
+    void AddType(const TypeData &type);
+
     TypeData operator[](TypeData &tmp_type);
     void PrintTypeMappings(std::ostream &out);
 };

@@ -14,17 +14,82 @@ bool operator==(const TypeInfo &l, const TypeInfo &r)
     return (l.t == r.t) && (l.left == r.left) && (l.right == r.right);
 }
 
+TypeID SymbolTable::GenerateNewTypeID()
+{
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+    static std::uniform_int_distribution<TypeID> distro;
+
+    TypeID candidate_id = distro(gen);
+
+    if (active_types.size() == MAX_TYPE)
+        assert(false != true); // TODO handle more gracefully
+
+    do
+    {
+        if (!active_types.count(candidate_id))
+            return candidate_id;
+        candidate_id = distro(gen);
+    } while (active_types.count(candidate_id));
+
+    std::cout << "I SHOULD NOT BE PRINTED" << std::endl;
+    assert(false); // TODO handle more gracefully
+    return 0;      // should never reach here
+}
+
 TypeData SymbolTable::AddType(const std::string &name)
 {
-    TypeData new_type(0, num_types++);
+    TypeData new_type(0, GenerateNewTypeID());
     type_string_map[new_type.type] = name;
     return new_type;
 }
 
 void SymbolTable::RemoveType(const TypeID type_id)
 {
+    assert(BuiltInTypeIDs.count(type_id) == 0);
     type_string_map.erase(type_id);
     --num_types;
+}
+
+std::optional<TypeData> SymbolTable::ResolveType(const std::string &type)
+{
+    for (const auto &kv : type_string_map)
+    {
+        if (kv.second == type)
+            return TypeData(0, kv.first);
+    }
+    return std::nullopt;
+}
+
+std::optional<StructID> SymbolTable::InitialiseTemplateStructIfRequired(const TypeData &type)
+{
+    std::optional<StructID> is_already_def = GetStruct(type);
+    if (is_already_def)
+        return std::nullopt;
+
+    if (type.tmps.size() == 0)
+        return std::nullopt;
+
+    TypeData base_type(type.is_array, type.type);
+    std::optional<StructID> base = GetStruct(base_type);
+
+    if (!base)
+        return std::nullopt;
+
+    if (base->tmps.size() != type.tmps.size())
+        return std::nullopt;
+
+    TypeSubstituter strct_subst(base->tmps, type.tmps, Token());
+
+    std::vector<std::pair<std::string, TypeData>> name_types;
+    for (size_t i = 0; i < base->name_types.size(); i++)
+        name_types.push_back({base->name_types[i].first, strct_subst[base->name_types[i].second]});
+
+    std::string s_type = ToString(type);
+    StructID new_type(s_type, type, VOID_TYPE, name_types);
+
+    strcts.push_back(new_type);
+    return new_type;
 }
 
 std::string SymbolTable::ToString(const TypeData &type)
@@ -48,20 +113,8 @@ std::string SymbolTable::ToString(const TypeData &type)
     else
     {
         std::string res("Array<");
-        res += std::to_string(type.is_array);
-        res += ", " + type_string_map[type.type];
-        
-        if (type.tmps.size() > 0)
-        {
-            res += "<";
-
-            for (size_t i = 0; i < type.tmps.size() - 1; i++)
-                res += ToString(type.tmps[i]) + ", ";
-
-            res += ToString(type.tmps.back()) + ">";
-        }
-
-        res += ">";
+        TypeData elem_type(type.is_array - 1, type.type, type.tmps);
+        res += ToString(elem_type) + ">";
         return res;
     }
 }
@@ -79,34 +132,34 @@ std::optional<TypeData> SymbolTable::OperatorResult(const TypeData &left, const 
         return std::nullopt;
 }
 
-bool SymbolTable::CanAssign(const TypeData &varType, const TypeData &valType)
+bool SymbolTable::CanAssign(const TypeData &var_type, const TypeData &val_type)
 {
-    if (varType.is_array != valType.is_array)
+    if (var_type.is_array != val_type.is_array)
         return false;
 
-    if (varType.type == 6 || valType.type == 6)
+    if (var_type.type == 6 || val_type.type == 6)
         return true;
-    else if (varType.type == 1 && valType.type == 2)
+    else if (var_type.type == 1 && val_type.type == 2)
         return true;
-    else if (varType.type == 2 && valType.type == 1)
+    else if (var_type.type == 2 && val_type.type == 1)
         return true;
 
-    if (varType.type > 6 && valType.type > 6)
+    if (var_type.type > 6 && val_type.type > 6)
     {
-        if (varType == valType)
+        if (var_type == val_type)
             return true;
 
-        std::optional<StructID> sVal = GetStruct(valType);
-        TypeData parent = sVal->parent;
+        std::optional<StructID> s_val = GetStruct(val_type);
+        TypeData parent = s_val->parent;
 
         if (parent == VOID_TYPE)
-            return varType == valType;
+            return var_type == val_type;
 
-        parent.is_array = valType.is_array;
-        return CanAssign(varType, parent);
+        parent.is_array = val_type.is_array;
+        return CanAssign(var_type, parent);
     }
 
-    return varType == valType;
+    return var_type == val_type;
 }
 
 size_t SymbolTable::SizeOf(const TypeData &type)
@@ -370,7 +423,7 @@ std::optional<StructID> SymbolTable::GetStruct(const TypeData &td)
 {
     for (size_t i = strcts.size() - 1; (int)i >= 0; i--)
     {
-        if (strcts[i].type.type == td.type)
+        if (strcts[i].type == td)
             return strcts[i];
     }
 

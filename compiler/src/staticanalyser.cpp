@@ -319,14 +319,14 @@ TypeData StaticAnalyser::AnalyseBracedInitialiser(BracedInitialiser *bi)
         std::optional<StructID> sid = symbols.GetStruct(bi_type);
         if (sid)
             TypeError(bi->Loc(), "Invalid struct name in braced initialiser");
-        if (sid->nameTypes.size() != args.size())
+        if (sid->name_types.size() != args.size())
             TypeError(bi->Loc(), "Number of arguments in braced initialiser is not equal to the number of arguments in struct declaration");
 
         for (size_t i = 0; i < bi->size; i++)
         {
-            if (!symbols.CanAssign(sid->nameTypes[i].second, args[i]))
-                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + symbols.ToString(args[i]) + " cannot be assigned to object of type " + symbols.ToString(sid->nameTypes[i].second));
-            bi->init[i]->t = sid->nameTypes[i].second;
+            if (!symbols.CanAssign(sid->name_types[i].second, args[i]))
+                TypeError(bi->init[i]->Loc(), "Object in struct braced initialiser of type " + symbols.ToString(args[i]) + " cannot be assigned to object of type " + symbols.ToString(sid->name_types[i].second));
+            bi->init[i]->t = sid->name_types[i].second;
         }
 
         bi->t = sid->type;
@@ -359,9 +359,9 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
 
     // index of accessee in the underlying array
     size_t index = SIZE_MAX;
-    for (size_t i = 0; i < sid->nameTypes.size(); i++)
+    for (size_t i = 0; i < sid->name_types.size(); i++)
     {
-        if (sid->nameTypes[i].first == vr_accessee->name)
+        if (sid->name_types[i].first == vr_accessee->name)
         {
             index = i;
             break;
@@ -371,7 +371,7 @@ TypeData StaticAnalyser::AnalyseFieldAccess(FieldAccess *fa)
     if (index == SIZE_MAX)
         SymbolError(fa->accessee->Loc(), "Struct " + sid->name + " does not have member " + vr_accessee->name);
 
-    return fa->t = (*cur_type_subst)[sid->nameTypes[index].second];
+    return fa->t = (*cur_type_subst)[sid->name_types[index].second];
 }
 
 TypeData StaticAnalyser::AnalyseTypeCast(TypeCast *tc)
@@ -443,10 +443,13 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
     if (vid && vid->depth == symbols.depth)
         SymbolError(dv->Loc(), "Variable '" + symbols.ToString(dv->t) + " " + dv->name + "' has already been defined in this scope");
 
+    TypeData var_type = (*cur_type_subst)[dv->t];
+    symbols.InitialiseTemplateStructIfRequired(var_type);
+
     if (dv->value != nullptr)
     {
         TypeData val = dv->value->Analyse(*this);
-        if (!symbols.CanAssign((*cur_type_subst)[dv->t], val))
+        if (!symbols.CanAssign(var_type, val))
             TypeError(dv->Loc(), "Cannot initialise variable '" + dv->name + "' of type " + symbols.ToString(dv->t) + " with expression of type " + symbols.ToString(val));
     }
     else
@@ -454,7 +457,8 @@ void StaticAnalyser::AnalyseDeclaredVar(DeclaredVar *dv)
         if (symbols.depth == 0)
             SymbolError(dv->Loc(), "Global variable must be initialised");
     }
-    symbols.AddVar((*cur_type_subst)[dv->t], dv->name, 0);
+
+    symbols.AddVar(var_type, dv->name, 0);
 }
 
 void StaticAnalyser::AnalyseBlock(Block *b)
@@ -572,6 +576,7 @@ void StaticAnalyser::AnalyseReturn(Return *r)
 void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
 {
     TypeData type = symbols.ResolveType(sd->name).value();
+    cur_type_subst->AddType(type);
 
     if (type.type < NUM_DEF_TYPES)
         SymbolError(sd->Loc(), "Invalid struct name");
@@ -589,7 +594,7 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         if (sid_parent)
             TypeError(sd->Loc(), "Invalid parent struct name");
 
-        name_types.insert(name_types.end(), sid_parent->nameTypes.begin(), sid_parent->nameTypes.end());
+        name_types.insert(name_types.end(), sid_parent->name_types.begin(), sid_parent->name_types.end());
     }
 
     for (auto &d : sd->decls)
@@ -604,7 +609,11 @@ void StaticAnalyser::AnalyseStructDecl(StructDecl *sd)
         name_types.push_back({as_dv->name, as_dv->t});
     }
 
-    symbols.AddStruct(StructID(sd->name, type, parent, name_types));
+    std::vector<TypeData> tmps;
+    for (const auto &tmp : sd->templates)
+        tmps.push_back(tmp.first);
+
+    symbols.AddStruct(StructID(sd->name, type, parent, name_types, tmps));
 }
 
 void StaticAnalyser::AnalyseImportStmt(ImportStmt *is)

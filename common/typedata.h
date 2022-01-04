@@ -3,15 +3,19 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
+#include <unordered_set>
 #include <vector>
 
-class TypeData
+struct TypeData
 {
-public:
-    size_t is_array = 0;
-    TypeID type = 0;
-    TypeData() = default;
+    size_t is_array;
+    TypeID type;
+    std::vector<TypeData> tmps;
+
+    TypeData() : is_array(0), type(0){};
     TypeData(size_t _isArray, TypeID _type) : is_array(_isArray), type(_type){};
+    TypeData(size_t _isArray, TypeID _type, const std::vector<TypeData> &_tmps) : is_array(_isArray), type(_type), tmps(_tmps){};
+    TypeData(const TypeData &type, const std::vector<TypeData> &_tmps) : is_array(type.is_array), type(type.type), tmps(_tmps){};
 };
 
 #define VOID_TYPE TypeData(0, 0)
@@ -35,6 +39,13 @@ constexpr size_t STRUCT_SIZE = ARRAY_SIZE;
 constexpr size_t PTR_SIZE = STRUCT_SIZE;
 
 const std::vector<TypeData> AllTypes{VOID_TYPE, INT_TYPE, DOUBLE_TYPE, BOOL_TYPE, STRING_TYPE, CHAR_TYPE, NULL_TYPE};
+const std::unordered_set<TypeID> BuiltInTypeIDs{VOID_TYPE.type,
+                                                INT_TYPE.type,
+                                                DOUBLE_TYPE.type,
+                                                BOOL_TYPE.type,
+                                                STRING_TYPE.type,
+                                                CHAR_TYPE.type,
+                                                NULL_TYPE.type};
 
 #define VOID_ARRAY TypeData(1, 0)
 #define INT_ARRAY TypeData(1, 1)
@@ -57,7 +68,12 @@ namespace std
         {
             std::hash<size_t> st_hasher;
             std::hash<TypeID> type_id_hasher;
-            return st_hasher(t.is_array) ^ type_id_hasher(t.type);
+
+            size_t tmp_hash = 0;
+            for (const auto &tmp : t.tmps)
+                tmp_hash = tmp_hash ^ std::hash<TypeData>()(tmp);
+
+            return st_hasher(t.is_array) ^ type_id_hasher(t.type) ^ tmp_hash;
         }
     };
 }

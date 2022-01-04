@@ -29,6 +29,9 @@ $(OBJ)/%.o: $(SRC)/%.cpp
 $(BIN)/$(EXECUTABLE): $(OBJ_FILES)
 	$(CC) $(ASAN_FLAGS) $^ -o $@ $(LIBRARIES)
 
+clear: clean
+	$(RM) $(OBJ)/*.o
+	
 clean:
 	$(RM) $(BIN)/$(EXECUTABLE)
 

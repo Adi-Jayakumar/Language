@@ -187,14 +187,21 @@ class StructDecl : public Stmt
 {
 public:
     std::string name;
+    TypeData type;
     TypeData parent = VOID_TYPE;
     std::vector<SP<Stmt>> decls;
     std::vector<std::pair<TypeData, std::string>> templates;
-    StructDecl(const std::string &_name, const TypeData &_parent, const std::vector<SP<Stmt>> &_decls, const Token &_loc)
+
+    StructDecl(const std::string &_name,
+               const TypeData &_type,
+               const TypeData &_parent,
+               const std::vector<SP<Stmt>> &_decls,
+               const Token &_loc)
     {
         kind = StmtKind::STRUCT_DECL;
         loc = _loc;
         name = _name;
+        type = _type;
         parent = _parent;
         decls = _decls;
     };
