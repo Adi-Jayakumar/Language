@@ -1,0 +1,134 @@
+program ::= stmt_list
+
+stmt_list ::= stmt_list stmt
+              | stmt
+
+stmt ::= block_stmt
+         | if_stmt
+         | while_stmt
+         | return_stmt
+         | import_stmt
+         | break_stmt
+         | throw_stmt
+         | try_catch_stmt
+         | decl_stmt
+
+############################----START UTILITY GRAMMARS----############################
+
+type ::= default_type_name
+         | array_type
+         | struct_type_name
+         | template_type
+array_type ::= "Array" "<" type ">"
+template_type ::= struct_type_name "<" type_list ">"
+
+type_list ::= type_list "," type
+              | type
+
+identifier_list ::= identifier_list "," iden
+                    | iden
+
+arg_list ::= arg_list arg ","
+             | arg
+
+arg = type iden
+
+############################----END UTILITY GRAMMARS----############################
+
+
+############################----START STMT GRAMMARS----############################
+
+block_stmt ::= "{" stmt_list "}"
+
+if_stmt ::= if_no_else_stmt | if_and_else_stmt
+if_no_else_stmt ::= "if" "(" exp ")" stmt
+if_and_else_stmt ::= "if" "(" exp ")" stmt "else" stmt
+
+while_stmt ::= "while" "(" exp ")" stmt
+
+return_stmt ::= "return" exp ";"
+
+import_stmt ::= "import" identifier_list ";"
+
+break_stmt ::= "break" ";"
+
+throw_stmt ::= "throw" exp ";"
+
+try_catch_stmt ::= "try" "{" stmt_list "}" "catch" "(" type iden ")" "{" stmt_list "}"
+
+############################----END STMT GRAMMARS----############################
+
+decl_stmt ::= var_decl_stmt
+              | func_decl_stmt
+              | struct_decl_stmt
+              | template_decl_stmt
+              | expr_stmt
+
+############################----START DECL GRAMMARS----############################
+
+var_decl_stmt ::= var_decl_without_initialisation | var_decl_with_initialisation
+var_decl_without_initialisation ::= type iden ";"
+var_decl_with_initialisation ::=  type iden "=" exp ";"
+
+func_decl_stmt ::= "function" type iden "(" arg_list ")" ver_condition "{" stmt_list "}" ver_condition
+ver_condition ::= "(|" expr_list "|)"
+
+struct_decl_stmt ::= "struct" type_name "{" var_decl_without_initialisation_list "}"
+var_decl_without_initialisation_list ::= var_decl_without_initialisation_list var_decl_without_initialisation
+                                         | var_decl_without_initialisation
+
+template_decl_stmt ::= "template" "<" identifier_list ">" (func_decl_stmt | struct_decl_stmt)
+
+expr_stmt ::= exp ";"
+
+############################----END DECL GRAMMARS----############################
+
+
+############################----START EXP GRAMMARS----############################
+
+exp ::= or_or_exp
+
+or_or_exp ::= and_and_exp "||" and_and_exp
+
+and_and_exp ::= assignment_exp "&&" assignment_exp
+
+assignment_exp ::= eq_eq_exp
+                   | (eq_eq_exp "=" assignment_exp)
+
+eq_eq_exp ::= comparison_exp ("==" | "!=") comparison_exp
+
+comparison_exp ::= sum_exp (">" | "<" | ">=" | "<=") sum_exp
+
+sum_exp ::= product_exp ("+" | "-") product_exp
+
+product ::= unary_exp ("*" | "/") unary_exp
+
+unary_exp ::= (("-" | "!") unary_exp)
+              | array_index_exp
+
+array_index_exp ::= (identifier | field_access_exp) "[" exp "]"
+
+field_access_exp ::= literal_exp "." literal_exp
+
+literal_exp ::= "null"
+                | type_literal_exp
+                | sequence_exp
+                | function_call_exp
+                | paren_exp
+                | identifier
+                | "result"
+                | braced_initialiser_exp
+
+type_literal_exp ::= num_literal | bool_literal | string_literal
+
+sequence_exp ::= "Sequence" "(" exp "," exp "," exp "," identifier "," exp "," binary_op ")"
+
+function_call_exp ::= function_call_exp | template_function_call_exp
+function_call_exp ::= identifier "(" expr_list ")"
+template_function_call_exp ::= identifier "<" type_list ">" "(" expr_list ")"
+
+paren_exp ::= "(" exp ")"
+
+braced_initialiser_exp ::= (array_type | template_type) "{" expr_list "}"
+
+############################----END EXP GRAMMARS----############################
